@@ -1,0 +1,66 @@
+:root {
+  --glass-bg-primary: rgba(255, 255, 255, 0.74);
+  --glass-bg-secondary: rgba(248, 250, 252, 0.68);
+  --glass-border: 1px solid rgba(255, 255, 255, 0.62);
+  --glass-shadow: 0 16px 38px rgba(0, 0, 0, 0.08);
+  --glass-blur: blur(24px);
+  --glass-text-primary: var(--text-primary);
+  --glass-text-secondary: var(--text-secondary);
+  --glass-accent: rgba(15, 108, 189, 0.12);
+}
+
+html.dark {
+  --glass-bg-primary: rgba(24, 28, 36, 0.76);
+  --glass-bg-secondary: rgba(29, 34, 45, 0.72);
+  --glass-border: 1px solid rgba(255, 255, 255, 0.08);
+  --glass-shadow: 0 18px 44px rgba(0, 0, 0, 0.35);
+  --glass-blur: blur(24px);
+  --glass-text-primary: var(--text-primary);
+  --glass-text-secondary: var(--text-secondary);
+  --glass-accent: rgba(91, 157, 237, 0.18);
+}
+
+/* 通用玻璃拟态类 */
+.glass-effect {
+  background: var(--glass-bg-primary);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  border: var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  color: var(--glass-text-primary);
+}
+
+.glass-card {
+  border-radius: 20px;
+  overflow: hidden;
+  transition: transform 0.28s ease, box-shadow 0.28s ease;
+}
+
+.glass-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 22px 50px rgba(0, 0, 0, 0.12);
+}
+
+/* 侧边栏 - 使用深色背景以确保文字可读性 */
+.glass-sidebar {
+  background: var(--sidebar-surface) !important;
+  border-right: 1px solid var(--sidebar-border);
+}
+
+html.dark .glass-sidebar {
+  background: var(--sidebar-surface) !important;
+  border-right: 1px solid var(--sidebar-border);
+}
+
+/* 顶部栏 - 提高不透明度以确保对比度 */
+.glass-header {
+  background: rgba(255, 255, 255, 0.76) !important;
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.58);
+}
+
+html.dark .glass-header {
+  background: rgba(24, 28, 36, 0.82) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}

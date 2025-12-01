@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="drawio" version="26.0.0">
+  <diagram name="数据存储协同结构图">
+    <mxGraphModel dx="1600" dy="1200" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="1600" pageHeight="1200" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- 标题 -->
+        <mxCell id="title" value="&lt;b&gt;&lt;font style=&quot;font-size:18px&quot;&gt;数据存储协同结构图&lt;/font&gt;&lt;/b&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="340" y="10" width="220" height="36" as="geometry" />
+        </mxCell>
+
+        <!-- ========== 应用层 ========== -->
+        <mxCell id="app_layer" value="&lt;b&gt;应用服务层&lt;/b&gt;" style="swimlane;startSize=28;fillColor=#d5e8d4;strokeColor=#82b366;rounded=1;html=1;fontSize=13;container=1;collapsible=0;" vertex="1" parent="1">
+          <mxGeometry x="100" y="60" width="700" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="app1" value="&lt;b&gt;Django ORM&lt;/b&gt;&lt;br&gt;事务数据读写" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#82b366;fontSize=11;" vertex="1" parent="app_layer">
+          <mxGeometry x="20" y="36" width="130" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="app2" value="&lt;b&gt;Neo4j Driver&lt;/b&gt;&lt;br&gt;图谱查询/推理" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#82b366;fontSize=11;" vertex="1" parent="app_layer">
+          <mxGeometry x="180" y="36" width="130" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="app3" value="&lt;b&gt;AI Services&lt;/b&gt;&lt;br&gt;LLM/KT/RAG" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#82b366;fontSize=11;" vertex="1" parent="app_layer">
+          <mxGeometry x="340" y="36" width="130" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="app4" value="&lt;b&gt;File Handler&lt;/b&gt;&lt;br&gt;资源上传/下载" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#82b366;fontSize=11;" vertex="1" parent="app_layer">
+          <mxGeometry x="540" y="36" width="130" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- ========== PostgreSQL 存储区 ========== -->
+        <mxCell id="pg_zone" value="&lt;b&gt;PostgreSQL (事务型关系数据)&lt;/b&gt;" style="swimlane;startSize=28;fillColor=#dae8fc;strokeColor=#6c8ebf;rounded=1;html=1;fontSize=13;container=1;collapsible=0;" vertex="1" parent="1">
+          <mxGeometry x="30" y="240" width="380" height="340" as="geometry" />
+        </mxCell>
+        <mxCell id="pg1" value="&lt;b&gt;用户表&lt;/b&gt;&lt;br&gt;User / ActivationCode&lt;br&gt;ClassInvitation / HabitPreference" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6c8ebf;fontSize=10;" vertex="1" parent="pg_zone">
+          <mxGeometry x="20" y="36" width="160" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="pg2" value="&lt;b&gt;课程表&lt;/b&gt;&lt;br&gt;Course / Class&lt;br&gt;ClassCourse / Enrollment" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6c8ebf;fontSize=10;" vertex="1" parent="pg_zone">
+          <mxGeometry x="200" y="36" width="160" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="pg3" value="&lt;b&gt;知识点表&lt;/b&gt;&lt;br&gt;KnowledgePoint / KnowledgeRelation&lt;br&gt;Resource / KnowledgeMastery" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6c8ebf;fontSize=10;" vertex="1" parent="pg_zone">
+          <mxGeometry x="20" y="100" width="200" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="pg4" value="&lt;b&gt;测评表&lt;/b&gt;&lt;br&gt;Question / Assessment&lt;br&gt;AssessmentResult / AbilityScore" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6c8ebf;fontSize=10;" vertex="1" parent="pg_zone">
+          <mxGeometry x="20" y="166" width="170" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="pg5" value="&lt;b&gt;学习路径表&lt;/b&gt;&lt;br&gt;LearningPath / PathNode&lt;br&gt;NodeProgress" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6c8ebf;fontSize=10;" vertex="1" parent="pg_zone">
+          <mxGeometry x="200" y="166" width="160" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="pg6" value="&lt;b&gt;考试表&lt;/b&gt;&lt;br&gt;Exam / ExamSubmission&lt;br&gt;FeedbackReport" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6c8ebf;fontSize=10;" vertex="1" parent="pg_zone">
+          <mxGeometry x="20" y="232" width="160" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="pg7" value="&lt;b&gt;日志表&lt;/b&gt;&lt;br&gt;OperationLog / LLMCallLog" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#6c8ebf;fontSize=10;" vertex="1" parent="pg_zone">
+          <mxGeometry x="200" y="232" width="160" height="55" as="geometry" />
+        </mxCell>
+        <mxCell id="pg8" value="&lt;b&gt;Django ORM&lt;/b&gt; 管理" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=10;fontStyle=2;fontColor=#6c8ebf;" vertex="1" parent="pg_zone">
+          <mxGeometry x="120" y="300" width="120" height="30" as="geometry" />
+        </mxCell>
+
+        <!-- ========== Neo4j 存储区 ========== -->
+        <mxCell id="neo_zone" value="&lt;b&gt;Neo4j (图结构知识数据)&lt;/b&gt;" style="swimlane;startSize=28;fillColor=#d5e8d4;strokeColor=#82b366;rounded=1;html=1;fontSize=13;container=1;collapsible=0;" vertex="1" parent="1">
+          <mxGeometry x="440" y="240" width="260" height="340" as="geometry" />
+        </mxCell>
+        <mxCell id="neo1" value="&lt;b&gt;知识点节点&lt;/b&gt;&lt;br&gt;(:KnowledgePoint)&lt;br&gt;&lt;font style=&quot;font-size:9px&quot;&gt;name, course_id, level&lt;br&gt;chapter, point_type&lt;/font&gt;" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#82b366;fontSize=11;" vertex="1" parent="neo_zone">
+          <mxGeometry x="45" y="40" width="170" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="neo2" value="&lt;b&gt;[:PREREQUISITE]&lt;/b&gt;&lt;br&gt;先修关系" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#82b366;fontSize=10;" vertex="1" parent="neo_zone">
+          <mxGeometry x="20" y="140" width="100" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="neo3" value="&lt;b&gt;[:PART_OF]&lt;/b&gt;&lt;br&gt;组成关系" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#82b366;fontSize=10;" vertex="1" parent="neo_zone">
+          <mxGeometry x="140" y="140" width="100" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="neo4" value="&lt;b&gt;[:RELATED]&lt;/b&gt;&lt;br&gt;关联关系" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#82b366;fontSize=10;" vertex="1" parent="neo_zone">
+          <mxGeometry x="20" y="200" width="100" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="neo5" value="&lt;b&gt;[:INCLUDES]&lt;/b&gt;&lt;br&gt;包含关系" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#82b366;fontSize=10;" vertex="1" parent="neo_zone">
+          <mxGeometry x="140" y="200" width="100" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="neo6" value="&lt;font style=&quot;font-size:10px&quot;&gt;&lt;b&gt;Cypher&lt;/b&gt; 查询&lt;br&gt;路径遍历 / BFS&lt;br&gt;传递闭包 / 图推理&lt;/font&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontColor=#82b366;" vertex="1" parent="neo_zone">
+          <mxGeometry x="55" y="260" width="120" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- ========== 文件存储区 ========== -->
+        <mxCell id="file_zone" value="&lt;b&gt;文件存储 (media/)&lt;/b&gt;" style="swimlane;startSize=28;fillColor=#fff2cc;strokeColor=#d6b656;rounded=1;html=1;fontSize=13;container=1;collapsible=0;" vertex="1" parent="1">
+          <mxGeometry x="730" y="240" width="200" height="170" as="geometry" />
+        </mxCell>
+        <mxCell id="file1" value="课程封面图片" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#d6b656;fontSize=10;" vertex="1" parent="file_zone">
+          <mxGeometry x="20" y="36" width="160" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="file2" value="学习资源 (视频/文档)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#d6b656;fontSize=10;" vertex="1" parent="file_zone">
+          <mxGeometry x="20" y="72" width="160" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="file3" value="用户头像" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#d6b656;fontSize=10;" vertex="1" parent="file_zone">
+          <mxGeometry x="20" y="108" width="160" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="file4" value="课程导入/导出包 (ZIP)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#d6b656;fontSize=10;" vertex="1" parent="file_zone">
+          <mxGeometry x="20" y="136" width="160" height="28" as="geometry" />
+        </mxCell>
+
+        <!-- ========== 模型文件存储区 ========== -->
+        <mxCell id="model_zone" value="&lt;b&gt;模型存储 (models/)&lt;/b&gt;" style="swimlane;startSize=28;fillColor=#e1d5e7;strokeColor=#9673a6;rounded=1;html=1;fontSize=13;container=1;collapsible=0;" vertex="1" parent="1">
+          <mxGeometry x="730" y="440" width="200" height="140" as="geometry" />
+        </mxCell>
+        <mxCell id="model1" value="DKT 模型 (.pt)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#9673a6;fontSize=10;" vertex="1" parent="model_zone">
+          <mxGeometry x="20" y="36" width="160" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="model2" value="MEFKT 模型 (.pt)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#9673a6;fontSize=10;" vertex="1" parent="model_zone">
+          <mxGeometry x="20" y="72" width="160" height="28" as="geometry" />
+        </mxCell>
+        <mxCell id="model3" value="GraphRAG 索引文件" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#9673a6;fontSize=10;" vertex="1" parent="model_zone">
+          <mxGeometry x="20" y="108" width="160" height="28" as="geometry" />
+        </mxCell>
+
+        <!-- ========== 协同关系连线 ========== -->
+
+        <!-- 应用层 -> PostgreSQL -->
+        <mxCell id="c1" value="&lt;font style=&quot;font-size:9px&quot;&gt;Django ORM&lt;/font&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.15;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#6c8ebf;strokeWidth=2;" edge="1" parent="1" source="app_layer" target="pg_zone">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- 应用层 -> Neo4j -->
+        <mxCell id="c2" value="&lt;font style=&quot;font-size:9px&quot;&gt;Neo4j Driver&lt;/font&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#82b366;strokeWidth=2;" edge="1" parent="1" source="app_layer" target="neo_zone">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- 应用层 -> 文件 -->
+        <mxCell id="c3" value="&lt;font style=&quot;font-size:9px&quot;&gt;文件 I/O&lt;/font&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.85;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#d6b656;strokeWidth=2;" edge="1" parent="1" source="app_layer" target="file_zone">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- 应用层 -> 模型文件 -->
+        <mxCell id="c4" value="&lt;font style=&quot;font-size:9px&quot;&gt;PyTorch Load&lt;/font&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=1;exitDx=0;exitDy=0;entryX=1;entryY=0;entryDx=0;entryDy=0;strokeColor=#9673a6;strokeWidth=2;dashed=1;" edge="1" parent="1" source="app_layer" target="model_zone">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="830" y="180" />
+              <mxPoint x="950" y="180" />
+              <mxPoint x="950" y="440" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- PG <-> Neo4j 双向同步 -->
+        <mxCell id="c5" value="&lt;font style=&quot;font-size:9px&quot;&gt;知识图谱同步&lt;br&gt;(sync_knowledge_graph)&lt;/font&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeColor=#B85450;strokeWidth=2;startArrow=classic;startFill=1;" edge="1" parent="1" source="pg_zone" target="neo_zone">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- 降级说明 -->
+        <mxCell id="fallback" value="&lt;font style=&quot;font-size:10px&quot;&gt;&lt;b&gt;降级机制:&lt;/b&gt; Neo4j 不可用时&lt;br&gt;自动回退到 PostgreSQL 查询&lt;/font&gt;" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;size=15;fillColor=#f8cecc;strokeColor=#b85450;fontSize=10;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="457" y="600" width="226" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="c6" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=-15;entryX=0.5;entryY=1;entryDx=0;entryDy=0;strokeColor=#b85450;dashed=1;" edge="1" parent="1" source="fallback" target="neo_zone">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

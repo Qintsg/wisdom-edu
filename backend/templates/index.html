@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>自适应学习系统 - API服务</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            padding: 40px 50px;
+            max-width: 800px;
+            width: 100%;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .logo {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+
+        h1 {
+            color: #1a1a2e;
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 16px;
+        }
+
+        .description {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .description p {
+            color: #333;
+            line-height: 1.8;
+        }
+
+        .links {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .link-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .link-card:hover {
+            transform: translateY(-5px);
+            border-color: #667eea;
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.2);
+        }
+
+        .link-card .icon {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .link-card h3 {
+            color: #1a1a2e;
+            font-size: 18px;
+            margin-bottom: 8px;
+        }
+
+        .link-card p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .features {
+            border-top: 1px solid #eee;
+            padding-top: 30px;
+        }
+
+        .features h2 {
+            color: #1a1a2e;
+            font-size: 20px;
+            margin-bottom: 20px;
+        }
+
+        .feature-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .feature-item .check {
+            color: #10b981;
+            font-size: 18px;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .status {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #d4edda;
+            color: #155724;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #28a745;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">📚</div>
+            <h1>自适应学习系统</h1>
+            <p class="subtitle">知识图谱驱动的个性化自适应学习系统</p>
+            <div class="status">
+                <span class="status-dot"></span>
+                服务运行中
+            </div>
+        </div>
+
+        <div class="description">
+            <p>
+                自适应学习系统是一个知识图谱驱动的个性化自适应学习系统，通过AI驱动的学习路径规划和精准的学习者画像分析，
+                为每位学生提供定制化的学习体验。系统支持教师端资源管理、题库管理、考试发布，以及学生端的自适应学习路径推荐。
+            </p>
+        </div>
+
+        <div class="links">
+            <a href="/api/docs/" class="link-card">
+                <div class="icon">📖</div>
+                <h3>API文档</h3>
+                <p>Swagger交互式API文档</p>
+            </a>
+            <a href="/api/redoc/" class="link-card">
+                <div class="icon">📋</div>
+                <h3>ReDoc文档</h3>
+                <p>ReDoc格式API文档</p>
+            </a>
+            <a href="/admin/" class="link-card">
+                <div class="icon">⚙️</div>
+                <h3>管理后台</h3>
+                <p>Django Admin管理界面</p>
+            </a>
+            <a href="/docs/" class="link-card">
+                <div class="icon">📁</div>
+                <h3>项目文档</h3>
+                <p>系统架构与使用说明</p>
+            </a>
+        </div>
+
+        <div class="features">
+            <h2>系统功能模块</h2>
+            <div class="feature-list">
+                <div class="feature-item">
+                    <span class="check">✓</span>
+                    <span>用户认证</span>
+                </div>
+                <div class="feature-item">
+                    <span class="check">✓</span>
+                    <span>课程管理</span>
+                </div>
+                <div class="feature-item">
+                    <span class="check">✓</span>
+                    <span>知识图谱</span>
+                </div>
+                <div class="feature-item">
+                    <span class="check">✓</span>
+                    <span>初始测评</span>
+                </div>
+                <div class="feature-item">
+                    <span class="check">✓</span>
+                    <span>学习者画像</span>
+                </div>
+                <div class="feature-item">
+                    <span class="check">✓</span>
+                    <span>学习路径</span>
+                </div>
+                <div class="feature-item">
+                    <span class="check">✓</span>
+                    <span>在线考试</span>
+                </div>
+                <div class="feature-item">
+                    <span class="check">✓</span>
+                    <span>反馈报告</span>
+                </div>
+                <div class="feature-item">
+                    <span class="check">✓</span>
+                    <span>AI智能推荐</span>
+                </div>
+                <div class="feature-item">
+                    <span class="check">✓</span>
+                    <span>教师端管理</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Adaptive Learning System v2.0 | Python 3.12 + Django 5 + DRF + Neo4j</p>
+        </div>
+    </div>
+</body>
+
+</html>

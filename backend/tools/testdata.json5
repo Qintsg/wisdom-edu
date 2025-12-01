@@ -1,0 +1,379 @@
+{
+    // ============================================
+    // 自适应学习系统 - 测试数据配置文件
+    // ============================================
+    // 
+    // 本文件包含系统测试所需的所有测试数据
+    // 格式：JSON5（支持注释和尾随逗号）
+    // 
+    // 使用方法：
+    //   python test.py create_test_data  # 根据此文件创建测试数据
+    // 
+
+    // ============================================
+    // 用户数据
+    // ============================================
+    "users": {
+        // 管理员账号
+        "admin": {
+            "username": "admin",
+            "password": "Admin123456",
+            "email": "admin@example.com",
+            "role": "admin",
+            "description": "系统管理员账号"
+        },
+
+        // 教师账号列表
+        "teachers": [
+            {
+                "username": "teacher1",
+                "password": "Test123456",
+                "email": "teacher@example.com",
+                "role": "teacher",
+                "real_name": "张老师",
+                "description": "大数据课程主讲教师"
+            },
+            {
+                "username": "teacher2",
+                "password": "Test123456",
+                "email": "teacher2@example.com",
+                "role": "teacher",
+                "real_name": "李老师",
+                "description": "机器学习课程主讲教师"
+            }
+        ],
+
+        // 学生账号列表
+        "students": [
+            {
+                "username": "student1",
+                "password": "Test123456",
+                "email": "student1@example.com",
+                "role": "student",
+                "real_name": "学生1",
+                "student_id": "20240001"
+            },
+            {
+                "username": "student2",
+                "password": "Test123456",
+                "email": "student2@example.com",
+                "role": "student",
+                "real_name": "学生2",
+                "student_id": "20240002"
+            },
+            {
+                "username": "student3",
+                "password": "Test123456",
+                "email": "student3@example.com",
+                "role": "student",
+                "real_name": "学生3",
+                "student_id": "20240003"
+            },
+            {
+                "username": "student4",
+                "password": "Test123456",
+                "email": "student4@example.com",
+                "role": "student",
+                "real_name": "学生4",
+                "student_id": "20240004"
+            },
+            {
+                "username": "student5",
+                "password": "Test123456",
+                "email": "student5@example.com",
+                "role": "student",
+                "real_name": "学生5",
+                "student_id": "20240005"
+            }
+        ]
+    },
+
+    // ============================================
+    // 学习习惯偏好数据
+    // ============================================
+    "habit_preferences": [
+        {
+            "student_index": 0,
+            "preferred_resource": "video",
+            "preferred_study_time": "evening",
+            "study_pace": "moderate",
+            "study_duration": "medium",
+            "review_frequency": "weekly",
+            "learning_style": "visual",
+            "accept_challenge": true,
+            "daily_goal_minutes": 60,
+            "weekly_goal_days": 5,
+            "reminder_settings": {"enabled": true, "frequency": "daily"}
+        },
+        {
+            "student_index": 1,
+            "preferred_resource": "document",
+            "preferred_study_time": "morning",
+            "study_pace": "slow",
+            "study_duration": "long",
+            "review_frequency": "daily",
+            "learning_style": "reading",
+            "accept_challenge": false,
+            "daily_goal_minutes": 90,
+            "weekly_goal_days": 7,
+            "reminder_settings": {"enabled": true, "frequency": "weekly"}
+        },
+        {
+            "student_index": 2,
+            "preferred_resource": "exercise",
+            "preferred_study_time": "afternoon",
+            "study_pace": "fast",
+            "study_duration": "short",
+            "review_frequency": "before_exam",
+            "learning_style": "kinesthetic",
+            "accept_challenge": true,
+            "daily_goal_minutes": 30,
+            "weekly_goal_days": 3,
+            "reminder_settings": {"enabled": false, "frequency": "never"}
+        },
+        {
+            "student_index": 3,
+            "preferred_resource": "video",
+            "preferred_study_time": "morning",
+            "study_pace": "adaptive",
+            "study_duration": "medium",
+            "review_frequency": "spaced",
+            "learning_style": "auditory",
+            "accept_challenge": true,
+            "daily_goal_minutes": 60,
+            "weekly_goal_days": 5,
+            "reminder_settings": {"enabled": true, "frequency": "daily"}
+        },
+        {
+            "student_index": 4,
+            "preferred_resource": "mixed",
+            "preferred_study_time": "evening",
+            "study_pace": "moderate",
+            "study_duration": "long",
+            "review_frequency": "weekly",
+            "learning_style": "visual",
+            "accept_challenge": true,
+            "daily_goal_minutes": 120,
+            "weekly_goal_days": 5,
+            "reminder_settings": {"enabled": true, "frequency": "weekly"}
+        }
+    ],
+
+    // ============================================
+    // 激活码数据
+    // ============================================
+    "activation_codes": [
+        {
+            "code": "TEACHER1",
+            "code_type": "teacher",
+            "remark": "测试用教师激活码"
+        },
+        {
+            "code": "ADMIN001",
+            "code_type": "admin",
+            "remark": "测试用管理员激活码"
+        }
+    ],
+
+    // ============================================
+    // 课程数据
+    // ============================================
+    "courses": [
+        {
+            "name": "大数据技术与应用",
+            "description": "本课程介绍大数据的基本概念、技术架构和应用场景。涵盖Hadoop、Spark等主流大数据技术。",
+            "is_public": true,
+            "initial_assessment_count": 10,
+            "teacher_index": 0  // 使用第一个教师
+        },
+        {
+            "name": "机器学习导论",
+            "description": "本课程介绍监督学习、神经网络和模型评估等核心内容。",
+            "is_public": true,
+            "initial_assessment_count": 8,
+            "teacher_index": 1
+        },
+        {
+            "name": "数据可视化基础",
+            "description": "本课程覆盖可视化设计原则、常用图表和交互式分析。",
+            "is_public": true,
+            "initial_assessment_count": 8,
+            "teacher_index": 0
+        }
+    ],
+
+    // ============================================
+    // 班级数据
+    // ============================================
+    "classes": [
+        {
+            "name": "2024春季班",
+            "description": "2024年春季学期教学班级",
+            "semester": "2024春",
+            "teacher_index": 0,
+            "course_indices": [0]  // 大数据技术与应用
+        },
+        {
+            "name": "2024机器学习班",
+            "description": "机器学习导论实践班级",
+            "semester": "2024春",
+            "teacher_index": 1,
+            "course_indices": [0, 1, 2]  // 大数据 + 机器学习 + 可视化
+        }
+    ],
+
+    // ============================================
+    // 班级邀请码数据
+    // ============================================
+    "class_invitations": [
+        {
+            "code": "JOIN01",
+            "class_index": 0,
+            "max_uses": 50
+        },
+        {
+            "code": "JOIN02",
+            "class_index": 0,
+            "max_uses": 30
+        }
+    ],
+
+    // ============================================
+    // 知识点、题库、资源等课程数据
+    // create_test_data 会根据下列最小种子数据生成多课程基础闭环
+    // ============================================
+    "course_seed_content": {
+        "大数据技术与应用": {
+            "knowledge_points": [
+                {"key": "bd_intro", "name": "大数据概述", "chapter": "第1章", "description": "理解大数据基本概念与应用场景"},
+                {"key": "bd_hadoop", "name": "Hadoop 生态", "chapter": "第2章", "description": "理解 HDFS 与 MapReduce 的定位"},
+                {"key": "bd_spark", "name": "Spark 基础", "chapter": "第3章", "description": "掌握 Spark 核心组件与计算模型"}
+            ],
+            "relations": [
+                {"pre": "bd_intro", "post": "bd_hadoop"},
+                {"pre": "bd_hadoop", "post": "bd_spark"}
+            ],
+            "resources": [
+                {"title": "大数据课程导读", "type": "document", "point_keys": ["bd_intro"], "chapter_number": "1.1", "description": "课程整体导读资料"},
+                {"title": "Hadoop 架构概览", "type": "document", "point_keys": ["bd_hadoop"], "chapter_number": "2.1", "description": "Hadoop 架构与组件说明"},
+                {"title": "Spark 入门视频", "type": "video", "point_keys": ["bd_spark"], "chapter_number": "3.1", "description": "Spark 基础快速入门视频"}
+            ],
+            "questions": [
+                {"content": "以下哪一项最符合大数据的特征？", "point_keys": ["bd_intro"], "options": [{"label": "A", "content": "容量大"}, {"label": "B", "content": "速度快"}, {"label": "C", "content": "多样性"}, {"label": "D", "content": "以上都是"}], "answer": {"answer": "D"}, "analysis": "大数据通常强调 4V 等特征。"},
+                {"content": "HDFS 主要解决的是哪类问题？", "point_keys": ["bd_hadoop"], "options": [{"label": "A", "content": "分布式存储"}, {"label": "B", "content": "图像识别"}, {"label": "C", "content": "模型训练"}, {"label": "D", "content": "事务处理"}], "answer": {"answer": "A"}, "analysis": "HDFS 是 Hadoop 的分布式文件系统。"},
+                {"content": "Spark 相比传统 MapReduce 更强调内存计算。", "question_type": "true_false", "point_keys": ["bd_spark"], "options": [], "answer": {"answer": true}, "analysis": "Spark 的核心优势之一是以内存计算提升迭代效率。"}
+            ]
+        },
+        "机器学习导论": {
+            "knowledge_points": [
+                {"key": "ml_intro", "name": "机器学习概述", "chapter": "第1章", "description": "理解机器学习基本任务"},
+                {"key": "ml_supervised", "name": "监督学习", "chapter": "第2章", "description": "理解分类与回归问题"},
+                {"key": "ml_eval", "name": "模型评估", "chapter": "第3章", "description": "掌握准确率与召回率等指标"}
+            ],
+            "relations": [
+                {"pre": "ml_intro", "post": "ml_supervised"},
+                {"pre": "ml_supervised", "post": "ml_eval"}
+            ],
+            "resources": [
+                {"title": "机器学习课程导论", "type": "document", "point_keys": ["ml_intro"], "chapter_number": "1.1", "description": "机器学习问题分类导读"},
+                {"title": "监督学习案例解析", "type": "document", "point_keys": ["ml_supervised"], "chapter_number": "2.1", "description": "监督学习基础案例"},
+                {"title": "模型评估指标说明", "type": "link", "point_keys": ["ml_eval"], "chapter_number": "3.1", "description": "模型评估相关外部资料"}
+            ],
+            "questions": [
+                {"content": "监督学习通常需要什么样的数据？", "point_keys": ["ml_supervised"], "options": [{"label": "A", "content": "带标签数据"}, {"label": "B", "content": "无标签数据"}, {"label": "C", "content": "仅图像数据"}, {"label": "D", "content": "仅文本数据"}], "answer": {"answer": "A"}, "analysis": "监督学习依赖带标签样本。"},
+                {"content": "准确率和召回率都属于模型评估指标。", "question_type": "true_false", "point_keys": ["ml_eval"], "options": [], "answer": {"answer": true}, "analysis": "它们都是分类任务中的常用评估指标。"}
+            ]
+        },
+        "数据可视化基础": {
+            "knowledge_points": [
+                {"key": "viz_principle", "name": "可视化设计原则", "chapter": "第1章", "description": "理解清晰表达与信息负载平衡"},
+                {"key": "viz_chart", "name": "常用图表", "chapter": "第2章", "description": "掌握柱状图、折线图等基础图表"},
+                {"key": "viz_story", "name": "数据叙事", "chapter": "第3章", "description": "理解图表组织与故事线设计"}
+            ],
+            "relations": [
+                {"pre": "viz_principle", "post": "viz_chart"},
+                {"pre": "viz_chart", "post": "viz_story"}
+            ],
+            "resources": [
+                {"title": "可视化原则速览", "type": "document", "point_keys": ["viz_principle"], "chapter_number": "1.1", "description": "可视化设计原则简介"},
+                {"title": "基础图表实战", "type": "video", "point_keys": ["viz_chart"], "chapter_number": "2.1", "description": "常用图表制作示例"},
+                {"title": "数据叙事案例", "type": "document", "point_keys": ["viz_story"], "chapter_number": "3.1", "description": "典型数据叙事结构案例"}
+            ],
+            "questions": [
+                {"content": "以下哪类图表更适合展示时间趋势？", "point_keys": ["viz_chart"], "options": [{"label": "A", "content": "折线图"}, {"label": "B", "content": "饼图"}, {"label": "C", "content": "词云"}, {"label": "D", "content": "矩阵图"}], "answer": {"answer": "A"}, "analysis": "折线图适合表示随时间变化的趋势。"}
+            ]
+        }
+    },
+
+    // ============================================
+    // 问卷题目数据（与 assessments/views.py 的自动创建逻辑一致）
+    // ============================================
+    // 习惯问卷（10题）和能力C-WAIS量表（16题）由后端自动创建默认题目
+    "survey_questions": {
+        "habit": [],
+        "ability": []
+    },
+
+    // ============================================
+    // Neo4j专用知识图谱测试数据
+    // ============================================
+    // 这部分数据直接导入Neo4j，不进入PostgreSQL
+    "neo4j_knowledge_graph": [
+        {
+            // 大数据技术与应用 - 知识图谱
+            "course_id": 1,
+            "course_name": "大数据技术与应用",
+            "points": [
+                {"id": 101, "name": "大数据概述", "chapter": "第一章", "point_type": "knowledge", "level": 1, "description": "大数据基本概念"},
+                {"id": 102, "name": "Hadoop生态系统", "chapter": "第二章", "point_type": "knowledge", "level": 1, "description": "Hadoop核心组件"},
+                {"id": 103, "name": "HDFS分布式存储", "chapter": "第二章", "point_type": "knowledge", "level": 2, "description": "HDFS架构原理"},
+                {"id": 104, "name": "MapReduce编程", "chapter": "第三章", "point_type": "skill", "level": 2, "description": "MapReduce编程模型"},
+                {"id": 105, "name": "Spark基础", "chapter": "第四章", "point_type": "knowledge", "level": 1, "description": "Spark核心概念"},
+                {"id": 106, "name": "Spark SQL", "chapter": "第四章", "point_type": "skill", "level": 2, "description": "Spark SQL数据分析"}
+            ],
+            "relations": [
+                {"pre_id": 101, "post_id": 102, "type": "prerequisite"},
+                {"pre_id": 102, "post_id": 103, "type": "prerequisite"},
+                {"pre_id": 102, "post_id": 104, "type": "prerequisite"},
+                {"pre_id": 103, "post_id": 105, "type": "prerequisite"},
+                {"pre_id": 105, "post_id": 106, "type": "prerequisite"}
+            ]
+        },
+        {
+            // 机器学习导论 - 知识图谱
+            "course_id": 3,
+            "course_name": "机器学习导论",
+            "points": [
+                {"id": 301, "name": "机器学习概述", "chapter": "第一章", "point_type": "knowledge", "level": 1, "description": "ML基本概念"},
+                {"id": 302, "name": "监督学习", "chapter": "第二章", "point_type": "knowledge", "level": 1, "description": "分类与回归"},
+                {"id": 303, "name": "决策树", "chapter": "第二章", "point_type": "knowledge", "level": 2, "description": "决策树算法"},
+                {"id": 304, "name": "神经网络", "chapter": "第三章", "point_type": "knowledge", "level": 2, "description": "神经网络基础"},
+                {"id": 305, "name": "深度学习", "chapter": "第四章", "point_type": "knowledge", "level": 3, "description": "深度神经网络"},
+                {"id": 306, "name": "模型评估", "chapter": "第五章", "point_type": "skill", "level": 2, "description": "模型评估方法"}
+            ],
+            "relations": [
+                {"pre_id": 301, "post_id": 302, "type": "prerequisite"},
+                {"pre_id": 302, "post_id": 303, "type": "prerequisite"},
+                {"pre_id": 302, "post_id": 304, "type": "prerequisite"},
+                {"pre_id": 304, "post_id": 305, "type": "prerequisite"},
+                {"pre_id": 302, "post_id": 306, "type": "prerequisite"}
+            ]
+        }
+    ],
+
+    // ============================================
+    // 元信息
+    // ============================================
+    "_meta": {
+        "version": "1.0.0",
+        "description": "自适应学习系统测试数据（仅含用户/课程/班级等基础数据）",
+        "author": "自适应学习系统团队",
+        "last_updated": "2025-07-14",
+        "notes": {
+            "postgresql": "用户、课程、班级、激活码等基础数据存储在PostgreSQL",
+            "neo4j": "知识图谱(知识点、关系)存储在Neo4j图数据库",
+            "surveys": "习惯问卷和能力量表由后端API自动创建默认题目",
+            "course_data": "知识点、题库、资源等课程数据请通过 python tools.py bootstrap-course-assets 命令导入"
+        }
+    }
+}

@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>项目文档 - 自适应学习系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f5f5f5;
+            line-height: 1.8;
+            color: #333;
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 30px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .navbar h1 {
+            font-size: 20px;
+        }
+
+        .navbar a {
+            color: white;
+            text-decoration: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            transition: background 0.3s;
+        }
+
+        .navbar a:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 80px auto 40px;
+            padding: 20px;
+        }
+
+        .content {
+            background: white;
+            border-radius: 10px;
+            padding: 40px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            color: #1a1a2e;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        h3 {
+            color: #333;
+            margin-top: 25px;
+            margin-bottom: 10px;
+        }
+
+        p {
+            margin-bottom: 15px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+        }
+
+        tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+
+        code {
+            background: #f1f1f1;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 14px;
+        }
+
+        pre {
+            background: #1a1a2e;
+            color: #f8f8f2;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+
+        pre code {
+            background: none;
+            padding: 0;
+            color: inherit;
+        }
+
+        .highlight {
+            color: #667eea;
+        }
+
+        ul,
+        ol {
+            margin: 15px 0 15px 30px;
+        }
+
+        li {
+            margin-bottom: 8px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar">
+        <h1>📚 自适应学习系统 - 项目文档</h1>
+        <div class="nav-links">
+            <a href="/">首页</a>
+            <a href="/api/docs/">API文档</a>
+            <a href="/admin/">管理后台</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="content">
+            <h2>项目概述</h2>
+            <p>
+                自适应学习系统是一个知识图谱驱动的个性化自适应学习系统，采用前后端分离架构。后端使用Python + Django + Django REST Framework构建，
+                数据库采用PostgreSQL存储关系数据，Neo4j存储知识图谱数据。系统通过LangChain框架集成大语言模型（通义千问/DeepSeek），
+                实现智能化的学习者画像分析和学习路径推荐。
+            </p>
+
+            <h2>系统架构</h2>
+            <h3>技术栈</h3>
+            <ul>
+                <li><strong>后端框架:</strong> Python 3.12 + Django 5.2 + Django REST Framework</li>
+                <li><strong>数据库:</strong> PostgreSQL（关系数据）+ Neo4j（知识图谱，完全存储）</li>
+                <li><strong>认证:</strong> JWT (djangorestframework-simplejwt)</li>
+                <li><strong>AI框架:</strong> LangChain (支持通义千问/DeepSeek)</li>
+                <li><strong>API文档:</strong> drf-spectacular (OpenAPI 3.0)</li>
+            </ul>
+
+            <h3>模块划分</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>模块</th>
+                        <th>路径</th>
+                        <th>功能描述</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>用户模块</td>
+                        <td>users/</td>
+                        <td>用户认证、权限管理、学习偏好</td>
+                    </tr>
+                    <tr>
+                        <td>课程模块</td>
+                        <td>courses/</td>
+                        <td>课程、班级、选课管理</td>
+                    </tr>
+                    <tr>
+                        <td>知识图谱模块</td>
+                        <td>knowledge/</td>
+                        <td>知识点、关系、资源、掌握度</td>
+                    </tr>
+                    <tr>
+                        <td>测评模块</td>
+                        <td>assessments/</td>
+                        <td>题库、测评、能力评分</td>
+                    </tr>
+                    <tr>
+                        <td>学习路径模块</td>
+                        <td>learning/</td>
+                        <td>学习路径、节点、进度</td>
+                    </tr>
+                    <tr>
+                        <td>考试模块</td>
+                        <td>exams/</td>
+                        <td>考试、提交、反馈报告</td>
+                    </tr>
+                    <tr>
+                        <td>AI服务模块</td>
+                        <td>ai_services/</td>
+                        <td>大模型调用、智能分析</td>
+                    </tr>
+                    <tr>
+                        <td>公共模块</td>
+                        <td>common/</td>
+                        <td>工具函数、权限类、响应格式</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h2>API端点</h2>
+            <h3>认证模块 (/api/auth/*)</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>方法</th>
+                        <th>路径</th>
+                        <th>描述</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>POST</td>
+                        <td>/api/auth/register</td>
+                        <td>用户注册</td>
+                    </tr>
+                    <tr>
+                        <td>POST</td>
+                        <td>/api/auth/login</td>
+                        <td>用户登录</td>
+                    </tr>
+                    <tr>
+                        <td>GET</td>
+                        <td>/api/auth/userinfo</td>
+                        <td>获取用户信息</td>
+                    </tr>
+                    <tr>
+                        <td>PUT</td>
+                        <td>/api/auth/userinfo/update</td>
+                        <td>更新用户信息</td>
+                    </tr>
+                    <tr>
+                        <td>POST</td>
+                        <td>/api/auth/token/refresh</td>
+                        <td>刷新令牌</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>学生模块 (/api/student/*)</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>方法</th>
+                        <th>路径</th>
+                        <th>描述</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>GET</td>
+                        <td>/api/student/assessments/status</td>
+                        <td>获取测评状态</td>
+                    </tr>
+                    <tr>
+                        <td>GET</td>
+                        <td>/api/student/assessments/initial/knowledge</td>
+                        <td>获取知识测评题目</td>
+                    </tr>
+                    <tr>
+                        <td>POST</td>
+                        <td>/api/student/assessments/initial/knowledge/submit</td>
+                        <td>提交知识测评</td>
+                    </tr>
+                    <tr>
+                        <td>GET</td>
+                        <td>/api/student/assessments/initial/ability</td>
+                        <td>获取能力测评题目</td>
+                    </tr>
+                    <tr>
+                        <td>POST</td>
+                        <td>/api/student/assessments/initial/ability/submit</td>
+                        <td>提交能力测评</td>
+                    </tr>
+                    <tr>
+                        <td>GET</td>
+                        <td>/api/student/assessments/initial/habit</td>
+                        <td>获取习惯问卷</td>
+                    </tr>
+                    <tr>
+                        <td>POST</td>
+                        <td>/api/student/assessments/initial/habit/submit</td>
+                        <td>提交习惯问卷</td>
+                    </tr>
+                    <tr>
+                        <td>POST</td>
+                        <td>/api/student/assessments/profile/generate</td>
+                        <td>生成学习画像</td>
+                    </tr>
+                    <tr>
+                        <td>GET</td>
+                        <td>/api/student/profile</td>
+                        <td>获取学习画像</td>
+                    </tr>
+                    <tr>
+                        <td>GET</td>
+                        <td>/api/student/learning-path</td>
+                        <td>获取学习路径</td>
+                    </tr>
+                    <tr>
+                        <td>GET</td>
+                        <td>/api/student/knowledge-map</td>
+                        <td>获取知识图谱</td>
+                    </tr>
+                    <tr>
+                        <td>GET</td>
+                        <td>/api/student/exams</td>
+                        <td>获取考试列表</td>
+                    </tr>
+                    <tr>
+                        <td>POST</td>
+                        <td>/api/student/exams/{id}/submit</td>
+                        <td>提交考试</td>
+                    </tr>
+                    <tr>
+                        <td>POST</td>
+                        <td>/api/student/classes/join</td>
+                        <td>加入班级</td>
+                    </tr>
+                    <tr>
+                        <td>DELETE</td>
+                        <td>/api/student/classes/{id}/leave</td>
+                        <td>退出班级</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>教师模块 (/api/teacher/*)</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>方法</th>
+                        <th>路径</th>
+                        <th>描述</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>GET</td>
+                        <td>/api/teacher/courses/my</td>
+                        <td>获取我的课程</td>
+                    </tr>
+                    <tr>
+                        <td>POST</td>
+                        <td>/api/teacher/courses/create</td>
+                        <td>创建课程</td>
+                    </tr>
+                    <tr>
+                        <td>GET</td>
+                        <td>/api/teacher/classes/my</td>
+                        <td>获取我的班级</td>
+                    </tr>
+                    <tr>
+                        <td>POST</td>
+                        <td>/api/teacher/classes/create</td>
+                        <td>创建班级</td>
+                    </tr>
+                    <tr>
+                        <td>POST</td>
+                        <td>/api/teacher/invitations/generate</td>
+                        <td>生成邀请码</td>
+                    </tr>
+                    <tr>
+                        <td>GET</td>
+                        <td>/api/teacher/classes/{id}/students</td>
+                        <td>获取班级学生</td>
+                    </tr>
+                    <tr>
+                        <td>GET</td>
+                        <td>/api/teacher/questions</td>
+                        <td>获取题库</td>
+                    </tr>
+                    <tr>
+                        <td>POST</td>
+                        <td>/api/teacher/questions/create</td>
+                        <td>创建题目</td>
+                    </tr>
+                    <tr>
+                        <td>GET</td>
+                        <td>/api/teacher/exams</td>
+                        <td>获取考试列表</td>
+                    </tr>
+                    <tr>
+                        <td>POST</td>
+                        <td>/api/teacher/exams/create</td>
+                        <td>创建考试</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>管理员模块 (/api/admin/*)</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>方法</th>
+                        <th>路径</th>
+                        <th>描述</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>GET</td>
+                        <td>/api/admin/activation-codes</td>
+                        <td>获取激活码列表</td>
+                    </tr>
+                    <tr>
+                        <td>POST</td>
+                        <td>/api/admin/activation-codes/generate</td>
+                        <td>生成激活码</td>
+                    </tr>
+                    <tr>
+                        <td>GET</td>
+                        <td>/api/admin/logs</td>
+                        <td>获取操作日志</td>
+                    </tr>
+                    <tr>
+                        <td>GET</td>
+                        <td>/api/admin/student-profiles</td>
+                        <td>获取学生画像列表</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h2>快速开始</h2>
+            <h3>安装依赖</h3>
+            <pre><code>pip install -r requirements.txt</code></pre>
+
+            <h3>配置环境变量</h3>
+            <pre><code># 复制环境变量模板
+cp .env.example .env
+
+# 编辑.env文件，配置数据库和AI服务
+# DB_NAME=wisdom_edu
+# DB_USER=wisdom
+# LLM_MODEL=qwen-plus
+# DASHSCOPE_API_KEY=your_api_key</code></pre>
+
+            <h3>数据库迁移</h3>
+            <pre><code>python manage.py migrate</code></pre>
+
+            <h3>创建测试数据</h3>
+            <pre><code>python tools.py create_test_data</code></pre>
+
+            <h3>运行开发服务器</h3>
+            <pre><code>python manage.py runserver</code></pre>
+
+            <h2>测试账号</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>角色</th>
+                        <th>用户名</th>
+                        <th>密码</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>管理员</td>
+                        <td>admin</td>
+                        <td>Admin123456</td>
+                    </tr>
+                    <tr>
+                        <td>教师</td>
+                        <td>teacher1</td>
+                        <td>Teacher123456</td>
+                    </tr>
+                    <tr>
+                        <td>学生</td>
+                        <td>student1</td>
+                        <td>Student123456</td>
+                    </tr>
+                </tbody>
+            </table>
+            <p style="color: #dc3545;"><strong>⚠️ 注意:</strong> 以上为测试账号，仅用于开发测试环境，生产环境请务必修改密码！</p>
+
+            <h2>工具脚本</h2>
+            <p>项目根目录的 <code>tools.py</code> 和 <code>test.py</code> 提供了多个实用命令：</p>
+            <h3>tools.py 管理工具</h3>
+            <pre><code># 直接运行进入菜单模式
+python tools.py
+
+# 命令行模式
+python tools.py clear_db          # 清除数据库
+python tools.py create_test_data  # 创建测试数据
+python tools.py import_knowledge_map 大数据图谱.xlsx  # 导入知识图谱
+python tools.py export_knowledge_map output.json      # 导出知识图谱
+python tools.py neo4j_status      # 检查Neo4j状态
+python tools.py neo4j_sync_all    # 同步所有课程到Neo4j
+python tools.py neo4j_clear       # 清空Neo4j数据</code></pre>
+
+            <h3>test.py 测试工具</h3>
+            <pre><code># 直接运行进入菜单模式
+python test.py
+
+# 命令行模式
+python test.py test_api           # 测试API接口
+python test.py test_neo4j         # 测试Neo4j连接
+python test.py import_neo4j       # 导入Neo4j测试数据
+python test.py clear_neo4j        # 清空Neo4j测试数据
+python test.py import_pg          # 导入PostgreSQL测试数据</code></pre>
+
+            <h2>更多信息</h2>
+            <ul>
+                <li><a href="/api/docs/">Swagger API文档</a></li>
+                <li><a href="/api/redoc/">ReDoc API文档</a></li>
+                <li><a href="/admin/">Django管理后台</a></li>
+            </ul>
+        </div>
+    </div>
+</body>
+
+</html>

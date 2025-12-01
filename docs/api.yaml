@@ -1,0 +1,3788 @@
+openapi: 3.0.3
+info:
+  title: 自适应学习系统 API
+  description: |
+    自适应学习系统后端API文档
+    
+    知识图谱驱动的个性化自适应学习系统，提供学生端和教师端各功能模块的接口。
+    
+    ## 技术栈
+    - Python 3.12 + Django 6 + DRF
+    - PostgreSQL + Neo4j
+    - JWT 身份认证
+    - DKT知识追踪（PyTorch，开源项目 [pydaxing/Deep-Knowledge-Tracing-DKT-Pytorch](https://github.com/pydaxing/Deep-Knowledge-Tracing-DKT-Pytorch) 提供基础模型）
+    - LLM服务（DeepSeek / Qwen-plus，通过LangChain编排）
+    
+    ## API命名规范
+    ```
+    /api/auth/*      - 认证接口（登录、注册、token）
+    /api/student/*   - 学生专用接口
+    /api/teacher/*   - 教师专用接口
+    /api/admin/*     - 管理员专用接口
+    /api/courses     - 公共课程查询接口
+    ```
+    
+    ## 通用响应格式
+    ```json
+    {
+      "code": 200,
+      "msg": "成功",
+      "data": { ... }
+    }
+    ```
+    
+    ## 认证方式
+    除注册、登录等开放接口外，其余接口均需在请求头附带JWT Token：
+    ```
+    Authorization: Bearer <access_token>
+    ```
+    
+  version: 1.0.0
+  contact:
+    name: Qintsg
+  license:
+    name: None
+  x-changelog: |
+    v1.0.1 (2026-03-05):
+    - 文档元信息更新：技术栈版本、文档时间戳
+    - 与安装文档和后端配置说明保持一致
+
+    v1.0.0 (2025-02-15):
+    - 新增46个接口，总计139个API端点
+    - 完善管理员用户管理模块（8个接口）
+    - 完善管理员课程和班级管理模块（9个接口）
+    - 完善学生端学习路径模块（9个接口）
+    - 完善教师端作业管理模块（7个接口）
+    - 新增系统健康检查接口
+    - 新增初始评测start/submit接口
+    - 新增教师知识图谱关系查询接口
+    - 统一所有接口的参数命名规范
+    - 所有接口与实际代码完全对照一致
+
+servers:
+  - url: http://localhost:8000
+    description: 开发服务器
+
+tags:
+  - name: 系统
+    description: 系统健康检查和基础接口
+  - name: 认证
+    description: 用户注册、登录、Token管理
+  - name: 用户信息
+    description: 用户信息查询和更新
+  - name: 学生端-画像
+    description: 学习者画像查询和更新
+  - name: 学生端-班级
+    description: 学生班级管理（加入/退出）
+  - name: 学生端-课程
+    description: 课程查询和选择
+  - name: 学生端-知识图谱
+    description: 知识点、关系和掌握度
+  - name: 学生端-测评
+    description: 初始测评（能力、习惯、知识）
+  - name: 学生端-学习路径
+    description: 个性化学习路径
+  - name: 学生端-作业
+    description: 作业和反馈
+  - name: 学生端-AI服务
+    description: AI分析、推荐和知识追踪
+  - name: 教师端-课程管理
+    description: 教师课程和班级管理
+  - name: 教师端-班级管理
+    description: 班级邀请码和学生管理
+  - name: 教师端-知识图谱
+    description: 教师知识点和资源管理
+  - name: 教师端-题库
+    description: 教师题库管理
+  - name: 教师端-作业管理
+    description: 作业创建和发布
+  - name: 教师端-AI服务
+    description: 教师端AI分析服务（批量知识追踪等）
+  - name: 管理员-用户管理
+    description: 激活码和用户管理
+  - name: 管理员-课程管理
+    description: 管理端课程管理
+  - name: 管理员-班级管理
+    description: 管理端班级管理
+  - name: 管理员-统计
+    description: 管理端统计概览
+  - name: 管理员-日志
+    description: 系统操作日志
+
+paths:
+  # ============================================================
+  # 系统健康检查
+  # ============================================================
+  /health/:
+    get:
+      tags: [系统]
+      summary: 健康检查
+      description: 系统健康状态检查接口，无需认证
+      responses:
+        '200':
+          description: 系统正常
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+                  timestamp:
+                    type: string
+                    format: date-time
+
+  # ============================================================
+  # 认证接口
+  # ============================================================
+  /api/auth/register:
+    post:
+      tags: [认证]
+      summary: 用户注册
+      description: |
+        注册新用户账号。
+        - 学生可直接注册
+        - 教师/管理员需要提供激活码
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, password, role]
+              properties:
+                username:
+                  type: string
+                  minLength: 3
+                  maxLength: 50
+                  example: student1
+                password:
+                  type: string
+                  minLength: 8
+                  example: Test123456
+                email:
+                  type: string
+                  format: email
+                  example: student@example.com
+                role:
+                  type: string
+                  enum: [student, teacher, admin]
+                  example: student
+                activation_code:
+                  type: string
+                  description: 教师/管理员注册需要
+                  example: TEACHER1
+      responses:
+        '201':
+          description: 注册成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          description: 参数错误或用户名已存在
+
+  /api/auth/login:
+    post:
+      tags: [认证]
+      summary: 用户登录
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, password]
+              properties:
+                username:
+                  type: string
+                  example: student1
+                password:
+                  type: string
+                  example: Test123456
+      responses:
+        '200':
+          description: 登录成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: 用户名或密码错误
+
+  /api/auth/token/refresh:
+    post:
+      tags: [认证]
+      summary: 刷新Token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [refresh]
+              properties:
+                refresh:
+                  type: string
+                  description: Refresh Token
+      responses:
+        '200':
+          description: 刷新成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access:
+                    type: string
+        '401':
+          description: Token无效或已过期
+
+  /api/auth/password/change:
+    post:
+      tags: [认证]
+      summary: 修改密码
+      description: 用户修改自己的密码，需要验证旧密码
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [old_password, new_password]
+              properties:
+                old_password:
+                  type: string
+                  description: 旧密码
+                new_password:
+                  type: string
+                  description: 新密码（8位以上）
+      responses:
+        '200':
+          description: 修改成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 200
+                  msg:
+                    type: string
+                    example: 密码修改成功
+        '400':
+          description: 旧密码错误或新密码格式不正确
+
+  /api/auth/logout:
+    post:
+      tags: [认证]
+      summary: 退出登录
+      description: |
+        退出登录接口。JWT是无状态的，服务端主要用于记录退出日志。
+        客户端调用后应清除本地存储的Token。
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 退出成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 200
+                  msg:
+                    type: string
+                    example: 退出成功
+
+  # ============================================================
+  # 用户信息
+  # ============================================================
+  /api/auth/userinfo:
+    get:
+      tags: [用户信息]
+      summary: 获取当前用户信息
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserInfoResponse'
+
+  /api/auth/userinfo/update:
+    put:
+      tags: [用户信息]
+      summary: 更新用户信息
+      description: |
+        可更新字段：email, phone, real_name, student_id
+        - phone需要符合中国手机号格式（11位，1开头）
+        - email需要符合邮箱格式
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                phone:
+                  type: string
+                  pattern: '^1[3-9]\d{9}$'
+                  example: "13800138000"
+                real_name:
+                  type: string
+                student_id:
+                  type: string
+      responses:
+        '200':
+          description: 更新成功
+        '400':
+          description: 格式校验失败
+
+  # ============================================================
+  # 学习者画像
+  # ============================================================
+  /api/student/profile:
+    get:
+      tags: [学生端-画像]
+      summary: 获取学习者画像
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: course_id
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileResponse'
+
+  /api/student/profile/habit:
+    put:
+      tags: [学生端-画像]
+      summary: 更新学习习惯偏好
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                preferred_resource:
+                  type: string
+                  enum: [video, document, exercise, mixed]
+                preferred_study_time:
+                  type: string
+                  enum: [morning, afternoon, evening]
+                study_pace:
+                  type: string
+                  enum: [slow, moderate, fast, adaptive]
+      responses:
+        '200':
+          description: 更新成功
+
+  /api/student/profile/update:
+    put:
+      tags: [学生端-画像]
+      summary: 更新学生画像
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [course_id]
+              properties:
+                course_id:
+                  type: integer
+      responses:
+        '200':
+          description: 更新成功
+
+  /api/student/profile/history:
+    get:
+      tags: [学生端-画像]
+      summary: 获取画像历史
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: course_id
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 成功
+
+  # ============================================================
+  # 班级管理（学生端）
+  # ============================================================
+  /api/student/classes:
+    get:
+      tags: [学生端-班级]
+      summary: 获取我的班级列表
+      description: 获取学生加入的所有班级
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  msg:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      classes:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            class_id:
+                              type: integer
+                            class_name:
+                              type: string
+                            course_id:
+                              type: integer
+                            course_name:
+                              type: string
+                            teacher_name:
+                              type: string
+                            enrolled_at:
+                              type: string
+
+  /api/student/classes/{class_id}:
+    get:
+      tags: [学生端-班级]
+      summary: 获取班级详情
+      description: 查看班级详细信息
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: class_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  msg:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      class_id:
+                        type: integer
+                      class_name:
+                        type: string
+                      course_id:
+                        type: integer
+                      course_name:
+                        type: string
+                      teacher_name:
+                        type: string
+                      student_count:
+                        type: integer
+
+  /api/student/classes/join:
+    post:
+      tags: [学生端-班级]
+      summary: 加入班级
+      description: 通过邀请码加入班级
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [code]
+              properties:
+                code:
+                  type: string
+                  example: JOIN01
+      responses:
+        '200':
+          description: 加入成功
+        '400':
+          description: 邀请码无效或已过期
+        '404':
+          description: 邀请码不存在
+
+  /api/student/classes/{class_id}/leave:
+    delete:
+      tags: [学生端-班级]
+      summary: 退出班级
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: class_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 退出成功
+        '404':
+          description: 未加入此班级
+
+  # ============================================================
+  # 课程
+  # ============================================================
+  /api/courses:
+    get:
+      tags: [学生端-课程]
+      summary: 获取课程列表
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 成功
+
+  /api/courses/select:
+    post:
+      tags: [学生端-课程]
+      summary: 选择课程
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [course_id]
+              properties:
+                course_id:
+                  type: integer
+      responses:
+        '200':
+          description: 成功
+
+  /api/courses/search:
+    get:
+      tags: [学生端-课程]
+      summary: 搜索课程
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: query
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 成功
+
+  # ============================================================
+  # 知识图谱
+  # ============================================================
+  /api/student/knowledge-map:
+    get:
+      tags: [学生端-知识图谱]
+      summary: 获取知识图谱
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: course_id
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KnowledgeMapResponse'
+
+  /api/student/knowledge-points/{point_id}:
+    get:
+      tags: [学生端-知识图谱]
+      summary: 获取知识点详情
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: point_id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: course_id
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 成功
+
+  /api/student/knowledge/points:
+    get:
+      tags: [学生端-知识图谱]
+      summary: 获取知识点列表
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: course_id
+          in: query
+          required: true
+          schema:
+            type: integer
+        - name: chapter
+          in: query
+          schema:
+            type: string
+        - name: type
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 成功
+
+  /api/student/knowledge/relations:
+    get:
+      tags: [学生端-知识图谱]
+      summary: 获取知识点关系
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: course_id
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 成功
+
+  /api/student/knowledge/mastery:
+    get:
+      tags: [学生端-知识图谱]
+      summary: 获取知识掌握度
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: course_id
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 成功
+
+  # ============================================================
+  # 测评
+  # ============================================================
+  /api/student/assessments/status:
+    get:
+      tags: [学生端-测评]
+      summary: 获取评测完成状态
+      description: |
+        检查用户的初始评测完成状态：
+        - global_assessment_done: 全局评测（能力+习惯）是否完成
+        - courses: 各课程的知识评测状态
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: course_id
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 成功
+
+  /api/student/assessments/initial/ability:
+    get:
+      tags: [学生端-测评]
+      summary: 获取能力评测试题
+      description: 新用户注册后进行（全局）
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 成功
+
+  /api/student/assessments/initial/ability/retake:
+    get:
+      tags: [学生端-测评]
+      summary: 重新进行能力评测
+      description: 能力评测为全局问卷，重做将覆盖历史结果
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 成功
+
+  /api/student/assessments/initial/ability/submit:
+    post:
+      tags: [学生端-测评]
+      summary: 提交能力评测
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [answers]
+              properties:
+                answers:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      question_id:
+                        type: integer
+                      answer:
+                        type: string
+      responses:
+        '200':
+          description: 成功
+
+  /api/student/assessments/initial/habit:
+    get:
+      tags: [学生端-测评]
+      summary: 获取习惯问卷
+      description: 新用户注册后进行（全局）
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 成功
+
+  /api/student/assessments/initial/habit/submit:
+    post:
+      tags: [学生端-测评]
+      summary: 提交习惯问卷
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [responses]
+              properties:
+                responses:
+                  type: array
+                  items:
+                    type: object
+      responses:
+        '200':
+          description: 成功
+
+  /api/student/assessments/initial/knowledge:
+    get:
+      tags: [学生端-测评]
+      summary: 获取知识评测试题
+      description: 加入课程后进行
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: course_id
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 成功
+
+  /api/student/assessments/initial/knowledge/submit:
+    post:
+      tags: [学生端-测评]
+      summary: 提交知识评测
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [course_id, answers]
+              properties:
+                course_id:
+                  type: integer
+                answers:
+                  type: array
+                  items:
+                    type: object
+      responses:
+        '200':
+          description: 成功
+
+  /api/student/assessments/profile/generate:
+    post:
+      tags: [学生端-测评]
+      summary: 生成课程学习者画像
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [course_id]
+              properties:
+                course_id:
+                  type: integer
+      responses:
+        '200':
+          description: 成功
+
+  # ============================================================
+  # 学习路径
+  # ============================================================
+  /api/student/learning-path:
+    get:
+      tags: [学生端-学习路径]
+      summary: 获取学习路径
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: course_id
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 成功
+
+  /api/student/learning-path/adjust:
+    post:
+      tags: [学生端-学习路径]
+      summary: 调整学习路径
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [course_id]
+              properties:
+                course_id:
+                  type: integer
+      responses:
+        '200':
+          description: 成功
+
+  /api/student/learning-progress:
+    get:
+      tags: [学生端-学习路径]
+      summary: 获取学习进度
+      description: 获取学生在课程中的整体学习进度
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: course_id
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  msg:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      total_nodes:
+                        type: integer
+                      completed_nodes:
+                        type: integer
+                      in_progress_nodes:
+                        type: integer
+                      progress_percentage:
+                        type: number
+
+  # ============================================================
+  # 路径节点学习（学生端）
+  # ============================================================
+  /api/student/path-nodes/{node_id}:
+    get:
+      tags: [学生端-学习路径]
+      summary: 获取路径节点详情
+      description: 获取学习路径节点的详细信息，包括资源和练习
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: node_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 成功
+
+  /api/student/path-nodes/{node_id}/start:
+    post:
+      tags: [学生端-学习路径]
+      summary: 开始学习节点
+      description: 标记开始学习该路径节点
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: node_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 成功
+
+  /api/student/path-nodes/{node_id}/complete:
+    post:
+      tags: [学生端-学习路径]
+      summary: 完成学习节点
+      description: 标记完成该路径节点
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: node_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 成功
+
+  /api/student/path-nodes/{node_id}/skip:
+    post:
+      tags: [学生端-学习路径]
+      summary: 跳过学习节点
+      description: 跳过该路径节点
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: node_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 成功
+
+  /api/student/path-nodes/{node_id}/resources:
+    get:
+      tags: [学生端-学习路径]
+      summary: 获取节点资源列表
+      description: 获取路径节点关联的学习资源
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: node_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 成功
+
+  /api/student/path-nodes/{node_id}/resources/{resource_id}/complete:
+    post:
+      tags: [学生端-学习路径]
+      summary: 标记资源完成
+      description: 标记节点中的某个资源为已完成，`resource_id` 同时支持内部资源整数 ID 和外部资源 `ext_*` 字符串 ID
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: node_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: resource_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 成功
+
+  /api/student/path-nodes/{node_id}/exams:
+    get:
+      tags: [学生端-学习路径]
+      summary: 获取节点练习列表
+      description: 获取路径节点关联的练习/测试
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: node_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 成功
+
+  /api/student/path-nodes/{node_id}/exams/{exam_id}/submit:
+    post:
+      tags: [学生端-学习路径]
+      summary: 提交节点练习答案
+      description: 提交路径节点中的练习/测试答案
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: node_id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: exam_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                answers:
+                  type: array
+                  items:
+                    type: object
+      responses:
+        '200':
+          description: 提交成功
+
+  # ============================================================
+  # 兼容旧路由（/api/path-nodes）
+  # ============================================================
+  /api/path-nodes/{node_id}:
+    get:
+      tags: [学生端-学习路径]
+      summary: 获取路径节点详情（兼容）
+      description: 兼容旧路由，推荐使用 /api/student/path-nodes/{node_id}
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: node_id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: course_id
+          in: query
+          required: false
+          schema:
+            type: integer
+          description: 可选，提供后进行更严格的课程范围校验
+      responses:
+        '200':
+          description: 成功
+
+  /api/path-nodes/{node_id}/start:
+    post:
+      tags: [学生端-学习路径]
+      summary: 开始学习节点（兼容）
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: node_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 成功
+
+  /api/path-nodes/{node_id}/complete:
+    post:
+      tags: [学生端-学习路径]
+      summary: 完成学习节点（兼容）
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: node_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 成功
+
+  /api/path-nodes/{node_id}/skip:
+    post:
+      tags: [学生端-学习路径]
+      summary: 跳过学习节点（兼容）
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: node_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 成功
+
+  /api/path-nodes/{node_id}/resources:
+    get:
+      tags: [学生端-学习路径]
+      summary: 获取节点资源列表（兼容）
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: node_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 成功
+
+  /api/path-nodes/{node_id}/resources/{resource_id}/complete:
+    post:
+      tags: [学生端-学习路径]
+      summary: 完成资源学习（兼容）
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: node_id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: resource_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 成功
+
+  /api/path-nodes/{node_id}/exams:
+    get:
+      tags: [学生端-学习路径]
+      summary: 获取节点练习列表（兼容）
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: node_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 成功
+
+  /api/path-nodes/{node_id}/exams/{exam_id}/submit:
+    post:
+      tags: [学生端-学习路径]
+      summary: 提交节点测验（兼容）
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: node_id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: exam_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [answers]
+              properties:
+                answers:
+                  type: array
+                  items:
+                    type: object
+      responses:
+        '200':
+          description: 成功
+
+  # ============================================================
+  # 考试
+  # ============================================================
+  /api/student/exams:
+    get:
+      tags: [学生端-作业]
+      summary: 获取作业列表
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: course_id
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 成功
+
+  /api/student/exams/{exam_id}:
+    get:
+      tags: [学生端-作业]
+      summary: 获取作业详情
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: exam_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 成功
+
+  /api/student/exams/{exam_id}/submit:
+    post:
+      tags: [学生端-作业]
+      summary: 提交作业答案
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: exam_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [answers]
+              properties:
+                answers:
+                  type: array
+                  items:
+                    type: object
+      responses:
+        '200':
+          description: 成功
+
+  /api/student/exams/{exam_id}/result:
+    get:
+      tags: [学生端-作业]
+      summary: 获取作业结果
+      description: 返回作业分数、正确率以及结构化 `question_details`，其中包含 `student_answer_display`、`correct_answer_display` 和选项标记信息
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: exam_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 成功
+
+  /api/student/feedback/generate:
+    post:
+      tags: [学生端-作业]
+      summary: 生成反馈报告
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [exam_id]
+              properties:
+                exam_id:
+                  type: integer
+      responses:
+        '200':
+          description: 成功
+
+  /api/student/feedback/{exam_id}:
+    get:
+      tags: [学生端-作业]
+      summary: 获取反馈报告
+      description: 返回 AI 反馈摘要、综合分析、薄弱知识点、建议、下一步任务以及结构化 `question_details`
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: exam_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 成功
+
+  # ============================================================
+  # 初始评测（exams模块的接口）
+  # ============================================================
+  /api/student/assessments/initial/start:
+    post:
+      tags: [学生端-测评]
+      summary: 开始初始评测
+      description: 开始一个初始评测（在exams模块中）
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [course_id]
+              properties:
+                course_id:
+                  type: integer
+      responses:
+        '200':
+          description: 成功
+
+  /api/student/assessments/initial/submit:
+    post:
+      tags: [学生端-测评]
+      summary: 提交初始评测
+      description: 提交初始评测答案（在exams模块中）
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [assessment_id, answers]
+              properties:
+                assessment_id:
+                  type: integer
+                answers:
+                  type: array
+                  items:
+                    type: object
+      responses:
+        '200':
+          description: 提交成功
+
+  # ============================================================
+  # AI服务
+  # ============================================================
+  /api/student/ai/profile-analysis:
+    post:
+      tags: [学生端-AI服务]
+      summary: AI画像诊断
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [course_id]
+              properties:
+                course_id:
+                  type: integer
+                refresh:
+                  type: boolean
+                  default: false
+      responses:
+        '200':
+          description: 成功
+
+  /api/student/ai/path-planning:
+    post:
+      tags: [学生端-AI服务]
+      summary: AI路径规划
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [course_id]
+              properties:
+                course_id:
+                  type: integer
+                target:
+                  type: string
+                constraints:
+                  type: object
+      responses:
+        '200':
+          description: 成功
+
+  /api/student/ai/resource-reason:
+    post:
+      tags: [学生端-AI服务]
+      summary: AI资源推荐理由
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: 成功
+
+  /api/student/ai/feedback-report:
+    post:
+      tags: [学生端-AI服务]
+      summary: AI反馈报告
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: 成功
+
+  # ============================================================
+  # ============================================================
+  # 知识追踪服务
+  # ============================================================
+  /api/ai/kt/predict:
+    post:
+      tags: [学生端-AI服务]
+      summary: 知识追踪预测
+      description: |
+        使用深度学习知识追踪模型预测学生对各知识点的掌握程度。
+        支持DKT、PEBG两种模型，以及三种预测模式：
+        - fusion: 融合模式（默认），同时使用多个模型并加权融合结果
+        - single: 单模型模式，仅使用指定的单个模型
+        - ensemble: 集成模式，使用多个模型但不融合，返回各模型独立结果
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [course_id, answer_history]
+              properties:
+                course_id:
+                  type: integer
+                  description: 课程ID
+                answer_history:
+                  type: array
+                  description: 答题历史记录
+                  items:
+                    type: object
+                    properties:
+                      question_id:
+                        type: integer
+                      correct:
+                        type: integer
+                        enum: [0, 1]
+                      knowledge_point_id:
+                        type: integer
+                knowledge_points:
+                  type: array
+                  items:
+                    type: integer
+                  description: 需要预测的知识点ID列表
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  msg:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      predictions:
+                        type: object
+                        additionalProperties:
+                          type: number
+                        description: 各知识点掌握率预测
+                      confidence:
+                        type: number
+                        description: 预测置信度
+                      model_type:
+                        type: string
+                        enum: [fusion, single, ensemble, builtin]
+                        description: 使用的模型类型
+                      prediction_mode:
+                        type: string
+                        enum: [fusion, single, ensemble]
+                        description: 预测模式
+                      active_models:
+                        type: array
+                        items:
+                          type: string
+                        description: 本次预测使用的模型列表
+                      fusion_weights:
+                        type: object
+                        additionalProperties:
+                          type: number
+                        description: 融合权重（融合模式下返回）
+                      model_results:
+                        type: object
+                        description: 各模型的独立预测结果（融合模式下返回）
+                      analysis:
+                        type: string
+                        description: 分析说明
+
+  /api/ai/kt/model-info:
+    get:
+      tags: [学生端-AI服务]
+      summary: 获取知识追踪模型信息
+      description: 获取当前配置的知识追踪模型的基本信息，包括预测模式、启用的模型和融合权重等
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  msg:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      prediction_mode:
+                        type: string
+                        enum: [fusion, single, ensemble]
+                        description: 当前预测模式
+                      prediction_mode_name:
+                        type: string
+                        description: 预测模式中文名称
+                      enabled_models:
+                        type: array
+                        items:
+                          type: string
+                        description: 启用的模型列表
+                      fusion_weights:
+                        type: object
+                        additionalProperties:
+                          type: number
+                        description: 融合权重配置
+                      models:
+                        type: object
+                        description: 各模型详细信息
+                      is_available:
+                        type: boolean
+                        description: 服务是否可用
+                      service_url:
+                        type: string
+                        description: 远程服务地址
+
+  /api/ai/kt/batch-predict:
+    post:
+      tags: [教师端-AI服务]
+      summary: 批量知识追踪预测
+      description: 教师端批量预测多个学生的知识掌握度
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user_histories:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      user_id:
+                        type: integer
+                      course_id:
+                        type: integer
+                      answer_history:
+                        type: array
+                        items:
+                          type: object
+      responses:
+        '200':
+          description: 成功
+
+  /api/ai/kt/recommendations:
+    post:
+      tags: [学生端-AI服务]
+      summary: 获取学习建议
+      description: 基于知识追踪预测结果生成学习建议
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [course_id, predictions]
+              properties:
+                course_id:
+                  type: integer
+                predictions:
+                  type: object
+                  additionalProperties:
+                    type: number
+                threshold:
+                  type: number
+                  default: 0.6
+      responses:
+        '200':
+          description: 成功
+
+  # 操作日志（管理员）
+  # ============================================================
+  /api/admin/logs:
+    get:
+      tags: [管理员-日志]
+      summary: 获取操作日志列表
+      description: 仅管理员可访问
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: page_size
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: action_type
+          in: query
+          schema:
+            type: string
+        - name: module
+          in: query
+          schema:
+            type: string
+        - name: user_id
+          in: query
+          schema:
+            type: integer
+        - name: start_date
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: end_date
+          in: query
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: 成功
+        '403':
+          description: 权限不足
+
+  /api/admin/logs/{log_id}:
+    get:
+      tags: [管理员-日志]
+      summary: 获取日志详情
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: log_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 成功
+        '403':
+          description: 权限不足
+        '404':
+          description: 日志不存在
+
+  /api/admin/logs/statistics:
+    get:
+      tags: [管理员-日志]
+      summary: 获取日志统计
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 成功
+        '403':
+          description: 权限不足
+
+  # ============================================================
+  # 教师端 - 课程管理
+  # ============================================================
+  /api/teacher/courses/create:
+    post:
+      tags: [教师端-课程管理]
+      summary: 创建课程
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                is_public:
+                  type: boolean
+                  default: true
+      responses:
+        '201':
+          description: 创建成功
+
+  /api/teacher/courses/my:
+    get:
+      tags: [教师端-课程管理]
+      summary: 获取我创建的课程
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 成功
+
+  /api/teacher/courses/{course_id}:
+    put:
+      tags: [教师端-课程管理]
+      summary: 更新课程
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: course_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+      responses:
+        '200':
+          description: 成功
+
+  /api/teacher/courses/{course_id}/delete:
+    delete:
+      tags: [教师端-课程管理]
+      summary: 删除课程
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: course_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 成功
+
+  /api/teacher/classes/create:
+    post:
+      tags: [教师端-课程管理]
+      summary: 创建班级
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name]
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                semester:
+                  type: string
+      responses:
+        '201':
+          description: 创建成功
+
+  /api/teacher/classes/my:
+    get:
+      tags: [教师端-课程管理]
+      summary: 获取我的班级列表
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 成功
+
+  /api/teacher/classes/{class_id}:
+    put:
+      tags: [教师端-课程管理]
+      summary: 更新班级
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: class_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 成功
+
+  /api/teacher/classes/{class_id}/delete:
+    delete:
+      tags: [教师端-课程管理]
+      summary: 删除班级
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: class_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 成功
+
+  /api/teacher/classes/{class_id}/courses:
+    get:
+      tags: [教师端-课程管理]
+      summary: 获取班级课程列表
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: class_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 成功
+
+  /api/teacher/classes/{class_id}/publish-course:
+    post:
+      tags: [教师端-课程管理]
+      summary: 发布课程到班级
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: class_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [course_id]
+              properties:
+                course_id:
+                  type: integer
+      responses:
+        '200':
+          description: 成功
+
+  /api/teacher/classes/{class_id}/courses/{course_id}:
+    delete:
+      tags: [教师端-课程管理]
+      summary: 从班级移除课程
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: class_id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: course_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 成功
+
+  /api/teacher/classes/{class_id}/students:
+    get:
+      tags: [教师端-班级管理]
+      summary: 获取班级学生列表
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: class_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 成功
+
+  /api/teacher/classes/{class_id}/students/{user_id}:
+    delete:
+      tags: [教师端-班级管理]
+      summary: 移除学生
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: class_id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 成功
+
+  /api/teacher/classes/{class_id}/invitations:
+    get:
+      tags: [教师端-班级管理]
+      summary: 获取班级邀请码列表
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: class_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 成功
+
+  /api/teacher/invitations/generate:
+    post:
+      tags: [教师端-班级管理]
+      summary: 生成班级邀请码
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [class_id]
+              properties:
+                class_id:
+                  type: integer
+                max_uses:
+                  type: integer
+                  default: 50
+      responses:
+        '201':
+          description: 创建成功
+
+  /api/teacher/invitations/{invitation_id}:
+    delete:
+      tags: [教师端-班级管理]
+      summary: 删除邀请码
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: invitation_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 成功
+
+  /api/teacher/classes/{class_id}/student-profiles:
+    get:
+      tags: [教师端-班级管理]
+      summary: 获取班级学生画像
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: class_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 成功
+
+  /api/teacher/students/{user_id}/profile:
+    get:
+      tags: [教师端-班级管理]
+      summary: 查看学生画像详情
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 成功
+
+  # ============================================================
+  # 教师端 - 知识图谱
+  # ============================================================
+  /api/teacher/knowledge-points:
+    get:
+      tags: [教师端-知识图谱]
+      summary: 获取知识点列表
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: course_id
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 成功
+
+  /api/teacher/knowledge-points/{point_id}:
+    put:
+      tags: [教师端-知识图谱]
+      summary: 更新知识点
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: point_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                chapter:
+                  type: string
+                description:
+                  type: string
+      responses:
+        '200':
+          description: 成功
+
+  /api/teacher/knowledge-points/{point_id}/delete:
+    delete:
+      tags: [教师端-知识图谱]
+      summary: 删除知识点
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: point_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 成功
+
+  /api/teacher/knowledge-relations:
+    get:
+      tags: [教师端-知识图谱]
+      summary: 获取知识点关系列表
+      description: 获取知识点之间的关系（前置、后继等）
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: course_id
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  msg:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      relations:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            from_point_id:
+                              type: integer
+                            to_point_id:
+                              type: integer
+                            relation_type:
+                              type: string
+
+  /api/teacher/knowledge-points/create:
+    post:
+      tags: [教师端-知识图谱]
+      summary: 创建知识点
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [course_id, name]
+              properties:
+                course_id:
+                  type: integer
+                name:
+                  type: string
+                chapter:
+                  type: string
+                description:
+                  type: string
+      responses:
+        '201':
+          description: 创建成功
+
+  /api/teacher/knowledge-map/import:
+    post:
+      tags: [教师端-知识图谱]
+      summary: 导入知识图谱
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                course_id:
+                  type: integer
+      responses:
+        '200':
+          description: 导入成功
+
+  /api/teacher/knowledge-map/publish:
+    post:
+      tags: [教师端-知识图谱]
+      summary: 发布知识图谱
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [course_id]
+              properties:
+                course_id:
+                  type: integer
+      responses:
+        '200':
+          description: 发布成功
+
+  /api/teacher/resources:
+    get:
+      tags: [教师端-知识图谱]
+      summary: 获取资源列表
+      description: 获取课程下的资源列表，支持按类型和关键词筛选，按sort_order排序
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: course_id
+          in: query
+          required: true
+          schema:
+            type: integer
+        - name: type
+          in: query
+          description: 资源类型筛选
+          schema:
+            type: string
+            enum: [video, document, link, exercise]
+        - name: keyword
+          in: query
+          description: 关键词搜索
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                  resources:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        resource_id:
+                          type: integer
+                        title:
+                          type: string
+                        type:
+                          type: string
+                        url:
+                          type: string
+                        format:
+                          type: string
+                        duration:
+                          type: integer
+                          description: 视频时长(秒)
+                          nullable: true
+                        duration_display:
+                          type: string
+                          description: 格式化时长显示，如"05:30"
+                          nullable: true
+                        chapter_number:
+                          type: string
+                          description: 章节编号，如"1.1"
+                          nullable: true
+                        sort_order:
+                          type: integer
+                          description: 排序序号
+
+  /api/teacher/resources/create:
+    post:
+      tags: [教师端-知识图谱]
+      summary: 创建资源
+      description: 上传或创建学习资源，支持视频、文档、链接、练习等类型
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [course_id, title, type]
+              properties:
+                course_id:
+                  type: integer
+                title:
+                  type: string
+                type:
+                  type: string
+                  enum: [video, document, link, exercise]
+                url:
+                  type: string
+                file:
+                  type: string
+                  format: binary
+                description:
+                  type: string
+                duration:
+                  type: integer
+                  description: 视频时长(秒)
+                chapter_number:
+                  type: string
+                  description: 章节编号，如"1.1"
+                sort_order:
+                  type: integer
+                  description: 排序序号
+                points:
+                  type: array
+                  items:
+                    type: integer
+                  description: 关联知识点ID列表
+      responses:
+        '200':
+          description: 创建成功
+
+  /api/teacher/resources/{resource_id}:
+    put:
+      tags: [教师端-知识图谱]
+      summary: 更新资源
+      description: 更新资源信息，支持修改标题、类型、时长等
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: resource_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                type:
+                  type: string
+                url:
+                  type: string
+                description:
+                  type: string
+                duration:
+                  type: integer
+                  description: 视频时长(秒)
+                chapter_number:
+                  type: string
+                sort_order:
+                  type: integer
+                visible:
+                  type: boolean
+      responses:
+        '200':
+          description: 成功
+
+  /api/teacher/resources/{resource_id}/delete:
+    delete:
+      tags: [教师端-知识图谱]
+      summary: 删除资源
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: resource_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 成功
+
+  # ============================================================
+  # 教师端 - 题库
+  # ============================================================
+  /api/teacher/questions:
+    get:
+      tags: [教师端-题库]
+      summary: 获取题目列表
+      description: 获取课程下的题目列表，支持按类型、难度等筛选
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: course_id
+          in: query
+          required: true
+          schema:
+            type: integer
+        - name: question_type
+          in: query
+          schema:
+            type: string
+            enum: [single_choice, multiple_choice, true_false, fill_blank, short_answer, code]
+        - name: difficulty
+          in: query
+          schema:
+            type: string
+            enum: [easy, medium, hard]
+        - name: for_initial_assessment
+          in: query
+          schema:
+            type: boolean
+        - name: is_visible
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                  questions:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                        content:
+                          type: string
+                        question_type:
+                          type: string
+                        difficulty:
+                          type: string
+                        score:
+                          type: number
+                        suggested_score:
+                          type: number
+                          nullable: true
+                          description: 建议分数（来自导入数据）
+                        chapter:
+                          type: string
+                          nullable: true
+                          description: 所属章节
+
+  /api/teacher/questions/create:
+    post:
+      tags: [教师端-题库]
+      summary: 创建题目
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [course_id, content, question_type, options, answer]
+              properties:
+                course_id:
+                  type: integer
+                content:
+                  type: string
+                question_type:
+                  type: string
+                  enum: [single_choice, multiple_choice, true_false, fill_blank, short_answer, code]
+                options:
+                  type: array
+                  items:
+                    type: object
+                answer:
+                  type: object
+                difficulty:
+                  type: string
+                  enum: [easy, medium, hard]
+                analysis:
+                  type: string
+                chapter:
+                  type: string
+                  description: 所属章节
+                suggested_score:
+                  type: number
+                  description: 建议分数
+                knowledge_point_ids:
+                  type: array
+                  items:
+                    type: integer
+      responses:
+        '200':
+          description: 创建成功
+
+  /api/teacher/questions/{question_id}:
+    get:
+      tags: [教师端-题库]
+      summary: 获取题目详情
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: question_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 成功
+    put:
+      tags: [教师端-题库]
+      summary: 更新题目（同路径）
+      description: 与 /api/teacher/questions/{id}/update 功能相同，支持通过同一路径 PUT 更新题目
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: question_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                content:
+                  type: string
+                question_type:
+                  type: string
+                options:
+                  type: array
+                  items:
+                    type: object
+                answer:
+                  type: object
+                analysis:
+                  type: string
+                difficulty:
+                  type: string
+                score:
+                  type: number
+                suggested_score:
+                  type: number
+                chapter:
+                  type: string
+                knowledge_point_ids:
+                  type: array
+                  items:
+                    type: integer
+      responses:
+        '200':
+          description: 成功
+
+  /api/teacher/questions/{question_id}/update:
+    put:
+      tags: [教师端-题库]
+      summary: 更新题目
+      description: 更新题目信息，支持修改内容、选项、难度、分数、章节等
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: question_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                content:
+                  type: string
+                question_type:
+                  type: string
+                options:
+                  type: array
+                  items:
+                    type: object
+                answer:
+                  type: object
+                analysis:
+                  type: string
+                difficulty:
+                  type: string
+                score:
+                  type: number
+                suggested_score:
+                  type: number
+                  description: 建议分数
+                chapter:
+                  type: string
+                  description: 所属章节
+                is_visible:
+                  type: boolean
+                for_initial_assessment:
+                  type: boolean
+                knowledge_point_ids:
+                  type: array
+                  items:
+                    type: integer
+      responses:
+        '200':
+          description: 成功
+
+  /api/teacher/questions/{question_id}/delete:
+    delete:
+      tags: [教师端-题库]
+      summary: 删除题目
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: question_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 成功
+
+  # ============================================================
+  # 教师端 - 考试管理
+  # ============================================================
+  /api/teacher/exams:
+    get:
+      tags: [教师端-作业管理]
+      summary: 获取作业列表
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 成功
+
+  /api/teacher/exams/create:
+    post:
+      tags: [教师端-作业管理]
+      summary: 创建作业
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title, course_id]
+              properties:
+                title:
+                  type: string
+                course_id:
+                  type: integer
+                class_id:
+                  type: integer
+                question_ids:
+                  type: array
+                  items:
+                    type: integer
+      responses:
+        '201':
+          description: 创建成功
+
+  /api/teacher/exams/{exam_id}:
+    get:
+      tags: [教师端-作业管理]
+      summary: 获取作业详情
+      description: 教师查看作业详细信息
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: exam_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 成功
+
+  /api/teacher/exams/{exam_id}/update:
+    put:
+      tags: [教师端-作业管理]
+      summary: 更新作业信息
+      description: 教师修改作业设置
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: exam_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                duration:
+                  type: integer
+                  description: 作答时长（分钟）
+                start_time:
+                  type: string
+                  format: date-time
+                end_time:
+                  type: string
+                  format: date-time
+      responses:
+        '200':
+          description: 更新成功
+
+  /api/teacher/exams/{exam_id}/delete:
+    delete:
+      tags: [教师端-作业管理]
+      summary: 删除作业
+      description: 教师删除作业
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: exam_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 删除成功
+
+  /api/teacher/exams/{exam_id}/publish:
+    post:
+      tags: [教师端-作业管理]
+      summary: 发布作业
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: exam_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 成功
+
+  /api/teacher/exams/{exam_id}/unpublish:
+    post:
+      tags: [教师端-作业管理]
+      summary: 取消发布作业
+      description: 将已发布的作业取消发布
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: exam_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 成功
+
+  /api/teacher/exams/{exam_id}/results:
+    get:
+      tags: [教师端-作业管理]
+      summary: 获取作业成绩列表
+      description: 教师查看所有学生的作业成绩
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: exam_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 成功
+
+  /api/teacher/exams/{exam_id}/students/{student_id}:
+    get:
+      tags: [教师端-作业管理]
+      summary: 获取学生作业详情
+      description: 教师查看某个学生的作业答题详情
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: exam_id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: student_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 成功
+
+  /api/teacher/exams/{exam_id}/analysis:
+    get:
+      tags: [教师端-作业管理]
+      summary: 作业数据分析
+      description: 获取作业的统计分析数据（平均分、及格率、题目得分率等）
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: exam_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  msg:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      average_score:
+                        type: number
+                      pass_rate:
+                        type: number
+                      question_analysis:
+                        type: array
+
+  # ============================================================
+  # 管理员
+  # ============================================================
+  /api/admin/activation-codes:
+    get:
+      tags: [管理员-用户管理]
+      summary: 获取激活码列表
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 成功
+
+  /api/admin/activation-codes/generate:
+    post:
+      tags: [管理员-用户管理]
+      summary: 生成激活码
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                code_type:
+                  type: string
+                  enum: [teacher, admin]
+                  default: teacher
+                count:
+                  type: integer
+                  default: 1
+      responses:
+        '201':
+          description: 创建成功
+
+  /api/admin/activation-codes/{code_id}:
+    delete:
+      tags: [管理员-用户管理]
+      summary: 删除激活码
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: code_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 成功
+
+  /api/admin/users:
+    get:
+      tags: [管理员-用户管理]
+      summary: 获取用户列表
+      description: 管理员获取所有用户列表，支持分页、搜索和角色筛选
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: page_size
+          in: query
+          schema:
+            type: integer
+            default: 20
+        - name: search
+          in: query
+          schema:
+            type: string
+          description: 搜索用户名、真实姓名或学号
+        - name: role
+          in: query
+          schema:
+            type: string
+            enum: [student, teacher, admin]
+          description: 按角色筛选
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [active, disabled]
+          description: 按状态筛选
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 200
+                  msg:
+                    type: string
+                    example: 成功
+                  data:
+                    type: object
+                    properties:
+                      users:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            user_id:
+                              type: integer
+                            username:
+                              type: string
+                            real_name:
+                              type: string
+                            email:
+                              type: string
+                            role:
+                              type: string
+                            is_active:
+                              type: boolean
+                            created_at:
+                              type: string
+                      total:
+                        type: integer
+                      page:
+                        type: integer
+                      page_size:
+                        type: integer
+
+  /api/admin/users/create:
+    post:
+      tags: [管理员-用户管理]
+      summary: 创建用户
+      description: 管理员直接创建用户账号
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, password, role]
+              properties:
+                username:
+                  type: string
+                  minLength: 3
+                password:
+                  type: string
+                  minLength: 8
+                role:
+                  type: string
+                  enum: [student, teacher, admin]
+                email:
+                  type: string
+                real_name:
+                  type: string
+                student_id:
+                  type: string
+      responses:
+        '201':
+          description: 创建成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                    example: 201
+                  msg:
+                    type: string
+                    example: 用户创建成功
+                  data:
+                    type: object
+                    properties:
+                      user_id:
+                        type: integer
+
+  /api/admin/users/{user_id}:
+    get:
+      tags: [管理员-用户管理]
+      summary: 获取用户详情
+      description: 管理员查看用户详细信息
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  msg:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      user_id:
+                        type: integer
+                      username:
+                        type: string
+                      email:
+                        type: string
+                      phone:
+                        type: string
+                      real_name:
+                        type: string
+                      student_id:
+                        type: string
+                      role:
+                        type: string
+                      is_active:
+                        type: boolean
+                      created_at:
+                        type: string
+                      last_login:
+                        type: string
+
+  /api/admin/users/{user_id}/update:
+    put:
+      tags: [管理员-用户管理]
+      summary: 更新用户信息
+      description: 管理员修改用户信息
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                phone:
+                  type: string
+                real_name:
+                  type: string
+                student_id:
+                  type: string
+                role:
+                  type: string
+                  enum: [student, teacher, admin]
+      responses:
+        '200':
+          description: 更新成功
+
+  /api/admin/users/{user_id}/delete:
+    delete:
+      tags: [管理员-用户管理]
+      summary: 删除用户
+      description: 管理员删除用户账号（软删除）
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 删除成功
+
+  /api/admin/users/{user_id}/reset-password:
+    post:
+      tags: [管理员-用户管理]
+      summary: 重置用户密码
+      description: 管理员重置用户密码为默认密码
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                new_password:
+                  type: string
+                  description: 新密码（可选，不填则使用默认密码）
+      responses:
+        '200':
+          description: 重置成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  msg:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      new_password:
+                        type: string
+                        description: 新密码（如未指定）
+
+  /api/admin/users/{user_id}/disable:
+    post:
+      tags: [管理员-用户管理]
+      summary: 禁用用户
+      description: 管理员禁用用户账号
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 禁用成功
+
+  /api/admin/users/{user_id}/enable:
+    post:
+      tags: [管理员-用户管理]
+      summary: 启用用户
+      description: 管理员启用被禁用的用户账号
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 启用成功
+
+  /api/admin/student-profiles:
+    get:
+      tags: [管理员-用户管理]
+      summary: 获取所有学生画像
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 成功
+
+  # ============================================================
+  # 管理员 - 课程管理
+  # ============================================================
+  /api/admin/courses:
+    get:
+      tags: [管理员-课程管理]
+      summary: 管理端课程列表
+      description: 获取所有课程列表，支持分页和搜索
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+          description: 搜索关键词（课程名称）
+        - name: page
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 成功
+
+  /api/admin/courses/create:
+    post:
+      tags: [管理员-课程管理]
+      summary: 管理员创建课程
+      description: 管理员创建新课程
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [course_name, description]
+              properties:
+                course_name:
+                  type: string
+                description:
+                  type: string
+                teacher_id:
+                  type: integer
+                  description: 指定课程负责教师
+      responses:
+        '201':
+          description: 创建成功
+
+  /api/admin/courses/{course_id}:
+    get:
+      tags: [管理员-课程管理]
+      summary: 管理员查看课程详情
+      description: 查看课程详细信息和统计数据
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: course_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 成功
+    delete:
+      tags: [管理员-课程管理]
+      summary: 管理端删除课程
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: course_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 成功
+
+  /api/admin/courses/{course_id}/assign-teacher:
+    post:
+      tags: [管理员-课程管理]
+      summary: 分配课程负责教师
+      description: 管理员为课程指定或更换负责教师
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: course_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [teacher_id]
+              properties:
+                teacher_id:
+                  type: integer
+      responses:
+        '200':
+          description: 分配成功
+
+  /api/admin/courses/{course_id}/statistics:
+    get:
+      tags: [管理员-课程管理]
+      summary: 课程统计数据
+      description: 获取课程的统计信息（学生数、班级数等）
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: course_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  msg:
+                    type: string
+                  data:
+                    type: object
+                    properties:
+                      student_count:
+                        type: integer
+                      class_count:
+                        type: integer
+                      exam_count:
+                        type: integer
+
+  # ============================================================
+  # 管理员 - 班级管理
+  # ============================================================
+  /api/admin/classes:
+    get:
+      tags: [管理员-班级管理]
+      summary: 管理端班级列表
+      description: 获取所有班级列表，支持分页和搜索
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+          description: 搜索关键词（班级名称）
+        - name: page
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 成功
+
+  /api/admin/classes/create:
+    post:
+      tags: [管理员-班级管理]
+      summary: 管理员创建班级
+      description: 管理员创建新班级
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [class_name, course_id]
+              properties:
+                class_name:
+                  type: string
+                course_id:
+                  type: integer
+                teacher_id:
+                  type: integer
+                  description: 指定班级教师
+      responses:
+        '201':
+          description: 创建成功
+
+  /api/admin/classes/{class_id}:
+    get:
+      tags: [管理员-班级管理]
+      summary: 管理员查看班级详情
+      description: 查看班级详细信息
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: class_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 成功
+    delete:
+      tags: [管理员-班级管理]
+      summary: 管理端删除班级
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: class_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 成功
+
+  /api/admin/classes/{class_id}/students:
+    get:
+      tags: [管理员-班级管理]
+      summary: 获取班级学生列表
+      description: 查看班级中的所有学生
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: class_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 成功
+
+  /api/admin/classes/{class_id}/students/add:
+    post:
+      tags: [管理员-班级管理]
+      summary: 批量添加学生到班级
+      description: 管理员批量添加学生到班级
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: class_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [student_ids]
+              properties:
+                student_ids:
+                  type: array
+                  items:
+                    type: integer
+      responses:
+        '200':
+          description: 添加成功
+
+  /api/admin/classes/{class_id}/students/{student_id}:
+    delete:
+      tags: [管理员-班级管理]
+      summary: 从班级移除学生
+      description: 管理员将学生从班级中移除
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: class_id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: student_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: 移除成功
+
+  # ============================================================
+  # 管理员 - 统计
+  # ============================================================
+  /api/admin/statistics/overview:
+    get:
+      tags: [管理员-统计]
+      summary: 管理端统计概览
+      description: 获取系统整体统计数据（用户数、课程数、班级数等）
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: 成功
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    AuthResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+          example: 200
+        msg:
+          type: string
+          example: 登录成功
+        data:
+          type: object
+          properties:
+            access:
+              type: string
+            refresh:
+              type: string
+            user:
+              $ref: '#/components/schemas/UserInfo'
+
+    UserInfo:
+      type: object
+      properties:
+        id:
+          type: integer
+        username:
+          type: string
+        email:
+          type: string
+        role:
+          type: string
+        real_name:
+          type: string
+        student_id:
+          type: string
+
+    UserInfoResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+        msg:
+          type: string
+        data:
+          type: object
+          properties:
+            user_id:
+              type: integer
+            username:
+              type: string
+            role:
+              type: string
+            email:
+              type: string
+            phone:
+              type: string
+            real_name:
+              type: string
+            student_id:
+              type: string
+            classes:
+              type: array
+              items:
+                $ref: '#/components/schemas/ClassInfo'
+            courses:
+              type: array
+              items:
+                type: object
+                properties:
+                  course_id:
+                    type: integer
+                  course_name:
+                    type: string
+
+    ClassInfo:
+      type: object
+      properties:
+        class_id:
+          type: integer
+        class_name:
+          type: string
+        course_id:
+          type: integer
+        course_name:
+          type: string
+        teacher_name:
+          type: string
+        semester:
+          type: string
+        role:
+          type: string
+        enrolled_at:
+          type: string
+          format: date-time
+        student_count:
+          type: integer
+
+    ProfileResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+        msg:
+          type: string
+        data:
+          type: object
+          properties:
+            user_id:
+              type: integer
+            course_id:
+              type: integer
+            summary:
+              type: string
+            weakness:
+              type: string
+            suggestion:
+              type: string
+            mastery:
+              type: array
+              items:
+                type: object
+                properties:
+                  point_id:
+                    type: integer
+                  point_name:
+                    type: string
+                  mastery_rate:
+                    type: number
+            habit_preferences:
+              type: object
+
+    KnowledgeMapResponse:
+      type: object
+      properties:
+        code:
+          type: integer
+        msg:
+          type: string
+        data:
+          type: object
+          properties:
+            nodes:
+              type: array
+              items:
+                type: object
+                properties:
+                  point_id:
+                    type: integer
+                  point_name:
+                    type: string
+                  mastery_rate:
+                    type: number
+                  chapter:
+                    type: string
+                  type:
+                    type: string
+            edges:
+              type: array
+              items:
+                type: object
+                properties:
+                  source:
+                    type: integer
+                  target:
+                    type: integer
+                  relation:
+                    type: string

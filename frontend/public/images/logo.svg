@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none">
+  <!-- 背景圆 -->
+  <circle cx="60" cy="60" r="58" fill="url(#gradient1)" stroke="url(#gradient2)" stroke-width="3"/>
+  
+  <!-- 书本底部 -->
+  <path d="M30 75 L60 85 L90 75 L90 45 L60 55 L30 45 Z" fill="url(#gradient3)" opacity="0.9"/>
+  
+  <!-- 书本上部 -->
+  <path d="M30 45 L60 55 L90 45 L60 35 Z" fill="#fff" opacity="0.95"/>
+  
+  <!-- 知识图谱节点 -->
+  <circle cx="45" cy="40" r="8" fill="#3EE0B8"/>
+  <circle cx="75" cy="40" r="8" fill="#14B8A6"/>
+  <circle cx="60" cy="25" r="6" fill="#D8FF74"/>
+  <circle cx="40" cy="55" r="5" fill="#9AF3D2"/>
+  <circle cx="80" cy="55" r="5" fill="#6DE4C8"/>
+  
+  <!-- 连接线 -->
+  <line x1="45" y1="40" x2="60" y2="25" stroke="#fff" stroke-width="2" opacity="0.7"/>
+  <line x1="75" y1="40" x2="60" y2="25" stroke="#fff" stroke-width="2" opacity="0.7"/>
+  <line x1="45" y1="40" x2="75" y2="40" stroke="#fff" stroke-width="2" opacity="0.7"/>
+  <line x1="45" y1="40" x2="40" y2="55" stroke="#fff" stroke-width="1.5" opacity="0.6"/>
+  <line x1="75" y1="40" x2="80" y2="55" stroke="#fff" stroke-width="1.5" opacity="0.6"/>
+  
+  <!-- 毕业帽 -->
+  <path d="M60 18 L40 28 L60 38 L80 28 Z" fill="#2C3E50"/>
+  <rect x="58" y="15" width="4" height="5" fill="#2C3E50"/>
+  <circle cx="60" cy="14" r="3" fill="#F1C40F"/>
+  
+  <defs>
+    <linearGradient id="gradient1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0f7d61"/>
+      <stop offset="100%" style="stop-color:#14b8a6"/>
+    </linearGradient>
+    <linearGradient id="gradient2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#7eead5"/>
+      <stop offset="100%" style="stop-color:#d4ffe8"/>
+    </linearGradient>
+    <linearGradient id="gradient3" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#fff;stop-opacity:0.9"/>
+      <stop offset="100%" style="stop-color:#e0e0e0;stop-opacity:0.8"/>
+    </linearGradient>
+  </defs>
+</svg>

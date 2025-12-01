@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="drawio" version="26.0.0">
+  <diagram name="系统功能模块关系图">
+    <mxGraphModel dx="1600" dy="1200" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="1600" pageHeight="1200" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- 标题 -->
+        <mxCell id="title" value="&lt;b&gt;&lt;font style=&quot;font-size:18px&quot;&gt;系统功能模块关系图&lt;/font&gt;&lt;/b&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="370" y="10" width="210" height="36" as="geometry" />
+        </mxCell>
+
+        <!-- ========== 核心模块节点 ========== -->
+        <!-- 用户模块 (中上) -->
+        <mxCell id="m_users" value="&lt;b&gt;用户管理&lt;/b&gt;&lt;br&gt;(users)&lt;br&gt;&lt;font style=&quot;font-size:10px&quot;&gt;注册/登录/角色/激活码&lt;br&gt;班级邀请/学习偏好&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="360" y="70" width="200" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- 课程模块 (左上) -->
+        <mxCell id="m_courses" value="&lt;b&gt;课程管理&lt;/b&gt;&lt;br&gt;(courses)&lt;br&gt;&lt;font style=&quot;font-size:10px&quot;&gt;课程/班级/选课/公告&lt;br&gt;课程发布/班级课程关联&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="60" y="220" width="200" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- 知识模块 (中) -->
+        <mxCell id="m_knowledge" value="&lt;b&gt;知识管理&lt;/b&gt;&lt;br&gt;(knowledge)&lt;br&gt;&lt;font style=&quot;font-size:10px&quot;&gt;知识点/关系/资源&lt;br&gt;掌握度/学习档案&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="360" y="220" width="200" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- 测评模块 (右上) -->
+        <mxCell id="m_assessments" value="&lt;b&gt;测评管理&lt;/b&gt;&lt;br&gt;(assessments)&lt;br&gt;&lt;font style=&quot;font-size:10px&quot;&gt;题库/测评/测评结果&lt;br&gt;能力评分/问卷&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="660" y="220" width="200" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- 学习路径模块 (左下) -->
+        <mxCell id="m_learning" value="&lt;b&gt;学习路径&lt;/b&gt;&lt;br&gt;(learning)&lt;br&gt;&lt;font style=&quot;font-size:10px&quot;&gt;自适应路径/节点&lt;br&gt;任务进度/动态调整&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="120" y="400" width="200" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- 考试模块 (右下) -->
+        <mxCell id="m_exams" value="&lt;b&gt;考试管理&lt;/b&gt;&lt;br&gt;(exams)&lt;br&gt;&lt;font style=&quot;font-size:10px&quot;&gt;考试定义/作答/提交&lt;br&gt;评分/反馈报告&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="600" y="400" width="200" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- AI服务模块 (正中下) -->
+        <mxCell id="m_ai" value="&lt;b&gt;AI 智能服务&lt;/b&gt;&lt;br&gt;(ai_services)&lt;br&gt;&lt;font style=&quot;font-size:10px&quot;&gt;LLM/KT/路径规划&lt;br&gt;GraphRAG/自动评分&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=12;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="360" y="400" width="200" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- 日志模块 (右下角) -->
+        <mxCell id="m_logs" value="&lt;b&gt;操作日志&lt;/b&gt;&lt;br&gt;(logs)&lt;br&gt;&lt;font style=&quot;font-size:10px&quot;&gt;审计日志/中间件&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=12;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="770" y="90" width="150" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- 公共模块 (左下角) -->
+        <mxCell id="m_common" value="&lt;b&gt;公共服务&lt;/b&gt;&lt;br&gt;(common)&lt;br&gt;&lt;font style=&quot;font-size:10px&quot;&gt;Neo4j/权限/响应/配置&lt;/font&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f5f5f5;strokeColor=#666666;fontSize=12;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="30" y="90" width="150" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- ========== 关系连线 ========== -->
+
+        <!-- users -> courses: 用户选课、创建课程 -->
+        <mxCell id="e1" value="&lt;font style=&quot;font-size:9px&quot;&gt;选课/创建&lt;/font&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#82b366;" edge="1" parent="1" source="m_users" target="m_courses">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- users -> assessments: 用户参加测评 -->
+        <mxCell id="e2" value="&lt;font style=&quot;font-size:9px&quot;&gt;参加测评&lt;/font&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#d6b656;" edge="1" parent="1" source="m_users" target="m_assessments">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- courses -> knowledge: 课程包含知识点 -->
+        <mxCell id="e3" value="&lt;font style=&quot;font-size:9px&quot;&gt;包含知识点&lt;/font&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeColor=#6c8ebf;" edge="1" parent="1" source="m_courses" target="m_knowledge">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- knowledge -> assessments: 知识点关联题目 -->
+        <mxCell id="e4" value="&lt;font style=&quot;font-size:9px&quot;&gt;关联题目&lt;/font&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeColor=#d6b656;" edge="1" parent="1" source="m_knowledge" target="m_assessments">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- knowledge -> learning: 知识图谱驱动路径 -->
+        <mxCell id="e5" value="&lt;font style=&quot;font-size:9px&quot;&gt;图谱驱动路径&lt;/font&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#6c8ebf;" edge="1" parent="1" source="m_knowledge" target="m_learning">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- knowledge -> exams: 知识点关联考题 -->
+        <mxCell id="e6" value="&lt;font style=&quot;font-size:9px&quot;&gt;关联考题&lt;/font&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#d6b656;" edge="1" parent="1" source="m_knowledge" target="m_exams">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ai -> knowledge: KT更新掌握度 -->
+        <mxCell id="e7" value="&lt;font style=&quot;font-size:9px&quot;&gt;KT更新掌握度&lt;/font&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;strokeColor=#9673a6;" edge="1" parent="1" source="m_ai" target="m_knowledge">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ai -> learning: AI生成学习路径 -->
+        <mxCell id="e8" value="&lt;font style=&quot;font-size:9px&quot;&gt;生成路径&lt;/font&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;strokeColor=#9673a6;" edge="1" parent="1" source="m_ai" target="m_learning">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ai -> exams: 自动评分/反馈 -->
+        <mxCell id="e9" value="&lt;font style=&quot;font-size:9px&quot;&gt;自动评分&lt;/font&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;strokeColor=#9673a6;" edge="1" parent="1" source="m_ai" target="m_exams">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- assessments -> ai: 测评触发KT分析 -->
+        <mxCell id="e10" value="&lt;font style=&quot;font-size:9px&quot;&gt;触发KT分析&lt;/font&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=1;entryY=0;entryDx=0;entryDy=0;strokeColor=#9673a6;dashed=1;" edge="1" parent="1" source="m_assessments" target="m_ai">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- common -> all: 公共基础服务 (虚线到knowledge) -->
+        <mxCell id="e11" value="&lt;font style=&quot;font-size:9px&quot;&gt;Neo4j/权限&lt;/font&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0;entryDx=0;entryDy=0;strokeColor=#666666;dashed=1;" edge="1" parent="1" source="m_common" target="m_courses">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- logs虚线到users -->
+        <mxCell id="e12" value="&lt;font style=&quot;font-size:9px&quot;&gt;审计追踪&lt;/font&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0;entryDx=0;entryDy=0;strokeColor=#666666;dashed=1;" edge="1" parent="1" source="m_logs" target="m_users">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- users -> knowledge: 掌握度记录 -->
+        <mxCell id="e13" value="&lt;font style=&quot;font-size:9px&quot;&gt;掌握度&lt;/font&gt;" style="edgeStyle=orthogonalEdgeStyle;rounded=1;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;strokeColor=#6c8ebf;" edge="1" parent="1" source="m_users" target="m_knowledge">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

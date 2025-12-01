@@ -1,0 +1,59 @@
+# =========================
+# Monorepo Root .gitignore
+# =========================
+output/
+# --- OS / Editor ---
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# --- Python ---
+__pycache__/
+*.py[codz]
+*.pyd
+*.so
+.python-version
+
+# --- Python env ---
+.venv/
+venv/
+env/
+ENV/
+
+# --- Python tooling ---
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# --- Backend runtime ---
+backend/.env
+backend/media/
+backend/staticfiles/
+backend/runtime_logs/
+backend/*.sqlite3
+backend/logs/operations/
+
+# --- Node / Frontend ---
+frontend/node_modules/
+frontend/dist/
+*.tsbuildinfo
+
+# --- Build / temp ---
+build/
+dist/
+tmp/
+temp/
+
+# --- Archives ---
+*.zip
+*.tar
+*.gz
+
+# Keep docs and source controlled
+!docs/**
+!backend/logs/__init__.py
+!backend/logs/*.py
