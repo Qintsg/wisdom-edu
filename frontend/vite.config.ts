@@ -16,10 +16,14 @@ function normalizeProxyTarget(rawTarget: string | undefined, fallbackTarget: str
  */
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
-  const developmentBackendTarget = 'http://127.0.0.1:28000'
+  const developmentBackendTarget = normalizeProxyTarget(
+    env.VITE_DEV_BACKEND_ORIGIN,
+    'http://127.0.0.1:8000'
+  )
   const developmentWebSocketTarget = developmentBackendTarget
     .replace(/^http:/, 'ws:')
     .replace(/^https:/, 'wss:')
+  const developmentPort = Number(env.VITE_DEV_PORT || 3000)
 
   return {
     plugins: [
@@ -42,8 +46,8 @@ export default defineConfig(({ mode }) => {
     },
     server: {
       host: '0.0.0.0',
-      port: 80,
-      strictPort: true,
+      port: Number.isFinite(developmentPort) ? developmentPort : 3000,
+      strictPort: false,
       proxy: {
         // 仅开发模式使用 Vite 代理；生产静态部署默认走同域反向代理。
         '/api': {

@@ -38,6 +38,7 @@
 <script setup>
 import { ref, reactive } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { extractApiErrorMessage, isApiErrorHandled } from '@/api'
 import { useUserStore } from '@/stores/user'
 import { ElMessage } from 'element-plus'
 import { User, Lock } from '@element-plus/icons-vue'
@@ -94,7 +95,9 @@ const handleLogin = async () => {
   } catch (error) {
     // Surface backend auth feedback while still logging the raw error for local diagnosis.
     console.error('登录失败:', error)
-    ElMessage.error(error.message || '登录失败，请检查用户名和密码')
+    if (!isApiErrorHandled(error)) {
+      ElMessage.error(extractApiErrorMessage(error, '登录失败，请检查用户名和密码'))
+    }
   } finally {
     loading.value = false
   }

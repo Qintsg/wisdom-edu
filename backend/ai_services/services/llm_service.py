@@ -2,8 +2,8 @@
 LLM服务模块 - 使用LangChain框架封装大模型调用
 
 支持的模型：
+- DeepSeek (deepseek-v4-pro, deepseek-chat, deepseek-reasoner)
 - 通义千问 (qwen-plus, qwen-turbo, qwen-max)
-- DeepSeek (deepseek-chat, deepseek-coder)
 
 使用示例:
     from ai_services.services import llm_service
@@ -101,7 +101,12 @@ class LLMService:
         "deepseek": {
             "display_name": "DeepSeek",
             "base_url": "https://api.deepseek.com",
-            "models": ["deepseek-chat", "deepseek-reasoner", "deepseek-coder"],
+            "models": [
+                "deepseek-v4-pro",
+                "deepseek-chat",
+                "deepseek-reasoner",
+                "deepseek-coder",
+            ],
             "env_keys": ["DEEPSEEK_API_KEY", "LLM_API_KEY"],
             "base_url_env_keys": ["DEEPSEEK_BASE_URL"],
             "model_prefixes": ["deepseek"],
@@ -197,13 +202,13 @@ class LLMService:
             temperature: 生成温度，0-1之间，越高越随机
         """
         # 读取默认模型配置，并收窄为稳定的字符串模型名。
-        configured_model = getattr(settings, "LLM_MODEL", "qwen-plus")
-        self.model_name = (
-            model_name
-            or configured_model
-            if isinstance(configured_model, str)
-            else "qwen-plus"
-        )
+        configured_model = getattr(settings, "LLM_MODEL", "deepseek-v4-pro")
+        if model_name:
+            self.model_name = model_name
+        elif isinstance(configured_model, str):
+            self.model_name = configured_model
+        else:
+            self.model_name = "deepseek-v4-pro"
         self.temperature = temperature
         self._llm = None
         self._api_key = None
@@ -214,14 +219,20 @@ class LLMService:
         self._max_retries = int(getattr(settings, "LLM_MAX_RETRIES", 2) or 2)
         self._agent_service = None
         self._proxy_url = ""
+        self._reasoning_enabled = bool(getattr(settings, "LLM_REASONING_ENABLED", False))
+        self._reasoning_effort = str(
+            getattr(settings, "LLM_REASONING_EFFORT", "") or ""
+        ).strip().lower()
+        self._extra_body: dict[str, Any] = {}
 
         # 确定模型提供商和API配置
         self._detect_provider()
+        self._extra_body = self._resolve_extra_body()
 
     @property
     def provider_name(self) -> str:
         """返回解析后的提供方标识。"""
-        return self._provider or "qwen"
+        return self._provider or "deepseek"
 
     @property
     def resolved_api_key(self) -> str:
@@ -247,6 +258,11 @@ class LLMService:
     def resolved_proxy_url(self) -> str:
         """返回当前网关将使用的代理地址。"""
         return self._proxy_url or ""
+
+    @property
+    def resolved_extra_body(self) -> dict[str, Any]:
+        """返回透传给 OpenAI 兼容网关的额外请求体。"""
+        return dict(self._extra_body)
 
     @classmethod
     def _normalize_provider_name(cls, provider_name: str) -> str:
@@ -307,7 +323,7 @@ class LLMService:
             ) and bool(
                 self._read_setting("LLM_BASE_URL") or self._read_setting("CUSTOM_LLM_BASE_URL")
             )
-            detected_provider = "custom" if has_custom_gateway else "qwen"
+            detected_provider = "custom" if has_custom_gateway else "deepseek"
 
         provider_config = self.MODEL_CONFIGS[detected_provider]
         self._provider = detected_provider
@@ -332,6 +348,26 @@ class LLMService:
                 base_url=self._base_url,
             )
         )
+
+    def _resolve_extra_body(self) -> dict[str, Any]:
+        """构造 OpenAI 兼容请求额外参数，默认明确关闭思考模式。"""
+        configured_extra_body = getattr(settings, "LLM_EXTRA_BODY", {}) or {}
+        extra_body = (
+            dict(configured_extra_body)
+            if isinstance(configured_extra_body, dict)
+            else {}
+        )
+        if not self._reasoning_enabled:
+            model_name = self.model_name.strip().lower()
+            reasoning_sensitive = (
+                self.provider_name in {"qwen", "deepseek", "custom"}
+                or "thinking" in model_name
+                or "reasoner" in model_name
+                or "deepseek-v4" in model_name
+            )
+            if reasoning_sensitive:
+                extra_body.setdefault("enable_thinking", False)
+        return extra_body
 
     @staticmethod
     def _clamp_positive_int(value: int, minimum: int = 1) -> int:
@@ -413,15 +449,20 @@ class LLMService:
 
         chat_openai_module = import_module("langchain_openai")
         chat_openai_class = getattr(chat_openai_module, "ChatOpenAI")
-        return chat_openai_class(
-            model=self.model_name,
-            temperature=self.temperature,
-            api_key=self._api_key,
-            base_url=self._base_url,
-            openai_proxy=self._proxy_url or None,
-            request_timeout=self._clamp_positive_int(request_timeout, minimum=5),
-            max_retries=max(0, int(max_retries)),
-        )
+        client_kwargs = {
+            "model": self.model_name,
+            "temperature": self.temperature,
+            "api_key": self._api_key,
+            "base_url": self._base_url,
+            "openai_proxy": self._proxy_url or None,
+            "request_timeout": self._clamp_positive_int(request_timeout, minimum=5),
+            "max_retries": max(0, int(max_retries)),
+        }
+        if self._extra_body:
+            client_kwargs["extra_body"] = self._extra_body
+        if self._reasoning_enabled and self._reasoning_effort:
+            client_kwargs["reasoning_effort"] = self._reasoning_effort
+        return chat_openai_class(**client_kwargs)
 
     def _get_llm(self):
         """
@@ -513,6 +554,13 @@ class LLMService:
                 request_timeout=self._request_timeout,
                 max_retries=self._max_retries,
                 proxy_url=self._proxy_url,
+                reasoning_enabled=self._reasoning_enabled,
+                reasoning_effort=self._reasoning_effort,
+                extra_body_json=json.dumps(
+                    self._extra_body,
+                    ensure_ascii=False,
+                    sort_keys=True,
+                ),
             )
         return self._agent_service
 
@@ -560,6 +608,18 @@ class LLMService:
         return str(data)
 
     @staticmethod
+    def _strip_reasoning_blocks(content: str) -> str:
+        """移除兼容网关可能返回的 <think> 推理片段，保留最终答案。"""
+        if not content:
+            return ""
+        return re.sub(
+            r"<think>[\s\S]*?</think>",
+            "",
+            str(content),
+            flags=re.IGNORECASE,
+        ).strip()
+
+    @staticmethod
     def _parse_json_response(content: str) -> Dict[str, Any]:
         """
         安全解析LLM返回的JSON响应
@@ -575,6 +635,8 @@ class LLMService:
         Returns:
             解析后的字典
         """
+        content = LLMService._strip_reasoning_blocks(content)
+
         # 尝试直接解析
         try:
             return json.loads(content)
@@ -606,13 +668,14 @@ class LLMService:
     def _coerce_message_text(content: str | List[Any] | None) -> str:
         """Normalize LangChain message content into a single text string."""
         if isinstance(content, str):
-            return content
+            return LLMService._strip_reasoning_blocks(content)
         if isinstance(content, list):
-            return "\n".join(
+            message_text = "\n".join(
                 item if isinstance(item, str) else json.dumps(item, ensure_ascii=False)
                 for item in content
                 if item is not None
             )
+            return LLMService._strip_reasoning_blocks(message_text)
         return ""
 
     def _repair_json_response(

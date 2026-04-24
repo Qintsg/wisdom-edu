@@ -1210,6 +1210,49 @@ class LLMProviderConfigTests(SimpleTestCase):
             "http://127.0.0.1:8443",
         )
 
+    @override_settings(
+        LLM_PROVIDER="deepseek",
+        LLM_MODEL="deepseek-v4-pro",
+        LLM_API_FORMAT="openai-compatible",
+        LLM_BASE_URL="",
+        DEEPSEEK_API_KEY="deepseek-demo-key",
+        DEEPSEEK_BASE_URL="https://api.deepseek.com",
+        LLM_REASONING_ENABLED=False,
+        LLM_REASONING_EFFORT="",
+        LLM_EXTRA_BODY={},
+    )
+    @patch("ai_services.services.llm_service.import_module")
+    def test_llm_service_should_default_deepseek_v4_to_non_thinking_mode(
+        self,
+        mock_import_module,
+    ):
+        """DeepSeek v4 default client should send the non-thinking gateway flag."""
+        from ai_services.services.llm_service import LLMService
+
+        chat_openai_class = Mock(return_value=Mock())
+        mock_import_module.return_value = SimpleNamespace(ChatOpenAI=chat_openai_class)
+
+        service = LLMService()
+        service._create_llm_client(request_timeout=12, max_retries=0)
+
+        self.assertEqual(service.provider_name, "deepseek")
+        self.assertEqual(service.model_name, "deepseek-v4-pro")
+        self.assertEqual(
+            chat_openai_class.call_args.kwargs["extra_body"],
+            {"enable_thinking": False},
+        )
+        self.assertNotIn("reasoning_effort", chat_openai_class.call_args.kwargs)
+
+    def test_llm_json_parser_should_ignore_think_blocks(self):
+        """Reasoning traces should not prevent structured JSON parsing."""
+        from ai_services.services.llm_service import LLMService
+
+        result = LLMService._parse_json_response(
+            '<think>内部推理内容</think>{"summary": "最终答案"}'
+        )
+
+        self.assertEqual(result["summary"], "最终答案")
+
 
 class LLMServiceRoutingTests(SimpleTestCase):
     """Guard against recursive agent routing in regular LLM calls."""

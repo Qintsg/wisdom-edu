@@ -25,15 +25,44 @@ type RetryableRequestConfig = InternalAxiosRequestConfig & {
 
 type RefreshSubscriber = (token?: string | null, error?: Error | null) => void
 
+type ApiErrorDetail = string | number | boolean | null | ApiErrorDetail[] | { [key: string]: ApiErrorDetail }
+
+type ApiEnvelope<T = unknown> = {
+  code?: number
+  msg?: string
+  data?: T
+  detail?: string
+  error?: {
+    type?: string
+    details?: ApiErrorDetail
+  }
+}
+
+export class ApiClientError extends Error {
+  status?: number
+  code?: number
+  payload?: unknown
+  handledByInterceptor: boolean
+
+  constructor(message: string, options: { status?: number; code?: number; payload?: unknown; handled?: boolean } = {}) {
+    super(message)
+    this.name = 'ApiClientError'
+    this.status = options.status
+    this.code = options.code
+    this.payload = options.payload
+    this.handledByInterceptor = options.handled ?? false
+  }
+}
+
 type ApiClient = Omit<AxiosInstance, 'request' | 'get' | 'delete' | 'head' | 'options' | 'post' | 'put' | 'patch'> & {
-  request<T = any, D = any>(config: AxiosRequestConfig<D>): Promise<T>
-  get<T = any, D = any>(url: string, config?: AxiosRequestConfig<D>): Promise<T>
-  delete<T = any, D = any>(url: string, config?: AxiosRequestConfig<D>): Promise<T>
-  head<T = any, D = any>(url: string, config?: AxiosRequestConfig<D>): Promise<T>
-  options<T = any, D = any>(url: string, config?: AxiosRequestConfig<D>): Promise<T>
-  post<T = any, D = any>(url: string, data?: D, config?: AxiosRequestConfig<D>): Promise<T>
-  put<T = any, D = any>(url: string, data?: D, config?: AxiosRequestConfig<D>): Promise<T>
-  patch<T = any, D = any>(url: string, data?: D, config?: AxiosRequestConfig<D>): Promise<T>
+  request<T = unknown, D = unknown>(config: AxiosRequestConfig<D>): Promise<T>
+  get<T = unknown, D = unknown>(url: string, config?: AxiosRequestConfig<D>): Promise<T>
+  delete<T = unknown, D = unknown>(url: string, config?: AxiosRequestConfig<D>): Promise<T>
+  head<T = unknown, D = unknown>(url: string, config?: AxiosRequestConfig<D>): Promise<T>
+  options<T = unknown, D = unknown>(url: string, config?: AxiosRequestConfig<D>): Promise<T>
+  post<T = unknown, D = unknown>(url: string, data?: D, config?: AxiosRequestConfig<D>): Promise<T>
+  put<T = unknown, D = unknown>(url: string, data?: D, config?: AxiosRequestConfig<D>): Promise<T>
+  patch<T = unknown, D = unknown>(url: string, data?: D, config?: AxiosRequestConfig<D>): Promise<T>
 }
 
 // ==================== 配置常量 ====================
@@ -115,6 +144,87 @@ function normalizeError(error: unknown): Error {
   return new Error('未知错误')
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+function collectDetailMessages(detail: unknown, prefix = ''): string[] {
+  if (Array.isArray(detail)) {
+    return detail.flatMap(item => collectDetailMessages(item, prefix))
+  }
+  if (isRecord(detail)) {
+    return Object.entries(detail).flatMap(([key, value]) => {
+      const nextPrefix = key === 'detail' ? prefix : (prefix ? `${prefix}.${key}` : key)
+      return collectDetailMessages(value, nextPrefix)
+    })
+  }
+  if (detail === null || detail === undefined || detail === '') {
+    return []
+  }
+
+  const message = String(detail).trim()
+  if (!message) {
+    return []
+  }
+  return [prefix ? `${prefix}: ${message}` : message]
+}
+
+function extractPayloadMessage(payload: unknown, fallback: string): string {
+  if (isRecord(payload)) {
+    const envelope = payload as ApiEnvelope
+    if (typeof envelope.msg === 'string' && envelope.msg.trim()) {
+      return envelope.msg.trim()
+    }
+    if (typeof envelope.detail === 'string' && envelope.detail.trim()) {
+      return envelope.detail.trim()
+    }
+    const detailMessages = collectDetailMessages(envelope.data ?? envelope.error?.details)
+    if (detailMessages.length) {
+      return detailMessages[0]
+    }
+  }
+  return fallback
+}
+
+function createApiError(
+  message: string,
+  options: { status?: number; code?: number; payload?: unknown; handled?: boolean } = {}
+): ApiClientError {
+  return new ApiClientError(message || '请求失败', options)
+}
+
+export function extractApiErrorMessage(error: unknown, fallback = '请求失败'): string {
+  if (error instanceof ApiClientError && error.message) {
+    return error.message
+  }
+  if (axios.isAxiosError(error)) {
+    return extractPayloadMessage(error.response?.data, error.message || fallback)
+  }
+  if (error instanceof Error && error.message) {
+    return error.message
+  }
+  return fallback
+}
+
+export function isApiErrorHandled(error: unknown): boolean {
+  return error instanceof ApiClientError && error.handledByInterceptor
+}
+
+function notifyError(message: string): void {
+  ElMessage.error(message || '请求失败')
+}
+
+function isAuthEntryRequest(config?: RetryableRequestConfig): boolean {
+  const requestUrl = String(config?.url ?? '')
+  return [
+    '/api/auth/login',
+    '/api/auth/register',
+    '/api/auth/token/refresh',
+    '/api/auth/password/reset',
+    '/api/auth/password/reset/send'
+  ].some(authEndpoint => requestUrl.includes(authEndpoint))
+}
+
 /**
  * 通知所有等待的请求，Token已刷新
  * @param {string} token - 新的访问令牌
@@ -173,17 +283,28 @@ request.interceptors.request.use(
 // 响应拦截器 - 统一处理响应和错误
 request.interceptors.response.use(
   response => {
-    const { code, msg, data } = response.data
+    if (response.config.responseType === 'blob' || response.data instanceof Blob) {
+      return response.data
+    }
+
+    const payload = response.data as ApiEnvelope
+    const { code, msg, data } = payload
 
     // 业务成功（200/201/202都视为成功）
     if (code === 200 || code === 201 || code === 202) {
       // 直接返回data字段，简化调用方代码
-      return data !== undefined ? data : response.data
+      return data !== undefined ? data : payload
     }
 
     // 业务错误
-    ElMessage.error(msg || '请求失败')
-    return Promise.reject(new Error(msg))
+    const message = extractPayloadMessage(payload, msg || '请求失败')
+    notifyError(message)
+    return Promise.reject(createApiError(message, {
+      status: response.status,
+      code,
+      payload,
+      handled: true
+    }))
   },
   async (error: AxiosError) => {
     const { response } = error
@@ -191,22 +312,61 @@ request.interceptors.response.use(
 
     // 检查是否超过最大重试次数（使用 > 确保能重试 MAX_RETRY_COUNT 次）
     if ((config?._retryCount ?? 0) >= MAX_RETRY_COUNT) {
-      ElMessage.error('请求失败次数过多，请稍后重试')
-      return Promise.reject(new Error('超过最大重试次数'))
+      const message = '请求失败次数过多，请稍后重试'
+      notifyError(message)
+      return Promise.reject(createApiError(message, {
+        status: response?.status,
+        payload: response?.data,
+        handled: true
+      }))
     }
 
     if (response) {
+      const fallbackMessageMap: Record<number, string> = {
+        401: '登录已过期，请重新登录',
+        403: '没有权限访问',
+        404: '请求的资源不存在',
+        500: '服务器内部错误'
+      }
+      const backendMessage = extractPayloadMessage(
+        response.data,
+        fallbackMessageMap[response.status] || '请求失败'
+      )
       switch (response.status) {
         case 401:
           // 用户主动登出时，不弹过期提示
           if (isLoggingOut) {
-            return Promise.reject(new Error('用户已登出'))
+            return Promise.reject(createApiError('用户已登出', {
+              status: 401,
+              payload: response.data
+            }))
+          }
+          // 登录、注册、找回密码等认证入口的 401 应保留业务错误，
+          // 不能误走 access token 刷新链路覆盖后端提示。
+          if (isAuthEntryRequest(config)) {
+            return Promise.reject(createApiError(backendMessage, {
+              status: 401,
+              payload: response.data
+            }))
           }
           // 如果Token刷新已经失败过，直接跳转登录，避免死循环
           if (tokenRefreshFailed) {
             clearAuthTokens()
             await router.push('/login')
-            return Promise.reject(new Error('认证失败'))
+            return Promise.reject(createApiError(backendMessage || '认证失败', {
+              status: 401,
+              payload: response.data
+            }))
+          }
+          if (!getStoredRefreshToken()) {
+            clearAuthTokens()
+            notifyError(backendMessage || '登录已过期，请重新登录')
+            await router.push('/login')
+            return Promise.reject(createApiError(backendMessage || '认证失败', {
+              status: 401,
+              payload: response.data,
+              handled: true
+            }))
           }
 
           // Token过期，尝试刷新
@@ -223,15 +383,22 @@ request.interceptors.response.use(
                 const newToken = getStoredAccessToken()
                 if (!newToken) {
                   tokenRefreshFailed = true
-                  onTokenRefreshFailed(new Error('Token刷新后缺少访问令牌'))
+                  const missingTokenError = createApiError('Token刷新后缺少访问令牌', {
+                    status: 401,
+                    payload: response.data
+                  })
+                  onTokenRefreshFailed(missingTokenError)
                   clearAuthTokens()
                   await router.push('/login')
-                  return Promise.reject(new Error('Token刷新后缺少访问令牌'))
+                  return Promise.reject(missingTokenError)
                 }
 
                 onTokenRefreshed(newToken)
                 if (!config) {
-                  return Promise.reject(new Error('请求配置缺失，无法重试'))
+                  return Promise.reject(createApiError('请求配置缺失，无法重试', {
+                    status: 401,
+                    payload: response.data
+                  }))
                 }
                 config.headers.Authorization = `Bearer ${newToken}`
                 config._retryCount = (config._retryCount ?? 0) + 1
@@ -239,11 +406,15 @@ request.interceptors.response.use(
               } else {
                 // 刷新失败，标记并通知所有等待的请求
                 tokenRefreshFailed = true
-                onTokenRefreshFailed(new Error('Token刷新失败'))
+                const refreshFailedError = createApiError('Token刷新失败', {
+                  status: 401,
+                  payload: response.data
+                })
+                onTokenRefreshFailed(refreshFailedError)
                 clearAuthTokens()
-                ElMessage.error('登录已过期，请重新登录')
+                notifyError('登录已过期，请重新登录')
                 await router.push('/login')
-                return Promise.reject(new Error('Token刷新失败'))
+                return Promise.reject(refreshFailedError)
               }
             } catch (refreshError) {
               const normalizedError = normalizeError(refreshError)
@@ -251,14 +422,17 @@ request.interceptors.response.use(
               tokenRefreshFailed = true
               onTokenRefreshFailed(normalizedError)
               clearAuthTokens()
-              ElMessage.error('登录已过期，请重新登录')
+              notifyError('登录已过期，请重新登录')
               await router.push('/login')
               return Promise.reject(normalizedError)
             }
           } else {
             // 正在刷新，将请求加入队列
             if (!config) {
-              return Promise.reject(new Error('请求配置缺失，无法重试'))
+              return Promise.reject(createApiError('请求配置缺失，无法重试', {
+                status: 401,
+                payload: response.data
+              }))
             }
 
             return new Promise((resolve, reject) => {
@@ -274,16 +448,16 @@ request.interceptors.response.use(
             })
           }
         case 403:
-          ElMessage.error('没有权限访问')
+          notifyError(backendMessage)
           break
         case 404:
-          ElMessage.error('请求的资源不存在')
+          notifyError(backendMessage)
           break
         case 500:
-          ElMessage.error('服务器内部错误')
+          notifyError(backendMessage)
           break
         default:
-          ElMessage.error((response.data as any)?.msg || '请求失败')
+          notifyError(backendMessage)
       }
     } else if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
       // 请求超时：在限制次数内自动重试
@@ -291,17 +465,24 @@ request.interceptors.response.use(
         config._retryCount = (config._retryCount ?? 0) + 1
         return request.request(config)
       }
-      ElMessage.error('请求超时，请检查网络连接')
+      notifyError('请求超时，请检查网络连接')
     } else {
       // 网络错误（无响应）：在限制次数内自动重试
       if ((config?._retryCount ?? 0) < MAX_RETRY_COUNT && config) {
         config._retryCount = (config._retryCount ?? 0) + 1
         return request.request(config)
       }
-      ElMessage.error('网络连接失败')
+      notifyError('网络连接失败')
     }
 
-    return Promise.reject(error)
+    return Promise.reject(createApiError(
+      extractApiErrorMessage(error),
+      {
+        status: response?.status,
+        payload: response?.data,
+        handled: true
+      }
+    ))
   }
 )
 

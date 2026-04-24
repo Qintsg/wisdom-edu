@@ -3,6 +3,7 @@
 interface ImportMetaEnv {
   readonly VITE_BACKEND_ORIGIN?: string
   readonly VITE_DEV_BACKEND_ORIGIN?: string
+  readonly VITE_DEV_PORT?: string
 }
 
 interface ImportMeta {

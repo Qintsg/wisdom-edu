@@ -208,6 +208,9 @@ class LangChainAgentService:
         request_timeout: int = 120,
         max_retries: int = 2,
         proxy_url: str = "",
+        reasoning_enabled: bool = False,
+        reasoning_effort: str = "",
+        extra_body: dict[str, object] | None = None,
     ):
         """Store model connection settings and defer heavy LangChain setup."""
         self.model_name = model_name
@@ -218,6 +221,9 @@ class LangChainAgentService:
         self.request_timeout = request_timeout
         self.max_retries = max_retries
         self.proxy_url = proxy_url
+        self.reasoning_enabled = reasoning_enabled
+        self.reasoning_effort = reasoning_effort
+        self.extra_body = dict(extra_body or {})
         self._model = None
         self._agent = None
 
@@ -242,15 +248,20 @@ class LangChainAgentService:
 
             from langchain_openai import ChatOpenAI
 
-            self._model = ChatOpenAI(
-                model=self.model_name,
-                temperature=self.temperature,
-                api_key=self.api_key,
-                base_url=self.base_url,
-                openai_proxy=self.proxy_url or None,
-                request_timeout=self.request_timeout,
-                max_retries=self.max_retries,
-            )
+            model_kwargs = {
+                "model": self.model_name,
+                "temperature": self.temperature,
+                "api_key": self.api_key,
+                "base_url": self.base_url,
+                "openai_proxy": self.proxy_url or None,
+                "request_timeout": self.request_timeout,
+                "max_retries": self.max_retries,
+            }
+            if self.extra_body:
+                model_kwargs["extra_body"] = self.extra_body
+            if self.reasoning_enabled and self.reasoning_effort:
+                model_kwargs["reasoning_effort"] = self.reasoning_effort
+            self._model = ChatOpenAI(**model_kwargs)
         except Exception as exc:
             logger.warning("LangChain agent model init failed: %s", exc)
             self._model = None
@@ -417,8 +428,16 @@ def get_agent_service(
     request_timeout: int = 120,
     max_retries: int = 2,
     proxy_url: str = "",
+    reasoning_enabled: bool = False,
+    reasoning_effort: str = "",
+    extra_body_json: str = "{}",
 ) -> LangChainAgentService:
     """Reuse a small pool of agent service instances per provider configuration."""
+    try:
+        parsed_extra_body = json.loads(extra_body_json or "{}")
+    except json.JSONDecodeError:
+        parsed_extra_body = {}
+    extra_body = parsed_extra_body if isinstance(parsed_extra_body, dict) else {}
     return LangChainAgentService(
         model_name=model_name,
         api_key=api_key,
@@ -428,6 +447,9 @@ def get_agent_service(
         request_timeout=request_timeout,
         max_retries=max_retries,
         proxy_url=proxy_url,
+        reasoning_enabled=reasoning_enabled,
+        reasoning_effort=reasoning_effort,
+        extra_body=extra_body,
     )
 
 
@@ -445,4 +467,11 @@ def get_default_agent_service() -> LangChainAgentService:
         request_timeout=int(getattr(settings, "LLM_REQUEST_TIMEOUT", 120) or 120),
         max_retries=int(getattr(settings, "LLM_MAX_RETRIES", 2) or 2),
         proxy_url=resolve_llm_proxy_for_base_url(llm_service.resolved_base_url),
+        reasoning_enabled=bool(getattr(settings, "LLM_REASONING_ENABLED", False)),
+        reasoning_effort=str(getattr(settings, "LLM_REASONING_EFFORT", "") or ""),
+        extra_body_json=json.dumps(
+            llm_service.resolved_extra_body,
+            ensure_ascii=False,
+            sort_keys=True,
+        ),
     )

@@ -194,12 +194,12 @@ class AppConfig:
     @staticmethod
     def llm_provider() -> str:
         """返回默认的大模型提供方标识。"""
-        return get_config('llm', 'provider', 'qwen').strip().lower() or 'qwen'
+        return get_config('llm', 'provider', 'deepseek').strip().lower() or 'deepseek'
 
     @staticmethod
     def llm_model() -> str:
         """返回默认的大模型名称。"""
-        return get_config('llm', 'model', 'qwen3.6-plus').strip() or 'qwen3.6-plus'
+        return get_config('llm', 'model', 'deepseek-v4-pro').strip() or 'deepseek-v4-pro'
 
     @staticmethod
     def llm_api_format() -> str:

@@ -1,5 +1,35 @@
 # API 变更记录
 
+## 2026-04-24
+
+### 统一错误响应
+
+- 所有通过 `common.responses.error_response()` 返回的业务错误继续保持 `code`、`msg`、`data` 三段式结构。
+- 当 HTTP 状态码或业务 `code` 表示错误时，响应会额外包含：
+  - `error.type`：稳定错误类型，默认形如 `HTTP_400`，DRF 异常会使用异常类名。
+  - `error.details`：字段级或结构化错误详情。
+- DRF 全局异常处理会把序列化校验错误归一化到 `data.errors`，前端可直接从 `msg` 展示首条用户可读错误，也可读取 `error.details` 做字段定位。
+
+示例：
+
+```json
+{
+  "code": 400,
+  "msg": "username: 该字段不能为空。",
+  "data": {
+    "errors": {
+      "username": ["该字段不能为空。"]
+    }
+  },
+  "error": {
+    "type": "ValidationError",
+    "details": {
+      "username": ["该字段不能为空。"]
+    }
+  }
+}
+```
+
 ## 2026-04-04
 
 ### GraphRAG / 知识图谱

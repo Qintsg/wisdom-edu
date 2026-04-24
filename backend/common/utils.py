@@ -21,7 +21,53 @@ from rest_framework.views import exception_handler
 logger = logging.getLogger(__name__)
 
 
-def custom_exception_handler(exc, context):
+def _normalize_error_detail(detail: Any) -> Any:
+    """
+    将 DRF ErrorDetail / 列表 / 字典转为可 JSON 序列化的错误详情。
+
+    :param detail: DRF 原始错误数据。
+    :return: 仅包含字符串、列表和字典的错误详情。
+    """
+    if isinstance(detail, dict):
+        return {
+            str(key): _normalize_error_detail(value)
+            for key, value in detail.items()
+        }
+    if isinstance(detail, (list, tuple)):
+        return [_normalize_error_detail(item) for item in detail]
+    if detail is None:
+        return None
+    return str(detail)
+
+
+def _flatten_error_messages(detail: Any) -> List[str]:
+    """
+    提取可直接展示给用户的错误消息，优先保留字段名上下文。
+
+    :param detail: 归一化后的错误详情。
+    :return: 消息列表。
+    """
+    if isinstance(detail, dict):
+        messages: List[str] = []
+        for key, value in detail.items():
+            child_messages = _flatten_error_messages(value)
+            if key == "detail":
+                messages.extend(child_messages)
+            elif child_messages:
+                messages.extend(f"{key}: {message}" for message in child_messages)
+        return messages
+    if isinstance(detail, list):
+        messages: List[str] = []
+        for item in detail:
+            messages.extend(_flatten_error_messages(item))
+        return messages
+    if detail is None:
+        return []
+    text = str(detail).strip()
+    return [text] if text else []
+
+
+def custom_exception_handler(exc: Exception, context: Dict[str, Any]) -> Response:
     """
     自定义异常处理，统一 API 响应格式。
     返回格式: {"code": xxx, "msg": "xxx", "data": null}
@@ -29,10 +75,16 @@ def custom_exception_handler(exc, context):
     response = exception_handler(exc, context)
 
     if response is not None:
+        normalized_errors = _normalize_error_detail(response.data)
+        message = get_error_message(response)
         response.data = {
             "code": response.status_code,
-            "msg": get_error_message(response),
-            "data": None,
+            "msg": message,
+            "data": {"errors": normalized_errors} if normalized_errors else None,
+            "error": {
+                "type": exc.__class__.__name__,
+                "details": normalized_errors,
+            },
         }
     else:
         request = context.get("request") if isinstance(context, dict) else None
@@ -59,25 +111,10 @@ def custom_exception_handler(exc, context):
 def get_error_message(response):
     """从 DRF 响应中提取错误信息。"""
     if hasattr(response, "data"):
-        data = response.data
-        if isinstance(data, dict):
-            if "detail" in data:
-                return str(data["detail"])
-            if "non_field_errors" in data:
-                return (
-                    str(data["non_field_errors"][0])
-                    if data["non_field_errors"]
-                    else "请求错误"
-                )
-            for key, value in data.items():
-                if isinstance(value, list) and value:
-                    return f"{key}: {value[0]}"
-                if isinstance(value, str):
-                    return f"{key}: {value}"
-        elif isinstance(data, list) and data:
-            return str(data[0])
-        elif isinstance(data, str):
-            return data
+        normalized_errors = _normalize_error_detail(response.data)
+        messages = _flatten_error_messages(normalized_errors)
+        if messages:
+            return messages[0]
 
     status_messages = {
         400: "请求参数错误",

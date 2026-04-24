@@ -57,7 +57,7 @@ class LLMCallLog(models.Model):
         max_length=50, 
         blank=True, 
         null=True,
-        help_text='如: qwen-plus, deepseek-chat'
+        help_text='如: deepseek-v4-pro, deepseek-chat, qwen-plus'
     )
     tokens_used = models.IntegerField(
         'Token用量', 

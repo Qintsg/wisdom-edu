@@ -42,7 +42,7 @@ install.bat
 ```
 
 脚本会引导生成 `backend/.env`，并可按需完成依赖安装、迁移、静态资源收集与前端构建。前端开发期统一通过 `frontend/vite.config.ts` 代理 `/api`、`/media`、`/ws`。
-当前开发代理默认联调 `http://127.0.0.1:8000`，并监听 `0.0.0.0:3000`，因此本地 `npm run dev` 无需额外配置 Nginx、Caddy 或其他反向代理；如需临时联调远端后端，可通过 `VITE_DEV_BACKEND_ORIGIN` 覆盖开发代理目标。生产构建默认直连 `http://127.0.0.1:8000`，如需让生产包改连其他后端入口，可通过 `VITE_BACKEND_ORIGIN` 覆盖后重新构建。
+当前开发代理默认联调 `http://127.0.0.1:8000`，并监听 `0.0.0.0:3000`，因此本地 `npm run dev` 无需额外配置 Nginx、Caddy 或其他反向代理；如需临时联调远端后端，可通过 `VITE_DEV_BACKEND_ORIGIN` 覆盖开发代理目标，通过 `VITE_DEV_PORT` 覆盖开发端口。生产构建默认直连 `http://127.0.0.1:8000`，如需让生产包改连其他后端入口，可通过 `VITE_BACKEND_ORIGIN` 覆盖后重新构建。
 
 ### 后端
 
@@ -69,7 +69,7 @@ npm run dev
 - 前端：`http://0.0.0.0:3000`（局域网访问时使用宿主机实际 IP）
 - 后端：`http://127.0.0.1:8000`
 
-本地开发默认无需额外前端环境变量，也无需配置额外反向代理；`npm run dev` 会直接把 `/api`、`/media`、`/static`、`/ws` 代理到 `127.0.0.1:8000`。如需联调到其他后端地址，请调整 `frontend/vite.config.ts` 中对应代理目标或设置 `VITE_DEV_BACKEND_ORIGIN`。若要让生产包请求其他域名/端口，则需要设置 `VITE_BACKEND_ORIGIN` 后重新构建。
+本地开发默认无需额外前端环境变量，也无需配置额外反向代理；`npm run dev` 会直接把 `/api`、`/media`、`/static`、`/ws` 代理到 `127.0.0.1:8000`。如需联调到其他后端地址，请调整 `frontend/vite.config.ts` 中对应代理目标或设置 `VITE_DEV_BACKEND_ORIGIN`；如需避开端口占用，可设置 `VITE_DEV_PORT`。若要让生产包请求其他域名/端口，则需要设置 `VITE_BACKEND_ORIGIN` 后重新构建。
 
 ## 常用入口
 

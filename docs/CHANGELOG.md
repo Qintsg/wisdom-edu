@@ -1,5 +1,23 @@
 # Changelog
 
+## 2026-04-24
+
+### Backend / AI — DeepSeek v4 默认模型与非思考模式收口
+
+- 后端默认 LLM 提供方调整为 `deepseek`，默认模型调整为 `deepseek-v4-pro`，`backend/config.ini`、`backend/.env.example` 与运行时配置读取逻辑保持一致。
+- 新增 `LLM_REASONING_ENABLED`、`LLM_REASONING_EFFORT`、`LLM_EXTRA_BODY_JSON` 配置入口，默认向兼容网关透传 `enable_thinking=false`，避免 DeepSeek v4 / reasoning 类模型把推理片段混入业务 JSON。
+- `LLMService` 与 `LangChainAgentService` 共享 reasoning 与 `extra_body` 配置，并在 JSON 解析前剥离 `<think>...</think>` 片段。
+
+### Backend / Frontend — API 错误详情透传与前端提示对齐
+
+- `common.responses` 与 DRF 全局异常处理现在会在保持 `code/msg/data` 旧契约的同时，补充 `error.type` 与 `error.details`，并将字段级错误归一化到 `data.errors`。
+- 前端 Axios 客户端新增 `ApiClientError` 与 `extractApiErrorMessage()`，登录页和学生 AI 助手页会优先展示后端返回的具体错误原因。
+
+### Frontend / Local Dev — 开发端口与后端代理可配置
+
+- `frontend/vite.config.ts` 继续默认代理到 `http://127.0.0.1:8000`，新增 `VITE_DEV_PORT` 用于覆盖开发服务器端口，并关闭严格端口占用失败。
+- `docs/API.md`、`docs/大模型接入说明.md`、`docs/安装说明.md`、`docs/服务器部署说明.md`、`docs/README.md` 与根 `README.md` 已同步更新。
+
 ## 2026-04-08
 
 ### Backend / AI — LLM 代理配置与聊天链路快失败

@@ -151,6 +151,7 @@ import { nextTick, onMounted, onUnmounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 
+import { extractApiErrorMessage, isApiErrorHandled } from '@/api'
 import { askGraphRAG, createStudentAIChatSocket, searchGraphRAG } from '@/api/student/ai'
 import { getKnowledgePointDetail } from '@/api/student/knowledge'
 import { useCourseStore } from '@/stores/course'
@@ -268,7 +269,9 @@ const runSearch = async () => {
     }
   } catch (error) {
     console.error('GraphRAG检索失败:', error)
-    ElMessage.error('知识图谱检索失败')
+    if (!isApiErrorHandled(error)) {
+      ElMessage.error(extractApiErrorMessage(error, '知识图谱检索失败'))
+    }
   } finally {
     searchLoading.value = false
   }
@@ -329,7 +332,7 @@ const askQuestion = async () => {
     }
   } catch (error) {
     console.error('GraphRAG问答失败:', error)
-    assistantMessage.content = '抱歉，AI助手暂时无法回复，请稍后重试。'
+    assistantMessage.content = `抱歉，AI助手暂时无法回复：${extractApiErrorMessage(error, '请稍后重试')}`
   } finally {
     stopChatStageAnimation()
     chatLoading.value = false

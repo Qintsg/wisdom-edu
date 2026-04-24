@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 
 from pathlib import Path
 import configparser
+import json
 import os
 from datetime import timedelta
 from dotenv import load_dotenv
@@ -40,6 +41,38 @@ def _config_int(section: str, key: str, default: int) -> int:
     if raw_value.isdigit():
         return int(raw_value)
     return default
+
+
+def _config_bool(section: str, key: str, default: bool) -> bool:
+    """从 config.ini 读取布尔配置，兼容常见 true/false 写法。"""
+    raw_value = _config_value(section, key, str(default)).strip().lower()
+    if raw_value in {"1", "true", "yes", "on"}:
+        return True
+    if raw_value in {"0", "false", "no", "off"}:
+        return False
+    return default
+
+
+def _env_config_bool(env_name: str, section: str, key: str, default: bool) -> bool:
+    """读取环境变量优先的布尔配置。"""
+    raw_value = os.getenv(env_name, "").strip().lower()
+    if raw_value in {"1", "true", "yes", "on"}:
+        return True
+    if raw_value in {"0", "false", "no", "off"}:
+        return False
+    return _config_bool(section, key, default)
+
+
+def _config_json_dict(env_name: str, section: str, key: str) -> dict[str, object]:
+    """读取 JSON 字典配置，解析失败时返回空字典避免启动中断。"""
+    raw_value = os.getenv(env_name, _config_value(section, key, "{}")).strip()
+    if not raw_value:
+        return {}
+    try:
+        parsed = json.loads(raw_value)
+    except json.JSONDecodeError:
+        return {}
+    return parsed if isinstance(parsed, dict) else {}
 
 
 def _env_csv_list(env_name: str, default: str = "") -> list[str]:
@@ -305,14 +338,14 @@ SPECTACULAR_SETTINGS = {
 
 LLM_PROVIDER = os.getenv(
     "LLM_PROVIDER",
-    _config_value("llm", "provider", "qwen"),
-).strip().lower() or "qwen"
+    _config_value("llm", "provider", "deepseek"),
+).strip().lower() or "deepseek"
 
 # 默认使用的模型
 LLM_MODEL = os.getenv(
     "LLM_MODEL",
-    _config_value("llm", "model", "qwen3.6-plus"),
-).strip() or "qwen3.6-plus"
+    _config_value("llm", "model", "deepseek-v4-pro"),
+).strip() or "deepseek-v4-pro"
 
 # OpenAI 兼容网关描述
 LLM_API_FORMAT = os.getenv(
@@ -337,6 +370,20 @@ LLM_BASE_URL = os.getenv(
     "LLM_BASE_URL",
     _config_value("llm", "base_url", ""),
 ).strip()
+
+# 非思考模式配置。默认关闭 reasoning/thinking，并通过 extra_body 兼容常见
+# OpenAI 兼容网关的 enable_thinking=false 写法。
+LLM_REASONING_ENABLED = _env_config_bool(
+    "LLM_REASONING_ENABLED",
+    "llm",
+    "reasoning_enabled",
+    False,
+)
+LLM_REASONING_EFFORT = os.getenv(
+    "LLM_REASONING_EFFORT",
+    _config_value("llm", "reasoning_effort", ""),
+).strip().lower()
+LLM_EXTRA_BODY = _config_json_dict("LLM_EXTRA_BODY_JSON", "llm", "extra_body_json")
 
 # LLM 请求代理（可选）
 LLM_HTTP_PROXY = os.getenv("LLM_HTTP_PROXY", os.getenv("HTTP_PROXY", "")).strip()

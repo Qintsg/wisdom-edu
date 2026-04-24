@@ -73,8 +73,8 @@ def diagnose_env():
         or os.environ.get('KIMI_API_KEY')
     )
     print(f'  LLM API Key: {"✓ 已配置" if llm_key else "✗ 未配置"}')
-    print(f'  LLM_PROVIDER: {os.environ.get("LLM_PROVIDER", "qwen") or "qwen"}')
-    print(f'  LLM_MODEL: {os.environ.get("LLM_MODEL", "qwen3.6-plus") or "qwen3.6-plus"}')
+    print(f'  LLM_PROVIDER: {os.environ.get("LLM_PROVIDER", "deepseek") or "deepseek"}')
+    print(f'  LLM_MODEL: {os.environ.get("LLM_MODEL", "deepseek-v4-pro") or "deepseek-v4-pro"}')
     print(f'  LLM_API_FORMAT: {os.environ.get("LLM_API_FORMAT", "openai-compatible") or "openai-compatible"}')
 
     print('\n[数据摘要]')
