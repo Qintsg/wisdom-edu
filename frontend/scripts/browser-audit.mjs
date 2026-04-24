@@ -15,8 +15,8 @@ const DEFAULT_PASSWORDS = {
 
 function parseArgs(argv) {
   const args = {
-    frontendUrl: 'http://127.0.0.1:3000',
-    apiBaseUrl: 'http://127.0.0.1:8000',
+    frontendUrl: 'http://edu.qintsg.xyz',
+    apiBaseUrl: 'http://edu.qintsg.xyz',
     outputDir: '../output/playwright',
     headed: false,
     scenario: 'audit'

@@ -2,6 +2,7 @@
 # Monorepo Root .gitignore
 # =========================
 output/
+.omx/
 # --- OS / Editor ---
 .DS_Store
 Thumbs.db

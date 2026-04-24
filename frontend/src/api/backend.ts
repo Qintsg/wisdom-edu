@@ -6,7 +6,7 @@
  */
 
 /** 固定后端 HTTP 入口；未显式配置时默认回落到本机 Django。 */
-const RAW_BACKEND_ORIGIN = (import.meta.env.VITE_BACKEND_ORIGIN ?? 'http://127.0.0.1:8000').trim()
+const RAW_BACKEND_ORIGIN = (import.meta.env.VITE_BACKEND_ORIGIN ?? 'https://edu.qintsg.xyz').trim()
 
 /**
  * 统一清洗后端入口，避免拼接时出现双斜杠。
