@@ -85,6 +85,10 @@ export const useCourseStore = defineStore('course', () => {
   let _coursesCacheTime = 0
   const COURSES_CACHE_TTL = 15000 // 15秒缓存有效期
 
+  function invalidateCoursesCache(): void {
+    _coursesCacheTime = 0
+  }
+
   // ==================== 计算属性 ====================
 
   /** 是否已选择课程 */
@@ -321,6 +325,7 @@ export const useCourseStore = defineStore('course', () => {
     classId,
     courseName,
     className,
+    invalidateCoursesCache,
     fetchCourses,
     selectCourse,
     selectClass,

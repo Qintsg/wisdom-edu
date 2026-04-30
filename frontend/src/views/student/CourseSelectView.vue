@@ -21,11 +21,18 @@
         </div>
 
         <div v-else-if="courses.length === 0" class="empty-state">
-          <el-empty description="暂无可选课程" :image-size="200" />
+          <el-empty description="暂无可选课程" :image-size="200">
+            <template #description>
+              <p>暂无可选课程，请先使用老师提供的邀请码加入班级。</p>
+            </template>
+            <el-button type="primary" size="large" :loading="joiningClass" @click="showJoinDialog = true">
+              加入班级
+            </el-button>
+          </el-empty>
         </div>
 
         <el-row v-else :gutter="24" class="course-grid">
-          <el-col v-for="course in courses" :key="course.id" :xs="24" :sm="12" :md="8" :lg="6">
+          <el-col v-for="course in courses" :key="course.selectionKey" :xs="24" :sm="12" :md="8" :lg="6">
             <div class="course-card-wrapper" :class="{ 'is-selected': isSelected(course) }"
               @click="handleSelectCourse(course)">
               <el-card class="course-card" shadow="hover" :body-style="{ padding: '0px' }">
@@ -56,7 +63,7 @@
 
       <el-footer height="auto" class="page-footer">
         <div class="action-bar">
-          <el-button type="primary" size="large" class="submit-btn" :disabled="!selectedCourseId" :loading="submitting"
+          <el-button type="primary" size="large" class="submit-btn" :disabled="!selectedCourseKey" :loading="submitting"
             @click="confirmSelect" round>
             确认并进入课程
             <el-icon class="el-icon--right">
@@ -66,6 +73,20 @@
         </div>
       </el-footer>
     </el-container>
+
+    <el-dialog v-model="showJoinDialog" title="加入班级" width="400px" :close-on-click-modal="!joiningClass">
+      <el-form :model="joinForm" label-width="80px" @submit.prevent="handleJoinClass">
+        <el-form-item label="邀请码">
+          <el-input v-model="joinForm.invitationCode" placeholder="请输入班级邀请码" clearable maxlength="20"
+            @keyup.enter="handleJoinClass" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button :disabled="joiningClass" @click="showJoinDialog = false">取消</el-button>
+        <el-button type="primary" :loading="joiningClass" :disabled="!normalizeText(joinForm.invitationCode)"
+          @click="handleJoinClass">加入</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -78,6 +99,7 @@ import { computed, ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useCourseStore } from '@/stores/course'
 import { getCourses, selectCourse as selectCourseApi } from '@/api/course'
+import { joinClass as apiJoinClass } from '@/api/student/class'
 import { generateCoverStyle } from '@/utils/courseCover'
 import { ElMessage } from 'element-plus'
 import { Check, Collection, Reading, ArrowRight } from '@element-plus/icons-vue'
@@ -85,6 +107,7 @@ import { Check, Collection, Reading, ArrowRight } from '@element-plus/icons-vue'
 const router = useRouter()
 const courseStore = useCourseStore()
 const currentCourseId = computed(() => courseStore.courseId)
+const currentClassId = computed(() => courseStore.classId)
 
 const normalizeText = (value) => {
   if (value === null || value === undefined) return ''
@@ -97,15 +120,22 @@ const normalizeIdentifier = (value, fallback = null) => {
   return Number.isFinite(numericValue) ? numericValue : value
 }
 
+const buildCourseSelectionKey = (courseId, classId, index) => {
+  return `${normalizeIdentifier(courseId, index)}::${normalizeIdentifier(classId, 'none')}`
+}
+
 const normalizeCourseSummary = (value, index) => {
   const course = value && typeof value === 'object' ? value : {}
+  const courseId = normalizeIdentifier(course?.['course_id'] ?? course?.['id'], index)
+  const classId = normalizeIdentifier(course?.['class_id'] ?? course?.['class_obj_id'])
   return {
-    id: normalizeIdentifier(course?.['course_id'] ?? course?.['id'], index),
+    id: courseId,
     name: normalizeText(course?.['course_name'] ?? course?.['name']) || '未命名课程',
-    classId: normalizeIdentifier(course?.['class_id'] ?? course?.['class_obj_id']),
+    classId,
     className: normalizeText(course?.['class_name'] ?? course?.['class_obj_name']),
     coverUrl: normalizeText(course?.['course_cover'] ?? course?.['cover']),
-    teacherName: normalizeText(course?.['teacher_name'])
+    teacherName: normalizeText(course?.['teacher_name']),
+    selectionKey: buildCourseSelectionKey(courseId, classId, index)
   }
 }
 
@@ -124,14 +154,31 @@ const findCourseById = (courseIdValue) => courses.value.find(
   (course) => String(course.id) === String(courseIdValue)
 )
 
+const findCourseByIdentity = (courseIdValue, classIdValue = null) => {
+  const exactCourse = courses.value.find((course) => (
+    String(course.id) === String(courseIdValue) &&
+    String(course.classId ?? '') === String(classIdValue ?? '')
+  ))
+  return exactCourse || findCourseById(courseIdValue)
+}
+
+const findCourseBySelectionKey = (selectionKey) => courses.value.find(
+  (course) => course.selectionKey === selectionKey
+)
+
 const getCoverStyle = (course) => generateCoverStyle(course.id, course.name)
 
 
-// 选中的课程ID（单选）
-const selectedCourseId = ref(null)
+// 选中的课程项（课程ID + 班级ID），避免同一课程发布到多个班级时一起高亮。
+const selectedCourseKey = ref('')
 // 加载状态
 const loading = ref(false)
 const submitting = ref(false)
+const joiningClass = ref(false)
+const showJoinDialog = ref(false)
+const joinForm = ref({
+  invitationCode: ''
+})
 // 课程列表
 const courses = ref([])
 
@@ -139,7 +186,7 @@ const courses = ref([])
  * 判断课程是否被选中
  */
 const isSelected = (course) => {
-  return String(selectedCourseId.value) === String(course.id)
+  return selectedCourseKey.value === course.selectionKey
 }
 
 /**
@@ -153,8 +200,10 @@ const loadCourses = async () => {
     courses.value = courseList.items
 
     const preferredCourseId = currentCourseId.value ?? courseList.currentCourseId
-    const restoredCourse = preferredCourseId === null ? null : findCourseById(preferredCourseId)
-    selectedCourseId.value = restoredCourse ? restoredCourse.id : null
+    const restoredCourse = preferredCourseId === null
+      ? null
+      : findCourseByIdentity(preferredCourseId, currentClassId.value)
+    selectedCourseKey.value = restoredCourse ? restoredCourse.selectionKey : ''
   } catch (error) {
     console.error('获取课程列表失败:', error)
     ElMessage.error('获取课程列表失败，请刷新重试')
@@ -163,13 +212,68 @@ const loadCourses = async () => {
   }
 }
 
+const resolveJoinedCourseIdentity = (joinedClass) => {
+  const classInfo = joinedClass && typeof joinedClass === 'object' ? joinedClass : {}
+  const publishedCourses = Array.isArray(classInfo?.['courses']) ? classInfo['courses'] : []
+  const firstPublishedCourse = publishedCourses[0] || {}
+  return {
+    courseId: normalizeIdentifier(classInfo?.['course_id'] ?? firstPublishedCourse?.['course_id']),
+    classId: normalizeIdentifier(classInfo?.['class_id'] ?? classInfo?.['id'])
+  }
+}
+
+const refreshCoursesAfterJoin = async (joinedClass) => {
+  const joinedCourse = resolveJoinedCourseIdentity(joinedClass)
+  courseStore.invalidateCoursesCache()
+  const refreshedCourses = await courseStore.fetchCourses()
+  courses.value = refreshedCourses.map((course, index) => normalizeCourseSummary(course, index))
+
+  const preferredCourse = joinedCourse.courseId === null
+    ? null
+    : findCourseByIdentity(joinedCourse.courseId, joinedCourse.classId)
+  if (preferredCourse) {
+    selectedCourseKey.value = preferredCourse.selectionKey
+  } else if (!selectedCourseKey.value && courses.value.length) {
+    selectedCourseKey.value = courses.value[0].selectionKey
+  }
+}
+
+const handleJoinClass = async () => {
+  const invitationCode = normalizeText(joinForm.value.invitationCode)
+  if (!invitationCode) {
+    ElMessage.warning('请输入班级邀请码')
+    return
+  }
+
+  joiningClass.value = true
+  try {
+    const joinedClass = await apiJoinClass({ code: invitationCode })
+    await refreshCoursesAfterJoin(joinedClass)
+    showJoinDialog.value = false
+    joinForm.value.invitationCode = ''
+
+    if (courses.value.length) {
+      ElMessage.success('已加入班级，请选择课程进入学习')
+    } else {
+      ElMessage.success('已加入班级，待老师发布课程后即可开始学习')
+    }
+  } catch (error) {
+    console.error('加入班级失败:', error)
+    if (!error?.handledByInterceptor) {
+      ElMessage.error(error?.message || '加入失败，请检查邀请码是否正确')
+    }
+  } finally {
+    joiningClass.value = false
+  }
+}
+
 /**
  * 选择课程（单选）
  */
 const handleSelectCourse = (course) => {
   // 单选逻辑：点击即选中，不允许取消选中（除非选另一个）
-  if (String(selectedCourseId.value) !== String(course.id)) {
-    selectedCourseId.value = course.id
+  if (selectedCourseKey.value !== course.selectionKey) {
+    selectedCourseKey.value = course.selectionKey
   }
 }
 
@@ -177,23 +281,23 @@ const handleSelectCourse = (course) => {
  * 确认选择
  */
 const confirmSelect = async () => {
-  if (!selectedCourseId.value) return
+  if (!selectedCourseKey.value) return
 
   // 找到选中的课程
-  const course = findCourseById(selectedCourseId.value)
+  const course = findCourseBySelectionKey(selectedCourseKey.value)
   if (!course) return
 
   submitting.value = true
   try {
     // 调用API选择课程（后端可能会记录用户选择的上下文）
     await selectCourseApi({
-      course_id: selectedCourseId.value,
+      course_id: course.id,
       class_id: course.classId
     })
 
     // 保存选中的课程到store
     courseStore.setCurrentCourse({
-      course_id: selectedCourseId.value,
+      course_id: course.id,
       course_name: course.name,
       class_id: course.classId,
       class_name: course.className
@@ -379,5 +483,10 @@ onMounted(() => {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 20px;
+}
+
+.empty-state :deep(.el-empty__description) {
+  max-width: 420px;
+  line-height: 1.7;
 }
 </style>

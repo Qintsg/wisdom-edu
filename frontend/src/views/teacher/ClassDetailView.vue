@@ -11,7 +11,7 @@
           <template #header>
             <div class="card-header">
               <span>学生列表</span>
-              <el-button type="primary" size="small" @click="handleGenerateCode">生成邀请码</el-button>
+              <el-button type="primary" size="small" @click="showInviteDialog">邀请学生</el-button>
             </div>
           </template>
           <el-table :data="students" style="width: 100%" v-loading="loading">
@@ -45,19 +45,50 @@
           </div>
         </el-card>
 
-        <!-- 邀请码展示区 -->
-        <el-card v-if="currentInviteCode" shadow="hover" style="margin-top: 16px;">
+        <!-- 邀请学生加入 -->
+        <el-card shadow="hover" class="invite-card">
           <template #header>
             <div class="card-header">
-              <span>当前邀请码</span>
-              <el-button type="danger" link size="small" @click="currentInviteCode = ''">关闭</el-button>
+              <span>邀请学生</span>
+              <el-button type="primary" link size="small" @click="showInviteDialog">生成邀请码</el-button>
             </div>
           </template>
-          <div style="text-align: center; padding: 16px 0;">
-            <div style="font-size: 28px; font-weight: bold; letter-spacing: 4px; color: #409eff; margin-bottom: 12px;">
+
+          <div v-if="currentInviteCode" class="invite-current">
+            <span class="invite-label">最新邀请码</span>
+            <div class="invite-code">
               {{ currentInviteCode }}
             </div>
-            <el-button size="small" @click="copyInviteCode">复制邀请码</el-button>
+            <div class="invite-actions">
+              <el-button size="small" @click="copyInviteCode(currentInviteCode)">复制邀请码</el-button>
+              <el-button size="small" @click="copyInviteText(currentInviteCode)">复制邀请说明</el-button>
+            </div>
+          </div>
+          <el-alert v-else title="生成邀请码后，学生可在课程选择页或我的班级页输入邀请码加入。" type="info" show-icon
+            :closable="false" />
+
+          <el-divider content-position="left">邀请码记录</el-divider>
+
+          <div v-loading="invitationsLoading" class="invite-list">
+            <el-empty v-if="!invitations.length" description="暂无邀请码" :image-size="64" />
+            <template v-else>
+              <div v-for="invitation in invitations" :key="invitation.id" class="invite-item">
+                <div class="invite-item-main">
+                  <div class="invite-item-code">{{ invitation.code }}</div>
+                  <div class="invite-item-meta">
+                    <el-tag size="small" :type="invitation.isValid ? 'success' : 'info'">
+                      {{ invitation.isValid ? '可用' : '不可用' }}
+                    </el-tag>
+                    <span>{{ invitation.usageText }}</span>
+                    <span>到期：{{ invitation.expiresAtText }}</span>
+                  </div>
+                </div>
+                <div class="invite-item-actions">
+                  <el-button type="primary" link size="small" @click="copyInviteText(invitation.code)">复制</el-button>
+                  <el-button type="danger" link size="small" @click="handleDeleteInvitation(invitation)">删除</el-button>
+                </div>
+              </div>
+            </template>
           </div>
         </el-card>
 
@@ -107,6 +138,23 @@
         </el-button>
       </template>
     </el-dialog>
+
+    <!-- 邀请码生成对话框 -->
+    <el-dialog v-model="inviteDialogVisible" title="邀请学生加入班级" width="420px" :close-on-click-modal="!inviteSubmitting">
+      <el-form :model="inviteForm" label-width="100px">
+        <el-form-item label="有效天数">
+          <el-input-number v-model="inviteForm.expiresDays" :min="1" :max="365" :step="1" style="width: 100%;" />
+        </el-form-item>
+        <el-form-item label="使用次数">
+          <el-input-number v-model="inviteForm.maxUses" :min="0" :max="10000" :step="1" style="width: 100%;" />
+          <div class="form-tip">填 0 表示不限次数，建议按班级人数设置。</div>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button :disabled="inviteSubmitting" @click="inviteDialogVisible = false">取消</el-button>
+        <el-button type="primary" :loading="inviteSubmitting" @click="handleGenerateInvitation">生成邀请码</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -119,6 +167,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {
   getClassDetail, getClassStudents, generateInvitation,
+  getInvitations, deleteInvitation,
   getAnnouncements, createAnnouncement, updateAnnouncement, deleteAnnouncement
 } from '@/api/teacher/class'
 
@@ -175,6 +224,37 @@ const normalizeStudentResponse = (value) => {
   }
 }
 
+const normalizeInvitation = (value, index) => {
+  const invitation = value && typeof value === 'object' ? value : {}
+  const maxUses = Number(invitation?.['max_uses'])
+  const useCount = Number(invitation?.['use_count'])
+  const normalizedMaxUses = Number.isFinite(maxUses) ? maxUses : 0
+  const normalizedUseCount = Number.isFinite(useCount) ? useCount : 0
+  return {
+    id: invitation?.['id'] ?? invitation?.['invitation_id'] ?? index,
+    code: normalizeText(invitation?.['code']),
+    maxUses: normalizedMaxUses,
+    useCount: normalizedUseCount,
+    isActive: Boolean(invitation?.['is_active'] ?? true),
+    isValid: Boolean(invitation?.['is_valid'] ?? invitation?.['is_active'] ?? true),
+    expiresAt: normalizeText(invitation?.['expires_at']),
+    expiresAtText: formatDateTime(invitation?.['expires_at']),
+    usageText: normalizedMaxUses > 0
+      ? `${normalizedUseCount}/${normalizedMaxUses} 次`
+      : `${normalizedUseCount} 次 / 不限`
+  }
+}
+
+const normalizeInvitationResponse = (value) => {
+  const payload = value && typeof value === 'object' ? value : {}
+  const rawInvitations = Array.isArray(payload?.['invitations'])
+    ? payload['invitations']
+    : Array.isArray(value)
+      ? value
+      : []
+  return rawInvitations.map((invitation, index) => normalizeInvitation(invitation, index))
+}
+
 const normalizeClassDetail = (value, classId) => {
   const detail = value && typeof value === 'object' ? value : {}
   return {
@@ -223,30 +303,104 @@ const loadClassDetail = async () => {
 
 // 当前邀请码
 const currentInviteCode = ref('')
+const invitations = ref([])
+const invitationsLoading = ref(false)
+const inviteDialogVisible = ref(false)
+const inviteSubmitting = ref(false)
+const inviteForm = reactive({
+  maxUses: 100,
+  expiresDays: 30
+})
 
-/**
- * 生成邀请码
- */
-const handleGenerateCode = async () => {
+const showInviteDialog = () => {
+  inviteForm.maxUses = 100
+  inviteForm.expiresDays = 30
+  inviteDialogVisible.value = true
+}
+
+const loadInvitations = async () => {
+  invitationsLoading.value = true
   try {
-    const res = await generateInvitation({ class_id: classInfo.id })
-    currentInviteCode.value = normalizeText(res?.code || res?.['invite_code'])
+    invitations.value = normalizeInvitationResponse(await getInvitations(classInfo.id))
+  } catch (error) {
+    console.error('加载邀请码失败:', error)
+  } finally {
+    invitationsLoading.value = false
+  }
+}
+
+const handleGenerateInvitation = async () => {
+  const maxUses = Number(inviteForm.maxUses)
+  const expiresDays = Number(inviteForm.expiresDays)
+  if (!Number.isFinite(maxUses) || maxUses < 0) {
+    ElMessage.warning('使用次数不能小于 0')
+    return
+  }
+  if (!Number.isFinite(expiresDays) || expiresDays < 1) {
+    ElMessage.warning('有效天数至少为 1 天')
+    return
+  }
+
+  inviteSubmitting.value = true
+  try {
+    const response = await generateInvitation({
+      class_id: classInfo.id,
+      max_uses: Math.floor(maxUses),
+      expires_days: Math.floor(expiresDays)
+    })
+    currentInviteCode.value = normalizeText(response?.['code'] ?? response?.['invite_code'])
+    inviteDialogVisible.value = false
+    await loadInvitations()
     ElMessage.success('邀请码已生成')
   } catch (error) {
     console.error('生成邀请码失败:', error)
-    ElMessage.error('生成邀请码失败')
+    if (!error?.handledByInterceptor) {
+      ElMessage.error(error?.message || '生成邀请码失败')
+    }
+  } finally {
+    inviteSubmitting.value = false
   }
 }
 
 /**
  * 复制邀请码
  */
-const copyInviteCode = () => {
-  navigator.clipboard.writeText(currentInviteCode.value).then(() => {
+const copyInviteCode = (code) => {
+  const invitationCode = normalizeText(code)
+  if (!invitationCode) return
+  navigator.clipboard.writeText(invitationCode).then(() => {
     ElMessage.success('邀请码已复制到剪贴板')
   }).catch(() => {
-    ElMessage.info(`请手动复制：${currentInviteCode.value}`)
+    ElMessage.info(`请手动复制：${invitationCode}`)
   })
+}
+
+const copyInviteText = (code) => {
+  const invitationCode = normalizeText(code)
+  if (!invitationCode) return
+  const inviteText = `请登录学生端，在“课程选择”或“我的班级”页面点击“加入班级”，输入班级「${classInfo.name || '当前班级'}」的邀请码：${invitationCode}`
+  navigator.clipboard.writeText(inviteText).then(() => {
+    ElMessage.success('邀请说明已复制')
+  }).catch(() => {
+    ElMessage.info(`请手动发送邀请码：${invitationCode}`)
+  })
+}
+
+const handleDeleteInvitation = async (invitation) => {
+  try {
+    await ElMessageBox.confirm(`确定删除邀请码 ${invitation.code} 吗？`, '删除邀请码', { type: 'warning' })
+    await deleteInvitation(invitation.id)
+    if (currentInviteCode.value === invitation.code) {
+      currentInviteCode.value = ''
+    }
+    ElMessage.success('邀请码已删除')
+    await loadInvitations()
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('删除邀请码失败:', error)
+      ElMessage.error('删除邀请码失败')
+    }
+  }
 }
 
 /**
@@ -260,6 +414,13 @@ const formatTime = (timeStr) => {
   if (diff < 60) return `${diff}分钟前`
   if (diff < 1440) return `${Math.floor(diff / 60)}小时前`
   return `${Math.floor(diff / 1440)}天前`
+}
+
+const formatDateTime = (timeStr) => {
+  if (!timeStr) return '长期有效'
+  const date = new Date(timeStr)
+  if (Number.isNaN(date.getTime())) return '-'
+  return date.toLocaleString('zh-CN', { hour12: false })
 }
 
 const goBack = () => router.push('/teacher/classes')
@@ -348,6 +509,7 @@ const handleDeleteAnnouncement = async (id) => {
 
 onMounted(() => {
   loadClassDetail()
+  loadInvitations()
   loadAnnouncements()
 })
 </script>
@@ -383,6 +545,82 @@ onMounted(() => {
 .stat-item strong {
   color: #409eff;
   font-size: 18px;
+}
+
+.invite-card {
+  margin-top: 16px;
+}
+
+.invite-current {
+  text-align: center;
+  padding: 12px 0 8px;
+}
+
+.invite-label {
+  color: #909399;
+  font-size: 13px;
+}
+
+.invite-code {
+  margin: 8px 0 12px;
+  color: #2563eb;
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: 5px;
+}
+
+.invite-actions {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.invite-list {
+  min-height: 72px;
+}
+
+.invite-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid #ebeef5;
+}
+
+.invite-item:last-child {
+  border-bottom: none;
+}
+
+.invite-item-code {
+  color: #303133;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 2px;
+}
+
+.invite-item-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  color: #909399;
+  font-size: 12px;
+}
+
+.invite-item-actions {
+  display: flex;
+  flex-shrink: 0;
+  gap: 4px;
+}
+
+.form-tip {
+  margin-top: 6px;
+  color: #909399;
+  font-size: 12px;
+  line-height: 1.5;
 }
 
 .announcement-list {

@@ -197,7 +197,8 @@ export default {
       component: ClassesView,
       meta: {
         title: '我的班级',
-        icon: 'School'
+        icon: 'School',
+        skipCourseCheck: true
       }
     },
     {
@@ -208,6 +209,7 @@ export default {
       meta: {
         title: '班级详情',
         icon: 'School',
+        skipCourseCheck: true,
         hideInMenu: true
       }
     },

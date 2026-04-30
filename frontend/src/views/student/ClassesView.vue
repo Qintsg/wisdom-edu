@@ -50,19 +50,23 @@
         </el-col>
       </el-row>
 
-      <el-empty v-if="classes.length === 0" description="您还未加入任何班级" />
+      <el-empty v-if="classes.length === 0" description="您还未加入任何班级">
+        <el-button type="primary" @click="showJoinDialog = true">使用邀请码加入班级</el-button>
+      </el-empty>
     </div>
 
     <!-- 加入班级对话框 -->
-    <el-dialog v-model="showJoinDialog" title="加入班级" width="400px">
-      <el-form :model="joinForm" label-width="80px">
+    <el-dialog v-model="showJoinDialog" title="加入班级" width="400px" :close-on-click-modal="!joining">
+      <el-form :model="joinForm" label-width="80px" @submit.prevent="joinClass">
         <el-form-item label="邀请码">
-          <el-input v-model="joinForm.invitationCode" placeholder="请输入班级邀请码" />
+          <el-input v-model="joinForm.invitationCode" placeholder="请输入班级邀请码" clearable maxlength="20"
+            @keyup.enter="joinClass" />
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="showJoinDialog = false">取消</el-button>
-        <el-button type="primary" :loading="joining" @click="joinClass">加入</el-button>
+        <el-button :disabled="joining" @click="showJoinDialog = false">取消</el-button>
+        <el-button type="primary" :loading="joining" :disabled="!normalizeText(joinForm.invitationCode)"
+          @click="joinClass">加入</el-button>
       </template>
     </el-dialog>
   </div>
@@ -77,8 +81,12 @@ import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, User, UserFilled } from '@element-plus/icons-vue'
 import { getClassList, joinClass as apiJoinClass, leaveClass as apiLeaveClass } from '@/api/student/class'
+import { useCourseStore } from '@/stores/course'
+import { useUserStore } from '@/stores/user'
 
 const router = useRouter()
+const courseStore = useCourseStore()
+const userStore = useUserStore()
 const loading = ref(false)
 const joining = ref(false)
 
@@ -99,10 +107,14 @@ const normalizeText = (value) => {
 const normalizeClassSummary = (value, index) => {
   const classItem = value && typeof value === 'object' ? value : {}
   const studentCount = Number(classItem?.['student_count'])
+  const publishedCourses = Array.isArray(classItem?.['courses']) ? classItem['courses'] : []
+  const publishedCourseNames = publishedCourses
+    .map(courseItem => normalizeText(courseItem?.['course_name'] ?? courseItem?.['name']))
+    .filter(Boolean)
   return {
     id: classItem?.['class_id'] ?? classItem?.['id'] ?? index,
     name: normalizeText(classItem?.['class_name'] ?? classItem?.['name']) || '未命名班级',
-    courseName: normalizeText(classItem?.['course_name']) || '未关联课程',
+    courseName: normalizeText(classItem?.['course_name']) || publishedCourseNames.join('、') || '未关联课程',
     studentCount: Number.isFinite(studentCount) ? studentCount : 0,
     teacherName: normalizeText(classItem?.['teacher_username'] ?? classItem?.['teacher_name'] ?? classItem?.['teacher']) || '未分配'
   }
@@ -133,6 +145,14 @@ const loadClasses = async () => {
   }
 }
 
+const refreshLearningContext = async () => {
+  courseStore.invalidateCoursesCache()
+  await Promise.allSettled([
+    userStore.fetchUserInfo(),
+    courseStore.fetchCourses()
+  ])
+}
+
 /**
  * 查看班级
  */
@@ -152,14 +172,17 @@ const joinClass = async () => {
 
   joining.value = true
   try {
-    await apiJoinClass({ code: invitationCode })
-    ElMessage.success('加入班级成功！')
+    const joinedClass = await apiJoinClass({ code: invitationCode })
+    const joinedClassName = normalizeText(joinedClass?.['class_name'] ?? joinedClass?.['name'])
+    ElMessage.success(joinedClassName ? `已加入${joinedClassName}` : '加入班级成功！')
     showJoinDialog.value = false
     joinForm.invitationCode = ''
-    await loadClasses() // 刷新列表
+    await Promise.all([loadClasses(), refreshLearningContext()])
   } catch (error) {
     console.error('加入班级失败:', error)
-    ElMessage.error(error.message || '加入失败，请检查邀请码是否正确')
+    if (!error?.handledByInterceptor) {
+      ElMessage.error(error?.message || '加入失败，请检查邀请码是否正确')
+    }
   } finally {
     joining.value = false
   }
@@ -178,6 +201,10 @@ const leaveClass = async (cls) => {
 
     await apiLeaveClass(cls.id)
     classes.value = classes.value.filter(c => c.id !== cls.id)
+    if (String(courseStore.classId || '') === String(cls.id)) {
+      courseStore.clearSelection()
+    }
+    await refreshLearningContext()
     ElMessage.success('已退出班级')
   } catch (error) {
     if (error !== 'cancel') {

@@ -14,6 +14,60 @@ from .models import Course, Class, ClassCourse, Enrollment, Announcement
 from .serializers import CourseSerializer, CourseSelectSerializer
 
 
+def _serialize_course_summary(course: Course) -> dict[str, object | None]:
+    """把班级发布课程收敛为学生端稳定可用的摘要。"""
+    return {
+        'course_id': course.id,
+        'course_name': course.name,
+        'course_cover': course.cover.url if course.cover else None,
+    }
+
+
+def _get_class_course_summaries(class_obj: Class) -> list[dict[str, object | None]]:
+    """返回班级默认课程与已发布课程，避免旧班级只走默认课程时前端无课可选。"""
+    summaries: list[dict[str, object | None]] = []
+    seen_course_ids: set[int] = set()
+
+    if class_obj.course_id and class_obj.course:
+        summaries.append(_serialize_course_summary(class_obj.course))
+        seen_course_ids.add(class_obj.course_id)
+
+    class_courses = ClassCourse.objects.filter(
+        class_obj=class_obj,
+        is_active=True,
+    ).select_related('course')
+    for class_course in class_courses:
+        if class_course.course_id in seen_course_ids:
+            continue
+        summaries.append(_serialize_course_summary(class_course.course))
+        seen_course_ids.add(class_course.course_id)
+
+    return summaries
+
+
+def _serialize_student_class(enrollment: Enrollment) -> dict[str, object | None]:
+    """统一学生班级列表与加入班级后的响应结构。"""
+    class_obj = enrollment.class_obj
+    courses = _get_class_course_summaries(class_obj)
+    primary_course = courses[0] if courses else {}
+    teacher = class_obj.teacher
+    teacher_username = teacher.username if teacher else None
+    teacher_real_name = teacher.real_name if teacher else None
+
+    return {
+        'class_id': class_obj.id,
+        'class_name': class_obj.name,
+        'description': class_obj.description or '',
+        'teacher_name': teacher_real_name or teacher_username,
+        'teacher_username': teacher_username,
+        'student_count': class_obj.get_student_count(),
+        'courses': courses,
+        'course_id': primary_course.get('course_id'),
+        'course_name': primary_course.get('course_name'),
+        'enrolled_at': enrollment.enrolled_at.isoformat(),
+    }
+
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def course_list(request):
@@ -31,14 +85,11 @@ def course_list(request):
         )
         courses = []
         for e in enrollments:
-            class_courses = ClassCourse.objects.filter(
-                class_obj=e.class_obj, is_active=True
-            ).select_related('course')
-            for cc in class_courses:
+            for course_summary in _get_class_course_summaries(e.class_obj):
                 courses.append({
-                    'course_id': cc.course.id,
-                    'course_name': cc.course.name,
-                    'course_cover': cc.course.cover.url if cc.course.cover else None,
+                    'course_id': course_summary['course_id'],
+                    'course_name': course_summary['course_name'],
+                    'course_cover': course_summary['course_cover'],
                     'class_id': e.class_obj.id,
                     'class_name': e.class_obj.name,
                     'teacher_name': e.class_obj.teacher.username if e.class_obj.teacher else None,
@@ -98,16 +149,19 @@ def course_select(request):
     if user.role == 'student':
         enrollment = Enrollment.objects.filter(
             user=user,
-            class_obj__class_courses__course_id=course_id
-        ).first()
+        ).filter(
+            Q(class_obj__course_id=course_id)
+            | Q(class_obj__class_courses__course_id=course_id, class_obj__class_courses__is_active=True)
+        ).select_related('class_obj').first()
         if not enrollment:
             return error_response(msg='您未选修该课程', code=403)
         class_obj = enrollment.class_obj
     else:
         # 教师验证
         class_obj = Class.objects.filter(
-            class_courses__course_id=course_id,
-            teacher=user
+            Q(course_id=course_id)
+            | Q(class_courses__course_id=course_id, class_courses__is_active=True),
+            teacher=user,
         ).first()
         if not class_obj and not user.is_superuser:
             return error_response(msg='您未教授该课程', code=403)
@@ -149,7 +203,6 @@ def student_join_class(request):
     - course_name: 课程名称
     """
     from users.models import ClassInvitation
-    from django.db import transaction
     
     user = request.user
     
@@ -167,7 +220,10 @@ def student_join_class(request):
         return error_response(msg='邀请码格式错误')
     
     try:
-        invitation = ClassInvitation.objects.get(code=code.strip().upper())
+        invitation = ClassInvitation.objects.select_related(
+            'class_obj__teacher',
+            'class_obj__course',
+        ).get(code=code.strip().upper())
     except ClassInvitation.DoesNotExist:
         return error_response(msg='邀请码不存在', code=404)
     
@@ -175,6 +231,8 @@ def student_join_class(request):
         return error_response(msg='邀请码无效或已过期')
     
     class_obj = invitation.class_obj
+    if not class_obj.is_active:
+        return error_response(msg='班级已停用，暂不能加入')
     
     # 检查是否已加入
     if Enrollment.objects.filter(user=user, class_obj=class_obj).exists():
@@ -182,23 +240,15 @@ def student_join_class(request):
     
     # 加入班级
     with transaction.atomic():
-        Enrollment.objects.create(
+        enrollment = Enrollment.objects.create(
             user=user,
             class_obj=class_obj,
             role='student'
         )
         invitation.use()
-    
-    course_id = class_obj.course_id if class_obj.course else None
-    course_name = class_obj.course.name if class_obj.course else None
-    
+
     return success_response(
-        data={
-            'class_id': class_obj.id,
-            'class_name': class_obj.name,
-            'course_id': course_id,
-            'course_name': course_name
-        },
+        data=_serialize_student_class(enrollment),
         msg='成功加入班级'
     )
 
@@ -243,29 +293,7 @@ def student_class_list(request):
     enrollments = Enrollment.objects.filter(user=user).select_related(
         'class_obj__teacher', 'class_obj__course'
     )
-    
-    classes = []
-    for enrollment in enrollments:
-        class_obj = enrollment.class_obj
-        
-        class_courses = ClassCourse.objects.filter(
-            class_obj=class_obj, is_active=True
-        ).select_related('course')
-        
-        courses = [{
-            'course_id': cc.course.id,
-            'course_name': cc.course.name
-        } for cc in class_courses]
-        
-        classes.append({
-            'class_id': class_obj.id,
-            'class_name': class_obj.name,
-            'description': class_obj.description or '',
-            'teacher_name': class_obj.teacher.username if class_obj.teacher else None,
-            'student_count': Enrollment.objects.filter(class_obj=class_obj).count(),
-            'courses': courses,
-            'enrolled_at': enrollment.enrolled_at.isoformat()
-        })
+    classes = [_serialize_student_class(enrollment) for enrollment in enrollments]
     
     return success_response(data={'classes': classes})
 
@@ -293,15 +321,7 @@ def student_class_detail(request, class_id):
     
     class_obj = enrollment.class_obj
     
-    class_courses = ClassCourse.objects.filter(
-        class_obj=class_obj, is_active=True
-    ).select_related('course')
-    
-    courses = [{
-        'course_id': cc.course.id,
-        'course_name': cc.course.name,
-        'course_cover': cc.course.cover.url if cc.course.cover else None
-    } for cc in class_courses]
+    courses = _get_class_course_summaries(class_obj)
     
     student_count = Enrollment.objects.filter(class_obj=class_obj).count()
 

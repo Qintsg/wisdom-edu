@@ -1,5 +1,28 @@
 # API 变更记录
 
+## 2026-04-30
+
+### 学生端班级
+
+- `GET /api/student/classes`
+  - 学生端“我的班级”页直接使用该接口获取已加入班级，不再依赖 `GET /api/auth/userinfo` 的 `classes` 字段。
+  - 返回的每个班级项包含 `class_id`、`class_name`、`teacher_name`、`teacher_username`、`student_count`、`courses`、`course_id`、`course_name` 与 `enrolled_at`。
+  - `courses` 会合并班级默认课程与已发布课程，兼容没有默认课程但通过 `ClassCourse` 发布课程的班级。
+
+- `POST /api/student/classes/join`
+  - 输入：`code`，即教师端生成的邀请码；前端会自动 trim 并转为大写后提交。
+  - 成功后返回与班级列表一致的班级摘要，便于学生端立即刷新班级列表和课程选择状态。
+  - 若班级已停用、邀请码不存在、邀请码过期或学生已在班级中，继续返回统一错误响应。
+
+### 教师端班级邀请
+
+- `POST /api/teacher/invitations/generate`
+  - 输入继续包含 `class_id`，并支持 `max_uses` 与 `expires_days` 配置；`max_uses=0` 表示不限次数，`expires_days` 范围为 `1..365`。
+  - 后端会校验配置格式并返回 `use_count`、`is_active`、`is_valid`、`created_at`，便于教师端展示邀请码状态。
+
+- `GET /api/teacher/classes/{class_id}/invitations`
+  - 邀请码列表按 `created_at` 倒序返回，教师端用于展示可用状态、使用次数、到期时间与删除操作。
+
 ## 2026-04-24
 
 ### 统一错误响应

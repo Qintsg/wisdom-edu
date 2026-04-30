@@ -10,7 +10,7 @@ from django.urls import reverse
 from rest_framework.test import APITestCase
 from rest_framework import status
 from .models import User, ActivationCode, ClassInvitation, HabitPreference
-from courses.models import Course, Class, Enrollment
+from courses.models import Course, Class, ClassCourse, Enrollment
 from knowledge.models import KnowledgeMastery, KnowledgePoint, ProfileSummary
 from .services import LearnerProfileService
 
@@ -383,10 +383,13 @@ class ClassInvitationAPITests(APITestCase):
 
         self.client.force_authenticate(user=self.student)
 
-        response = self.client.post('/api/classes/join', {
+        response = self.client.post('/api/student/classes/join', {
             'code': 'INVITE'
         })
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['data']['class_id'], self.class_obj.id)
+        self.assertEqual(response.data['data']['course_id'], self.course.id)
+        self.assertEqual(response.data['data']['courses'][0]['course_id'], self.course.id)
 
         self.assertTrue(Enrollment.objects.filter(
             user=self.student,
@@ -408,10 +411,37 @@ class ClassInvitationAPITests(APITestCase):
 
         self.client.force_authenticate(user=self.student)
 
-        response = self.client.post('/api/classes/join', {
+        response = self.client.post('/api/student/classes/join', {
             'code': 'INVITE'
         })
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_join_class_returns_published_course_without_default_course(self):
+        """测试无默认课程班级仍返回已发布课程摘要。"""
+        another_class = Class.objects.create(
+            name='无默认课程班级',
+            teacher=self.teacher
+        )
+        ClassCourse.objects.create(
+            class_obj=another_class,
+            course=self.course,
+            published_by=self.teacher,
+        )
+        ClassInvitation.objects.create(
+            code='NODEFT',
+            class_obj=another_class,
+            created_by=self.teacher
+        )
+
+        self.client.force_authenticate(user=self.student)
+
+        response = self.client.post('/api/student/classes/join', {
+            'code': 'nodeft'
+        })
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['data']['class_id'], another_class.id)
+        self.assertEqual(response.data['data']['course_id'], self.course.id)
+        self.assertEqual(response.data['data']['courses'][0]['course_name'], self.course.name)
 
     def test_my_classes(self):
         """测试获取我的班级列表"""
@@ -422,9 +452,10 @@ class ClassInvitationAPITests(APITestCase):
 
         self.client.force_authenticate(user=self.student)
 
-        response = self.client.get('/api/my-classes')
+        response = self.client.get('/api/student/classes')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data['data']['classes']), 1)
+        self.assertEqual(response.data['data']['classes'][0]['course_id'], self.course.id)
 
     def test_leave_class(self):
         """测试退出班级"""
@@ -435,7 +466,7 @@ class ClassInvitationAPITests(APITestCase):
 
         self.client.force_authenticate(user=self.student)
 
-        response = self.client.delete(f'/api/classes/{self.class_obj.id}/leave')
+        response = self.client.delete(f'/api/student/classes/{self.class_obj.id}/leave')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         self.assertFalse(Enrollment.objects.filter(

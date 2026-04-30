@@ -1,26 +1,43 @@
 /**
  * 学生端 - 班级相关API
  * 管理班级加入、退出、班级成员等
- *
- * 说明：
- * 后端当前并未提供独立的「我的班级列表」接口（如 GET /api/student/classes），
- * 学生所加入的班级列表包含在通用的 /api/auth/userinfo 响应中（classes 字段）。
- * 因此这里对 getClassList 做了适配，直接复用用户信息接口，避免调用不存在的旧接口。
  */
 import request from '../index'
-import { getUserInfo } from '../auth'
+
+export interface StudentClassCourseSummary {
+  course_id: number
+  course_name: string
+  course_cover?: string | null
+}
+
+export interface StudentClassSummary {
+  class_id: number
+  class_name: string
+  description?: string
+  teacher_name?: string | null
+  teacher_username?: string | null
+  student_count?: number
+  courses?: StudentClassCourseSummary[]
+  course_id?: number | null
+  course_name?: string | null
+  enrolled_at?: string
+}
+
+export interface StudentClassListResponse {
+  classes: StudentClassSummary[]
+}
+
+export interface JoinClassPayload {
+  code: string
+}
 
 /**
  * 获取班级列表
  * 返回学生所在的所有班级
  * @returns {Promise} 班级列表
  */
-export async function getClassList() {
-  // 通过通用用户信息接口获取 classes 列表，兼容后端最新设计
-  const data = await getUserInfo() as any
-  return {
-    classes: data.classes || []
-  }
+export function getClassList(): Promise<StudentClassListResponse> {
+  return request.get<StudentClassListResponse>('/api/student/classes')
 }
 
 /**
@@ -29,7 +46,7 @@ export async function getClassList() {
  * @param {number} classId - 班级ID
  * @returns {Promise} 班级详情
  */
-export function getClassDetail(classId) {
+export function getClassDetail(classId: number | string) {
   return request.get(`/api/student/classes/${classId}`)
 }
 
@@ -40,8 +57,10 @@ export function getClassDetail(classId) {
  * @param {string} data.code - 邀请码
  * @returns {Promise} 加入结果
  */
-export function joinClass(data) {
-  return request.post('/api/student/classes/join', data)
+export function joinClass(data: JoinClassPayload): Promise<StudentClassSummary> {
+  return request.post<StudentClassSummary, { code: string }>('/api/student/classes/join', {
+    code: data.code.trim().toUpperCase()
+  })
 }
 
 /**
@@ -50,7 +69,7 @@ export function joinClass(data) {
  * @param {number} classId - 班级ID
  * @returns {Promise} 退出结果
  */
-export function leaveClass(classId) {
+export function leaveClass(classId: number | string) {
   return request.delete(`/api/student/classes/${classId}/leave`)
 }
 
@@ -63,7 +82,7 @@ export function leaveClass(classId) {
  * @param {number} [params.page_size] - 每页数量
  * @returns {Promise} 成员列表
  */
-export function getClassMembers(classId, params = {}) {
+export function getClassMembers(classId: number | string, params = {}) {
   return request.get(`/api/student/classes/${classId}/members`, { params })
 }
 
@@ -74,7 +93,7 @@ export function getClassMembers(classId, params = {}) {
  * @param {string} [sortBy] - 排序字段（progress/score/completion）
  * @returns {Promise} 排行榜数据
  */
-export function getClassRanking(classId, sortBy = 'progress') {
+export function getClassRanking(classId: number | string, sortBy = 'progress') {
   return request.get(`/api/student/classes/${classId}/ranking`, {
     params: { sort_by: sortBy }
   })
@@ -87,7 +106,7 @@ export function getClassRanking(classId, sortBy = 'progress') {
  * @param {Object} [params] - 分页参数
  * @returns {Promise} 通知列表
  */
-export function getClassNotifications(classId, params = {}) {
+export function getClassNotifications(classId: number | string, params = {}) {
   return request.get(`/api/student/classes/${classId}/notifications`, { params })
 }
 
@@ -98,6 +117,6 @@ export function getClassNotifications(classId, params = {}) {
  * @param {Object} [params] - 筛选参数
  * @returns {Promise} 作业列表
  */
-export function getClassAssignments(classId, params = {}) {
+export function getClassAssignments(classId: number | string, params = {}) {
   return request.get(`/api/student/classes/${classId}/assignments`, { params })
 }

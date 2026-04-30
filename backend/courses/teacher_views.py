@@ -607,6 +607,17 @@ def generate_class_invitation(request):
     if user.role == "teacher" and class_obj.teacher_id != user.id:
         return forbidden_response(msg="无权为此班级生成邀请码")
 
+    try:
+        max_uses = int(max_uses)
+        expires_days = int(expires_days)
+    except (TypeError, ValueError):
+        return error_response(msg="邀请码配置格式错误", code=400)
+
+    if max_uses < 0:
+        return error_response(msg="最大使用次数不能小于0", code=400)
+    if expires_days < 1 or expires_days > 365:
+        return error_response(msg="有效天数需在1到365天之间", code=400)
+
     code = None
     for _ in range(10):
         candidate = "".join(random.choices(string.ascii_uppercase + string.digits, k=8))
@@ -635,9 +646,13 @@ def generate_class_invitation(request):
             "class_name": class_obj.name,
             "course_name": course_name,
             "max_uses": invitation.max_uses,
+            "use_count": invitation.use_count,
             "expires_at": invitation.expires_at.isoformat()
             if invitation.expires_at
             else None,
+            "is_active": invitation.is_active,
+            "is_valid": invitation.is_valid(),
+            "created_at": invitation.created_at.isoformat(),
         },
         msg="邀请码生成成功",
     )
@@ -662,7 +677,7 @@ def list_class_invitations(request, class_id):
     if user.role == "teacher" and class_obj.teacher_id != user.id:
         return forbidden_response(msg="无权查看此班级的邀请码")
 
-    invitations = ClassInvitation.objects.filter(class_obj=class_obj)
+    invitations = ClassInvitation.objects.filter(class_obj=class_obj).order_by("-created_at")
 
     return success_response(
         data={

@@ -6,45 +6,91 @@
 
     <template v-else>
       <!-- Empty state appears only when the student has not produced any usable profile signals yet. -->
-      <el-alert v-if="noAssessmentDone" type="info" :closable="false" class="empty-alert">
-        <template #title>
-          <span>您尚未完成初始评测，暂无画像数据</span>
-        </template>
-        <template #default>
-          <p>完成能力测评和知识测评后，系统将为您生成个性化学习画像。</p>
-          <el-button type="primary" size="small" @click="$router.push('/student/assessment')">
-            前往测评中心
-          </el-button>
-        </template>
-      </el-alert>
+      <div v-if="noAssessmentDone" class="assessment-empty-card">
+        <div class="empty-orbit" aria-hidden="true" />
+        <div>
+          <p class="empty-eyebrow">Profile signals needed</p>
+          <h3>完成初始测评后，画像会变得可解释</h3>
+          <p>系统会结合能力测评、知识测评和学习轨迹生成画像，而不是只展示静态标签。</p>
+        </div>
+        <el-button type="primary" @click="$router.push('/student/assessment')">
+          前往测评中心
+        </el-button>
+      </div>
 
       <!-- Header collects identity, learner tags, and the manual refresh entry point. -->
-      <el-card class="profile-header" shadow="hover">
-        <div class="header-content">
-          <el-avatar :size="80" class="user-avatar">
+      <section class="profile-hero">
+        <div class="hero-ambient" aria-hidden="true" />
+        <div class="hero-main">
+          <el-avatar :size="86" class="user-avatar">
             {{ username.charAt(0).toUpperCase() }}
           </el-avatar>
           <div class="user-info">
+            <p class="hero-eyebrow">Learner Profile</p>
             <h2>{{ username }} 的学习画像</h2>
             <p>基于学习数据、评测结果与知识追踪生成的个性化画像。</p>
             <div class="tags">
-              <el-tag v-for="tag in learnerTags" :key="tag">{{ tag }}</el-tag>
+              <el-tag v-for="tag in learnerTags" :key="tag" effect="plain">{{ tag }}</el-tag>
+              <el-tag v-if="!learnerTags.length" type="info" effect="plain">等待更多学习信号</el-tag>
             </div>
+          </div>
+        </div>
+        <div class="hero-side">
+          <div class="profile-score-card">
+            <span>画像完整度</span>
+            <strong>{{ profileCompleteness }}%</strong>
+            <el-progress :percentage="profileCompleteness" :stroke-width="8" :show-text="false" />
           </div>
           <el-button :icon="Refresh" type="primary" class="refresh-btn" :loading="refreshing" @click="refreshProfile">
             刷新画像
           </el-button>
         </div>
-      </el-card>
+      </section>
+
+      <div class="metric-strip">
+        <div class="metric-card">
+          <span>能力均分</span>
+          <strong>{{ abilityAverage }}%</strong>
+          <em>{{ strongestAbility?.name || '暂无能力数据' }}</em>
+        </div>
+        <div class="metric-card">
+          <span>掌握均值</span>
+          <strong>{{ masteryAverage }}%</strong>
+          <em>{{ learningFocusLabel }}</em>
+        </div>
+        <div class="metric-card accent">
+          <span>AI 建议</span>
+          <strong>{{ aiSuggestions.length }}</strong>
+          <em>{{ assessmentReady ? '可持续刷新' : '完成测评后生成' }}</em>
+        </div>
+      </div>
 
       <div class="profile-overview-grid">
         <!-- Ability radar prefers the compact chart because dimensions are fixed and comparable. -->
         <el-card class="ability-card" shadow="hover">
           <template #header>
-            <span>能力画像</span>
+            <div class="card-header stacked">
+              <div>
+                <span class="card-eyebrow">Ability radar</span>
+                <strong>能力画像</strong>
+              </div>
+              <el-tag v-if="abilityData.length" type="success" effect="plain">{{ abilityData.length }} 项能力</el-tag>
+            </div>
           </template>
           <div v-if="abilityData.length" class="ability-chart-wrapper">
             <RadarChart :data="abilityData" :max="100" height="270px" color="#6d927d" :show-value="true" />
+          </div>
+          <div v-if="abilityData.length" class="ability-insights">
+            <div class="insight-pill strong">
+              <span>优势能力</span>
+              <strong>{{ strongestAbility?.name }}</strong>
+              <em>{{ strongestAbility?.value }}%</em>
+            </div>
+            <div class="insight-pill focus">
+              <span>优先提升</span>
+              <strong>{{ weakestAbility?.name }}</strong>
+              <em>{{ weakestAbility?.value }}%</em>
+            </div>
           </div>
           <div v-else class="chart-placeholder">
             <el-icon>
@@ -60,13 +106,24 @@
         <!-- Mastery area uses a scroll container so long knowledge lists keep readable labels. -->
         <el-card class="mastery-card" shadow="hover">
           <template #header>
-            <div class="card-header">
-              <span>知识掌握度</span>
+            <div class="card-header stacked">
+              <div>
+                <span class="card-eyebrow">Knowledge map</span>
+                <strong>知识掌握度</strong>
+              </div>
               <span class="mastery-meta">{{ masteryData.length }} 个知识点</span>
             </div>
           </template>
 
           <div v-if="masteryData.length" class="mastery-panel">
+            <div class="mastery-pulse">
+              <div>
+                <span>整体掌握均值</span>
+                <strong>{{ masteryAverage }}%</strong>
+              </div>
+              <el-progress :percentage="masteryAverage" :stroke-width="12" :show-text="false" />
+            </div>
+
             <div class="mastery-summary">
               <div class="mastery-stat">
                 <strong>{{ highMasteryCount }}</strong>
@@ -80,6 +137,13 @@
                 <strong>{{ lowMasteryCount }}</strong>
                 <span>薄弱项</span>
               </div>
+            </div>
+
+            <div v-if="topWeakMasteries.length" class="focus-cluster">
+              <span>优先突破</span>
+              <el-tag v-for="item in topWeakMasteries" :key="item.pointId || item.name" type="warning" effect="plain">
+                {{ item.name }} · {{ item.value }}%
+              </el-tag>
             </div>
 
             <div class="mastery-chart-scroller" :style="{ maxHeight: masteryViewportHeight + 'px' }">
@@ -102,16 +166,25 @@
       <!-- Summary text is optional because some courses only return structured chart data. -->
       <el-card v-if="profileSummary || profileWeakness || profileStrength" class="summary-card" shadow="hover">
         <template #header>
-          <span>画像总结</span>
+          <div class="card-header stacked">
+            <div>
+              <span class="card-eyebrow">Interpretation</span>
+              <strong>画像总结</strong>
+            </div>
+          </div>
         </template>
-        <p v-if="profileSummary" class="summary-text">{{ profileSummary }}</p>
-        <div v-if="profileStrength" class="summary-block">
-          <el-tag type="success" effect="plain" size="small">学习优势</el-tag>
-          <p class="summary-strength">{{ profileStrength }}</p>
-        </div>
-        <div v-if="profileWeakness" class="summary-block">
-          <el-tag type="warning" effect="plain" size="small">薄弱环节</el-tag>
-          <p class="summary-weakness">{{ profileWeakness }}</p>
+        <div class="summary-layout" :class="{ 'single-summary': !(profileStrength || profileWeakness) }">
+          <p v-if="profileSummary" class="summary-text">{{ profileSummary }}</p>
+          <div v-if="profileStrength || profileWeakness" class="summary-lenses">
+            <div v-if="profileStrength" class="summary-block strength-block">
+              <el-tag type="success" effect="plain" size="small">学习优势</el-tag>
+              <p class="summary-strength">{{ profileStrength }}</p>
+            </div>
+            <div v-if="profileWeakness" class="summary-block weakness-block">
+              <el-tag type="warning" effect="plain" size="small">薄弱环节</el-tag>
+              <p class="summary-weakness">{{ profileWeakness }}</p>
+            </div>
+          </div>
         </div>
       </el-card>
 
@@ -151,10 +224,13 @@
           </template>
           <template v-else>
             <!-- Suggestions are rendered as a merged flat list because the API may split them across fields. -->
-            <p>系统基于当前画像，推荐以下学习动作：</p>
-            <ul>
-              <li v-for="(suggestion, index) in aiSuggestions" :key="index">{{ suggestion }}</li>
-            </ul>
+            <p class="ai-lead">系统基于当前画像，推荐以下学习动作：</p>
+            <div v-if="aiSuggestions.length" class="suggestion-grid">
+              <article v-for="(suggestion, index) in aiSuggestions" :key="index" class="suggestion-card">
+                <span>{{ String(index + 1).padStart(2, '0') }}</span>
+                <p>{{ suggestion }}</p>
+              </article>
+            </div>
             <el-empty v-if="!aiSuggestions.length" description="暂无学习建议" />
           </template>
         </div>
@@ -360,6 +436,46 @@ const noAssessmentDone = computed(() => !abilityData.value.length && !masteryDat
 const highMasteryCount = computed(() => masteryData.value.filter((item) => item.value >= 80).length)
 const mediumMasteryCount = computed(() => masteryData.value.filter((item) => item.value >= 60 && item.value < 80).length)
 const lowMasteryCount = computed(() => masteryData.value.filter((item) => item.value < 60).length)
+
+const abilityAverage = computed(() => {
+  if (!abilityData.value.length) return 0
+  const totalScore = abilityData.value.reduce((sum, item) => sum + item.value, 0)
+  return Math.round(totalScore / abilityData.value.length)
+})
+
+const masteryAverage = computed(() => {
+  if (!masteryData.value.length) return 0
+  const totalScore = masteryData.value.reduce((sum, item) => sum + item.value, 0)
+  return Math.round(totalScore / masteryData.value.length)
+})
+
+const strongestAbility = computed(() => {
+  return [...abilityData.value].sort((left, right) => right.value - left.value)[0] || null
+})
+
+const weakestAbility = computed(() => {
+  return [...abilityData.value].sort((left, right) => left.value - right.value)[0] || null
+})
+
+const topWeakMasteries = computed(() => {
+  return [...masteryData.value]
+    .sort((left, right) => left.value - right.value)
+    .slice(0, 3)
+})
+
+const learningFocusLabel = computed(() => {
+  if (!masteryData.value.length) return '暂无知识追踪数据'
+  if (lowMasteryCount.value) return `${lowMasteryCount.value} 个薄弱项待突破`
+  if (mediumMasteryCount.value) return `${mediumMasteryCount.value} 个知识点待巩固`
+  return '整体掌握稳定'
+})
+
+const profileCompleteness = computed(() => {
+  const abilityScore = abilityData.value.length ? 34 : 0
+  const masteryScore = masteryData.value.length ? 42 : 0
+  const narrativeScore = profileSummary.value || profileStrength.value || profileWeakness.value ? 24 : 0
+  return abilityScore + masteryScore + narrativeScore
+})
 
 // ECharts is kept outside Vue reactivity and resized manually.
 const masteryChartRef = ref(null)
@@ -744,30 +860,117 @@ onUnmounted(() => {
 <style scoped>
 /* The page reads top-down: identity, charts, summary, then actionable AI advice. */
 .profile-view {
+  position: relative;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 22px;
+}
+
+.profile-view::before {
+  content: '';
+  position: absolute;
+  inset: -18px -16px auto;
+  height: 260px;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 14% 18%, rgba(15, 108, 189, 0.16), transparent 30%),
+    radial-gradient(circle at 78% 6%, rgba(16, 124, 16, 0.12), transparent 28%);
+  filter: blur(4px);
+  z-index: 0;
+}
+
+.profile-view > * {
+  position: relative;
+  z-index: 1;
 }
 
 .loading-container {
   padding: 20px;
 }
 
-.empty-alert p {
-  margin: 8px 0 12px;
+.assessment-empty-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 18px;
+  padding: 22px;
+  border: 1px solid rgba(15, 108, 189, 0.16);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: 0 18px 44px rgba(15, 58, 104, 0.08);
+  backdrop-filter: blur(14px);
 }
 
-.header-content {
+.empty-orbit {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, rgba(255, 255, 255, 0.92) 0 34%, transparent 36%),
+    conic-gradient(from 120deg, #0f6cbd, #107c10, #f1a10a, #0f6cbd);
+  box-shadow: 0 14px 30px rgba(15, 108, 189, 0.2);
+}
+
+.empty-eyebrow {
+  margin: 0 0 4px;
+  color: var(--primary-color);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.assessment-empty-card h3 {
+  margin: 0 0 6px;
+  color: var(--text-primary);
+  font-size: 18px;
+}
+
+.assessment-empty-card p:not(.empty-eyebrow) {
+  margin: 0;
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+
+.profile-hero {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 260px;
+  gap: 24px;
+  overflow: hidden;
+  padding: 28px;
+  border: 1px solid rgba(15, 108, 189, 0.12);
+  border-radius: 30px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(240, 247, 255, 0.82)),
+    radial-gradient(circle at 90% 20%, rgba(91, 157, 237, 0.3), transparent 34%);
+  box-shadow: 0 24px 64px rgba(15, 58, 104, 0.12);
+}
+
+.hero-ambient {
+  position: absolute;
+  width: 300px;
+  height: 300px;
+  right: -110px;
+  top: -130px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(15, 108, 189, 0.18), transparent 64%);
+}
+
+.hero-main {
   display: flex;
   align-items: center;
   gap: 24px;
 }
 
 .user-avatar {
-  background: var(--primary-color);
+  flex-shrink: 0;
+  background:
+    linear-gradient(135deg, rgba(15, 108, 189, 0.95), rgba(16, 124, 16, 0.85));
   color: #fff;
-  font-size: 32px;
-  font-weight: 700;
+  font-size: 34px;
+  font-weight: 800;
+  box-shadow: 0 18px 34px rgba(15, 108, 189, 0.24);
 }
 
 .user-info {
@@ -776,12 +979,25 @@ onUnmounted(() => {
 
 .user-info h2 {
   margin: 0 0 8px;
-  font-size: 28px;
+  color: var(--text-primary);
+  font-size: 30px;
+  line-height: 1.16;
 }
 
 .user-info p {
   margin: 0 0 14px;
-  opacity: 0.92;
+  max-width: 680px;
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+
+.hero-eyebrow {
+  margin: 0 0 8px !important;
+  color: var(--primary-color) !important;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
 }
 
 .tags {
@@ -792,6 +1008,81 @@ onUnmounted(() => {
 
 .refresh-btn {
   flex-shrink: 0;
+}
+
+.hero-side {
+  display: grid;
+  align-content: space-between;
+  gap: 14px;
+}
+
+.profile-score-card {
+  padding: 18px;
+  border: 1px solid rgba(15, 108, 189, 0.1);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65);
+}
+
+.profile-score-card span {
+  display: block;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.profile-score-card strong {
+  display: block;
+  margin: 6px 0 12px;
+  color: var(--text-primary);
+  font-size: 34px;
+  line-height: 1;
+}
+
+.metric-strip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.metric-card {
+  position: relative;
+  overflow: hidden;
+  padding: 18px 20px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: 0 14px 34px rgba(15, 58, 104, 0.08);
+}
+
+.metric-card::after {
+  content: '';
+  position: absolute;
+  right: -34px;
+  bottom: -44px;
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  background: rgba(15, 108, 189, 0.08);
+}
+
+.metric-card.accent::after {
+  background: rgba(16, 124, 16, 0.12);
+}
+
+.metric-card span,
+.metric-card em {
+  display: block;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-style: normal;
+}
+
+.metric-card strong {
+  display: block;
+  margin: 6px 0 4px;
+  color: var(--text-primary);
+  font-size: 32px;
+  line-height: 1.1;
 }
 
 .profile-overview-grid {
@@ -809,11 +1100,54 @@ onUnmounted(() => {
   width: 100%;
 }
 
+.ability-card :deep(.el-card__body),
+.mastery-card :deep(.el-card__body),
+.summary-card :deep(.el-card__body),
+.ai-card :deep(.el-card__body) {
+  padding: 22px;
+}
+
 .ability-chart-wrapper {
   min-height: 220px;
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.ability-insights {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.insight-pill {
+  padding: 14px;
+  border-radius: 18px;
+  background: var(--bg-soft-alt);
+}
+
+.insight-pill.strong {
+  background: rgba(16, 124, 16, 0.1);
+}
+
+.insight-pill.focus {
+  background: rgba(241, 161, 10, 0.12);
+}
+
+.insight-pill span,
+.insight-pill em {
+  display: block;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-style: normal;
+}
+
+.insight-pill strong {
+  display: block;
+  margin: 4px 0;
+  color: var(--text-primary);
+  font-size: 16px;
 }
 
 .chart-placeholder {
@@ -831,16 +1165,46 @@ onUnmounted(() => {
   margin-bottom: 16px;
 }
 
+.summary-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(280px, 0.95fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.summary-layout.single-summary {
+  grid-template-columns: 1fr;
+}
+
 .summary-text {
   margin: 0;
+  padding: 18px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, rgba(15, 108, 189, 0.08), rgba(255, 255, 255, 0.62));
   white-space: pre-line;
   color: var(--text-regular);
   line-height: 1.8;
   overflow-wrap: anywhere;
 }
 
+.summary-lenses {
+  display: grid;
+  gap: 12px;
+}
+
 .summary-block {
-  margin-top: 14px;
+  padding: 16px;
+  border-radius: 20px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  background: rgba(255, 255, 255, 0.68);
+}
+
+.strength-block {
+  box-shadow: inset 4px 0 0 rgba(16, 124, 16, 0.45);
+}
+
+.weakness-block {
+  box-shadow: inset 4px 0 0 rgba(241, 161, 10, 0.55);
 }
 
 .summary-strength,
@@ -865,6 +1229,22 @@ onUnmounted(() => {
   gap: 10px;
 }
 
+.card-header.stacked strong {
+  display: block;
+  color: var(--text-primary);
+  font-size: 17px;
+}
+
+.card-eyebrow {
+  display: block;
+  margin-bottom: 2px;
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
 .mastery-meta {
   font-size: 13px;
   color: var(--text-secondary);
@@ -874,6 +1254,28 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   gap: 16px;
+}
+
+.mastery-pulse {
+  display: grid;
+  grid-template-columns: 136px minmax(0, 1fr);
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, rgba(15, 108, 189, 0.08), rgba(16, 124, 16, 0.08));
+}
+
+.mastery-pulse span {
+  color: var(--text-secondary);
+  font-size: 12px;
+}
+
+.mastery-pulse strong {
+  display: block;
+  color: var(--text-primary);
+  font-size: 30px;
+  line-height: 1.1;
 }
 
 .mastery-summary {
@@ -904,6 +1306,22 @@ onUnmounted(() => {
   color: var(--text-secondary);
 }
 
+.focus-cluster {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 12px 14px;
+  border-radius: 18px;
+  background: rgba(255, 244, 206, 0.42);
+}
+
+.focus-cluster > span {
+  color: var(--warning-color);
+  font-size: 13px;
+  font-weight: 700;
+}
+
 .mastery-chart-scroller {
   /* Long mastery lists scroll inside the card instead of pushing the full page excessively tall. */
   overflow: auto;
@@ -911,20 +1329,41 @@ onUnmounted(() => {
   border-radius: 16px;
 }
 
-.ai-content p {
+.ai-content .ai-lead {
   margin: 0 0 12px;
   color: var(--text-regular);
   line-height: 1.8;
   overflow-wrap: anywhere;
 }
 
-.ai-content ul {
-  margin: 0;
-  padding-left: 20px;
+.suggestion-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
 }
 
-.ai-content li {
-  margin-bottom: 10px;
+.suggestion-card {
+  position: relative;
+  overflow: hidden;
+  min-height: 108px;
+  padding: 16px 16px 16px 52px;
+  border: 1px solid rgba(15, 108, 189, 0.1);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.suggestion-card span {
+  position: absolute;
+  left: 14px;
+  top: 14px;
+  color: rgba(15, 108, 189, 0.28);
+  font-size: 24px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.suggestion-card p {
+  margin: 0;
   color: var(--text-primary);
   line-height: 1.7;
   overflow-wrap: anywhere;
@@ -965,14 +1404,49 @@ onUnmounted(() => {
   .profile-overview-grid {
     grid-template-columns: 1fr;
   }
+
+  .profile-hero,
+  .summary-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-side {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+  }
 }
 
 @media (max-width: 768px) {
 
   /* Small screens stack summary stats vertically so labels do not fight for width. */
-  .header-content {
+  .assessment-empty-card,
+  .hero-main,
+  .hero-side {
     flex-direction: column;
     text-align: center;
+  }
+
+  .assessment-empty-card,
+  .profile-hero,
+  .hero-side,
+  .metric-strip,
+  .ability-insights,
+  .mastery-pulse,
+  .suggestion-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-hero {
+    padding: 22px;
+  }
+
+  .hero-main {
+    display: flex;
+  }
+
+  .profile-score-card,
+  .refresh-btn {
+    width: 100%;
   }
 
   .mastery-summary {
