@@ -23,6 +23,13 @@
 - `GET /api/teacher/classes/{class_id}/invitations`
   - 邀请码列表按 `created_at` 倒序返回，教师端用于展示可用状态、使用次数、到期时间与删除操作。
 
+### 学生端推荐资源 MCP
+
+- `GET /api/student/path-nodes/{node_id}/ai-resources`
+  - 内部资源召回改为通过自研项目内资源 MCP 工具统一检索节点绑定资源、知识点绑定资源和课程内文本匹配资源。
+  - 外部资源优先使用 Exa 语义搜索召回，并在配置 Firecrawl 后抓取页面正文摘要作为 `description` 和推荐依据。
+  - 外部资源项可能新增 `provider`、`source` 字段；`provider=exa_firecrawl` 表示已完成 Exa 搜索和 Firecrawl 摘要增强，未配置外部密钥时继续回退到原 LLM 联网推荐链路。
+
 ## 2026-04-24
 
 ### 统一错误响应

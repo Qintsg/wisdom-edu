@@ -219,6 +219,33 @@ GRAPHRAG_QDRANT_PATH = os.getenv(
     _config_value("graphrag", "qdrant_path", "runtime_logs/rag/qdrant"),
 ).strip() or "runtime_logs/rag/qdrant"
 
+# Learning resource MCP configuration / 学习资源 MCP 配置
+RESOURCE_MCP_ENABLED = _env_config_bool("RESOURCE_MCP_ENABLED", "resource_mcp", "enabled", True)
+RESOURCE_MCP_EXA_ENABLED = _env_config_bool("RESOURCE_MCP_EXA_ENABLED", "resource_mcp", "exa_enabled", True)
+RESOURCE_MCP_FIRECRAWL_ENABLED = _env_config_bool(
+    "RESOURCE_MCP_FIRECRAWL_ENABLED",
+    "resource_mcp",
+    "firecrawl_enabled",
+    True,
+)
+RESOURCE_MCP_TIMEOUT_SECONDS = _config_int("resource_mcp", "timeout_seconds", 12)
+if os.getenv("RESOURCE_MCP_TIMEOUT_SECONDS", "").strip().isdigit():
+    RESOURCE_MCP_TIMEOUT_SECONDS = int(os.getenv("RESOURCE_MCP_TIMEOUT_SECONDS", "12"))
+RESOURCE_MCP_FIRECRAWL_LIMIT = _config_int("resource_mcp", "firecrawl_limit", 2)
+if os.getenv("RESOURCE_MCP_FIRECRAWL_LIMIT", "").strip().isdigit():
+    RESOURCE_MCP_FIRECRAWL_LIMIT = int(os.getenv("RESOURCE_MCP_FIRECRAWL_LIMIT", "2"))
+EXA_API_KEY = os.getenv("EXA_API_KEY", "")
+EXA_SEARCH_URL = os.getenv("EXA_SEARCH_URL", "https://api.exa.ai/search")
+EXA_SEARCH_TYPE = os.getenv("EXA_SEARCH_TYPE", _config_value("resource_mcp", "exa_search_type", "neural"))
+EXA_MAX_RESULTS = _config_int("resource_mcp", "exa_max_results", 8)
+if os.getenv("EXA_MAX_RESULTS", "").strip().isdigit():
+    EXA_MAX_RESULTS = int(os.getenv("EXA_MAX_RESULTS", "8"))
+FIRECRAWL_API_KEY = os.getenv("FIRECRAWL_API_KEY", "")
+FIRECRAWL_SCRAPE_URL = os.getenv("FIRECRAWL_SCRAPE_URL", "https://api.firecrawl.dev/v1/scrape")
+FIRECRAWL_TIMEOUT_MILLISECONDS = _config_int("resource_mcp", "firecrawl_timeout_milliseconds", 15000)
+if os.getenv("FIRECRAWL_TIMEOUT_MILLISECONDS", "").strip().isdigit():
+    FIRECRAWL_TIMEOUT_MILLISECONDS = int(os.getenv("FIRECRAWL_TIMEOUT_MILLISECONDS", "15000"))
+
 # Custom user model / 自定义用户模型
 # 使用根目录下的users应用中的User模型
 AUTH_USER_MODEL = "users.User"

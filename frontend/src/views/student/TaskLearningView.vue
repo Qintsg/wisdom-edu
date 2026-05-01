@@ -87,6 +87,9 @@
               <el-tag v-if="!resourceRecord.isRequired" size="small" type="warning" effect="plain">选修</el-tag>
               <el-tag v-if="resourceRecord.isServerHosted" size="small" type="success" effect="plain">本地</el-tag>
               <el-tag v-else size="small" type="info" effect="plain">外部</el-tag>
+              <el-tag v-if="resourceRecord.sourceText" size="small" type="info" effect="plain">
+                {{ resourceRecord.sourceText }}
+              </el-tag>
               <el-icon class="resource-arrow">
                 <ArrowRight />
               </el-icon>
@@ -711,7 +714,7 @@ const normalizeResourceType = (rawType) => {
 /**
  * 收敛学习资源数据。
  * @param {unknown} rawPayload
- * @returns {{resourceId: string, titleText: string, resourceType: string, descriptionText: string, durationText: string, isCompleted: boolean, isRequired: boolean, resourceUrl: string, isServerHosted: boolean}}
+ * @returns {{resourceId: string, titleText: string, resourceType: string, descriptionText: string, durationText: string, isCompleted: boolean, isRequired: boolean, resourceUrl: string, isServerHosted: boolean, sourceText: string, providerText: string}}
  */
 const normalizeResourcePayload = (rawPayload) => {
   const payload = normalizeObjectFromPayload(rawPayload)
@@ -731,7 +734,9 @@ const normalizeResourcePayload = (rawPayload) => {
     isCompleted: normalizeBoolean(payload.completed),
     isRequired: payload.required === undefined ? true : normalizeBoolean(payload.required, true),
     resourceUrl,
-    isServerHosted
+    isServerHosted,
+    sourceText: normalizeText(payload.source),
+    providerText: normalizeText(payload.provider)
   }
 }
 

@@ -12,6 +12,7 @@ from courses.models import Course
 from knowledge.models import KnowledgePoint, Resource
 from learning.models import PathNode
 from platform_ai.llm import llm_facade
+from platform_ai.mcp import resource_mcp_service
 
 from .corpus import build_course_graph_index, load_course_index, save_course_index, tokenize
 from .runtime import student_graphrag_runtime
@@ -171,6 +172,71 @@ def _resource_rank_key(resource: Resource, mastery_value: float | None) -> tuple
 	# sort_order 越小越靠前；无时长资源排到后面，便于优先推荐更完整内容。
 	duration_rank = resource.duration or 10**9
 	return (type_rank, int(resource.sort_order or 0), duration_rank, resource.title)
+
+
+def _normalize_resource_match_text(value: object) -> str:
+	"""归一化资源匹配文本，保留中英文关键字的可比性。"""
+	return str(value or "").strip().lower().replace(" ", "")
+
+
+def _ascii_terms(value: str) -> list[str]:
+	"""提取英文/数字术语，覆盖 Spark SQL、HDFS 等资源标题。"""
+	terms: list[str] = []
+	buffer: list[str] = []
+	for char in value:
+		if char.isascii() and (char.isalnum() or char in {"+", "#", ".", " "}):
+			buffer.append(char)
+		else:
+			term = " ".join("".join(buffer).split())
+			if len(term) >= 2:
+				terms.append(term)
+			buffer = []
+	term = " ".join("".join(buffer).split())
+	if len(term) >= 2:
+		terms.append(term)
+	return terms
+
+
+def _point_resource_match_terms(point: KnowledgePoint) -> list[str]:
+	"""从知识点名称、章节和常见后缀中提取课程资源匹配词。"""
+	name = str(getattr(point, "name", "") or "").strip()
+	chapter = str(getattr(point, "chapter", "") or "").strip()
+	terms: list[str] = []
+	for raw_term in [name, *chapter.replace("＞", ">").split(">")]:
+		term = raw_term.strip()
+		if len(term) >= 2:
+			terms.append(term)
+		terms.extend(_ascii_terms(term))
+
+	for suffix in ("定义与特征", "原理与特征", "基本操作", "工作原理", "模型原理", "方法原理", "应用"):
+		if name.endswith(suffix) and len(name) > len(suffix) + 1:
+			terms.append(name[: -len(suffix)].strip())
+
+	if name.startswith("大数据"):
+		terms.append("大数据")
+	return _dedupe_strings(terms)
+
+
+def _score_resource_point_match(resource: Resource, point: KnowledgePoint) -> int:
+	"""计算未绑定课程资源与知识点上下文的文本匹配分。"""
+	haystack = _normalize_resource_match_text(
+		" ".join(
+			[
+				str(getattr(resource, "title", "") or ""),
+				str(getattr(resource, "description", "") or ""),
+				str(getattr(resource, "chapter_number", "") or ""),
+			]
+		)
+	)
+	if not haystack:
+		return 0
+
+	score = 0
+	for index, term in enumerate(_point_resource_match_terms(point)):
+		normalized_term = _normalize_resource_match_text(term)
+		if normalized_term and normalized_term in haystack:
+			score += max(6, 30 - index)
+	return score
 
 
 def _dedupe_strings(items: Iterable[str]) -> list[str]:
@@ -1405,17 +1471,19 @@ class StudentLearningRAG:
 			logger.info("学习节点缺少知识点，跳过资源推荐: node=%s user=%s", _model_pk(node), student_id)
 			return {"internal_resources": [], "external_resources": []}
 
-		# 先合并节点绑定资源与知识点绑定资源，避免重复曝光。
-		candidate_resources: dict[int, Resource] = {}
-		for bound_resource in node.resources.filter(is_visible=True).order_by("sort_order", "id"):
-			candidate_resources[_model_pk(bound_resource)] = bound_resource
-		for linked_resource in Resource.objects.filter(knowledge_points=point, is_visible=True).order_by("sort_order", "id"):
-			candidate_resources.setdefault(_model_pk(linked_resource), linked_resource)
-
-		ordered_resources = sorted(
-			candidate_resources.values(),
-			key=lambda candidate_resource: _resource_rank_key(candidate_resource, mastery_value),
+		# 内部资源检索收束到自研 MCP 工具，RAG 层只负责后续重排和响应组装。
+		internal_candidates = resource_mcp_service.search_internal_resources(
+			node=node,
+			point=point,
+			mastery_value=mastery_value,
+			limit=max(internal_count * 4, internal_count),
 		)
+		candidate_resources = {
+			candidate.resource_id: candidate.resource
+			for candidate in internal_candidates
+			if candidate.resource_id > 0
+		}
+		ordered_resources = [candidate.resource for candidate in internal_candidates if candidate.resource_id in candidate_resources]
 		available_resources = [
 			{
 				"id": _model_pk(candidate_resource),
@@ -1488,30 +1556,40 @@ class StudentLearningRAG:
 		external_resources: list[dict[str, object]] = []
 		if external_count > 0:
 			existing_titles = [candidate_resource.title for candidate_resource in ordered_resources]
-			external_result = llm_facade.recommend_external_resources(
+			external_candidates = resource_mcp_service.search_external_resources(
 				point_name=point.name,
 				student_mastery=mastery_value,
 				existing_titles=existing_titles,
 				course_name=node.path.course.name,
 				count=external_count,
 			)
-			external_payload = external_result.get("resources")
-			if isinstance(external_payload, list):
-				for item in external_payload[:external_count]:
-					if not isinstance(item, dict):
-						continue
-					external_resources.append(
-						{
-							"title": str(item.get("title", "")).strip() or f"{point.name} 外部资源",
-							"url": str(item.get("url", "")).strip(),
-							"type": str(item.get("type", "link")).strip() or "link",
-							"recommended_reason": str(item.get("reason", "")).strip()
-							or f"该外部资源与“{point.name}”相关，可作为补充学习材料。",
-							"learning_tips": "建议先完成课程内资源，再使用外部资源扩展理解。",
-							"is_internal": False,
-							"completed": False,
-						}
-					)
+			if external_candidates:
+				external_resources = [candidate.to_response() for candidate in external_candidates[:external_count]]
+			else:
+				external_result = llm_facade.recommend_external_resources(
+					point_name=point.name,
+					student_mastery=mastery_value,
+					existing_titles=existing_titles,
+					course_name=node.path.course.name,
+					count=external_count,
+				)
+				external_payload = external_result.get("resources")
+				if isinstance(external_payload, list):
+					for item in external_payload[:external_count]:
+						if not isinstance(item, dict):
+							continue
+						external_resources.append(
+							{
+								"title": str(item.get("title", "")).strip() or f"{point.name} 外部资源",
+								"url": str(item.get("url", "")).strip(),
+								"type": str(item.get("type", "link")).strip() or "link",
+								"recommended_reason": str(item.get("reason", "")).strip()
+								or f"该外部资源与“{point.name}”相关，可作为补充学习材料。",
+								"learning_tips": "建议先完成课程内资源，再使用外部资源扩展理解。",
+								"is_internal": False,
+								"completed": False,
+							}
+						)
 
 		return {
 			"internal_resources": internal_resources,
