@@ -962,12 +962,24 @@ def _ensure_demo_assessment_questions(
     course: Course, teacher: User, points: list[KnowledgePoint],
 ) -> list[Question]:
     """
-    为初始评测创建固定题目（2 题/知识点，共 6 题）。
+    优先使用课程资源导入的初始评测题，缺失时才创建固定兜底题目。
     :param course: 所属课程。
     :param teacher: 教师（创建者）。
     :param points: 知识点列表。
     :return: 题目列表（按出题顺序）。
     """
+
+    imported_questions = list(
+        Question.objects.filter(course=course, for_initial_assessment=True)
+        .prefetch_related("knowledge_points")
+        .order_by("id")
+    )
+    if imported_questions:
+        Course.objects.filter(pk=course.pk).update(
+            initial_assessment_count=len(imported_questions),
+        )
+        course.initial_assessment_count = len(imported_questions)
+        return imported_questions
 
     # 题目规格：知识点 → 2 道题，总分 100（16.67*4 + 16.66*2）
     specs = [
@@ -1084,18 +1096,63 @@ def _ensure_demo_assessment_questions(
     return ordered
 
 
+def _build_planned_answer_value(question: Question, force_correct: bool) -> object:
+    """
+    根据题目结构生成可提交的演示答案。
+    :param question: 初始评测题目。
+    :param force_correct: 是否生成正确答案。
+    :return: 与真实提交接口一致的原始答案值。
+    """
+    correct_raw = extract_answer_value(question.answer)
+    if force_correct:
+        return correct_raw
+
+    options = _question_options(question)
+    if question.question_type == "multiple_choice":
+        correct_values = (
+            [str(value) for value in correct_raw]
+            if isinstance(correct_raw, list)
+            else [str(correct_raw)]
+        )
+        fallback = next(
+            (
+                str(option.get("label"))
+                for option in options
+                if str(option.get("label")) not in correct_values
+            ),
+            "A",
+        )
+        return [correct_values[0], fallback] if correct_values else [fallback]
+
+    if question.question_type == "true_false":
+        normalized = str(correct_raw).strip().lower()
+        return "false" if normalized in {"true", "a", "正确", "对"} else "true"
+
+    return next(
+        (
+            str(option.get("label"))
+            for option in options
+            if str(option.get("label")) != str(correct_raw)
+        ),
+        "B" if str(correct_raw).upper() != "B" else "A",
+    )
+
+
 def _build_assessment_report_payload(
     questions: list[Question],
     planned_raw: list[object],
 ) -> tuple[dict[str, object], list[dict[str, object]], list[bool]]:
     """
     构建初始评测答题明细（含故意错题），匹配真实提交流程的数据结构。
-    :param questions: 6 道评测题目（顺序固定）。
+    :param questions: 评测题目（优先来自课程资源，顺序固定）。
     :return: (原始答案字典, 题目详情列表, 各题正误列表)。
     """
 
     if len(planned_raw) != len(questions):
-        raise ValueError("演示评测答案配置与题目数量不一致")
+        planned_raw = [
+            _build_planned_answer_value(question, force_correct=index % 5 != 1)
+            for index, question in enumerate(questions)
+        ]
 
     raw_answers: dict[str, object] = {}
     question_details: list[dict[str, object]] = []
@@ -1105,13 +1162,18 @@ def _build_assessment_report_payload(
         q_id = str(question.id)
         raw_answers[q_id] = student_raw
 
-        # 提取正确答案原始值
-        correct_raw = question.answer.get("answers") or question.answer.get("answer")
+        correct_raw = extract_answer_value(question.answer)
 
         # 判定正误（匹配 submit_knowledge_assessment 逻辑）
         if question.question_type == "multiple_choice":
-            correct_set = {str(x).strip().upper() for x in (correct_raw if isinstance(correct_raw, list) else [correct_raw])}
-            student_set = {str(x).strip().upper() for x in (student_raw if isinstance(student_raw, list) else [student_raw])}
+            correct_set = {
+                str(x).strip().upper()
+                for x in (correct_raw if isinstance(correct_raw, list) else [correct_raw])
+            }
+            student_set = {
+                str(x).strip().upper()
+                for x in (student_raw if isinstance(student_raw, list) else [student_raw])
+            }
             is_correct = correct_set == student_set
         else:
             is_correct = str(student_raw).strip().upper() == str(correct_raw).strip().upper()
@@ -1265,10 +1327,10 @@ def _ensure_demo_assessment_state(
         defaults=profile_defaults,
     )
 
-    # ---- 创建评测题目（6 题，2 题/知识点） ----
+    # ---- 创建或复用评测题目（优先使用课程资源导入题） ----
     questions = _ensure_demo_assessment_questions(course, teacher, points)
 
-    # ---- 构建答题明细（含 2 道错题） ----
+    # ---- 构建答题明细（题量变化时自动生成错题分布） ----
     raw_answers, question_details, is_correct_flags = _build_assessment_report_payload(
         questions,
         planned_answers,
@@ -1290,6 +1352,9 @@ def _ensure_demo_assessment_state(
         )
 
     # through 模型记录（匹配 get_knowledge_assessment 的创建逻辑）
+    AssessmentQuestion.objects.filter(assessment=knowledge_assessment).exclude(
+        question__in=questions,
+    ).delete()
     for order, question in enumerate(questions, start=1):
         AssessmentQuestion.objects.update_or_create(
             assessment=knowledge_assessment,
@@ -1301,7 +1366,7 @@ def _ensure_demo_assessment_state(
     for question, is_correct in zip(questions, is_correct_flags, strict=True):
         point = question.knowledge_points.first()
         student_raw = raw_answers[str(question.id)]
-        correct_raw = question.answer.get("answers") or question.answer.get("answer")
+        correct_raw = extract_answer_value(question.answer)
         AnswerHistory.objects.update_or_create(
             user=student,
             course=course,

@@ -74,7 +74,7 @@ def diagnose_env():
     )
     print(f'  LLM API Key: {"✓ 已配置" if llm_key else "✗ 未配置"}')
     print(f'  LLM_PROVIDER: {os.environ.get("LLM_PROVIDER", "deepseek") or "deepseek"}')
-    print(f'  LLM_MODEL: {os.environ.get("LLM_MODEL", "deepseek-v4-pro") or "deepseek-v4-pro"}')
+    print(f'  LLM_MODEL: {os.environ.get("LLM_MODEL", "deepseek-v4-flash") or "deepseek-v4-flash"}')
     print(f'  LLM_API_FORMAT: {os.environ.get("LLM_API_FORMAT", "openai-compatible") or "openai-compatible"}')
 
     print('\n[数据摘要]')

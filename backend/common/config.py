@@ -199,7 +199,7 @@ class AppConfig:
     @staticmethod
     def llm_model() -> str:
         """返回默认的大模型名称。"""
-        return get_config('llm', 'model', 'deepseek-v4-pro').strip() or 'deepseek-v4-pro'
+        return get_config('llm', 'model', 'deepseek-v4-flash').strip() or 'deepseek-v4-flash'
 
     @staticmethod
     def llm_api_format() -> str:

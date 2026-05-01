@@ -11,7 +11,6 @@ from django.conf import settings
 
 from courses.models import Course
 from knowledge.models import KnowledgePoint, KnowledgeMastery
-from platform_ai.search import external_search_provider
 
 logger = logging.getLogger(__name__)
 
@@ -323,16 +322,6 @@ class LangChainAgentService:
             return json.dumps(payload, ensure_ascii=False)
 
         @tool
-        def search_learning_resources(point_name: str, course_name: str = "", count: int = 3) -> str:
-            """Search external learning resources when course-owned GraphRAG evidence is insufficient."""
-            results = external_search_provider.search_learning_resources(
-                point_name=point_name,
-                course_name=course_name or None,
-                count=count,
-            )
-            return json.dumps(results, ensure_ascii=False)
-
-        @tool
         def summarize_mastery(user_id: int, course_id: int) -> str:
             """Summarize learner mastery for a course."""
             rows = list(
@@ -353,7 +342,6 @@ class LangChainAgentService:
         return [
             lookup_course_context,
             query_course_graphrag,
-            search_learning_resources,
             summarize_mastery,
         ]
 
@@ -373,6 +361,7 @@ class LangChainAgentService:
                 system_prompt=(
                     "You are an educational AI agent. "
                     "For course-scoped or knowledge-point questions, query GraphRAG evidence before answering. "
+                    "For external learning resources, rely on provider-native web access when available instead of local search tools. "
                     "Use tools only when they materially improve factual grounding. "
                     "Always return valid JSON only."
                 ),

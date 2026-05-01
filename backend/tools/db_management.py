@@ -189,6 +189,7 @@ def _preset_student1_demo_data(
     from knowledge.models import KnowledgeMastery, KnowledgePoint, ProfileSummary, Resource
     from learning.models import LearningPath, NodeProgress, PathNode
     from learning.path_rules import apply_prerequisite_caps
+    from common.utils import check_answer, extract_answer_value, serialize_answer_payload
     from users.models import HabitPreference
 
     points = list(KnowledgePoint.objects.filter(course=course).order_by("order", "id"))
@@ -199,10 +200,47 @@ def _preset_student1_demo_data(
     )
     resources = list(Resource.objects.filter(course=course).order_by("sort_order", "id"))
     selected_questions = [question for question in questions if question.for_initial_assessment]
-    selected_questions = (selected_questions or questions)[:3]
-    if not points or len(selected_questions) < 3:
+    selected_questions = selected_questions or questions
+    if not points or not selected_questions:
         print(f"  {_status_flag(False)} student1 预置跳过: 课程缺少知识点或题目")
         return
+    course.initial_assessment_count = len(selected_questions)
+    course.save(update_fields=["initial_assessment_count", "updated_at"])
+
+    def _build_student_answer_value(question: Question, force_correct: bool) -> object:
+        """
+        按题型生成可用于预置答题历史的原始答案值。
+        :param question: 课程初始评测题。
+        :param force_correct: 是否返回正确答案。
+        :return: 与真实提交一致的原始答案值。
+        """
+        correct_raw = extract_answer_value(question.answer)
+        if force_correct:
+            return correct_raw
+
+        option_labels = [
+            str(option.get("label"))
+            for option in (question.options or [])
+            if isinstance(option, dict) and option.get("label") is not None
+        ]
+        if question.question_type == "multiple_choice":
+            correct_values = (
+                [str(value) for value in correct_raw]
+                if isinstance(correct_raw, list)
+                else [str(correct_raw)]
+            )
+            fallback = next(
+                (label for label in option_labels if label not in correct_values),
+                "A",
+            )
+            return [correct_values[0], fallback] if correct_values else [fallback]
+        if question.question_type == "true_false":
+            normalized = str(correct_raw).strip().lower()
+            return "false" if normalized in {"true", "a", "正确", "对"} else "true"
+        return next(
+            (label for label in option_labels if label != str(correct_raw)),
+            "B" if str(correct_raw).upper() != "B" else "A",
+        )
 
     _reset_course_demo_state(student, course)
 
@@ -270,7 +308,7 @@ def _preset_student1_demo_data(
             defaults={"order": order},
         )
 
-    planned_correct = [True, False, True]
+    planned_correct = [index % 5 != 1 for index in range(len(selected_questions))]
     total_score = Decimal("0")
     correct_count = 0
     raw_answers: dict[str, object] = {}
@@ -280,46 +318,12 @@ def _preset_student1_demo_data(
     )
 
     for idx, question in enumerate(selected_questions):
-        is_correct = planned_correct[idx] if idx < len(planned_correct) else True
-        answer_payload = question.answer if isinstance(question.answer, dict) else {"answer": "A"}
-        if question.question_type == "true_false":
-            correct_answer = bool(answer_payload.get("answer", True))
-            student_answer = correct_answer if is_correct else not correct_answer
-            history_answer = {"answer": student_answer}
-            history_correct = {"answer": correct_answer}
-        elif question.question_type == "multiple_choice":
-            correct_answers = answer_payload.get("answers") or []
-            normalized_answers = [str(item) for item in correct_answers if item is not None]
-            student_answers = list(normalized_answers)
-            if not is_correct:
-                fallback_option = next(
-                    (
-                        str(option.get("label"))
-                        for option in (question.options or [])
-                        if option.get("label") not in student_answers
-                    ),
-                    None,
-                )
-                if fallback_option:
-                    student_answers = [student_answers[0], fallback_option] if student_answers else [fallback_option]
-            student_answer = student_answers
-            history_answer = {"answers": student_answers}
-            history_correct = {"answers": normalized_answers}
-        else:
-            correct_answer = str(answer_payload.get("answer", "A"))
-            if is_correct:
-                student_answer = correct_answer
-            else:
-                student_answer = next(
-                    (
-                        str(option.get("label"))
-                        for option in (question.options or [])
-                        if str(option.get("label")) != correct_answer
-                    ),
-                    "B",
-                )
-            history_answer = {"answer": student_answer}
-            history_correct = {"answer": correct_answer}
+        intended_correct = planned_correct[idx] if idx < len(planned_correct) else True
+        student_answer = _build_student_answer_value(question, intended_correct)
+        correct_answer = extract_answer_value(question.answer)
+        history_answer = serialize_answer_payload(question.question_type, student_answer)
+        history_correct = serialize_answer_payload(question.question_type, correct_answer)
+        is_correct = check_answer(question.question_type, student_answer, question.answer)
 
         earned = question.score if is_correct else Decimal("0")
         total_score += earned
@@ -446,10 +450,10 @@ def _preset_student1_demo_data(
                 "correct_count": correct_count,
                 "total_count": len(selected_questions),
                 "accuracy": round(correct_count / max(len(selected_questions), 1) * 100, 1),
-                "summary": "已完成 3 道初始评测题，当前仍以保守基线掌握度为主。",
+                "summary": f"已完成 {len(selected_questions)} 道初始评测题，系统已基于完整题组生成掌握度画像。",
                 "knowledge_gaps": weakest_points,
             },
-            "analysis": "当前画像主要基于 3 道初始评测题生成，系统已识别出薄弱知识点，但仍需要通过后续学习行为逐步校准掌握度。",
+            "analysis": f"当前画像基于课程资源示例中的 {len(selected_questions)} 道初始评测题生成，系统已识别出薄弱知识点，但仍需要通过后续学习行为逐步校准掌握度。",
             "recommendations": [
                 "优先学习路径中的首个激活节点，巩固最基础的核心概念。",
                 "先补足 25% 基线知识点对应的课程资源，再进入后续练习。",
@@ -467,7 +471,7 @@ def _preset_student1_demo_data(
         course=course,
         defaults={
             "ai_reason": (
-                "你刚完成 3 道初始评测题，系统发现大部分知识点仍处于 25% 左右的基线状态。"
+                f"你刚完成 {len(selected_questions)} 道初始评测题，系统已按完整题组估计知识点掌握度。"
                 "建议先从概念复盘开始，逐步推进到 Hadoop 与 Spark 的核心内容。"
             ),
         },

@@ -1291,6 +1291,47 @@ class StudentLearningRAGServiceTests(SimpleTestCase):
         )
         self.assertEqual(recommendation["external_resources"], [])
 
+    @patch("platform_ai.rag.student.Resource.objects.filter")
+    def test_recommend_resources_for_node_should_fallback_to_course_local_resources(self, mock_resource_filter):
+        """Unbound course resources should still be recommended when they match the node point."""
+        local_resource = SimpleNamespace(
+            id=12,
+            title="数组基础本地视频",
+            resource_type="video",
+            url="/media/resources/array-local.mp4",
+            file=None,
+            description="讲解数组基础、索引访问和遍历方式。",
+            duration=360,
+            sort_order=1,
+            chapter_number="1.1",
+        )
+        empty_query = Mock()
+        empty_query.order_by.return_value = []
+        course_query = Mock()
+        course_query.order_by.return_value = [local_resource]
+        mock_resource_filter.side_effect = [empty_query, course_query]
+        node_resource_manager = Mock()
+        node_resource_manager.filter.return_value.order_by.return_value = []
+        node = SimpleNamespace(
+            knowledge_point=self.point_intro,
+            resources=node_resource_manager,
+            path=SimpleNamespace(course=self.course),
+        )
+
+        recommendation = student_learning_rag.recommend_resources_for_node(
+            node=node,
+            user=SimpleNamespace(id=501),
+            mastery_value=0.25,
+            completed_resource_ids=set(),
+            external_count=0,
+        )
+
+        self.assertEqual(
+            recommendation["internal_resources"][0]["resource_id"],
+            local_resource.id,
+        )
+        self.assertTrue(recommendation["internal_resources"][0]["is_internal"])
+
 
 class LLMProviderConfigTests(SimpleTestCase):
     """Validate multi-provider LLM configuration resolution."""
@@ -1364,7 +1405,7 @@ class LLMProviderConfigTests(SimpleTestCase):
 
     @override_settings(
         LLM_PROVIDER="deepseek",
-        LLM_MODEL="deepseek-v4-pro",
+        LLM_MODEL="deepseek-v4-flash",
         LLM_API_FORMAT="openai-compatible",
         LLM_BASE_URL="",
         DEEPSEEK_API_KEY="deepseek-demo-key",
@@ -1388,12 +1429,55 @@ class LLMProviderConfigTests(SimpleTestCase):
         service._create_llm_client(request_timeout=12, max_retries=0)
 
         self.assertEqual(service.provider_name, "deepseek")
-        self.assertEqual(service.model_name, "deepseek-v4-pro")
+        self.assertEqual(service.model_name, "deepseek-v4-flash")
         self.assertEqual(
             chat_openai_class.call_args.kwargs["extra_body"],
             {"enable_thinking": False},
         )
         self.assertNotIn("reasoning_effort", chat_openai_class.call_args.kwargs)
+
+    @override_settings(
+        LLM_PROVIDER="deepseek",
+        LLM_MODEL="deepseek-v4-flash",
+        LLM_API_FORMAT="openai-compatible",
+        LLM_BASE_URL="",
+        DEEPSEEK_API_KEY="deepseek-demo-key",
+        DEEPSEEK_BASE_URL="https://api.deepseek.com",
+        LLM_REASONING_ENABLED=False,
+        LLM_REASONING_EFFORT="",
+        LLM_EXTRA_BODY={},
+    )
+    @patch("ai_services.services.llm_service.import_module")
+    def test_external_resource_recommendation_should_enable_provider_web_search(
+        self,
+        mock_import_module,
+    ):
+        """External resource recommendations should use provider-native web search directly."""
+        from ai_services.services.llm_service import LLMService
+
+        mock_llm = Mock()
+        mock_llm.invoke.return_value = SimpleNamespace(
+            content=(
+                '{"resources":[{"title":"数组基础教程","url":"https://example.com/array",'
+                '"type":"document","reason":"该资源适合数组基础入门学习。"}]}'
+            )
+        )
+        chat_openai_class = Mock(return_value=mock_llm)
+        mock_import_module.return_value = SimpleNamespace(ChatOpenAI=chat_openai_class)
+
+        service = LLMService()
+        result = service.recommend_external_resources(
+            point_name="数组基础",
+            student_mastery=0.2,
+            course_name="数据结构",
+            count=1,
+        )
+
+        self.assertEqual(result["resources"][0]["url"], "https://example.com/array")
+        self.assertEqual(
+            chat_openai_class.call_args.kwargs["extra_body"],
+            {"enable_thinking": False, "enable_search": True},
+        )
 
     def test_llm_json_parser_should_ignore_think_blocks(self):
         """Reasoning traces should not prevent structured JSON parsing."""

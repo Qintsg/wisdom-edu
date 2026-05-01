@@ -216,6 +216,13 @@ def bootstrap_course_assets(
                 int(course.pk),
                 for_initial_assessment=True,
             )
+            initial_question_count = Question.objects.filter(
+                course=course,
+                for_initial_assessment=True,
+            ).count()
+            if initial_question_count:
+                course.initial_assessment_count = initial_question_count
+                course.save(update_fields=["initial_assessment_count", "updated_at"])
 
     for hw_path in bundle.homework_files:
         if dry_run:
@@ -327,6 +334,11 @@ def import_course_resources(course_name: Optional[str] = None):
 
     resource_dir = os.getenv("COURSE_RESOURCES_DIR", str(COURSE_RESOURCES_DIR))
     resource_path = Path(resource_dir)
+    if not resource_path.is_absolute():
+        resource_path = BASE_DIR / resource_path
+    if not resource_path.exists() and resource_path != COURSE_RESOURCES_DIR:
+        print(f"  {_status_flag(False)} 环境变量资源目录不可用，回退到内置目录: {resource_path}")
+        resource_path = COURSE_RESOURCES_DIR
 
     print(f"开始导入课程资源...")
     print(f"  资源根目录: {resource_path}")

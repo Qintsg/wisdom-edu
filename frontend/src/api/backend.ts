@@ -1,12 +1,12 @@
 /**
  * 前端运行时后端地址配置。
- * 默认后端入口固定指向 `http://127.0.0.1:8000`。
+ * 默认后端入口跟随当前站点同源。
  * 开发环境继续保留相对路径，交由 Vite 直接代理到本地 Django；
- * 生产/预览环境默认直连本机后端，如需覆盖再显式设置 `VITE_BACKEND_ORIGIN`。
+ * 生产/预览环境默认通过 Nginx 同源反代访问后端，如需覆盖再显式设置 `VITE_BACKEND_ORIGIN`。
  */
 
-/** 固定后端 HTTP 入口；未显式配置时默认回落到本机 Django。 */
-const RAW_BACKEND_ORIGIN = (import.meta.env.VITE_BACKEND_ORIGIN ?? 'https://edu.qintsg.xyz').trim()
+/** 可选后端 HTTP 入口；留空时生产环境使用当前站点同源。 */
+const RAW_BACKEND_ORIGIN = (import.meta.env.VITE_BACKEND_ORIGIN ?? '').trim()
 
 /**
  * 统一清洗后端入口，避免拼接时出现双斜杠。
@@ -17,11 +17,22 @@ function normalizeBackendOrigin(rawOrigin: string): string {
     return rawOrigin.trim().replace(/\/+$/, '')
 }
 
-/** 生产构建固定使用的后端基址。 */
+/** 显式配置时生产构建使用的后端基址。 */
 const FIXED_BACKEND_ORIGIN = normalizeBackendOrigin(RAW_BACKEND_ORIGIN)
 
-/** 前端所有 HTTP 请求统一使用的后端基址。开发态保留相对路径给 Vite 代理处理；生产态默认同源。 */
+/** 前端所有 HTTP 请求统一使用的后端基址。开发态和未覆盖的生产态都保留相对路径给代理处理。 */
 export const API_BASE_URL = import.meta.env.DEV ? '' : FIXED_BACKEND_ORIGIN
+
+/** 获取资源和 WebSocket 需要拼接绝对地址时的运行时后端入口。 */
+function getRuntimeBackendOrigin(): string {
+    if (FIXED_BACKEND_ORIGIN) {
+        return FIXED_BACKEND_ORIGIN
+    }
+    if (typeof window === 'undefined') {
+        return ''
+    }
+    return window.location.origin.replace(/\/+$/, '')
+}
 
 /**
  * 判断是否已经是可直接访问的绝对 URL。
@@ -49,7 +60,7 @@ export function toBackendAbsoluteUrl(rawPath: string | null | undefined): string
     if (import.meta.env.DEV) {
         return pathWithLeadingSlash
     }
-    return `${FIXED_BACKEND_ORIGIN}${pathWithLeadingSlash}`
+    return `${getRuntimeBackendOrigin()}${pathWithLeadingSlash}`
 }
 
 /**
@@ -59,7 +70,7 @@ export function toBackendAbsoluteUrl(rawPath: string | null | undefined): string
  */
 function getCurrentWebSocketBaseUrl(): string {
     if (!import.meta.env.DEV) {
-        return FIXED_BACKEND_ORIGIN
+        return getRuntimeBackendOrigin()
             .replace(/^http:/, 'ws:')
             .replace(/^https:/, 'wss:')
     }

@@ -2,7 +2,7 @@
 LLM服务模块 - 使用LangChain框架封装大模型调用
 
 支持的模型：
-- DeepSeek (deepseek-v4-pro, deepseek-chat, deepseek-reasoner)
+- DeepSeek (deepseek-v4-flash, deepseek-chat, deepseek-reasoner)
 - 通义千问 (qwen-plus, qwen-turbo, qwen-max)
 
 使用示例:
@@ -102,7 +102,7 @@ class LLMService:
             "display_name": "DeepSeek",
             "base_url": "https://api.deepseek.com",
             "models": [
-                "deepseek-v4-pro",
+                "deepseek-v4-flash",
                 "deepseek-chat",
                 "deepseek-reasoner",
                 "deepseek-coder",
@@ -202,13 +202,13 @@ class LLMService:
             temperature: 生成温度，0-1之间，越高越随机
         """
         # 读取默认模型配置，并收窄为稳定的字符串模型名。
-        configured_model = getattr(settings, "LLM_MODEL", "deepseek-v4-pro")
+        configured_model = getattr(settings, "LLM_MODEL", "deepseek-v4-flash")
         if model_name:
             self.model_name = model_name
         elif isinstance(configured_model, str):
             self.model_name = configured_model
         else:
-            self.model_name = "deepseek-v4-pro"
+            self.model_name = "deepseek-v4-flash"
         self.temperature = temperature
         self._llm = None
         self._api_key = None
@@ -433,7 +433,12 @@ class LLMService:
         """检查LLM服务是否可用"""
         return bool(self._api_key)
 
-    def _create_llm_client(self, request_timeout: int, max_retries: int):
+    def _create_llm_client(
+        self,
+        request_timeout: int,
+        max_retries: int,
+        extra_body_overrides: Optional[Dict[str, Any]] = None,
+    ):
         """Instantiate a ChatOpenAI client with the supplied latency budget."""
         normalized_format = self.api_format.replace("_", "-").lower()
         if normalized_format not in self.SUPPORTED_API_FORMATS:
@@ -458,8 +463,11 @@ class LLMService:
             "request_timeout": self._clamp_positive_int(request_timeout, minimum=5),
             "max_retries": max(0, int(max_retries)),
         }
-        if self._extra_body:
-            client_kwargs["extra_body"] = self._extra_body
+        extra_body = dict(self._extra_body or {})
+        if extra_body_overrides:
+            extra_body.update(extra_body_overrides)
+        if extra_body:
+            client_kwargs["extra_body"] = extra_body
         if self._reasoning_enabled and self._reasoning_effort:
             client_kwargs["reasoning_effort"] = self._reasoning_effort
         return chat_openai_class(**client_kwargs)
@@ -503,7 +511,11 @@ class LLMService:
 
         return self._llm
 
-    def _get_llm_for_policy(self, policy: LLMExecutionPolicy):
+    def _get_llm_for_policy(
+        self,
+        policy: LLMExecutionPolicy,
+        extra_body_overrides: Optional[Dict[str, Any]] = None,
+    ):
         """Return a cached or one-off chat client that matches the execution policy."""
         if not self.is_available:
             return None
@@ -512,13 +524,14 @@ class LLMService:
             policy.request_timeout_seconds == self._clamp_positive_int(self._request_timeout, minimum=5)
             and policy.max_retries == max(0, int(self._max_retries))
         )
-        if uses_default_budget:
+        if uses_default_budget and not extra_body_overrides:
             return self._get_llm()
 
         try:
             return self._create_llm_client(
                 request_timeout=policy.request_timeout_seconds,
                 max_retries=policy.max_retries,
+                extra_body_overrides=extra_body_overrides,
             )
         except ImportError:
             logger.warning(
@@ -718,6 +731,7 @@ class LLMService:
         call_type: str,
         fallback_response: Dict[str, Any],
         temperature: float = None,
+        extra_body_overrides: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         """
         调用 LLM，并在所有结构化输出尝试都失败后才降级。
@@ -773,7 +787,7 @@ class LLMService:
                 )
             )
 
-        llm = self._get_llm_for_policy(execution_policy)
+        llm = self._get_llm_for_policy(execution_policy, extra_body_overrides)
         if llm is None:
             # 写入日志记录
             logger.debug(
@@ -881,6 +895,7 @@ class LLMService:
         call_type: str,
         fallback_response: Dict[str, Any],
         temperature: float = None,
+        extra_body_overrides: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         """通过公共入口执行带降级保护的 LLM 调用。"""
         return self._call_with_fallback(
@@ -888,6 +903,7 @@ class LLMService:
             call_type=call_type,
             fallback_response=fallback_response,
             temperature=temperature,
+            extra_body_overrides=extra_body_overrides,
         )
 
     _FIELD_MAX_LEN = {}
@@ -1298,98 +1314,10 @@ class LLMService:
 
         course_ctx = f"所属课程：{course_name}\n" if course_name else ""
 
-        if search_results:
-            candidate_text = "\n".join(
-                [
-                    f"  - 标题:{item.get('title', '未知标题')} | 来源:{item.get('source', '未知来源')} | 类型:{item.get('type', 'link')} | URL:{item.get('url', '')} | 摘要:{item.get('snippet', '')[:80]}"
-                    for item in search_results[:20]
-                ]
-            )
-
-            prompt = f"""# 任务
-你已经拿到一批通过真实联网搜索得到的候选学习资源，请从中挑选最适合学生当前阶段的 {count} 个资源。
-
-# 学生信息
-- 知识点：{point_name}
-- 掌握度：{f"{student_mastery * 100:.0f}%" if student_mastery is not None else "未评测"}
-- 学习阶段：{stage}
-{course_ctx}{existing_str}
-
-# 已联网检索到的候选资源（只能从以下候选中选择，禁止编造新链接）
-{candidate_text}
-
-# 重要要求
-1. 只能返回候选列表中真实存在的 URL，禁止生成新的链接
-2. 资源难度要匹配学生当前{stage}阶段
-3. 推荐理由要说明该资源与知识点的具体关联
-4. 尽量兼顾资源类型多样性
-5. 至少返回 {count} 个资源
-
-# JSON输出格式
-{{
-    "resources": [
-        {{
-            "title": "候选资源中的原始标题",
-            "url": "候选资源中的原始URL",
-            "type": "video/document/link/exercise",
-            "reason": "推荐理由，说明与知识点的关联（30-50字）"
-        }}
-    ]
-}}"""
-
-            fallback_resources = [
-                {
-                    "title": item.get("title", "未命名资源"),
-                    "url": item.get("url", ""),
-                    "type": item.get("type", "link"),
-                    "reason": f"该资源经过联网检索获得，内容与「{point_name}」高度相关，适合{stage}阶段学习。",
-                }
-                for item in search_results[:count]
-                if item.get("url")
-            ]
-            fallback = {"resources": fallback_resources}
-            result = self._call_with_fallback(
-                prompt, "external_resources", fallback, temperature=0.4
-            )
-
-            if "resources" not in result or not isinstance(
-                result.get("resources"), list
-            ):
-                result = fallback
-
-            candidate_url_map = {
-                item.get("url"): item for item in search_results if item.get("url")
-            }
-            filtered_resources = []
-            for resource in result.get("resources", []):
-                url = resource.get("url")
-                if not url or url not in candidate_url_map:
-                    continue
-                candidate = candidate_url_map[url]
-                filtered_resources.append(
-                    {
-                        "title": resource.get("title")
-                        or candidate.get("title", "未命名资源"),
-                        "url": url,
-                        "type": resource.get("type") or candidate.get("type", "link"),
-                        "reason": resource.get("reason")
-                        or f"该资源与「{point_name}」相关，适合当前{stage}阶段学习。",
-                    }
-                )
-
-            if len(filtered_resources) < count:
-                used_urls = {item.get("url") for item in filtered_resources}
-                for fallback_item in fallback_resources:
-                    if fallback_item.get("url") in used_urls:
-                        continue
-                    filtered_resources.append(fallback_item)
-                    if len(filtered_resources) >= count:
-                        break
-
-            return {"resources": filtered_resources[:count]}
+        _ = search_results
 
         prompt = f"""# 任务
-为正在学习「{point_name}」的学生推荐 {count} 个优质外部学习资源。
+请直接使用 DeepSeek / 当前模型提供方的原生联网搜索能力，为正在学习「{point_name}」的学生推荐 {count} 个优质外部学习资源。
 
 # 学生信息
 - 知识点：{point_name}
@@ -1398,7 +1326,7 @@ class LLMService:
 {course_ctx}{existing_str}
 
 # 重要要求
-1. 必须推荐真实存在、可正常访问的资源URL，禁止编造虚假链接
+1. 必须由模型直接联网获取真实存在、可正常访问的资源 URL，禁止使用后端预检索候选列表
 2. 资源难度应匹配学生当前{stage}阶段
 3. 至少返回 {count} 个资源
 4. 优先推荐以下知名平台的资源：
@@ -1407,6 +1335,7 @@ class LLMService:
    - 英文经典：Coursera、Khan Academy、官方文档(如Apache/Spark官网)
 5. 每个资源需说明推荐理由，理由要具体到知识点内容
 6. URL格式要完整（以 http:// 或 https:// 开头）
+7. 不要返回搜索结果页 URL，优先返回具体课程、视频、文章或文档页面
 
 # JSON输出格式
 {{
@@ -1452,7 +1381,11 @@ class LLMService:
         fallback = {"resources": fallback_resources}
 
         result = self._call_with_fallback(
-            prompt, "external_resources", fallback, temperature=0.7
+            prompt,
+            "external_resources",
+            fallback,
+            temperature=0.7,
+            extra_body_overrides={"enable_search": True},
         )
         # 规范 resources 字段为列表格式。
         if "resources" not in result or not isinstance(result.get("resources"), list):

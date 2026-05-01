@@ -96,7 +96,7 @@ DEBUG = os.getenv("DEBUG", "True").lower() == "true"
 
 ALLOWED_HOSTS = _env_csv_list(
     "ALLOWED_HOSTS",
-    "localhost,127.0.0.1,edu.qintsg.xyz,106.14.209.7",
+    "localhost,127.0.0.1,edu.qintsg.xyz,edu.qintsg.cn,47.103.44.104,106.14.209.7",
 ) or ["localhost", "127.0.0.1"]
 
 USE_X_FORWARDED_HOST = os.getenv("USE_X_FORWARDED_HOST", "True").lower() == "true"
@@ -298,11 +298,11 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 CORS_ALLOW_ALL_ORIGINS = DEBUG
 CORS_ALLOWED_ORIGINS = _env_csv_list(
     "CORS_ALLOWED_ORIGINS",
-    "https://edu.qintsg.xyz,http://edu.qintsg.xyz,http://127.0.0.1:3000,http://localhost:3000",
+    "https://edu.qintsg.xyz,http://edu.qintsg.xyz,https://edu.qintsg.cn,http://edu.qintsg.cn,http://127.0.0.1:3000,http://localhost:3000",
 )
 CSRF_TRUSTED_ORIGINS = _env_csv_list(
     "CSRF_TRUSTED_ORIGINS",
-    "https://edu.qintsg.xyz,http://edu.qintsg.xyz,http://127.0.0.1:3000,http://localhost:3000",
+    "https://edu.qintsg.xyz,http://edu.qintsg.xyz,https://edu.qintsg.cn,http://edu.qintsg.cn,http://127.0.0.1:3000,http://localhost:3000",
 )
 
 # Django REST Framework settings
@@ -371,8 +371,8 @@ LLM_PROVIDER = os.getenv(
 # 默认使用的模型
 LLM_MODEL = os.getenv(
     "LLM_MODEL",
-    _config_value("llm", "model", "deepseek-v4-pro"),
-).strip() or "deepseek-v4-pro"
+    _config_value("llm", "model", "deepseek-v4-flash"),
+).strip() or "deepseek-v4-flash"
 
 # OpenAI 兼容网关描述
 LLM_API_FORMAT = os.getenv(

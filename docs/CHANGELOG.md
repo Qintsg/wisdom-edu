@@ -16,6 +16,33 @@
 - 外部推荐资源优先接入 Exa 语义搜索，并可用 Firecrawl 抓取正文摘要；未配置外部密钥时保留原 LLM 联网推荐兜底。
 - `backend/config.ini` 与 `backend/.env.example` 新增 `RESOURCE_MCP_*`、`EXA_*`、`FIRECRAWL_*` 配置项。
 
+## 2026-04-28
+
+### Backend / AI — DeepSeek v4 Flash 非思考模式
+
+- 默认 LLM 模型调整为 `deepseek-v4-flash`，并保持 `LLM_REASONING_ENABLED=false` 与 `LLM_EXTRA_BODY_JSON={"enable_thinking":false}`，确保继续使用非思考模式。
+
+### Backend / Learning — 本地课程资源推荐兜底
+
+- 学习节点资源推荐在节点/知识点未直接绑定资源时，会回退到同课程可见资源，并按资源标题、描述、章节与知识点上下文匹配，避免只返回外部资源或空内部资源。
+- 外部学习资源推荐改为调用 DeepSeek / 当前模型提供方的原生联网搜索能力，并随请求透传 `enable_search=true`；不再先通过后端 `web_search_service` 脚本抓取候选资源。
+
+### Backend / Demo Data — 课程资源初始评测题量对齐
+
+- 课程资源导入完成后会把 `Course.initial_assessment_count` 同步为真实初始评测题数，避免前端仍按旧默认题数展示。
+- `student1` 与答辩演示预置会优先复用课程资源导入的初始评测题，不再把演示状态固定到 3 道或 6 道兜底题。
+- `COURSE_RESOURCES_DIR` 配置不可用时，批量导入会回退到代码内置课程资源目录，降低生产 `.env` 中文路径乱码导致导入出错的风险。
+
+## 2026-04-27
+
+### Deploy — 双域名生产部署与同源反代收口
+
+- 后端已部署到 `47.103.44.104`，使用 `wisdom-edu.service` 运行 Daphne ASGI，后端本机 Nginx 代理到 `127.0.0.1:8000` 并托管 `/media/`、`/static/`。
+- 前端已重新部署到 `106.14.209.7` 的 1Panel OpenResty 站点，`edu.qintsg.xyz` 与 `edu.qintsg.cn` 均通过同源 `/api/`、`/ws/`、`/media/`、`/static/`、`/health/` 访问后端。
+- `frontend/src/api/backend.ts` 改为生产默认同源，避免 `edu.qintsg.cn` 访问时仍固定请求 `edu.qintsg.xyz`。
+- `backend/wisdom_edu_api/asgi.py` 调整 Django 初始化顺序，修复 Daphne 启动时 settings/apps 尚未加载导致的失败。
+- `backend/.env.example` 与 `docs/服务器部署说明.md` 已补齐 `edu.qintsg.cn`、`47.103.44.104` 和当前生产拓扑说明。
+
 ## 2026-04-24
 
 ### Backend / AI — DeepSeek v4 默认模型与非思考模式收口

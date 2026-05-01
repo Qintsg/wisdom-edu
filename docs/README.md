@@ -39,7 +39,7 @@
   - `backend/.env`
 - 前端本地开发默认通过 `frontend/vite.config.ts` 代理 `/api`、`/media`、`/static`、`/ws`，当前代理目标默认为 `http://127.0.0.1:8000`，并监听 `0.0.0.0:3000`；如需联调远端环境，可通过 `VITE_DEV_BACKEND_ORIGIN` 覆盖，如需覆盖开发端口，可设置 `VITE_DEV_PORT`。
 - 前端生产构建默认通过 `frontend/src/api/backend.ts` 走同域 `/api`、`/media`、`/static`、`/ws`；如需切换为直连其他后端入口，可设置 `VITE_BACKEND_ORIGIN` 后重新构建。
-- 默认 LLM 提供方为 `deepseek`，默认模型为 `deepseek-v4-pro`，并通过 `LLM_EXTRA_BODY_JSON={"enable_thinking":false}` 关闭兼容网关的思考输出。
+- 默认 LLM 提供方为 `deepseek`，默认模型为 `deepseek-v4-flash`，并通过 `LLM_EXTRA_BODY_JSON={"enable_thinking":false}` 关闭兼容网关的思考输出。
 - 本地开发默认地址：
   - 前端：`http://127.0.0.1:3000`
   - 后端：`http://127.0.0.1:8000`
