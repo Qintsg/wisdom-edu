@@ -28,10 +28,8 @@ from common.defense_demo_content import (
 )
 from common.defense_demo_path import _ensure_demo_learning_path
 from common.defense_demo_progress import _capture_mastery_snapshot
-from common.defense_demo_stage import (
-    _build_demo_stage_test_result,
-    _ensure_warmup_stage_submission_and_feedback,
-)
+from common.defense_demo_stage import ensure_warmup_stage_submission_and_feedback
+from common.defense_demo_stage_result import build_demo_stage_test_result
 
 def ensure_defense_demo_environment(primary_course_name: str) -> dict[str, int]:
     """
@@ -73,7 +71,7 @@ def ensure_defense_demo_environment(primary_course_name: str) -> dict[str, int]:
         points,
     )
     _seed_demo_practice_histories(primary_course, warmup_student, primary_student, stage_exam)
-    warmup_stage_context = _ensure_warmup_stage_submission_and_feedback(
+    warmup_stage_context = ensure_warmup_stage_submission_and_feedback(
         primary_course,
         warmup_student,
         stage_exam,
@@ -86,7 +84,7 @@ def ensure_defense_demo_environment(primary_course_name: str) -> dict[str, int]:
         points,
         resources,
         stage_exam,
-        completed_stage_result=_build_demo_stage_test_result(
+        completed_stage_result=build_demo_stage_test_result(
             stage_exam,
             points,
             warmup_mastery_before,

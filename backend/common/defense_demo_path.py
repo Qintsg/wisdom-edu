@@ -7,7 +7,7 @@ from learning.models import LearningPath, NodeProgress, PathNode
 from users.models import User
 
 from common.defense_demo_progress import _average_snapshot
-from common.defense_demo_stage import _build_stage_feedback_payload
+from common.defense_demo_stage import build_stage_feedback_payload
 
 
 DemoNodeSpec = dict[str, object]
@@ -32,7 +32,7 @@ def _ensure_demo_learning_path(
     """
     path = _upsert_demo_path(course, student)
     node_specs = _demo_node_specs(points)
-    stage_feedback = _build_stage_feedback_payload(points)
+    stage_feedback = build_stage_feedback_payload(points)
     node_map, progress_map = _sync_demo_nodes(
         path=path,
         student=student,
