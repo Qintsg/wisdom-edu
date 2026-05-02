@@ -4,13 +4,12 @@
 
 from __future__ import annotations
 
-import json
 import logging
 import os
 from pathlib import Path
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING
 
-from platform_ai.kt.torch_device import resolve_torch_device
+from .mefkt_legacy_runtime import LoadedMEFKTState, load_mefkt_state, predict_legacy_mastery
 from .mefkt_question_online import QuestionOnlinePredictionInput, predict_question_online
 from .mefkt_runtime import (
     CourseQuestionRuntimeBundle,
@@ -25,19 +24,6 @@ BACKEND_ROOT = Path(__file__).resolve().parent.parent.parent
 if TYPE_CHECKING:
     from models.MEFKT.model import MEFKTSequenceModel
     from torch import Tensor
-
-
-def _resolve_backend_path(path_value: str | None) -> Path | None:
-    """将环境变量中的模型路径统一解析为后端根目录下的绝对路径。"""
-    if path_value is None:
-        return None
-    normalized = str(path_value).strip()
-    if not normalized:
-        return None
-    candidate = Path(normalized)
-    if candidate.is_absolute():
-        return candidate
-    return (BACKEND_ROOT / candidate).resolve()
 
 
 class MEFKTPredictor:
@@ -66,125 +52,32 @@ class MEFKTPredictor:
 
     def load_model(self, model_path: str, metadata_path: str | None = None) -> bool:
         """加载保存好的 MEFKT 模型。"""
-        try:
-            import torch
-            from torch import Tensor as TorchTensor
-        except ImportError:
-            logger.error("PyTorch 未安装，无法加载 MEFKT 模型")
-            return False
-
-        from models.MEFKT.model import MEFKTSequenceModel
-
-        model_file = _resolve_backend_path(model_path)
-        if model_file is None or not model_file.exists():
-            logger.error("MEFKT 模型文件不存在: %s", model_path)
-            return False
-
-        metadata_file = (
-            _resolve_backend_path(metadata_path) if metadata_path else None
-        ) or model_file.with_suffix(".meta.json")
-        checkpoint = torch.load(str(model_file), map_location="cpu", weights_only=False)
-        metadata_payload = dict(checkpoint.get("metadata") or {})
-        runtime_device = resolve_torch_device()
-        if metadata_file.exists():
-            try:
-                metadata_payload = json.loads(metadata_file.read_text(encoding="utf-8"))
-            except json.JSONDecodeError:
-                logger.warning("MEFKT 元数据解析失败，回退到 checkpoint 内嵌元数据")
-
-        self._metadata = metadata_payload
-        self._model_path = str(model_file)
-        self._metadata_path = str(metadata_file)
-        self._device = runtime_device.label
-        self._torch_device = runtime_device.device
-        self._course_bundle_cache.clear()
-
-        runtime_schema = str(metadata_payload.get("runtime_schema") or "").strip()
-        if runtime_schema == "question_online_v1" and checkpoint.get("graph_state_dict"):
-            self._runtime_mode = "question_online"
-            self._model = None
-            self._item_id_to_index = {}
-            self._index_to_item_id = {}
-            self._sequence_state_dict = cast(
-                dict[str, TorchTensor],
-                dict(checkpoint.get("sequence_state_dict") or checkpoint.get("state_dict") or {}),
-            )
-            self._graph_state_dict = cast(dict[str, TorchTensor], dict(checkpoint.get("graph_state_dict") or {}))
-            self._attribute_state_dict = cast(dict[str, TorchTensor], dict(checkpoint.get("attribute_state_dict") or {}))
-            self._fusion_state_dict = cast(dict[str, TorchTensor], dict(checkpoint.get("fusion_state_dict") or {}))
-            logger.info(
-                "MEFKT 题目级在线模型加载成功: dataset=%s, device=%s, path=%s",
-                metadata_payload.get("training_dataset"),
-                self._device,
-                model_file,
-            )
-            return True
-
-        item_ids = [int(item_id) for item_id in metadata_payload.get("item_ids", [])]
-        item_count = int(metadata_payload.get("item_count") or len(item_ids))
-        embedding_dim = int(metadata_payload.get("embedding_dim") or 256)
-        num_heads = int(metadata_payload.get("num_heads") or 4)
-        head_dim = int(metadata_payload.get("head_dim") or 32)
-        if item_count <= 0:
-            logger.error("MEFKT 元数据缺少有效 item_count")
-            return False
-        if not item_ids:
-            item_ids = list(range(item_count))
-
-        model = MEFKTSequenceModel(
-            item_count=item_count,
-            item_embedding_dim=embedding_dim,
-            num_heads=num_heads,
-            head_dim=head_dim,
-        ).to(runtime_device.device)
-        model.load_state_dict(checkpoint["state_dict"])
-        model.eval()
-
-        self._runtime_mode = "legacy"
-        self._model = model
-        self._item_id_to_index = {int(item_id): index for index, item_id in enumerate(item_ids)}
-        self._index_to_item_id = {index: int(item_id) for index, item_id in enumerate(item_ids)}
-        self._sequence_state_dict = {}
-        self._graph_state_dict = {}
-        self._attribute_state_dict = {}
-        self._fusion_state_dict = {}
-        logger.info(
-            "MEFKT 旧版模型加载成功: items=%d, device=%s, path=%s",
-            item_count,
-            self._device,
-            model_file,
+        loaded_state = load_mefkt_state(
+            model_path=model_path,
+            metadata_path=metadata_path,
+            backend_root=BACKEND_ROOT,
         )
+        if loaded_state is None:
+            return False
+        self._apply_loaded_state(loaded_state)
         return True
 
-    def _build_history_tensors_legacy(
-        self,
-        answer_history: list[dict[str, object]],
-    ) -> tuple[list[int], list[int], list[float], int]:
-        """将旧版知识点历史转成模型输入格式。"""
-        sortable_records = _build_sorted_history_records(answer_history)
-
-        history_indices: list[int] = []
-        history_correct: list[int] = []
-        history_gap_hours: list[float] = []
-        recognized_count = 0
-        previous_time: datetime | None = None
-        for _, current_time, record in sortable_records:
-            item_id_raw = record.get("knowledge_point_id")
-            if item_id_raw is None:
-                continue
-            item_id = int(str(item_id_raw))
-            if item_id not in self._item_id_to_index:
-                continue
-            recognized_count += 1
-            history_indices.append(self._item_id_to_index[item_id])
-            previous_time = _append_history_outcome(
-                history_correct=history_correct,
-                history_gap_hours=history_gap_hours,
-                record=record,
-                current_time=current_time,
-                previous_time=previous_time,
-            )
-        return history_indices, history_correct, history_gap_hours, recognized_count
+    def _apply_loaded_state(self, loaded_state: LoadedMEFKTState) -> None:
+        """将 checkpoint 状态写入 predictor。"""
+        self._metadata = loaded_state.metadata
+        self._model_path = loaded_state.model_path
+        self._metadata_path = loaded_state.metadata_path
+        self._device = loaded_state.device_label
+        self._torch_device = loaded_state.torch_device
+        self._course_bundle_cache.clear()
+        self._runtime_mode = loaded_state.runtime_mode
+        self._model = loaded_state.model
+        self._item_id_to_index = loaded_state.item_id_to_index
+        self._index_to_item_id = loaded_state.index_to_item_id
+        self._sequence_state_dict = loaded_state.sequence_state_dict
+        self._graph_state_dict = loaded_state.graph_state_dict
+        self._attribute_state_dict = loaded_state.attribute_state_dict
+        self._fusion_state_dict = loaded_state.fusion_state_dict
 
     def _build_course_runtime_bundle(self, course_id: int) -> CourseQuestionRuntimeBundle:
         """基于课程题目、知识图谱与资源关系构建题目级在线特征。"""
@@ -245,56 +138,14 @@ class MEFKTPredictor:
         knowledge_point_ids: list[int] | None = None,
     ) -> dict[str, object]:
         """执行旧版知识点级 checkpoint 推理。"""
-        import torch
-
         assert self._model is not None
-        device = self._torch_device or torch.device("cpu")
-        history_indices, history_correct, history_gap_hours, recognized_count = self._build_history_tensors_legacy(answer_history)
-        target_ids = set(int(item_id) for item_id in (knowledge_point_ids or []))
-        if not target_ids:
-            for record in answer_history:
-                current_item_id = record.get("knowledge_point_id")
-                if current_item_id is not None:
-                    target_ids.add(int(str(current_item_id)))
-        known_target_ids = [item_id for item_id in sorted(target_ids) if item_id in self._item_id_to_index]
-        if not known_target_ids:
-            return {
-                "predictions": {},
-                "confidence": 0.0,
-                "model_type": "mefkt",
-                "analysis": "MEFKT 未识别到可用知识点，无法输出掌握度预测",
-            }
-
-        candidate_tensor = torch.tensor(
-            [self._item_id_to_index[item_id] for item_id in known_target_ids],
-            dtype=torch.long,
-            device=device,
+        return predict_legacy_mastery(
+            model=self._model,
+            item_id_to_index=self._item_id_to_index,
+            answer_history=answer_history,
+            knowledge_point_ids=knowledge_point_ids,
+            torch_device=self._torch_device,
         )
-        if history_indices:
-            history_index_tensor = torch.tensor(history_indices, dtype=torch.long, device=device)
-            history_correct_tensor = torch.tensor(history_correct, dtype=torch.long, device=device)
-            history_gap_tensor = torch.tensor(history_gap_hours, dtype=torch.float32, device=device)
-            probability_tensor = self._model.predict_candidate(
-                history_item_indices=history_index_tensor,
-                history_correct_flags=history_correct_tensor,
-                history_time_gaps=history_gap_tensor,
-                candidate_item_indices=candidate_tensor,
-            )
-        else:
-            probability_tensor = torch.full((len(known_target_ids),), 0.25, dtype=torch.float32, device=device)
-
-        predictions = {
-            item_id: round(float(probability), 4)
-            for item_id, probability in zip(known_target_ids, probability_tensor.detach().cpu().tolist(), strict=True)
-        }
-        history_coverage = recognized_count / max(len(answer_history), 1)
-        confidence = min(0.9, 0.42 + len(history_indices) / 30.0 * 0.28 + history_coverage * 0.2)
-        return {
-            "predictions": predictions,
-            "confidence": round(confidence, 3),
-            "model_type": "mefkt_real",
-            "analysis": f"MEFKT 推理完成：识别 {recognized_count}/{len(answer_history)} 条有效交互，输出 {len(predictions)} 个知识点掌握度",
-        }
 
     def _predict_question_online(
         self,
