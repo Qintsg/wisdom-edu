@@ -39,30 +39,40 @@ def answer_tokens(answer: Any, question_type: str | None = None) -> set[str]:
     :param question_type: 可选题型，用于真假题别名扩展。
     :return: 可用于选项匹配的 token 集合。
     """
-    payload = extract_answer_value(answer)
     tokens: set[str] = set()
-
-    if isinstance(payload, (list, tuple, set)):
-        values = payload
-    elif payload is None:
-        values = []
-    else:
-        values = [payload]
-
-    for value in values:
+    for value in answer_values(answer):
         cleaned = clean_display_text(value)
-        if not cleaned:
-            continue
-        tokens.add(cleaned)
-        tokens.add(cleaned.lower())
-        tokens.add(cleaned.upper())
-        if question_type == "true_false":
-            lower = cleaned.lower()
-            if lower in {"正确", "true", "1", "yes", "对", "是", "t", "√"}:
-                tokens.update({"true", "TRUE", "正确"})
-            if lower in {"错误", "false", "0", "no", "错", "否", "f", "×"}:
-                tokens.update({"false", "FALSE", "错误"})
+        if cleaned:
+            tokens.update(display_token_variants(cleaned))
+            tokens.update(true_false_alias_tokens(cleaned, question_type))
     return tokens
+
+
+def answer_values(answer: Any) -> list[Any]:
+    """将原始答案规整为可迭代值列表。"""
+    payload = extract_answer_value(answer)
+    if isinstance(payload, (list, tuple, set)):
+        return list(payload)
+    if payload is None:
+        return []
+    return [payload]
+
+
+def display_token_variants(cleaned: str) -> set[str]:
+    """生成大小写兼容的展示 token。"""
+    return {cleaned, cleaned.lower(), cleaned.upper()}
+
+
+def true_false_alias_tokens(cleaned: str, question_type: str | None) -> set[str]:
+    """为真假题补充中英文布尔别名。"""
+    if question_type != "true_false":
+        return set()
+    lower = cleaned.lower()
+    if lower in {"正确", "true", "1", "yes", "对", "是", "t", "√"}:
+        return {"true", "TRUE", "正确"}
+    if lower in {"错误", "false", "0", "no", "错", "否", "f", "×"}:
+        return {"false", "FALSE", "错误"}
+    return set()
 
 
 def normalize_question_options(
@@ -76,52 +86,74 @@ def normalize_question_options(
     :return: 选项展示结构列表。
     """
     normalized: list[dict[str, str]] = []
-
-    if not raw_options and question_type == "true_false":
-        raw_options = [
-            {"value": "true", "label": "正确"},
-            {"value": "false", "label": "错误"},
-        ]
+    raw_options = default_true_false_options(raw_options, question_type)
 
     for index, option in enumerate(raw_options or []):
-        letter = chr(ord("A") + index)
-        if isinstance(option, dict):
-            raw_value = (
-                option.get("value")
-                or option.get("key")
-                or option.get("option_id")
-                or option.get("letter")
-                or option.get("label")
-                or option.get("content")
-                or option.get("text")
-                or option.get("id")
-            )
-            raw_label = (
-                option.get("content")
-                or option.get("text")
-                or option.get("label")
-                or raw_value
-            )
-            value = clean_display_text(raw_value) or f"opt_{index + 1}"
-            label = clean_display_text(raw_label) or f"选项{letter}"
-            letter = clean_display_text(option.get("letter") or option.get("key")) or letter
-        elif isinstance(option, str):
-            cleaned = clean_display_text(option)
-            value = cleaned or f"opt_{index + 1}"
-            label = cleaned or f"选项{letter}"
-        else:
+        normalized_option = normalize_single_option(option, index)
+        if normalized_option is None:
             continue
-
-        normalized.append(
-            {
-                "value": str(value),
-                "label": label,
-                "content": label,
-                "letter": letter,
-            }
-        )
-
+        normalized.append(normalized_option)
     return normalized
+
+
+def default_true_false_options(raw_options: Any, question_type: str | None) -> Any:
+    """真假题缺少选项时补充默认选项。"""
+    if raw_options or question_type != "true_false":
+        return raw_options
+    return [
+        {"value": "true", "label": "正确"},
+        {"value": "false", "label": "错误"},
+    ]
+
+
+def normalize_single_option(option: Any, index: int) -> dict[str, str] | None:
+    """归一化单个选项。"""
+    letter = chr(ord("A") + index)
+    if isinstance(option, dict):
+        return normalize_dict_option(option, index, letter)
+    if isinstance(option, str):
+        return normalize_text_option(option, index, letter)
+    return None
+
+
+def normalize_dict_option(option: dict[str, Any], index: int, letter: str) -> dict[str, str]:
+    """归一化字典选项。"""
+    raw_value = first_truthy_option_field(
+        option,
+        ["value", "key", "option_id", "letter", "label", "content", "text", "id"],
+    )
+    raw_label = first_truthy_option_field(option, ["content", "text", "label"]) or raw_value
+    value = clean_display_text(raw_value) or f"opt_{index + 1}"
+    label = clean_display_text(raw_label) or f"选项{letter}"
+    resolved_letter = clean_display_text(option.get("letter") or option.get("key")) or letter
+    return option_payload(value=value, label=label, letter=resolved_letter)
+
+
+def normalize_text_option(option: str, index: int, letter: str) -> dict[str, str]:
+    """归一化纯文本选项。"""
+    cleaned = clean_display_text(option)
+    value = cleaned or f"opt_{index + 1}"
+    label = cleaned or f"选项{letter}"
+    return option_payload(value=value, label=label, letter=letter)
+
+
+def first_truthy_option_field(option: dict[str, Any], field_names: list[str]) -> Any:
+    """按旧逻辑读取第一个 truthy 选项字段。"""
+    for field_name in field_names:
+        value = option.get(field_name)
+        if value:
+            return value
+    return None
+
+
+def option_payload(*, value: Any, label: str, letter: str) -> dict[str, str]:
+    """构造统一选项载荷。"""
+    return {
+        "value": str(value),
+        "label": label,
+        "content": label,
+        "letter": letter,
+    }
 
 
 def option_tokens(option: dict[str, Any]) -> set[str]:
@@ -132,16 +164,21 @@ def option_tokens(option: dict[str, Any]) -> set[str]:
     :return: 可匹配 token 集合。
     """
     tokens: set[str] = set()
-    for value in (
+    for value in option_token_values(option):
+        cleaned = clean_display_text(value)
+        if cleaned:
+            tokens.update(display_token_variants(cleaned))
+    return tokens
+
+
+def option_token_values(option: dict[str, Any]) -> tuple[Any, Any, Any, Any]:
+    """返回选项中参与匹配的字段值。"""
+    return (
         option.get("value"),
         option.get("letter"),
         option.get("label"),
         option.get("content"),
-    ):
-        cleaned = clean_display_text(value)
-        if cleaned:
-            tokens.update({cleaned, cleaned.lower(), cleaned.upper()})
-    return tokens
+    )
 
 
 def decorate_question_options(
@@ -198,18 +235,13 @@ def build_answer_display(
     """
     token_set = answer_tokens(answer, question_type)
     if options:
-        matched = [
-            format_option_display(option)
-            for option in options
-            if option_tokens(option) & token_set
-        ]
+        matched = matched_option_displays(options, token_set)
         if matched:
             return "；".join(matched)
 
     payload = extract_answer_value(answer)
     if isinstance(payload, (list, tuple, set)):
-        values = [clean_display_text(item) for item in payload if clean_display_text(item)]
-        return "；".join(values) if values else "未作答"
+        return joined_answer_values(payload)
     if isinstance(payload, bool):
         return "正确" if payload else "错误"
 
@@ -219,6 +251,25 @@ def build_answer_display(
 
     cleaned = clean_display_text(payload)
     return cleaned or "未作答"
+
+
+def matched_option_displays(options: list[dict[str, Any]], token_set: set[str]) -> list[str]:
+    """返回与答案 token 命中的选项展示文本。"""
+    return [
+        format_option_display(option)
+        for option in options
+        if option_tokens(option) & token_set
+    ]
+
+
+def joined_answer_values(payload: Any) -> str:
+    """展示多选或集合答案。"""
+    values = []
+    for item in payload:
+        cleaned = clean_display_text(item)
+        if cleaned:
+            values.append(cleaned)
+    return "；".join(values) if values else "未作答"
 
 
 def serialize_answer_payload(question_type: str | None, answer: Any) -> dict[str, Any]:
