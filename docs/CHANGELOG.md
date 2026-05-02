@@ -2,6 +2,11 @@
 
 ## 2026-05-02
 
+### Backend / AI — LangChain Agent GraphRAG 工具拆分
+
+- 拆分 LangChain agent 的 JSON 解析、消息提取与 GraphRAG 工具载荷构建逻辑，保留原 `agent_support` 兼容导出入口。
+- 修复 `query_course_graphrag` 工具误调用旧私有 helper 名称的问题，确保 Agent 能按课程或知识点拉取 GraphRAG 证据。
+
 ### Backend / AI — KT 仅保留 MEFKT
 
 - 移除旧版 DKT 训练、推理、CLI 命令与模型目录，KT 服务默认只启用 `mefkt`。

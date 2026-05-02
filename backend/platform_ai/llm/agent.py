@@ -122,7 +122,7 @@ class LangChainAgentService:
             limit: int = 4,
         ) -> str:
             """Retrieve GraphRAG evidence for a course or knowledge-point question."""
-            payload = _build_course_graphrag_payload(
+            payload = build_course_graphrag_payload(
                 course_id=course_id,
                 query=query,
                 point_id=point_id,

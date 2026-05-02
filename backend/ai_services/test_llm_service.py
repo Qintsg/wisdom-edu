@@ -1,5 +1,6 @@
 """Regression tests for AI-facing student and search services."""
 
+import json
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import Mock, patch
@@ -328,6 +329,34 @@ class LangChainAgentProxyTests(SimpleTestCase):
         self.assertEqual(
             mock_chat_openai.call_args.kwargs["openai_proxy"],
             "http://127.0.0.1:8443",
+        )
+
+    def test_agent_graphrag_tool_should_call_public_payload_builder(self):
+        """GraphRAG tool wiring should not reference the old private helper name."""
+        from platform_ai.llm.agent import LangChainAgentService
+
+        service = LangChainAgentService(
+            model_name="deepseek-chat",
+            api_key="demo-key",
+            base_url="https://api.deepseek.com",
+        )
+
+        with (
+            patch("langchain.tools.tool", side_effect=lambda func: func),
+            patch(
+                "platform_ai.llm.agent.build_course_graphrag_payload",
+                return_value={"mode": "graph_rag", "matched_point_ids": [3]},
+            ) as mock_payload_builder,
+        ):
+            tools = service._get_tools()
+            payload = json.loads(tools[1](course_id=7, query="解释先修关系", point_id=3, limit=5))
+
+        self.assertEqual(payload["mode"], "graph_rag")
+        mock_payload_builder.assert_called_once_with(
+            course_id=7,
+            query="解释先修关系",
+            point_id=3,
+            limit=5,
         )
 
 
