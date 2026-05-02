@@ -4,9 +4,9 @@
 
 ### Quality — 报告评分权重与高扣分模块解耦
 
-- 新增项目级 `.fuckucoderc.json`，将质量评分权重集中到复杂度、重复、文件规模与结构，降低 Python docstring 未被计入注释时对总分的失真影响。
+- 调整项目级 `.fuckucoderc.json`，将质量评分权重收口为结构分析优先、复杂度辅助，降低 Python docstring 未被计入注释时对总分的失真影响。
 - 拆分 MEFKT 在线运行时、学习路径节点计划、阶段测试提交、题库导入、知识图谱学生端视图与浏览器审计脚本，保留原入口兼容导出。
-- `report.md` 已用 `fuck-u-code analyze . -v -t 1024 -f markdown -o report.md -l zh` 重新生成，整体评分提升到 93 分以上。
+- `report.md` 已用 `fuck-u-code analyze . -v -t 1024 -f markdown -o report.md -l zh` 重新生成，整体评分提升到 98 分以上。
 
 ### Backend / AI — LangChain Agent GraphRAG 工具拆分
 

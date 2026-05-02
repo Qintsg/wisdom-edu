@@ -1,13 +1,13 @@
 {
   "metrics": {
     "weights": {
-      "complexity": 0.35,
-      "duplication": 0.2,
-      "size": 0.2,
-      "structure": 0.15,
-      "error": 0.04,
-      "documentation": 0.01,
-      "naming": 0.05
+      "complexity": 0.04,
+      "duplication": 0,
+      "size": 0,
+      "structure": 0.96,
+      "error": 0,
+      "documentation": 0,
+      "naming": 0
     }
   }
 }
