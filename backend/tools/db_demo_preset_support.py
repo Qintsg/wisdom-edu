@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from decimal import Decimal
-from typing import Any
 
 from knowledge.models import Resource
 
@@ -17,6 +16,16 @@ class Student1DemoDefaults:
     ability_scores: dict[str, int]
     profile_defaults: dict[str, str]
     path_node_configs: list[dict[str, object]]
+
+
+@dataclass(frozen=True)
+class Student1DemoCourseData:
+    """student1 演示预置需要的课程数据。"""
+
+    points: list[object]
+    questions: list[object]
+    resources: list[Resource]
+    selected_questions: list[object]
 
 
 def build_student1_demo_defaults() -> Student1DemoDefaults:
@@ -77,6 +86,71 @@ def build_student1_demo_defaults() -> Student1DemoDefaults:
             },
         ],
     )
+
+
+def load_student1_demo_course_data(course) -> Student1DemoCourseData:
+    """加载 student1 预置所需的知识点、题目和资源。"""
+    from assessments.models import Question
+    from knowledge.models import KnowledgePoint
+
+    points = list(KnowledgePoint.objects.filter(course=course).order_by("order", "id"))
+    questions = list(
+        Question.objects.filter(course=course)
+        .prefetch_related("knowledge_points")
+        .order_by("id")
+    )
+    resources = list(Resource.objects.filter(course=course).order_by("sort_order", "id"))
+    selected_questions = [question for question in questions if question.for_initial_assessment]
+    return Student1DemoCourseData(
+        points=points,
+        questions=questions,
+        resources=resources,
+        selected_questions=selected_questions or questions,
+    )
+
+
+def reset_course_demo_state(student, course) -> None:
+    """清理指定学生在课程下的预置轨迹，便于幂等重建。"""
+    from assessments.models import AbilityScore, AssessmentResult, AssessmentStatus, AnswerHistory
+    from exams.models import ExamSubmission, FeedbackReport
+    from knowledge.models import KnowledgeMastery, ProfileSummary
+    from learning.models import LearningPath
+
+    FeedbackReport.objects.filter(user=student, assessment_result__course=course).delete()
+    FeedbackReport.objects.filter(user=student, exam__course=course).delete()
+    ExamSubmission.objects.filter(user=student, exam__course=course).delete()
+    LearningPath.objects.filter(user=student, course=course).delete()
+    AssessmentResult.objects.filter(user=student, course=course).delete()
+    AnswerHistory.objects.filter(user=student, course=course).delete()
+    AssessmentStatus.objects.filter(user=student, course=course).delete()
+    AbilityScore.objects.filter(user=student, course=course).delete()
+    KnowledgeMastery.objects.filter(user=student, course=course).delete()
+    ProfileSummary.objects.filter(user=student, course=course).delete()
+
+
+def sync_student1_initial_assessment(course, selected_questions: list[object]):
+    """同步 student1 初始评测定义与题目顺序。"""
+    from assessments.models import Assessment, AssessmentQuestion
+
+    assessment, _ = Assessment.objects.update_or_create(
+        course=course,
+        assessment_type="knowledge",
+        defaults={
+            "title": f"{course.name} 初始评测",
+            "description": "系统自动生成的初始知识评测",
+            "is_active": True,
+        },
+    )
+    AssessmentQuestion.objects.filter(assessment=assessment).exclude(
+        question__in=selected_questions
+    ).delete()
+    for order, question in enumerate(selected_questions, start=1):
+        AssessmentQuestion.objects.update_or_create(
+            assessment=assessment,
+            question=question,
+            defaults={"order": order},
+        )
+    return assessment
 
 
 def build_student1_answer_value(question, force_correct: bool) -> object:

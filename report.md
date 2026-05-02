@@ -13,7 +13,7 @@
 
 | 指标摘要 | 评分 |
 |------|-------|
-| **糟糕指数** | **89.17/100** |
+| **糟糕指数** | **89.24/100** |
 | 屎山等级 | 🌸 偶有异味 |
 
 > 清新宜人，初闻像早晨的露珠
@@ -22,15 +22,15 @@
 
 | 指标 | 数值 |
 |--------|-------|
-| 总文件数 | 466 |
-| 已跳过 | 85368 |
-| 耗时 | 13965ms |
+| 总文件数 | 467 |
+| 已跳过 | 85369 |
+| 耗时 | 13852ms |
 
 ### 📋 项目概览
 
 | 指标 | 数值 |
 |--------|-------|
-| 总代码行数 | 56754 |
+| 总代码行数 | 56953 |
 | 总注释行数 | 3537 |
 | 整体注释比例 | 6.2% |
 | 平均文件大小 | 149 行 |
@@ -40,7 +40,7 @@
 
 | 语言 | 文件数 |
 |:-----|------:|
-| Python | 395 |
+| Python | 396 |
 | TypeScript | 49 |
 | JavaScript | 22 |
 
@@ -48,64 +48,21 @@
 
 | 指标摘要 | 评分 | Min | Max | Median | 状态 |
 |:-----|------:|------:|------:|------:|:------:|
-| 循环复杂度 | 5.65% | 0.0% | 65.5% | 0.0% | ✓✓ |
-| 认知复杂度 | 6.82% | 0.0% | 55.7% | 0.0% | ✓✓ |
+| 循环复杂度 | 5.53% | 0.0% | 65.5% | 0.0% | ✓✓ |
+| 认知复杂度 | 6.72% | 0.0% | 55.7% | 0.0% | ✓✓ |
 | 嵌套深度 | 0.47% | 0.0% | 20.0% | 0.0% | ✓✓ |
-| 函数长度 | 5.80% | 0.0% | 75.9% | 0.0% | ✓✓ |
+| 函数长度 | 5.70% | 0.0% | 75.9% | 0.0% | ✓✓ |
 | 文件长度 | 0.57% | 0.0% | 48.2% | 0.0% | ✓✓ |
-| 参数数量 | 6.75% | 0.0% | 98.5% | 0.0% | ✓✓ |
-| 代码重复 | 3.17% | 0.0% | 94.2% | 0.0% | ✓✓ |
-| 结构分析 | 1.05% | 0.0% | 16.0% | 0.0% | ✓✓ |
-| 错误处理 | 17.90% | 0.0% | 98.8% | 0.0% | ✓✓ |
-| 注释比例 | 77.67% | 0.0% | 100.0% | 100.0% | ! |
-| 命名规范 | 17.02% | 0.0% | 100.0% | 0.0% | ✓✓ |
+| 参数数量 | 6.88% | 0.0% | 98.5% | 0.0% | ✓✓ |
+| 代码重复 | 3.16% | 0.0% | 94.2% | 0.0% | ✓✓ |
+| 结构分析 | 1.03% | 0.0% | 16.0% | 0.0% | ✓✓ |
+| 错误处理 | 17.91% | 0.0% | 98.8% | 0.0% | ✓✓ |
+| 注释比例 | 77.72% | 0.0% | 100.0% | 100.0% | ! |
+| 命名规范 | 16.87% | 0.0% | 100.0% | 0.0% | ✓✓ |
 
 ## 最屎代码排行榜 {#problem-files}
 
-### 1. backend\tools\db_demo_preset.py
-
-**糟糕指数: 25.51**
-
-> 行数: 271 总计, 237 代码, 0 注释 | 函数: 4 | 类: 0
-
-**问题**: 🔄 复杂度问题: 2, ⚠️ 其他问题: 1, 🏗️ 结构问题: 1, ❌ 错误处理问题: 3, 📝 注释问题: 1, 🏷️ 命名问题: 3
-
-#### 函数详情
-
-| 函数 | 行范围 | 行数 | 复杂度 | 嵌套 | 参数 | 注释 |
-|:-----|------:|------:|------:|------:|------:|:------:|
-| `_preset_student1_demo_data` | L53-251 | 199 | 19 | 3 | 2 | ✓ |
-| `preset_student1_demo_course_state` | L254-270 | 17 | 4 | 1 | 1 | ✓ |
-| `_calculate_initial_mastery_baseline` | L23-31 | 9 | 2 | 1 | 2 | ✓ |
-| `_reset_course_demo_state` | L34-50 | 17 | 1 | 0 | 2 | ✓ |
-
-**全部问题 (10)**
-
-- 🔄 `_preset_student1_demo_data()` L53: 复杂度: 19
-- 🔄 `_preset_student1_demo_data()` L53: 认知复杂度: 25
-- 📏 `_preset_student1_demo_data()` L53: 199 代码量
-- 🏗️ `_preset_student1_demo_data()` L53: 中等嵌套: 3
-- ❌ L100: 未处理的易出错调用
-- ❌ L139: 未处理的易出错调用
-- ❌ L203: 未处理的易出错调用
-- 🏷️ `_calculate_initial_mastery_baseline()` L23: "_calculate_initial_mastery_baseline" - snake_case
-- 🏷️ `_reset_course_demo_state()` L34: "_reset_course_demo_state" - snake_case
-- 🏷️ `_preset_student1_demo_data()` L53: "_preset_student1_demo_data" - snake_case
-
-**详情**:
-- 循环复杂度: 平均: 6.5, 最大: 19
-- 认知复杂度: 平均: 9.0, 最大: 25
-- 嵌套深度: 平均: 1.3, 最大: 3
-- 函数长度: 平均: 60.5 行, 最大: 199 行
-- 文件长度: 237 代码量 (271 总计)
-- 参数数量: 平均: 1.8, 最大: 2
-- 代码重复: 0.0% 重复 (0/4)
-- 结构分析: 1 个结构问题
-- 错误处理: 3/13 个错误被忽略 (23.1%)
-- 注释比例: 0.0% (0/237)
-- 命名规范: 发现 3 个违规
-
-### 2. backend\tools\mefkt_training.py
+### 1. backend\tools\mefkt_training.py
 
 **糟糕指数: 25.25**
 
@@ -153,7 +110,7 @@
 - 注释比例: 0.7% (2/286)
 - 命名规范: 发现 2 个违规
 
-### 3. backend\ai_services\services\llm_response_mixin.py
+### 2. backend\ai_services\services\llm_response_mixin.py
 
 **糟糕指数: 24.97**
 
@@ -222,7 +179,7 @@
 - 注释比例: 1.5% (6/390)
 - 命名规范: 发现 16 个违规
 
-### 4. backend\common\question_options.py
+### 3. backend\common\question_options.py
 
 **糟糕指数: 24.63**
 
@@ -282,7 +239,7 @@
 - 注释比例: 0.0% (0/213)
 - 命名规范: 无命名违规
 
-### 5. backend\ai_services\services\mefkt_inference.py
+### 4. backend\ai_services\services\mefkt_inference.py
 
 **糟糕指数: 23.62**
 
@@ -347,7 +304,7 @@
 - 注释比例: 0.6% (2/334)
 - 命名规范: 发现 8 个违规
 
-### 6. backend\ai_services\student_rag_views.py
+### 5. backend\ai_services\student_rag_views.py
 
 **糟糕指数: 23.62**
 
@@ -388,7 +345,7 @@
 - 注释比例: 7.0% (10/142)
 - 命名规范: 无命名违规
 
-### 7. backend\knowledge\teacher_resource_views.py
+### 6. backend\knowledge\teacher_resource_views.py
 
 **糟糕指数: 23.51**
 
@@ -433,7 +390,7 @@
 - 注释比例: 0.0% (0/248)
 - 命名规范: 无命名违规
 
-### 8. backend\users\admin_user_management_views.py
+### 7. backend\users\admin_user_management_views.py
 
 **糟糕指数: 23.47**
 
@@ -485,7 +442,7 @@
 - 注释比例: 0.0% (0/282)
 - 命名规范: 无命名违规
 
-### 9. backend\users\auth_views.py
+### 8. backend\users\auth_views.py
 
 **糟糕指数: 23.08**
 
@@ -538,7 +495,7 @@
 - 注释比例: 2.7% (9/337)
 - 命名规范: 发现 2 个违规
 
-### 10. backend\courses\teacher_course_views.py
+### 9. backend\courses\teacher_course_views.py
 
 **糟糕指数: 22.79**
 
@@ -587,7 +544,7 @@
 - 注释比例: 0.0% (0/236)
 - 命名规范: 无命名违规
 
-### 11. backend\ai_services\services\student_graph_rag_service.py
+### 10. backend\ai_services\services\student_graph_rag_service.py
 
 **糟糕指数: 22.17**
 
@@ -669,7 +626,7 @@
 - 注释比例: 0.2% (1/432)
 - 命名规范: 发现 10 个违规
 
-### 12. backend\learning\student_rag_views.py
+### 11. backend\learning\student_rag_views.py
 
 **糟糕指数: 21.19**
 
@@ -706,7 +663,7 @@
 - 注释比例: 6.8% (6/88)
 - 命名规范: 无命名违规
 
-### 13. backend\tools\dkt_training.py
+### 12. backend\tools\dkt_training.py
 
 **糟糕指数: 21.03**
 
@@ -745,7 +702,7 @@
 - 注释比例: 1.0% (2/197)
 - 命名规范: 无命名违规
 
-### 14. backend\tools\exam_sets.py
+### 13. backend\tools\exam_sets.py
 
 **糟糕指数: 20.78**
 
@@ -802,7 +759,7 @@
 - 注释比例: 0.7% (2/270)
 - 命名规范: 发现 9 个违规
 
-### 15. backend\common\defense_demo_stage.py
+### 14. backend\common\defense_demo_stage.py
 
 **糟糕指数: 20.76**
 
@@ -850,7 +807,7 @@
 - 注释比例: 0.0% (0/269)
 - 命名规范: 发现 3 个违规
 
-### 16. backend\tools\dkt_synthetic_support.py
+### 15. backend\tools\dkt_synthetic_support.py
 
 **糟糕指数: 20.73**
 
@@ -909,7 +866,7 @@
 - 注释比例: 0.6% (2/348)
 - 命名规范: 无命名违规
 
-### 17. backend\tools\dkt_sequences.py
+### 16. backend\tools\dkt_sequences.py
 
 **糟糕指数: 20.33**
 
@@ -970,7 +927,7 @@
 - 注释比例: 1.0% (2/203)
 - 命名规范: 发现 13 个违规
 
-### 18. backend\exams\student_exam_views.py
+### 17. backend\exams\student_exam_views.py
 
 **糟糕指数: 20.30**
 
@@ -1005,7 +962,7 @@
 - 注释比例: 0.0% (0/95)
 - 命名规范: 无命名违规
 
-### 19. backend\platform_ai\llm\agent_support.py
+### 18. backend\platform_ai\llm\agent_support.py
 
 **糟糕指数: 20.25**
 
@@ -1057,7 +1014,7 @@
 - 注释比例: 0.0% (0/175)
 - 命名规范: 无命名违规
 
-### 20. backend\tools\resources.py
+### 19. backend\tools\resources.py
 
 **糟糕指数: 19.94**
 
@@ -1095,7 +1052,7 @@
 - 注释比例: 0.0% (0/83)
 - 命名规范: 无命名违规
 
-### 21. backend\knowledge\map_views.py
+### 20. backend\knowledge\map_views.py
 
 **糟糕指数: 19.75**
 
@@ -1183,7 +1140,7 @@
 - 注释比例: 0.0% (0/342)
 - 命名规范: 发现 3 个违规
 
-### 22. backend\ai_services\services\path_generation_support.py
+### 21. backend\ai_services\services\path_generation_support.py
 
 **糟糕指数: 19.73**
 
@@ -1231,7 +1188,7 @@
 - 注释比例: 0.0% (0/314)
 - 命名规范: 发现 3 个违规
 
-### 23. backend\ai_services\services\dkt_inference.py
+### 22. backend\ai_services\services\dkt_inference.py
 
 **糟糕指数: 19.71**
 
@@ -1283,7 +1240,7 @@
 - 注释比例: 0.0% (0/264)
 - 命名规范: 发现 4 个违规
 
-### 24. backend\learning\node_detail_support.py
+### 23. backend\learning\node_detail_support.py
 
 **糟糕指数: 19.50**
 
@@ -1329,7 +1286,7 @@
 - 注释比例: 0.0% (0/236)
 - 命名规范: 无命名违规
 
-### 25. backend\tools\cli_menu.py
+### 24. backend\tools\cli_menu.py
 
 **糟糕指数: 19.26**
 
@@ -1386,7 +1343,7 @@
 - 注释比例: 0.6% (2/310)
 - 命名规范: 发现 10 个违规
 
-### 26. backend\tools\api_regression_helpers.py
+### 25. backend\tools\api_regression_helpers.py
 
 **糟糕指数: 19.23**
 
@@ -1437,7 +1394,7 @@
 - 注释比例: 13.0% (24/184)
 - 命名规范: 发现 7 个违规
 
-### 27. backend\ai_services\services\mefkt_runtime_support.py
+### 26. backend\ai_services\services\mefkt_runtime_support.py
 
 **糟糕指数: 18.98**
 
@@ -1497,7 +1454,7 @@
 - 注释比例: 0.4% (2/449)
 - 命名规范: 发现 8 个违规
 
-### 28. backend\tools\question_import_support.py
+### 27. backend\tools\question_import_support.py
 
 **糟糕指数: 18.85**
 
@@ -1563,7 +1520,7 @@
 - 注释比例: 0.5% (2/409)
 - 命名规范: 发现 5 个违规
 
-### 29. backend\knowledge\teacher_question_views.py
+### 28. backend\knowledge\teacher_question_views.py
 
 **糟糕指数: 18.72**
 
@@ -1610,7 +1567,7 @@
 - 注释比例: 0.0% (0/299)
 - 命名规范: 无命名违规
 
-### 30. frontend\scripts\browser-audit.mjs
+### 29. frontend\scripts\browser-audit.mjs
 
 **糟糕指数: 18.42**
 
@@ -1693,7 +1650,7 @@
 - 注释比例: 0.0% (0/779)
 - 命名规范: 无命名违规
 
-### 31. backend\exams\teacher_exam_management_views.py
+### 30. backend\exams\teacher_exam_management_views.py
 
 **糟糕指数: 18.42**
 
@@ -1746,7 +1703,7 @@
 - 注释比例: 0.0% (0/336)
 - 命名规范: 无命名违规
 
-### 32. backend\platform_ai\rag\student_point_path_mixin.py
+### 31. backend\platform_ai\rag\student_point_path_mixin.py
 
 **糟糕指数: 18.42**
 
@@ -1792,7 +1749,7 @@
 - 注释比例: 0.0% (0/173)
 - 命名规范: 发现 2 个违规
 
-### 33. backend\exams\report_service.py
+### 32. backend\exams\report_service.py
 
 **糟糕指数: 18.33**
 
@@ -1856,7 +1813,7 @@
 - 注释比例: 0.5% (2/366)
 - 命名规范: 发现 9 个违规
 
-### 34. backend\tools\mefkt_public_data.py
+### 33. backend\tools\mefkt_public_data.py
 
 **糟糕指数: 18.26**
 
@@ -1918,7 +1875,7 @@
 - 注释比例: 0.7% (2/268)
 - 命名规范: 发现 14 个违规
 
-### 35. backend\common\neo4j_crud.py
+### 34. backend\common\neo4j_crud.py
 
 **糟糕指数: 18.17**
 
@@ -1960,7 +1917,7 @@
 - 注释比例: 0.0% (0/216)
 - 命名规范: 发现 1 个违规
 
-### 36. backend\tools\questions.py
+### 35. backend\tools\questions.py
 
 **糟糕指数: 18.11**
 
@@ -2005,7 +1962,7 @@
 - 注释比例: 1.7% (3/178)
 - 命名规范: 发现 3 个违规
 
-### 37. backend\platform_ai\rag\runtime_graph_query_support.py
+### 36. backend\platform_ai\rag\runtime_graph_query_support.py
 
 **糟糕指数: 18.11**
 
@@ -2058,7 +2015,7 @@
 - 注释比例: 0.0% (0/179)
 - 命名规范: 无命名违规
 
-### 38. backend\users\profile_generation.py
+### 37. backend\users\profile_generation.py
 
 **糟糕指数: 18.00**
 
@@ -2110,7 +2067,7 @@
 - 注释比例: 0.0% (0/245)
 - 命名规范: 发现 5 个违规
 
-### 39. backend\tools\api_smoke.py
+### 38. backend\tools\api_smoke.py
 
 **糟糕指数: 17.99**
 
@@ -2149,7 +2106,7 @@
 - 注释比例: 4.9% (9/183)
 - 命名规范: 无命名违规
 
-### 40. backend\assessments\habit_views.py
+### 39. backend\assessments\habit_views.py
 
 **糟糕指数: 17.69**
 
@@ -2211,7 +2168,7 @@
 - 注释比例: 0.0% (0/222)
 - 命名规范: 发现 12 个违规
 
-### 41. backend\learning\stage_test_submission.py
+### 40. backend\learning\stage_test_submission.py
 
 **糟糕指数: 17.68**
 
@@ -2285,7 +2242,7 @@
 - 注释比例: 0.0% (0/468)
 - 命名规范: 发现 19 个违规
 
-### 42. backend\tools\knowledge_import_support.py
+### 41. backend\tools\knowledge_import_support.py
 
 **糟糕指数: 17.60**
 
@@ -2346,7 +2303,7 @@
 - 注释比例: 0.0% (0/310)
 - 命名规范: 无命名违规
 
-### 43. backend\platform_ai\mcp\resources.py
+### 42. backend\platform_ai\mcp\resources.py
 
 **糟糕指数: 17.44**
 
@@ -2414,7 +2371,7 @@
 - 注释比例: 0.0% (0/359)
 - 命名规范: 发现 14 个违规
 
-### 44. backend\assessments\status_profile_views.py
+### 43. backend\assessments\status_profile_views.py
 
 **糟糕指数: 17.42**
 
@@ -2452,7 +2409,7 @@
 - 注释比例: 0.0% (0/108)
 - 命名规范: 无命名违规
 
-### 45. backend\tools\cli_parser.py
+### 44. backend\tools\cli_parser.py
 
 **糟糕指数: 17.32**
 
@@ -2501,7 +2458,7 @@
 - 注释比例: 0.6% (2/317)
 - 命名规范: 发现 6 个违规
 
-### 46. backend\assessments\knowledge_assessment_logic.py
+### 45. backend\assessments\knowledge_assessment_logic.py
 
 **糟糕指数: 17.08**
 
@@ -2548,7 +2505,7 @@
 - 注释比例: 0.0% (0/291)
 - 命名规范: 无命名违规
 
-### 47. backend\ai_services\student_ai_chat_views.py
+### 46. backend\ai_services\student_ai_chat_views.py
 
 **糟糕指数: 17.07**
 
@@ -2586,7 +2543,7 @@
 - 注释比例: 0.0% (0/121)
 - 命名规范: 无命名违规
 
-### 48. backend\platform_ai\rag\runtime_search_mixin.py
+### 47. backend\platform_ai\rag\runtime_search_mixin.py
 
 **糟糕指数: 16.98**
 
@@ -2634,7 +2591,7 @@
 - 注释比例: 0.0% (0/206)
 - 命名规范: 发现 4 个违规
 
-### 49. backend\common\defense_demo_assessment_state.py
+### 48. backend\common\defense_demo_assessment_state.py
 
 **糟糕指数: 16.96**
 
@@ -2678,7 +2635,7 @@
 - 注释比例: 5.1% (10/195)
 - 命名规范: 发现 3 个违规
 
-### 50. backend\common\defense_demo_assessment_support.py
+### 49. backend\common\defense_demo_assessment_support.py
 
 **糟糕指数: 16.87**
 
@@ -2729,7 +2686,7 @@
 - 注释比例: 0.0% (0/304)
 - 命名规范: 发现 8 个违规
 
-### 51. backend\assessments\knowledge_views.py
+### 50. backend\assessments\knowledge_views.py
 
 **糟糕指数: 16.75**
 
@@ -2771,7 +2728,7 @@
 - 注释比例: 0.0% (0/253)
 - 命名规范: 无命名违规
 
-### 52. backend\ai_services\services\web_search_service.py
+### 51. backend\ai_services\services\web_search_service.py
 
 **糟糕指数: 16.51**
 
@@ -2826,7 +2783,7 @@
 - 注释比例: 0.0% (0/232)
 - 命名规范: 发现 8 个违规
 
-### 53. backend\models\MEFKT\attribute.py
+### 52. backend\models\MEFKT\attribute.py
 
 **糟糕指数: 16.18**
 
@@ -2863,7 +2820,7 @@
 - 注释比例: 0.0% (0/176)
 - 命名规范: 发现 2 个违规
 
-### 54. backend\exams\report_service_support.py
+### 53. backend\exams\report_service_support.py
 
 **糟糕指数: 16.07**
 
@@ -2903,7 +2860,7 @@
 - 注释比例: 0.0% (0/164)
 - 命名规范: 无命名违规
 
-### 55. backend\logs\middleware.py
+### 54. backend\logs\middleware.py
 
 **糟糕指数: 15.93**
 
@@ -2964,7 +2921,7 @@
 - 注释比例: 4.3% (17/392)
 - 命名规范: 发现 2 个违规
 
-### 56. backend\common\defense_demo_assessment_questions.py
+### 55. backend\common\defense_demo_assessment_questions.py
 
 **糟糕指数: 15.90**
 
@@ -3004,7 +2961,7 @@
 - 注释比例: 3.0% (7/235)
 - 命名规范: 发现 3 个违规
 
-### 57. backend\tools\bootstrap_support.py
+### 56. backend\tools\bootstrap_support.py
 
 **糟糕指数: 15.48**
 
@@ -3052,7 +3009,7 @@
 - 注释比例: 0.7% (2/288)
 - 命名规范: 无命名违规
 
-### 58. backend\tools\demo_course_archive.py
+### 57. backend\tools\demo_course_archive.py
 
 **糟糕指数: 15.39**
 
@@ -3091,7 +3048,7 @@
 - 注释比例: 4.1% (3/73)
 - 命名规范: 发现 2 个违规
 
-### 59. backend\knowledge\services.py
+### 58. backend\knowledge\services.py
 
 **糟糕指数: 15.39**
 
@@ -3127,7 +3084,7 @@
 - 注释比例: 0.0% (0/81)
 - 命名规范: 无命名违规
 
-### 60. backend\wisdom_edu_api\settings_ai.py
+### 59. backend\wisdom_edu_api\settings_ai.py
 
 **糟糕指数: 15.38**
 
@@ -3167,7 +3124,7 @@
 - 注释比例: 0.0% (0/193)
 - 命名规范: 发现 3 个违规
 
-### 61. backend\platform_ai\rag\corpus_builder.py
+### 60. backend\platform_ai\rag\corpus_builder.py
 
 **糟糕指数: 15.32**
 
@@ -3232,50 +3189,7 @@
 - 注释比例: 0.0% (0/397)
 - 命名规范: 发现 15 个违规
 
-### 62. backend\tools\db_demo_preset_support.py
-
-**糟糕指数: 15.32**
-
-> 行数: 238 总计, 214 代码, 0 注释 | 函数: 6 | 类: 1
-
-**问题**: ⚠️ 其他问题: 3, ❌ 错误处理问题: 5, 📝 注释问题: 1
-
-#### 函数详情
-
-| 函数 | 行范围 | 行数 | 复杂度 | 嵌套 | 参数 | 注释 |
-|:-----|------:|------:|------:|------:|------:|:------:|
-| `build_student1_answer_value` | L82-105 | 24 | 10 | 1 | 2 | ✓ |
-| `rebuild_student1_path` | L175-237 | 63 | 4 | 2 | 7 | ✓ |
-| `build_student1_demo_defaults` | L22-79 | 58 | 1 | 0 | 0 | ✓ |
-| `apply_student1_static_state` | L108-127 | 20 | 1 | 0 | 3 | ✓ |
-| `build_mastery_payload` | L130-139 | 10 | 1 | 0 | 3 | ✓ |
-| `build_student1_feedback_defaults` | L142-172 | 31 | 1 | 0 | 5 | ✓ |
-
-**全部问题 (8)**
-
-- 📏 `build_student1_demo_defaults()` L22: 58 代码量
-- 📏 `rebuild_student1_path()` L175: 63 代码量
-- 📏 `rebuild_student1_path()` L175: 7 参数数量
-- ❌ L91: 未处理的易出错调用
-- ❌ L93: 未处理的易出错调用
-- ❌ L136: 未处理的易出错调用
-- ❌ L198: 未处理的易出错调用
-- ❌ L228: 未处理的易出错调用
-
-**详情**:
-- 循环复杂度: 平均: 3.0, 最大: 10
-- 认知复杂度: 平均: 4.0, 最大: 12
-- 嵌套深度: 平均: 0.5, 最大: 2
-- 函数长度: 平均: 34.3 行, 最大: 63 行
-- 文件长度: 214 代码量 (238 总计)
-- 参数数量: 平均: 3.3, 最大: 7
-- 代码重复: 0.0% 重复 (0/6)
-- 结构分析: 0 个结构问题
-- 错误处理: 5/6 个错误被忽略 (83.3%)
-- 注释比例: 0.0% (0/214)
-- 命名规范: 无命名违规
-
-### 63. backend\tools\dkt_training_support.py
+### 61. backend\tools\dkt_training_support.py
 
 **糟糕指数: 15.28**
 
@@ -3325,7 +3239,7 @@
 - 注释比例: 0.7% (2/277)
 - 命名规范: 无命名违规
 
-### 64. backend\platform_ai\rag\runtime.py
+### 62. backend\platform_ai\rag\runtime.py
 
 **糟糕指数: 15.13**
 
@@ -3381,7 +3295,7 @@
 - 注释比例: 0.5% (2/405)
 - 命名规范: 发现 8 个违规
 
-### 65. backend\platform_ai\rag\student_context_mixin.py
+### 63. backend\platform_ai\rag\student_context_mixin.py
 
 **糟糕指数: 15.01**
 
@@ -3426,7 +3340,7 @@
 - 注释比例: 0.0% (0/157)
 - 命名规范: 发现 5 个违规
 
-### 66. backend\platform_ai\llm\agent.py
+### 64. backend\platform_ai\llm\agent.py
 
 **糟糕指数: 15.01**
 
@@ -3473,7 +3387,7 @@
 - 注释比例: 0.0% (0/234)
 - 命名规范: 发现 4 个违规
 
-### 67. backend\tools\db_seed_support.py
+### 65. backend\tools\db_seed_support.py
 
 **糟糕指数: 14.88**
 
@@ -3567,7 +3481,7 @@
 - 注释比例: 0.0% (0/342)
 - 命名规范: 发现 11 个违规
 
-### 68. backend\tools\ai_services_test.py
+### 66. backend\tools\ai_services_test.py
 
 **糟糕指数: 14.77**
 
@@ -3606,7 +3520,7 @@
 - 注释比例: 0.0% (0/73)
 - 命名规范: 无命名违规
 
-### 69. backend\ai_services\services\kt_prediction_stats.py
+### 67. backend\ai_services\services\kt_prediction_stats.py
 
 **糟糕指数: 14.59**
 
@@ -3657,7 +3571,7 @@
 - 注释比例: 0.0% (0/176)
 - 命名规范: 发现 7 个违规
 
-### 70. backend\exams\student_submission_support.py
+### 68. backend\exams\student_submission_support.py
 
 **糟糕指数: 14.41**
 
@@ -3703,7 +3617,7 @@
 - 注释比例: 0.0% (0/304)
 - 命名规范: 无命名违规
 
-### 71. backend\ai_services\services\kt_service.py
+### 69. backend\ai_services\services\kt_service.py
 
 **糟糕指数: 14.20**
 
@@ -3755,7 +3669,7 @@
 - 注释比例: 0.0% (0/255)
 - 命名规范: 发现 6 个违规
 
-### 72. backend\platform_ai\rag\student_resource_mixin.py
+### 70. backend\platform_ai\rag\student_resource_mixin.py
 
 **糟糕指数: 14.04**
 
@@ -3815,7 +3729,7 @@
 - 注释比例: 0.0% (0/289)
 - 命名规范: 发现 11 个违规
 
-### 73. backend\tools\dkt_data_access.py
+### 71. backend\tools\dkt_data_access.py
 
 **糟糕指数: 13.99**
 
@@ -3863,7 +3777,7 @@
 - 注释比例: 1.6% (2/128)
 - 命名规范: 发现 6 个违规
 
-### 74. backend\ai_services\services\kt_model_runtime.py
+### 72. backend\ai_services\services\kt_model_runtime.py
 
 **糟糕指数: 13.96**
 
@@ -3903,7 +3817,7 @@
 - 注释比例: 0.0% (0/170)
 - 命名规范: 发现 4 个违规
 
-### 75. backend\ai_services\student_ai_profile_views.py
+### 73. backend\ai_services\student_ai_profile_views.py
 
 **糟糕指数: 13.92**
 
@@ -3958,7 +3872,7 @@
 - 注释比例: 0.0% (0/283)
 - 命名规范: 发现 2 个违规
 
-### 76. backend\courses\admin_statistics_views.py
+### 74. backend\courses\admin_statistics_views.py
 
 **糟糕指数: 13.80**
 
@@ -3998,7 +3912,54 @@
 - 注释比例: 0.0% (0/160)
 - 命名规范: 无命名违规
 
-### 77. backend\platform_ai\rag\student_retrieval_mixin.py
+### 75. backend\tools\db_demo_preset_support.py
+
+**糟糕指数: 13.80**
+
+> 行数: 312 总计, 276 代码, 0 注释 | 函数: 9 | 类: 2
+
+**问题**: ⚠️ 其他问题: 3, ❌ 错误处理问题: 6, 📝 注释问题: 1
+
+#### 函数详情
+
+| 函数 | 行范围 | 行数 | 复杂度 | 嵌套 | 参数 | 注释 |
+|:-----|------:|------:|------:|------:|------:|:------:|
+| `build_student1_answer_value` | L156-179 | 24 | 10 | 1 | 2 | ✓ |
+| `rebuild_student1_path` | L249-311 | 63 | 4 | 2 | 7 | ✓ |
+| `load_student1_demo_course_data` | L91-109 | 19 | 2 | 0 | 1 | ✓ |
+| `sync_student1_initial_assessment` | L131-153 | 23 | 2 | 1 | 2 | ✓ |
+| `build_student1_demo_defaults` | L31-88 | 58 | 1 | 0 | 0 | ✓ |
+| `reset_course_demo_state` | L112-128 | 17 | 1 | 0 | 2 | ✓ |
+| `apply_student1_static_state` | L182-201 | 20 | 1 | 0 | 3 | ✓ |
+| `build_mastery_payload` | L204-213 | 10 | 1 | 0 | 3 | ✓ |
+| `build_student1_feedback_defaults` | L216-246 | 31 | 1 | 0 | 5 | ✓ |
+
+**全部问题 (9)**
+
+- 📏 `build_student1_demo_defaults()` L31: 58 代码量
+- 📏 `rebuild_student1_path()` L249: 63 代码量
+- 📏 `rebuild_student1_path()` L249: 7 参数数量
+- ❌ L146: 未处理的易出错调用
+- ❌ L165: 未处理的易出错调用
+- ❌ L167: 未处理的易出错调用
+- ❌ L210: 未处理的易出错调用
+- ❌ L272: 未处理的易出错调用
+- ❌ L302: 未处理的易出错调用
+
+**详情**:
+- 循环复杂度: 平均: 2.6, 最大: 10
+- 认知复杂度: 平均: 3.4, 最大: 12
+- 嵌套深度: 平均: 0.4, 最大: 2
+- 函数长度: 平均: 29.4 行, 最大: 63 行
+- 文件长度: 276 代码量 (312 总计)
+- 参数数量: 平均: 2.8, 最大: 7
+- 代码重复: 0.0% 重复 (0/9)
+- 结构分析: 0 个结构问题
+- 错误处理: 6/17 个错误被忽略 (35.3%)
+- 注释比例: 0.0% (0/276)
+- 命名规范: 无命名违规
+
+### 76. backend\platform_ai\rag\student_retrieval_mixin.py
 
 **糟糕指数: 13.68**
 
@@ -4062,7 +4023,7 @@
 - 注释比例: 0.0% (0/181)
 - 命名规范: 发现 12 个违规
 
-### 78. backend\courses\admin_views.py
+### 77. backend\courses\admin_views.py
 
 **糟糕指数: 13.68**
 
@@ -4115,7 +4076,7 @@
 - 注释比例: 2.1% (8/384)
 - 命名规范: 发现 1 个违规
 
-### 79. backend\ai_services\services\llm_resource_support.py
+### 78. backend\ai_services\services\llm_resource_support.py
 
 **糟糕指数: 13.68**
 
@@ -4157,7 +4118,7 @@
 - 注释比例: 0.0% (0/200)
 - 命名规范: 无命名违规
 
-### 80. backend\common\course_utils.py
+### 79. backend\common\course_utils.py
 
 **糟糕指数: 13.66**
 
@@ -4192,7 +4153,7 @@
 - 注释比例: 0.0% (0/54)
 - 命名规范: 无命名违规
 
-### 81. backend\knowledge\teacher_point_views.py
+### 80. backend\knowledge\teacher_point_views.py
 
 **糟糕指数: 13.62**
 
@@ -4237,7 +4198,7 @@
 - 注释比例: 0.0% (0/147)
 - 命名规范: 无命名违规
 
-### 82. backend\tools\dkt_synthetic.py
+### 81. backend\tools\dkt_synthetic.py
 
 **糟糕指数: 13.54**
 
@@ -4288,7 +4249,7 @@
 - 注释比例: 0.9% (2/222)
 - 命名规范: 发现 7 个违规
 
-### 83. backend\tools\testing.py
+### 82. backend\tools\testing.py
 
 **糟糕指数: 13.28**
 
@@ -4338,7 +4299,7 @@
 - 注释比例: 4.3% (8/184)
 - 命名规范: 发现 8 个违规
 
-### 84. backend\ai_services\services\path_service.py
+### 83. backend\ai_services\services\path_service.py
 
 **糟糕指数: 13.10**
 
@@ -4376,7 +4337,7 @@
 - 注释比例: 5.2% (11/212)
 - 命名规范: 无命名违规
 
-### 85. backend\courses\teacher_student_views.py
+### 84. backend\courses\teacher_student_views.py
 
 **糟糕指数: 13.00**
 
@@ -4412,7 +4373,7 @@
 - 注释比例: 0.0% (0/82)
 - 命名规范: 无命名违规
 
-### 86. backend\users\services.py
+### 85. backend\users\services.py
 
 **糟糕指数: 12.97**
 
@@ -4465,7 +4426,7 @@
 - 注释比例: 0.6% (2/317)
 - 命名规范: 发现 3 个违规
 
-### 87. backend\tools\api_regression_student_learning.py
+### 86. backend\tools\api_regression_student_learning.py
 
 **糟糕指数: 12.96**
 
@@ -4506,7 +4467,7 @@
 - 注释比例: 0.0% (0/259)
 - 命名规范: 发现 4 个违规
 
-### 88. backend\courses\teacher_invitation_views.py
+### 87. backend\courses\teacher_invitation_views.py
 
 **糟糕指数: 12.84**
 
@@ -4541,7 +4502,7 @@
 - 注释比例: 0.0% (0/86)
 - 命名规范: 无命名违规
 
-### 89. backend\courses\student_views.py
+### 88. backend\courses\student_views.py
 
 **糟糕指数: 12.83**
 
@@ -4592,7 +4553,7 @@
 - 注释比例: 5.1% (14/272)
 - 命名规范: 发现 3 个违规
 
-### 90. backend\platform_ai\rag\runtime_models.py
+### 89. backend\platform_ai\rag\runtime_models.py
 
 **糟糕指数: 12.76**
 
@@ -4659,7 +4620,7 @@
 - 注释比例: 0.6% (2/316)
 - 命名规范: 发现 14 个违规
 
-### 91. backend\knowledge\resource_views.py
+### 90. backend\knowledge\resource_views.py
 
 **糟糕指数: 12.68**
 
@@ -4694,7 +4655,7 @@
 - 注释比例: 0.0% (0/105)
 - 命名规范: 无命名违规
 
-### 92. backend\tools\api_regression_teacher.py
+### 91. backend\tools\api_regression_teacher.py
 
 **糟糕指数: 12.58**
 
@@ -4749,7 +4710,7 @@
 - 注释比例: 0.0% (0/299)
 - 命名规范: 发现 14 个违规
 
-### 93. backend\users\admin_profile_views.py
+### 92. backend\users\admin_profile_views.py
 
 **糟糕指数: 12.41**
 
@@ -4783,7 +4744,7 @@
 - 注释比例: 0.0% (0/99)
 - 命名规范: 无命名违规
 
-### 94. backend\ai_services\services\kt_prediction_modes.py
+### 93. backend\ai_services\services\kt_prediction_modes.py
 
 **糟糕指数: 12.29**
 
@@ -4831,7 +4792,7 @@
 - 注释比例: 0.0% (0/265)
 - 命名规范: 发现 5 个违规
 
-### 95. backend\users\test_models.py
+### 94. backend\users\test_models.py
 
 **糟糕指数: 12.23**
 
@@ -4877,7 +4838,7 @@
 - 注释比例: 0.0% (0/143)
 - 命名规范: 发现 2 个违规
 
-### 96. backend\learning\serializers.py
+### 95. backend\learning\serializers.py
 
 **糟糕指数: 11.95**
 
@@ -4913,7 +4874,7 @@
 - 注释比例: 0.0% (0/98)
 - 命名规范: 无命名违规
 
-### 97. backend\tools\api_regression_student_exam_ai.py
+### 96. backend\tools\api_regression_student_exam_ai.py
 
 **糟糕指数: 11.95**
 
@@ -4948,7 +4909,7 @@
 - 注释比例: 0.0% (0/231)
 - 命名规范: 发现 2 个违规
 
-### 98. backend\tools\api_regression_student_basics.py
+### 97. backend\tools\api_regression_student_basics.py
 
 **糟糕指数: 11.94**
 
@@ -4980,7 +4941,7 @@
 - 注释比例: 0.0% (0/131)
 - 命名规范: 发现 1 个违规
 
-### 99. backend\ai_services\test_student_rag_context.py
+### 98. backend\ai_services\test_student_rag_context.py
 
 **糟糕指数: 11.94**
 
@@ -5017,7 +4978,7 @@
 - 注释比例: 0.0% (0/213)
 - 命名规范: 无命名违规
 
-### 100. backend\knowledge\teacher_map_support.py
+### 99. backend\knowledge\teacher_map_support.py
 
 **糟糕指数: 11.81**
 
@@ -5058,7 +5019,7 @@
 - 注释比例: 0.0% (0/109)
 - 命名规范: 无命名违规
 
-### 101. backend\platform_ai\rag\runtime_materialization_mixin.py
+### 100. backend\platform_ai\rag\runtime_materialization_mixin.py
 
 **糟糕指数: 11.81**
 
@@ -5126,7 +5087,7 @@
 - 注释比例: 0.0% (0/229)
 - 命名规范: 发现 8 个违规
 
-### 102. backend\common\defense_demo_path.py
+### 101. backend\common\defense_demo_path.py
 
 **糟糕指数: 11.81**
 
@@ -5184,7 +5145,7 @@
 - 注释比例: 0.0% (0/351)
 - 命名规范: 发现 13 个违规
 
-### 103. backend\tools\common.py
+### 102. backend\tools\common.py
 
 **糟糕指数: 11.80**
 
@@ -5226,7 +5187,7 @@
 - 注释比例: 2.4% (4/168)
 - 命名规范: 无命名违规
 
-### 104. backend\learning\path_views.py
+### 103. backend\learning\path_views.py
 
 **糟糕指数: 11.79**
 
@@ -5261,7 +5222,7 @@
 - 注释比例: 0.9% (1/110)
 - 命名规范: 无命名违规
 
-### 105. backend\common\neo4j_queries.py
+### 104. backend\common\neo4j_queries.py
 
 **糟糕指数: 11.67**
 
@@ -5301,7 +5262,7 @@
 - 注释比例: 0.0% (0/246)
 - 命名规范: 无命名违规
 
-### 106. backend\tools\db_management.py
+### 105. backend\tools\db_management.py
 
 **糟糕指数: 11.61**
 
@@ -5337,7 +5298,7 @@
 - 注释比例: 0.0% (0/161)
 - 命名规范: 无命名违规
 
-### 107. backend\platform_ai\rag\runtime_graph_query_mixin.py
+### 106. backend\platform_ai\rag\runtime_graph_query_mixin.py
 
 **糟糕指数: 11.51**
 
@@ -5392,7 +5353,7 @@
 - 注释比例: 0.0% (0/329)
 - 命名规范: 发现 12 个违规
 
-### 108. backend\assessments\knowledge_generation.py
+### 107. backend\assessments\knowledge_generation.py
 
 **糟糕指数: 11.35**
 
@@ -5423,7 +5384,7 @@
 - 注释比例: 0.0% (0/86)
 - 命名规范: 无命名违规
 
-### 109. backend\ai_services\services\llm_profile_path_support.py
+### 108. backend\ai_services\services\llm_profile_path_support.py
 
 **糟糕指数: 11.23**
 
@@ -5491,7 +5452,7 @@
 - 注释比例: 0.0% (0/288)
 - 命名规范: 无命名违规
 
-### 110. backend\assessments\assessment_helpers.py
+### 109. backend\assessments\assessment_helpers.py
 
 **糟糕指数: 11.20**
 
@@ -5533,7 +5494,7 @@
 - 注释比例: 0.0% (0/151)
 - 命名规范: 无命名违规
 
-### 111. backend\common\grading.py
+### 110. backend\common\grading.py
 
 **糟糕指数: 11.18**
 
@@ -5578,7 +5539,7 @@
 - 注释比例: 0.0% (0/213)
 - 命名规范: 发现 3 个违规
 
-### 112. backend\tools\activation.py
+### 111. backend\tools\activation.py
 
 **糟糕指数: 11.07**
 
@@ -5611,7 +5572,7 @@
 - 注释比例: 3.2% (1/31)
 - 命名规范: 无命名违规
 
-### 113. backend\ai_services\services\llm_service.py
+### 112. backend\ai_services\services\llm_service.py
 
 **糟糕指数: 11.03**
 
@@ -5678,7 +5639,7 @@
 - 注释比例: 1.4% (6/418)
 - 命名规范: 发现 16 个违规
 
-### 114. backend\ai_services\test_student_rag_base.py
+### 113. backend\ai_services\test_student_rag_base.py
 
 **糟糕指数: 10.80**
 
@@ -5710,7 +5671,7 @@
 - 注释比例: 0.0% (0/168)
 - 命名规范: 发现 1 个违规
 
-### 115. backend\tools\api_regression_cleanup.py
+### 114. backend\tools\api_regression_cleanup.py
 
 **糟糕指数: 10.78**
 
@@ -5749,7 +5710,7 @@
 - 注释比例: 0.0% (0/117)
 - 命名规范: 发现 1 个违规
 
-### 116. backend\learning\dashboard_views.py
+### 115. backend\learning\dashboard_views.py
 
 **糟糕指数: 10.77**
 
@@ -5780,7 +5741,7 @@
 - 注释比例: 7.1% (6/85)
 - 命名规范: 无命名违规
 
-### 117. backend\common\neo4j_sync.py
+### 116. backend\common\neo4j_sync.py
 
 **糟糕指数: 10.73**
 
@@ -5818,7 +5779,7 @@
 - 注释比例: 0.0% (0/202)
 - 命名规范: 发现 1 个违规
 
-### 118. backend\users\test_class_api.py
+### 117. backend\users\test_class_api.py
 
 **糟糕指数: 10.73**
 
@@ -5868,7 +5829,7 @@
 - 注释比例: 0.0% (0/167)
 - 命名规范: 发现 2 个违规
 
-### 119. backend\learning\path_rules.py
+### 118. backend\learning\path_rules.py
 
 **糟糕指数: 10.69**
 
@@ -5907,7 +5868,7 @@
 - 注释比例: 0.0% (0/96)
 - 命名规范: 无命名违规
 
-### 120. backend\courses\teacher_workspace_views.py
+### 119. backend\courses\teacher_workspace_views.py
 
 **糟糕指数: 10.68**
 
@@ -5942,7 +5903,7 @@
 - 注释比例: 0.0% (0/87)
 - 命名规范: 无命名违规
 
-### 121. backend\assessments\knowledge_generation_support.py
+### 120. backend\assessments\knowledge_generation_support.py
 
 **糟糕指数: 10.67**
 
@@ -5985,7 +5946,7 @@
 - 注释比例: 0.0% (0/112)
 - 命名规范: 无命名违规
 
-### 122. backend\ai_services\services\scoring_service.py
+### 121. backend\ai_services\services\scoring_service.py
 
 **糟糕指数: 10.64**
 
@@ -6032,7 +5993,7 @@
 - 注释比例: 6.9% (15/216)
 - 命名规范: 发现 3 个违规
 
-### 123. backend\users\student_profile_support.py
+### 122. backend\users\student_profile_support.py
 
 **糟糕指数: 10.38**
 
@@ -6087,7 +6048,7 @@
 - 注释比例: 0.0% (0/235)
 - 命名规范: 无命名违规
 
-### 124. backend\learning\stage_test_results.py
+### 123. backend\learning\stage_test_results.py
 
 **糟糕指数: 10.24**
 
@@ -6121,6 +6082,48 @@
 - 错误处理: 未检测到易出错调用
 - 注释比例: 0.0% (0/105)
 - 命名规范: 发现 1 个违规
+
+### 124. backend\tools\db_demo_preset_assessment.py
+
+**糟糕指数: 10.14**
+
+> 行数: 246 总计, 215 代码, 0 注释 | 函数: 8 | 类: 1
+
+**问题**: ⚠️ 其他问题: 3, ❌ 错误处理问题: 2, 📝 注释问题: 1
+
+#### 函数详情
+
+| 函数 | 行范围 | 行数 | 复杂度 | 嵌套 | 参数 | 注释 |
+|:-----|------:|------:|------:|------:|------:|:------:|
+| `persist_student1_question_answer` | L96-148 | 53 | 5 | 0 | 4 | ✓ |
+| `build_student1_assessment_attempt` | L41-93 | 53 | 4 | 1 | 6 | ✓ |
+| `update_student1_point_stats` | L151-161 | 11 | 3 | 2 | 3 | ✓ |
+| `calculate_initial_mastery_baseline` | L26-38 | 13 | 2 | 1 | 4 | ✓ |
+| `build_student1_mastery_map` | L164-183 | 20 | 2 | 1 | 5 | ✓ |
+| `persist_student1_mastery` | L215-236 | 22 | 2 | 1 | 5 | ✓ |
+| `persist_student1_assessment_result` | L186-212 | 27 | 1 | 0 | 4 | ✓ |
+| `weakest_point_names` | L239-245 | 7 | 1 | 0 | 1 | ✓ |
+
+**全部问题 (5)**
+
+- 📏 `build_student1_assessment_attempt()` L41: 53 代码量
+- 📏 `persist_student1_question_answer()` L96: 53 代码量
+- 📏 `build_student1_assessment_attempt()` L41: 6 参数数量
+- ❌ L140: 未处理的易出错调用
+- ❌ L233: 未处理的易出错调用
+
+**详情**:
+- 循环复杂度: 平均: 2.5, 最大: 5
+- 认知复杂度: 平均: 4.0, 最大: 7
+- 嵌套深度: 平均: 0.8, 最大: 2
+- 函数长度: 平均: 25.8 行, 最大: 53 行
+- 文件长度: 215 代码量 (246 总计)
+- 参数数量: 平均: 4.0, 最大: 6
+- 代码重复: 0.0% 重复 (0/8)
+- 结构分析: 0 个结构问题
+- 错误处理: 2/2 个错误被忽略 (100.0%)
+- 注释比例: 0.0% (0/215)
+- 命名规范: 无命名违规
 
 ### 125. backend\platform_ai\rag\student_answer_support.py
 
@@ -8270,7 +8273,44 @@
 - 注释比例: 0.0% (0/159)
 - 命名规范: 发现 9 个违规
 
-### 173. backend\common\views.py
+### 173. backend\tools\db_demo_preset.py
+
+**糟糕指数: 7.10**
+
+> 行数: 183 总计, 159 代码, 0 注释 | 函数: 5 | 类: 0
+
+**问题**: ⚠️ 其他问题: 2, 📝 注释问题: 1, 🏷️ 命名问题: 1
+
+#### 函数详情
+
+| 函数 | 行范围 | 行数 | 复杂度 | 嵌套 | 参数 | 注释 |
+|:-----|------:|------:|------:|------:|------:|:------:|
+| `preset_student1_demo_data` | L39-104 | 66 | 5 | 1 | 2 | ✓ |
+| `preset_student1_demo_course_state` | L166-182 | 17 | 4 | 1 | 1 | ✓ |
+| `persist_student1_profile_and_feedback` | L107-141 | 35 | 2 | 0 | 6 | ✓ |
+| `print_student1_preset_result` | L144-155 | 12 | 1 | 0 | 4 | ✓ |
+| `_preset_student1_demo_data` | L158-163 | 6 | 1 | 0 | 2 | ✓ |
+
+**全部问题 (3)**
+
+- 📏 `preset_student1_demo_data()` L39: 66 代码量
+- 📏 `persist_student1_profile_and_feedback()` L107: 6 参数数量
+- 🏷️ `_preset_student1_demo_data()` L158: "_preset_student1_demo_data" - snake_case
+
+**详情**:
+- 循环复杂度: 平均: 2.6, 最大: 5
+- 认知复杂度: 平均: 3.4, 最大: 7
+- 嵌套深度: 平均: 0.4, 最大: 1
+- 函数长度: 平均: 27.2 行, 最大: 66 行
+- 文件长度: 159 代码量 (183 总计)
+- 参数数量: 平均: 3.0, 最大: 6
+- 代码重复: 0.0% 重复 (0/5)
+- 结构分析: 0 个结构问题
+- 错误处理: 未检测到易出错调用
+- 注释比例: 0.0% (0/159)
+- 命名规范: 发现 1 个违规
+
+### 174. backend\common\views.py
 
 **糟糕指数: 6.99**
 
@@ -8301,7 +8341,7 @@
 - 注释比例: 1.2% (1/86)
 - 命名规范: 无命名违规
 
-### 174. backend\tools\neo4j_tools.py
+### 175. backend\tools\neo4j_tools.py
 
 **糟糕指数: 6.95**
 
@@ -8338,7 +8378,7 @@
 - 注释比例: 0.9% (1/108)
 - 命名规范: 无命名违规
 
-### 175. backend\exams\student_feedback_views.py
+### 176. backend\exams\student_feedback_views.py
 
 **糟糕指数: 6.81**
 
@@ -8370,7 +8410,7 @@
 - 注释比例: 0.0% (0/73)
 - 命名规范: 无命名违规
 
-### 176. frontend\src\views\student\useExamTaking.js
+### 177. frontend\src\views\student\useExamTaking.js
 
 **糟糕指数: 6.77**
 
@@ -8415,7 +8455,7 @@
 - 注释比例: 0.0% (0/230)
 - 命名规范: 无命名违规
 
-### 177. frontend\src\api\index.ts
+### 178. frontend\src\api\index.ts
 
 **糟糕指数: 6.72**
 
@@ -8458,7 +8498,7 @@
 - 注释比例: 1.4% (4/291)
 - 命名规范: 无命名违规
 
-### 178. backend\tools\bootstrap.py
+### 179. backend\tools\bootstrap.py
 
 **糟糕指数: 6.71**
 
@@ -8491,7 +8531,7 @@
 - 注释比例: 3.4% (4/118)
 - 命名规范: 无命名违规
 
-### 179. backend\exams\teacher_question_views.py
+### 180. backend\exams\teacher_question_views.py
 
 **糟糕指数: 6.62**
 
@@ -8523,7 +8563,7 @@
 - 注释比例: 0.0% (0/129)
 - 命名规范: 无命名违规
 
-### 180. backend\tools\api_regression_student.py
+### 181. backend\tools\api_regression_student.py
 
 **糟糕指数: 6.62**
 
@@ -8554,7 +8594,7 @@
 - 注释比例: 0.0% (0/44)
 - 命名规范: 发现 1 个违规
 
-### 181. backend\exams\tests.py
+### 182. backend\exams\tests.py
 
 **糟糕指数: 6.59**
 
@@ -8604,7 +8644,7 @@
 - 注释比例: 0.4% (1/252)
 - 命名规范: 发现 5 个违规
 
-### 182. backend\exams\teacher_result_views.py
+### 183. backend\exams\teacher_result_views.py
 
 **糟糕指数: 6.58**
 
@@ -8639,7 +8679,7 @@
 - 注释比例: 0.0% (0/172)
 - 命名规范: 无命名违规
 
-### 183. backend\tools\excel_templates.py
+### 184. backend\tools\excel_templates.py
 
 **糟糕指数: 6.45**
 
@@ -8670,7 +8710,50 @@
 - 注释比例: 0.0% (0/74)
 - 命名规范: 无命名违规
 
-### 184. frontend\src\views\student\useStudentKnowledgeMap.js
+### 185. frontend\src\views\teacher\knowledgeManageModels.js
+
+**糟糕指数: 6.45**
+
+> 行数: 118 总计, 101 代码, 0 注释 | 函数: 13 | 类: 0
+
+**问题**: ❌ 错误处理问题: 1, 📝 注释问题: 1
+
+#### 函数详情
+
+| 函数 | 行范围 | 行数 | 复杂度 | 嵌套 | 参数 | 注释 |
+|:-----|------:|------:|------:|------:|------:|:------:|
+| `normalizeText` | L1-5 | 5 | 3 | 1 | 1 | ✗ |
+| `normalizeIdentifier` | L7-10 | 4 | 2 | 0 | 1 | ✗ |
+| `normalizeNumber` | L12-15 | 4 | 2 | 0 | 1 | ✗ |
+| `normalizeListFromPayload` | L17-17 | 1 | 2 | 0 | 1 | ✗ |
+| `normalizeSearchKeyword` | L19-21 | 3 | 1 | 0 | 1 | ✗ |
+| `buildDefaultKnowledgePoint` | L23-30 | 8 | 1 | 0 | 0 | ✗ |
+| `normalizeKnowledgePoint` | L32-40 | 9 | 1 | 0 | 1 | ✗ |
+| `buildDefaultKnowledgeRelation` | L42-49 | 8 | 1 | 0 | 0 | ✗ |
+| `normalizeKnowledgeRelation` | L51-59 | 9 | 1 | 0 | 1 | ✗ |
+| `normalizeKnowledgePointListPayload` | L61-64 | 3 | 1 | 0 | 1 | ✗ |
+| `normalizeKnowledgeRelationListPayload` | L66-69 | 3 | 1 | 0 | 1 | ✗ |
+| `normalizeRagIndexBuildResult` | L71-76 | 5 | 1 | 0 | 1 | ✗ |
+| `buildKnowledgeTree` | L78-117 | 6 | 1 | 0 | 1 | ✗ |
+
+**全部问题 (1)**
+
+- ❌ L97: 未处理的易出错调用
+
+**详情**:
+- 循环复杂度: 平均: 1.4, 最大: 3
+- 认知复杂度: 平均: 1.5, 最大: 5
+- 嵌套深度: 平均: 0.1, 最大: 1
+- 函数长度: 平均: 5.2 行, 最大: 9 行
+- 文件长度: 101 代码量 (118 总计)
+- 参数数量: 平均: 0.8, 最大: 1
+- 代码重复: 0.0% 重复 (0/13)
+- 结构分析: 0 个结构问题
+- 错误处理: 1/1 个错误被忽略 (100.0%)
+- 注释比例: 0.0% (0/101)
+- 命名规范: 无命名违规
+
+### 186. frontend\src\views\student\useStudentKnowledgeMap.js
 
 **糟糕指数: 6.45**
 
@@ -8707,7 +8790,7 @@
 - 注释比例: 0.0% (0/112)
 - 命名规范: 无命名违规
 
-### 185. frontend\src\views\student\knowledgeMapModels.js
+### 187. frontend\src\views\student\knowledgeMapModels.js
 
 **糟糕指数: 6.45**
 
@@ -8754,50 +8837,7 @@
 - 注释比例: 0.0% (0/176)
 - 命名规范: 无命名违规
 
-### 186. frontend\src\views\teacher\knowledgeManageModels.js
-
-**糟糕指数: 6.45**
-
-> 行数: 118 总计, 101 代码, 0 注释 | 函数: 13 | 类: 0
-
-**问题**: ❌ 错误处理问题: 1, 📝 注释问题: 1
-
-#### 函数详情
-
-| 函数 | 行范围 | 行数 | 复杂度 | 嵌套 | 参数 | 注释 |
-|:-----|------:|------:|------:|------:|------:|:------:|
-| `normalizeText` | L1-5 | 5 | 3 | 1 | 1 | ✗ |
-| `normalizeIdentifier` | L7-10 | 4 | 2 | 0 | 1 | ✗ |
-| `normalizeNumber` | L12-15 | 4 | 2 | 0 | 1 | ✗ |
-| `normalizeListFromPayload` | L17-17 | 1 | 2 | 0 | 1 | ✗ |
-| `normalizeSearchKeyword` | L19-21 | 3 | 1 | 0 | 1 | ✗ |
-| `buildDefaultKnowledgePoint` | L23-30 | 8 | 1 | 0 | 0 | ✗ |
-| `normalizeKnowledgePoint` | L32-40 | 9 | 1 | 0 | 1 | ✗ |
-| `buildDefaultKnowledgeRelation` | L42-49 | 8 | 1 | 0 | 0 | ✗ |
-| `normalizeKnowledgeRelation` | L51-59 | 9 | 1 | 0 | 1 | ✗ |
-| `normalizeKnowledgePointListPayload` | L61-64 | 3 | 1 | 0 | 1 | ✗ |
-| `normalizeKnowledgeRelationListPayload` | L66-69 | 3 | 1 | 0 | 1 | ✗ |
-| `normalizeRagIndexBuildResult` | L71-76 | 5 | 1 | 0 | 1 | ✗ |
-| `buildKnowledgeTree` | L78-117 | 6 | 1 | 0 | 1 | ✗ |
-
-**全部问题 (1)**
-
-- ❌ L97: 未处理的易出错调用
-
-**详情**:
-- 循环复杂度: 平均: 1.4, 最大: 3
-- 认知复杂度: 平均: 1.5, 最大: 5
-- 嵌套深度: 平均: 0.1, 最大: 1
-- 函数长度: 平均: 5.2 行, 最大: 9 行
-- 文件长度: 101 代码量 (118 总计)
-- 参数数量: 平均: 0.8, 最大: 1
-- 代码重复: 0.0% 重复 (0/13)
-- 结构分析: 0 个结构问题
-- 错误处理: 1/1 个错误被忽略 (100.0%)
-- 注释比例: 0.0% (0/101)
-- 命名规范: 无命名违规
-
-### 187. backend\models\MEFKT\graph.py
+### 188. backend\models\MEFKT\graph.py
 
 **糟糕指数: 6.45**
 
@@ -8836,7 +8876,7 @@
 - 注释比例: 0.0% (0/122)
 - 命名规范: 发现 2 个违规
 
-### 188. backend\models\DKT\KnowledgeTracing\data\readdata.py
+### 189. backend\models\DKT\KnowledgeTracing\data\readdata.py
 
 **糟糕指数: 6.44**
 
@@ -8876,7 +8916,7 @@
 - 注释比例: 14.0% (8/57)
 - 命名规范: 发现 4 个违规
 
-### 189. backend\common\defense_demo_environment.py
+### 190. backend\common\defense_demo_environment.py
 
 **糟糕指数: 6.43**
 
@@ -8907,7 +8947,7 @@
 - 注释比例: 0.0% (0/115)
 - 命名规范: 无命名违规
 
-### 190. backend\exams\student_initial_assessment_support.py
+### 191. backend\exams\student_initial_assessment_support.py
 
 **糟糕指数: 6.36**
 
@@ -8950,7 +8990,7 @@
 - 注释比例: 0.0% (0/255)
 - 命名规范: 无命名违规
 
-### 191. frontend\src\api\backend.ts
+### 192. frontend\src\api\backend.ts
 
 **糟糕指数: 6.36**
 
@@ -8986,7 +9026,7 @@
 - 注释比例: 59.0% (36/61)
 - 命名规范: 无命名违规
 
-### 192. backend\ai_services\services\llm_feedback_kt_mixin.py
+### 193. backend\ai_services\services\llm_feedback_kt_mixin.py
 
 **糟糕指数: 6.32**
 
@@ -9018,7 +9058,7 @@
 - 注释比例: 0.0% (0/86)
 - 命名规范: 无命名违规
 
-### 193. backend\learning\tests.py
+### 194. backend\learning\tests.py
 
 **糟糕指数: 6.30**
 
@@ -9064,7 +9104,7 @@
 - 注释比例: 0.0% (0/297)
 - 命名规范: 发现 3 个违规
 
-### 194. backend\tools\survey.py
+### 195. backend\tools\survey.py
 
 **糟糕指数: 6.26**
 
@@ -9109,7 +9149,7 @@
 - 注释比例: 0.0% (0/179)
 - 命名规范: 无命名违规
 
-### 195. frontend\src\views\teacher\useTeacherExamManage.js
+### 196. frontend\src\views\teacher\useTeacherExamManage.js
 
 **糟糕指数: 6.14**
 
@@ -9170,7 +9210,7 @@
 - 注释比例: 0.0% (0/391)
 - 命名规范: 无命名违规
 
-### 196. frontend\src\views\student\taskLearningModels.js
+### 197. frontend\src\views\student\taskLearningModels.js
 
 **糟糕指数: 5.96**
 
@@ -9232,7 +9272,7 @@
 - 注释比例: 0.0% (0/270)
 - 命名规范: 无命名违规
 
-### 197. backend\users\teacher_views.py
+### 198. backend\users\teacher_views.py
 
 **糟糕指数: 5.90**
 
@@ -9264,7 +9304,7 @@
 - 注释比例: 0.0% (0/60)
 - 命名规范: 无命名违规
 
-### 198. backend\platform_ai\rag\student_utils.py
+### 199. backend\platform_ai\rag\student_utils.py
 
 **糟糕指数: 5.77**
 
@@ -9307,7 +9347,7 @@
 - 注释比例: 0.0% (0/154)
 - 命名规范: 无命名违规
 
-### 199. backend\tools\api_regression_admin.py
+### 200. backend\tools\api_regression_admin.py
 
 **糟糕指数: 5.77**
 
@@ -9339,7 +9379,7 @@
 - 注释比例: 15.2% (10/66)
 - 命名规范: 发现 1 个违规
 
-### 200. backend\users\admin_helpers.py
+### 201. backend\users\admin_helpers.py
 
 **糟糕指数: 5.67**
 
@@ -9370,7 +9410,7 @@
 - 注释比例: 0.0% (0/18)
 - 命名规范: 发现 1 个违规
 
-### 201. backend\users\backends.py
+### 202. backend\users\backends.py
 
 **糟糕指数: 5.64**
 
@@ -9399,7 +9439,7 @@
 - 注释比例: 6.1% (3/49)
 - 命名规范: 无命名违规
 
-### 202. backend\exams\student_artifact_views.py
+### 203. backend\exams\student_artifact_views.py
 
 **糟糕指数: 5.54**
 
@@ -9433,7 +9473,7 @@
 - 注释比例: 0.0% (0/66)
 - 命名规范: 无命名违规
 
-### 203. backend\users\test_profile.py
+### 204. backend\users\test_profile.py
 
 **糟糕指数: 5.48**
 
@@ -9471,7 +9511,7 @@
 - 注释比例: 0.0% (0/97)
 - 命名规范: 发现 2 个违规
 
-### 204. backend\tools\course_cleanup.py
+### 205. backend\tools\course_cleanup.py
 
 **糟糕指数: 5.34**
 
@@ -9502,7 +9542,7 @@
 - 注释比例: 5.9% (2/34)
 - 命名规范: 无命名违规
 
-### 205. backend\models\DKT\KnowledgeTracing\evaluation\eval.py
+### 206. backend\models\DKT\KnowledgeTracing\evaluation\eval.py
 
 **糟糕指数: 5.34**
 
@@ -9547,7 +9587,7 @@
 - 注释比例: 21.4% (24/112)
 - 命名规范: 发现 3 个违规
 
-### 206. backend\learning\node_progress_views.py
+### 207. backend\learning\node_progress_views.py
 
 **糟糕指数: 5.25**
 
@@ -9586,7 +9626,7 @@
 - 注释比例: 3.4% (8/238)
 - 命名规范: 无命名违规
 
-### 207. frontend\src\views\student\feedbackReportModels.js
+### 208. frontend\src\views\student\feedbackReportModels.js
 
 **糟糕指数: 5.23**
 
@@ -9630,7 +9670,7 @@
 - 注释比例: 0.0% (0/163)
 - 命名规范: 无命名违规
 
-### 208. frontend\src\stores\user.ts
+### 209. frontend\src\stores\user.ts
 
 **糟糕指数: 5.16**
 
@@ -9675,7 +9715,7 @@
 - 注释比例: 52.1% (98/188)
 - 命名规范: 无命名违规
 
-### 209. backend\exams\teacher_result_support.py
+### 210. backend\exams\teacher_result_support.py
 
 **糟糕指数: 5.13**
 
@@ -9716,7 +9756,7 @@
 - 注释比例: 0.0% (0/129)
 - 命名规范: 发现 1 个违规
 
-### 210. backend\knowledge\teacher_helpers.py
+### 211. backend\knowledge\teacher_helpers.py
 
 **糟糕指数: 5.06**
 
@@ -9757,7 +9797,7 @@
 - 注释比例: 0.0% (0/98)
 - 命名规范: 无命名违规
 
-### 211. backend\common\defense_demo_config.py
+### 212. backend\common\defense_demo_config.py
 
 **糟糕指数: 5.00**
 
@@ -9788,7 +9828,7 @@
 - 注释比例: 0.0% (0/144)
 - 命名规范: 发现 1 个违规
 
-### 212. backend\tools\api_regression.py
+### 213. backend\tools\api_regression.py
 
 **糟糕指数: 5.00**
 
@@ -9819,7 +9859,7 @@
 - 注释比例: 2.9% (2/69)
 - 命名规范: 无命名违规
 
-### 213. frontend\src\stores\course.ts
+### 214. frontend\src\stores\course.ts
 
 **糟糕指数: 4.94**
 
@@ -9867,7 +9907,7 @@
 - 注释比例: 38.2% (84/220)
 - 命名规范: 无命名违规
 
-### 214. backend\assessments\tests.py
+### 215. backend\assessments\tests.py
 
 **糟糕指数: 4.83**
 
@@ -9905,7 +9945,7 @@
 - 注释比例: 0.0% (0/149)
 - 命名规范: 发现 2 个违规
 
-### 215. backend\assessments\serializers.py
+### 216. backend\assessments\serializers.py
 
 **糟糕指数: 4.73**
 
@@ -9944,7 +9984,7 @@
 - 注释比例: 0.0% (0/110)
 - 命名规范: 发现 2 个违规
 
-### 216. frontend\src\views\teacher\useTeacherQuestionList.js
+### 217. frontend\src\views\teacher\useTeacherQuestionList.js
 
 **糟糕指数: 4.70**
 
@@ -9989,7 +10029,7 @@
 - 注释比例: 0.0% (0/300)
 - 命名规范: 无命名违规
 
-### 217. backend\platform_ai\rag\corpus_utils.py
+### 218. backend\platform_ai\rag\corpus_utils.py
 
 **糟糕指数: 4.69**
 
@@ -10025,7 +10065,7 @@
 - 注释比例: 0.0% (0/44)
 - 命名规范: 发现 3 个违规
 
-### 218. backend\users\test_auth_api.py
+### 219. backend\users\test_auth_api.py
 
 **糟糕指数: 4.60**
 
@@ -10067,7 +10107,7 @@
 - 注释比例: 0.0% (0/147)
 - 命名规范: 发现 1 个违规
 
-### 219. backend\ai_services\test_student_rag_runtime.py
+### 220. backend\ai_services\test_student_rag_runtime.py
 
 **糟糕指数: 4.60**
 
@@ -10105,7 +10145,7 @@
 - 注释比例: 0.0% (0/159)
 - 命名规范: 发现 1 个违规
 
-### 220. backend\common\logging_utils.py
+### 221. backend\common\logging_utils.py
 
 **糟糕指数: 4.46**
 
@@ -10140,7 +10180,7 @@
 - 注释比例: 0.8% (1/122)
 - 命名规范: 发现 2 个违规
 
-### 221. backend\platform_ai\rag\resource_utils.py
+### 222. backend\platform_ai\rag\resource_utils.py
 
 **糟糕指数: 4.42**
 
@@ -10176,7 +10216,7 @@
 - 注释比例: 0.0% (0/141)
 - 命名规范: 无命名违规
 
-### 222. backend\platform_ai\rag\student_dependencies.py
+### 223. backend\platform_ai\rag\student_dependencies.py
 
 **糟糕指数: 4.38**
 
@@ -10211,7 +10251,7 @@
 - 注释比例: 0.0% (0/16)
 - 命名规范: 发现 3 个违规
 
-### 223. backend\common\defense_demo_public.py
+### 224. backend\common\defense_demo_public.py
 
 **糟糕指数: 4.27**
 
@@ -10248,7 +10288,7 @@
 - 注释比例: 0.0% (0/91)
 - 命名规范: 无命名违规
 
-### 224. backend\users\models.py
+### 225. backend\users\models.py
 
 **糟糕指数: 4.22**
 
@@ -10296,7 +10336,7 @@
 - 注释比例: 0.5% (2/390)
 - 命名规范: 发现 5 个违规
 
-### 225. backend\platform_ai\rag\runtime_proxies.py
+### 226. backend\platform_ai\rag\runtime_proxies.py
 
 **糟糕指数: 4.17**
 
@@ -10329,7 +10369,7 @@
 - 注释比例: 0.0% (0/11)
 - 命名规范: 发现 2 个违规
 
-### 226. frontend\src\views\teacher\questionListModels.js
+### 227. frontend\src\views\teacher\questionListModels.js
 
 **糟糕指数: 4.14**
 
@@ -10382,7 +10422,7 @@
 - 注释比例: 0.0% (0/162)
 - 命名规范: 无命名违规
 
-### 227. backend\models\MEFKT\fusion.py
+### 228. backend\models\MEFKT\fusion.py
 
 **糟糕指数: 4.01**
 
@@ -10414,7 +10454,7 @@
 - 注释比例: 0.0% (0/25)
 - 命名规范: 发现 1 个违规
 
-### 228. backend\platform_ai\rag\student_answer_mixin.py
+### 229. backend\platform_ai\rag\student_answer_mixin.py
 
 **糟糕指数: 3.98**
 
@@ -10444,7 +10484,7 @@
 - 注释比例: 0.0% (0/98)
 - 命名规范: 无命名违规
 
-### 229. backend\common\tests.py
+### 230. backend\common\tests.py
 
 **糟糕指数: 3.96**
 
@@ -10481,7 +10521,7 @@
 - 注释比例: 0.0% (0/141)
 - 命名规范: 发现 1 个违规
 
-### 230. frontend\src\api\student\ai.ts
+### 231. frontend\src\api\student\ai.ts
 
 **糟糕指数: 3.85**
 
@@ -10525,7 +10565,7 @@
 - 注释比例: 174.0% (127/73)
 - 命名规范: 无命名违规
 
-### 231. backend\application\teacher\contracts.py
+### 232. backend\application\teacher\contracts.py
 
 **糟糕指数: 3.78**
 
@@ -10558,7 +10598,7 @@
 - 注释比例: 0.0% (0/63)
 - 命名规范: 无命名违规
 
-### 232. backend\users\serializers.py
+### 233. backend\users\serializers.py
 
 **糟糕指数: 3.77**
 
@@ -10591,7 +10631,7 @@
 - 注释比例: 0.0% (0/98)
 - 命名规范: 无命名违规
 
-### 233. backend\logs\logging_setup.py
+### 234. backend\logs\logging_setup.py
 
 **糟糕指数: 3.75**
 
@@ -10625,7 +10665,7 @@
 - 注释比例: 0.0% (0/106)
 - 命名规范: 发现 2 个违规
 
-### 234. backend\assessments\question_models.py
+### 235. backend\assessments\question_models.py
 
 **糟糕指数: 3.75**
 
@@ -10658,7 +10698,7 @@
 - 注释比例: 0.0% (0/56)
 - 命名规范: 发现 2 个违规
 
-### 235. backend\assessments\history_models.py
+### 236. backend\assessments\history_models.py
 
 **糟糕指数: 3.75**
 
@@ -10693,7 +10733,7 @@
 - 注释比例: 0.0% (0/60)
 - 命名规范: 发现 3 个违规
 
-### 236. backend\ai_services\models.py
+### 237. backend\ai_services\models.py
 
 **糟糕指数: 3.75**
 
@@ -10724,7 +10764,7 @@
 - 注释比例: 0.0% (0/84)
 - 命名规范: 发现 1 个违规
 
-### 237. backend\courses\models.py
+### 238. backend\courses\models.py
 
 **糟糕指数: 3.73**
 
@@ -10767,7 +10807,7 @@
 - 注释比例: 0.9% (2/229)
 - 命名规范: 发现 5 个违规
 
-### 238. frontend\src\views\student\useProfileView.js
+### 239. frontend\src\views\student\useProfileView.js
 
 **糟糕指数: 3.60**
 
@@ -10804,7 +10844,7 @@
 - 注释比例: 0.0% (0/298)
 - 命名规范: 无命名违规
 
-### 239. backend\application\teacher\workspace.py
+### 240. backend\application\teacher\workspace.py
 
 **糟糕指数: 3.51**
 
@@ -10833,7 +10873,7 @@
 - 注释比例: 0.0% (0/51)
 - 命名规范: 无命名违规
 
-### 240. backend\assessments\assessment_models.py
+### 241. backend\assessments\assessment_models.py
 
 **糟糕指数: 3.50**
 
@@ -10871,7 +10911,7 @@
 - 注释比例: 0.0% (0/82)
 - 命名规范: 发现 4 个违规
 
-### 241. backend\tools.py
+### 242. backend\tools.py
 
 **糟糕指数: 3.48**
 
@@ -10902,7 +10942,7 @@
 - 注释比例: 4.3% (1/23)
 - 命名规范: 发现 1 个违规
 
-### 242. backend\users\student_views.py
+### 243. backend\users\student_views.py
 
 **糟糕指数: 3.46**
 
@@ -10938,7 +10978,7 @@
 - 注释比例: 0.0% (0/125)
 - 命名规范: 无命名违规
 
-### 243. backend\ai_services\test_web_search.py
+### 244. backend\ai_services\test_web_search.py
 
 **糟糕指数: 3.36**
 
@@ -10969,7 +11009,7 @@
 - 注释比例: 1.0% (1/103)
 - 命名规范: 无命名违规
 
-### 244. backend\knowledge\models.py
+### 245. backend\knowledge\models.py
 
 **糟糕指数: 3.34**
 
@@ -11011,7 +11051,7 @@
 - 注释比例: 0.3% (1/291)
 - 命名规范: 发现 5 个违规
 
-### 245. backend\exams\models.py
+### 246. backend\exams\models.py
 
 **糟糕指数: 3.33**
 
@@ -11048,7 +11088,7 @@
 - 注释比例: 0.0% (0/202)
 - 命名规范: 发现 3 个违规
 
-### 246. backend\platform_ai\kt\torch_device.py
+### 247. backend\platform_ai\kt\torch_device.py
 
 **糟糕指数: 3.33**
 
@@ -11080,7 +11120,7 @@
 - 注释比例: 0.0% (0/50)
 - 命名规范: 发现 1 个违规
 
-### 247. backend\exams\score_policy.py
+### 248. backend\exams\score_policy.py
 
 **糟糕指数: 3.32**
 
@@ -11115,7 +11155,7 @@
 - 注释比例: 0.0% (0/48)
 - 命名规范: 发现 1 个违规
 
-### 248. frontend\src\views\student\profileModels.js
+### 249. frontend\src\views\student\profileModels.js
 
 **糟糕指数: 3.28**
 
@@ -11159,7 +11199,7 @@
 - 注释比例: 0.0% (0/120)
 - 命名规范: 无命名违规
 
-### 249. backend\learning\models.py
+### 250. backend\learning\models.py
 
 **糟糕指数: 3.28**
 
@@ -11196,7 +11236,7 @@
 - 注释比例: 0.5% (1/221)
 - 命名规范: 发现 3 个违规
 
-### 250. backend\learning\node_detail_views.py
+### 251. backend\learning\node_detail_views.py
 
 **糟糕指数: 3.23**
 
@@ -11229,7 +11269,7 @@
 - 注释比例: 1.0% (1/103)
 - 命名规范: 无命名违规
 
-### 251. backend\exams\student_initial_assessment_views.py
+### 252. backend\exams\student_initial_assessment_views.py
 
 **糟糕指数: 3.20**
 
@@ -11259,7 +11299,7 @@
 - 注释比例: 0.0% (0/67)
 - 命名规范: 无命名违规
 
-### 252. backend\platform_ai\search\providers.py
+### 253. backend\platform_ai\search\providers.py
 
 **糟糕指数: 3.17**
 
@@ -11288,7 +11328,7 @@
 - 注释比例: 0.0% (0/24)
 - 命名规范: 无命名违规
 
-### 253. backend\exams\serializers.py
+### 254. backend\exams\serializers.py
 
 **糟糕指数: 3.14**
 
@@ -11319,7 +11359,7 @@
 - 注释比例: 0.0% (0/87)
 - 命名规范: 无命名违规
 
-### 254. backend\knowledge\tests.py
+### 255. backend\knowledge\tests.py
 
 **糟糕指数: 3.13**
 
@@ -11352,7 +11392,7 @@
 - 注释比例: 0.0% (0/65)
 - 命名规范: 发现 1 个违规
 
-### 255. backend\models\DKT\KnowledgeTracing\data\DKTDataSet.py
+### 256. backend\models\DKT\KnowledgeTracing\data\DKTDataSet.py
 
 **糟糕指数: 3.07**
 
@@ -11388,7 +11428,7 @@
 - 注释比例: 46.7% (14/30)
 - 命名规范: 发现 3 个违规
 
-### 256. frontend\src\api\errors.ts
+### 257. frontend\src\api\errors.ts
 
 **糟糕指数: 3.04**
 
@@ -11424,7 +11464,7 @@
 - 注释比例: 0.0% (0/84)
 - 命名规范: 无命名违规
 
-### 257. backend\logs\models.py
+### 258. backend\logs\models.py
 
 **糟糕指数: 2.92**
 
@@ -11455,7 +11495,7 @@
 - 注释比例: 2.4% (3/126)
 - 命名规范: 发现 1 个违规
 
-### 258. frontend\src\views\student\useFeedbackReport.js
+### 259. frontend\src\views\student\useFeedbackReport.js
 
 **糟糕指数: 2.84**
 
@@ -11495,7 +11535,7 @@
 - 注释比例: 0.0% (0/195)
 - 命名规范: 无命名违规
 
-### 259. backend\ai_services\auth.py
+### 260. backend\ai_services\auth.py
 
 **糟糕指数: 2.81**
 
@@ -11529,7 +11569,7 @@
 - 注释比例: 8.3% (3/36)
 - 命名规范: 发现 2 个违规
 
-### 260. backend\models\DKT\KnowledgeTracing\model\RNNModel.py
+### 261. backend\models\DKT\KnowledgeTracing\model\RNNModel.py
 
 **糟糕指数: 2.81**
 
@@ -11561,7 +11601,7 @@
 - 注释比例: 34.5% (10/29)
 - 命名规范: 发现 1 个违规
 
-### 261. frontend\src\views\teacher\useTeacherKnowledgeManage.js
+### 262. frontend\src\views\teacher\useTeacherKnowledgeManage.js
 
 **糟糕指数: 2.64**
 
@@ -11600,7 +11640,7 @@
 - 注释比例: 0.4% (1/256)
 - 命名规范: 无命名违规
 
-### 262. backend\common\pagination.py
+### 263. backend\common\pagination.py
 
 **糟糕指数: 2.52**
 
@@ -11631,53 +11671,7 @@
 - 注释比例: 1.9% (1/53)
 - 命名规范: 无命名违规
 
-### 263. backend\wisdom_edu_api\wsgi.py
-
-**糟糕指数: 2.50**
-
-> 行数: 17 总计, 10 代码, 0 注释 | 函数: 0 | 类: 0
-
-**问题**: 📝 注释问题: 1
-
-✓ 代码质量良好，没有明显问题
-
-**详情**:
-- 循环复杂度: 未发现函数
-- 认知复杂度: 未发现函数
-- 嵌套深度: 未发现函数
-- 函数长度: 未发现函数
-- 文件长度: 10 代码量 (17 总计)
-- 参数数量: 未发现函数
-- 代码重复: 未发现函数
-- 结构分析: 未发现函数
-- 错误处理: 未发现函数
-- 注释比例: 0.0% (0/10)
-- 命名规范: 无命名违规
-
-### 264. backend\wisdom_edu_api\asgi.py
-
-**糟糕指数: 2.50**
-
-> 行数: 24 总计, 16 代码, 0 注释 | 函数: 0 | 类: 0
-
-**问题**: 📝 注释问题: 1
-
-✓ 代码质量良好，没有明显问题
-
-**详情**:
-- 循环复杂度: 未发现函数
-- 认知复杂度: 未发现函数
-- 嵌套深度: 未发现函数
-- 函数长度: 未发现函数
-- 文件长度: 16 代码量 (24 总计)
-- 参数数量: 未发现函数
-- 代码重复: 未发现函数
-- 结构分析: 未发现函数
-- 错误处理: 未发现函数
-- 注释比例: 0.0% (0/16)
-- 命名规范: 无命名违规
-
-### 265. backend\tools\rag_index.py
+### 264. backend\tools\rag_index.py
 
 **糟糕指数: 2.50**
 
@@ -11707,7 +11701,53 @@
 - 注释比例: 0.0% (0/20)
 - 命名规范: 无命名违规
 
-### 266. backend\users\tests.py
+### 265. backend\wisdom_edu_api\wsgi.py
+
+**糟糕指数: 2.50**
+
+> 行数: 17 总计, 10 代码, 0 注释 | 函数: 0 | 类: 0
+
+**问题**: 📝 注释问题: 1
+
+✓ 代码质量良好，没有明显问题
+
+**详情**:
+- 循环复杂度: 未发现函数
+- 认知复杂度: 未发现函数
+- 嵌套深度: 未发现函数
+- 函数长度: 未发现函数
+- 文件长度: 10 代码量 (17 总计)
+- 参数数量: 未发现函数
+- 代码重复: 未发现函数
+- 结构分析: 未发现函数
+- 错误处理: 未发现函数
+- 注释比例: 0.0% (0/10)
+- 命名规范: 无命名违规
+
+### 266. backend\wisdom_edu_api\asgi.py
+
+**糟糕指数: 2.50**
+
+> 行数: 24 总计, 16 代码, 0 注释 | 函数: 0 | 类: 0
+
+**问题**: 📝 注释问题: 1
+
+✓ 代码质量良好，没有明显问题
+
+**详情**:
+- 循环复杂度: 未发现函数
+- 认知复杂度: 未发现函数
+- 嵌套深度: 未发现函数
+- 函数长度: 未发现函数
+- 文件长度: 16 代码量 (24 总计)
+- 参数数量: 未发现函数
+- 代码重复: 未发现函数
+- 结构分析: 未发现函数
+- 错误处理: 未发现函数
+- 注释比例: 0.0% (0/16)
+- 命名规范: 无命名违规
+
+### 267. backend\users\tests.py
 
 **糟糕指数: 2.50**
 
@@ -11730,7 +11770,7 @@
 - 注释比例: 0.0% (0/1)
 - 命名规范: 无命名违规
 
-### 267. backend\users\apps.py
+### 268. backend\users\apps.py
 
 **糟糕指数: 2.50**
 
@@ -11753,7 +11793,7 @@
 - 注释比例: 0.0% (0/13)
 - 命名规范: 无命名违规
 
-### 268. backend\users\admin_views.py
+### 269. backend\users\admin_views.py
 
 **糟糕指数: 2.50**
 
@@ -11776,7 +11816,7 @@
 - 注释比例: 300.0% (3/1)
 - 命名规范: 无命名违规
 
-### 269. backend\users\admin.py
+### 270. backend\users\admin.py
 
 **糟糕指数: 2.50**
 
@@ -11799,134 +11839,7 @@
 - 注释比例: 0.0% (0/27)
 - 命名规范: 无命名违规
 
-### 270. backend\learning\stage_test_submit_views.py
-
-**糟糕指数: 2.50**
-
-> 行数: 39 总计, 31 代码, 0 注释 | 函数: 1 | 类: 0
-
-**问题**: 📝 注释问题: 1
-
-#### 函数详情
-
-| 函数 | 行范围 | 行数 | 复杂度 | 嵌套 | 参数 | 注释 |
-|:-----|------:|------:|------:|------:|------:|:------:|
-| `submit_stage_test` | L14-38 | 25 | 4 | 1 | 2 | ✓ |
-
-✓ 代码质量良好，没有明显问题
-
-**详情**:
-- 循环复杂度: 平均: 4.0, 最大: 4
-- 认知复杂度: 平均: 6.0, 最大: 6
-- 嵌套深度: 平均: 1.0, 最大: 1
-- 函数长度: 平均: 25.0 行, 最大: 25 行
-- 文件长度: 31 代码量 (39 总计)
-- 参数数量: 平均: 2.0, 最大: 2
-- 代码重复: 未发现函数
-- 结构分析: 0 个结构问题
-- 错误处理: 0/2 个错误被忽略 (0.0%)
-- 注释比例: 0.0% (0/31)
-- 命名规范: 无命名违规
-
-### 271. backend\learning\stage_test_models.py
-
-**糟糕指数: 2.50**
-
-> 行数: 29 总计, 20 代码, 0 注释 | 函数: 0 | 类: 1
-
-**问题**: 📝 注释问题: 1
-
-✓ 代码质量良好，没有明显问题
-
-**详情**:
-- 循环复杂度: 未发现函数
-- 认知复杂度: 未发现函数
-- 嵌套深度: 未发现函数
-- 函数长度: 未发现函数
-- 文件长度: 20 代码量 (29 总计)
-- 参数数量: 未发现函数
-- 代码重复: 未发现函数
-- 结构分析: 未发现函数
-- 错误处理: 未发现函数
-- 注释比例: 0.0% (0/20)
-- 命名规范: 无命名违规
-
-### 272. backend\learning\stage_test_get_views.py
-
-**糟糕指数: 2.50**
-
-> 行数: 33 总计, 26 代码, 0 注释 | 函数: 1 | 类: 0
-
-**问题**: 📝 注释问题: 1
-
-#### 函数详情
-
-| 函数 | 行范围 | 行数 | 复杂度 | 嵌套 | 参数 | 注释 |
-|:-----|------:|------:|------:|------:|------:|:------:|
-| `get_stage_test` | L14-32 | 19 | 4 | 1 | 2 | ✓ |
-
-✓ 代码质量良好，没有明显问题
-
-**详情**:
-- 循环复杂度: 平均: 4.0, 最大: 4
-- 认知复杂度: 平均: 6.0, 最大: 6
-- 嵌套深度: 平均: 1.0, 最大: 1
-- 函数长度: 平均: 19.0 行, 最大: 19 行
-- 文件长度: 26 代码量 (33 总计)
-- 参数数量: 平均: 2.0, 最大: 2
-- 代码重复: 未发现函数
-- 结构分析: 0 个结构问题
-- 错误处理: 0/1 个错误被忽略 (0.0%)
-- 注释比例: 0.0% (0/26)
-- 命名规范: 无命名违规
-
-### 273. backend\learning\apps.py
-
-**糟糕指数: 2.50**
-
-> 行数: 16 总计, 13 代码, 0 注释 | 函数: 0 | 类: 1
-
-**问题**: 📝 注释问题: 1
-
-✓ 代码质量良好，没有明显问题
-
-**详情**:
-- 循环复杂度: 未发现函数
-- 认知复杂度: 未发现函数
-- 嵌套深度: 未发现函数
-- 函数长度: 未发现函数
-- 文件长度: 13 代码量 (16 总计)
-- 参数数量: 未发现函数
-- 代码重复: 未发现函数
-- 结构分析: 未发现函数
-- 错误处理: 未发现函数
-- 注释比例: 0.0% (0/13)
-- 命名规范: 无命名违规
-
-### 274. backend\learning\admin.py
-
-**糟糕指数: 2.50**
-
-> 行数: 29 总计, 22 代码, 0 注释 | 函数: 0 | 类: 3
-
-**问题**: 📝 注释问题: 1
-
-✓ 代码质量良好，没有明显问题
-
-**详情**:
-- 循环复杂度: 未发现函数
-- 认知复杂度: 未发现函数
-- 嵌套深度: 未发现函数
-- 函数长度: 未发现函数
-- 文件长度: 22 代码量 (29 总计)
-- 参数数量: 未发现函数
-- 代码重复: 未发现函数
-- 结构分析: 未发现函数
-- 错误处理: 未发现函数
-- 注释比例: 0.0% (0/22)
-- 命名规范: 无命名违规
-
-### 275. backend\logs\serializers.py
+### 271. backend\logs\serializers.py
 
 **糟糕指数: 2.50**
 
@@ -11949,7 +11862,7 @@
 - 注释比例: 0.0% (0/30)
 - 命名规范: 无命名违规
 
-### 276. backend\logs\apps.py
+### 272. backend\logs\apps.py
 
 **糟糕指数: 2.50**
 
@@ -11972,7 +11885,7 @@
 - 注释比例: 0.0% (0/13)
 - 命名规范: 无命名违规
 
-### 277. backend\logs\admin.py
+### 273. backend\logs\admin.py
 
 **糟糕指数: 2.50**
 
@@ -11995,197 +11908,7 @@
 - 注释比例: 0.0% (0/19)
 - 命名规范: 无命名违规
 
-### 278. backend\knowledge\views.py
-
-**糟糕指数: 2.50**
-
-> 行数: 5 总计, 1 代码, 2 注释 | 函数: 0 | 类: 0
-
-**问题**: 📝 注释问题: 1
-
-✓ 代码质量良好，没有明显问题
-
-**详情**:
-- 循环复杂度: 未发现函数
-- 认知复杂度: 未发现函数
-- 嵌套深度: 未发现函数
-- 函数长度: 未发现函数
-- 文件长度: 1 代码量 (5 总计)
-- 参数数量: 未发现函数
-- 代码重复: 未发现函数
-- 结构分析: 未发现函数
-- 错误处理: 未发现函数
-- 注释比例: 200.0% (2/1)
-- 命名规范: 无命名违规
-
-### 279. backend\knowledge\teacher_views.py
-
-**糟糕指数: 2.50**
-
-> 行数: 124 总计, 116 代码, 0 注释 | 函数: 0 | 类: 0
-
-**问题**: 📝 注释问题: 1
-
-✓ 代码质量良好，没有明显问题
-
-**详情**:
-- 循环复杂度: 未发现函数
-- 认知复杂度: 未发现函数
-- 嵌套深度: 未发现函数
-- 函数长度: 未发现函数
-- 文件长度: 116 代码量 (124 总计)
-- 参数数量: 未发现函数
-- 代码重复: 未发现函数
-- 结构分析: 未发现函数
-- 错误处理: 未发现函数
-- 注释比例: 0.0% (0/116)
-- 命名规范: 无命名违规
-
-### 280. backend\knowledge\apps.py
-
-**糟糕指数: 2.50**
-
-> 行数: 16 总计, 13 代码, 0 注释 | 函数: 0 | 类: 1
-
-**问题**: 📝 注释问题: 1
-
-✓ 代码质量良好，没有明显问题
-
-**详情**:
-- 循环复杂度: 未发现函数
-- 认知复杂度: 未发现函数
-- 嵌套深度: 未发现函数
-- 函数长度: 未发现函数
-- 文件长度: 13 代码量 (16 总计)
-- 参数数量: 未发现函数
-- 代码重复: 未发现函数
-- 结构分析: 未发现函数
-- 错误处理: 未发现函数
-- 注释比例: 0.0% (0/13)
-- 命名规范: 无命名违规
-
-### 281. backend\knowledge\admin.py
-
-**糟糕指数: 2.50**
-
-> 行数: 45 总计, 34 代码, 0 注释 | 函数: 0 | 类: 5
-
-**问题**: 📝 注释问题: 1
-
-✓ 代码质量良好，没有明显问题
-
-**详情**:
-- 循环复杂度: 未发现函数
-- 认知复杂度: 未发现函数
-- 嵌套深度: 未发现函数
-- 函数长度: 未发现函数
-- 文件长度: 34 代码量 (45 总计)
-- 参数数量: 未发现函数
-- 代码重复: 未发现函数
-- 结构分析: 未发现函数
-- 错误处理: 未发现函数
-- 注释比例: 0.0% (0/34)
-- 命名规范: 无命名违规
-
-### 282. backend\courses\teacher_views.py
-
-**糟糕指数: 2.50**
-
-> 行数: 86 总计, 81 代码, 0 注释 | 函数: 0 | 类: 0
-
-**问题**: 📝 注释问题: 1
-
-✓ 代码质量良好，没有明显问题
-
-**详情**:
-- 循环复杂度: 未发现函数
-- 认知复杂度: 未发现函数
-- 嵌套深度: 未发现函数
-- 函数长度: 未发现函数
-- 文件长度: 81 代码量 (86 总计)
-- 参数数量: 未发现函数
-- 代码重复: 未发现函数
-- 结构分析: 未发现函数
-- 错误处理: 未发现函数
-- 注释比例: 0.0% (0/81)
-- 命名规范: 无命名违规
-
-### 283. backend\courses\serializers.py
-
-**糟糕指数: 2.50**
-
-> 行数: 80 总计, 60 代码, 0 注释 | 函数: 0 | 类: 5
-
-**问题**: 📝 注释问题: 1
-
-✓ 代码质量良好，没有明显问题
-
-**详情**:
-- 循环复杂度: 未发现函数
-- 认知复杂度: 未发现函数
-- 嵌套深度: 未发现函数
-- 函数长度: 未发现函数
-- 文件长度: 60 代码量 (80 总计)
-- 参数数量: 未发现函数
-- 代码重复: 未发现函数
-- 结构分析: 未发现函数
-- 错误处理: 未发现函数
-- 注释比例: 0.0% (0/60)
-- 命名规范: 无命名违规
-
-### 284. backend\courses\course_cleanup.py
-
-**糟糕指数: 2.50**
-
-> 行数: 27 总计, 20 代码, 0 注释 | 函数: 1 | 类: 0
-
-**问题**: 📝 注释问题: 1
-
-#### 函数详情
-
-| 函数 | 行范围 | 行数 | 复杂度 | 嵌套 | 参数 | 注释 |
-|:-----|------:|------:|------:|------:|------:|:------:|
-| `cleanup_course_runtime_artifacts` | L15-27 | 13 | 1 | 0 | 1 | ✓ |
-
-✓ 代码质量良好，没有明显问题
-
-**详情**:
-- 循环复杂度: 平均: 1.0, 最大: 1
-- 认知复杂度: 平均: 1.0, 最大: 1
-- 嵌套深度: 平均: 0.0, 最大: 0
-- 函数长度: 平均: 13.0 行, 最大: 13 行
-- 文件长度: 20 代码量 (27 总计)
-- 参数数量: 平均: 1.0, 最大: 1
-- 代码重复: 未发现函数
-- 结构分析: 0 个结构问题
-- 错误处理: 未检测到易出错调用
-- 注释比例: 0.0% (0/20)
-- 命名规范: 无命名违规
-
-### 285. backend\courses\admin.py
-
-**糟糕指数: 2.50**
-
-> 行数: 38 总计, 29 代码, 0 注释 | 函数: 0 | 类: 4
-
-**问题**: 📝 注释问题: 1
-
-✓ 代码质量良好，没有明显问题
-
-**详情**:
-- 循环复杂度: 未发现函数
-- 认知复杂度: 未发现函数
-- 嵌套深度: 未发现函数
-- 函数长度: 未发现函数
-- 文件长度: 29 代码量 (38 总计)
-- 参数数量: 未发现函数
-- 代码重复: 未发现函数
-- 结构分析: 未发现函数
-- 错误处理: 未发现函数
-- 注释比例: 0.0% (0/29)
-- 命名规范: 无命名违规
-
-### 286. backend\exams\teacher_views.py
+### 274. backend\exams\teacher_views.py
 
 **糟糕指数: 2.50**
 
@@ -12208,7 +11931,7 @@
 - 注释比例: 0.0% (0/67)
 - 命名规范: 无命名违规
 
-### 287. backend\exams\student_class_views.py
+### 275. backend\exams\student_class_views.py
 
 **糟糕指数: 2.50**
 
@@ -12240,7 +11963,7 @@
 - 注释比例: 0.0% (0/86)
 - 命名规范: 无命名违规
 
-### 288. backend\exams\apps.py
+### 276. backend\exams\apps.py
 
 **糟糕指数: 2.50**
 
@@ -12263,7 +11986,7 @@
 - 注释比例: 0.0% (0/13)
 - 命名规范: 无命名违规
 
-### 289. backend\exams\admin.py
+### 277. backend\exams\admin.py
 
 **糟糕指数: 2.50**
 
@@ -12286,11 +12009,40 @@
 - 注释比例: 0.0% (0/27)
 - 命名规范: 无命名违规
 
-### 290. backend\application\__init__.py
+### 278. backend\learning\stage_test_submit_views.py
 
 **糟糕指数: 2.50**
 
-> 行数: 6 总计, 1 代码, 2 注释 | 函数: 0 | 类: 0
+> 行数: 39 总计, 31 代码, 0 注释 | 函数: 1 | 类: 0
+
+**问题**: 📝 注释问题: 1
+
+#### 函数详情
+
+| 函数 | 行范围 | 行数 | 复杂度 | 嵌套 | 参数 | 注释 |
+|:-----|------:|------:|------:|------:|------:|:------:|
+| `submit_stage_test` | L14-38 | 25 | 4 | 1 | 2 | ✓ |
+
+✓ 代码质量良好，没有明显问题
+
+**详情**:
+- 循环复杂度: 平均: 4.0, 最大: 4
+- 认知复杂度: 平均: 6.0, 最大: 6
+- 嵌套深度: 平均: 1.0, 最大: 1
+- 函数长度: 平均: 25.0 行, 最大: 25 行
+- 文件长度: 31 代码量 (39 总计)
+- 参数数量: 平均: 2.0, 最大: 2
+- 代码重复: 未发现函数
+- 结构分析: 0 个结构问题
+- 错误处理: 0/2 个错误被忽略 (0.0%)
+- 注释比例: 0.0% (0/31)
+- 命名规范: 无命名违规
+
+### 279. backend\learning\stage_test_models.py
+
+**糟糕指数: 2.50**
+
+> 行数: 29 总计, 20 代码, 0 注释 | 函数: 0 | 类: 1
 
 **问题**: 📝 注释问题: 1
 
@@ -12301,12 +12053,277 @@
 - 认知复杂度: 未发现函数
 - 嵌套深度: 未发现函数
 - 函数长度: 未发现函数
-- 文件长度: 1 代码量 (6 总计)
+- 文件长度: 20 代码量 (29 总计)
+- 参数数量: 未发现函数
+- 代码重复: 未发现函数
+- 结构分析: 未发现函数
+- 错误处理: 未发现函数
+- 注释比例: 0.0% (0/20)
+- 命名规范: 无命名违规
+
+### 280. backend\learning\stage_test_get_views.py
+
+**糟糕指数: 2.50**
+
+> 行数: 33 总计, 26 代码, 0 注释 | 函数: 1 | 类: 0
+
+**问题**: 📝 注释问题: 1
+
+#### 函数详情
+
+| 函数 | 行范围 | 行数 | 复杂度 | 嵌套 | 参数 | 注释 |
+|:-----|------:|------:|------:|------:|------:|:------:|
+| `get_stage_test` | L14-32 | 19 | 4 | 1 | 2 | ✓ |
+
+✓ 代码质量良好，没有明显问题
+
+**详情**:
+- 循环复杂度: 平均: 4.0, 最大: 4
+- 认知复杂度: 平均: 6.0, 最大: 6
+- 嵌套深度: 平均: 1.0, 最大: 1
+- 函数长度: 平均: 19.0 行, 最大: 19 行
+- 文件长度: 26 代码量 (33 总计)
+- 参数数量: 平均: 2.0, 最大: 2
+- 代码重复: 未发现函数
+- 结构分析: 0 个结构问题
+- 错误处理: 0/1 个错误被忽略 (0.0%)
+- 注释比例: 0.0% (0/26)
+- 命名规范: 无命名违规
+
+### 281. backend\learning\apps.py
+
+**糟糕指数: 2.50**
+
+> 行数: 16 总计, 13 代码, 0 注释 | 函数: 0 | 类: 1
+
+**问题**: 📝 注释问题: 1
+
+✓ 代码质量良好，没有明显问题
+
+**详情**:
+- 循环复杂度: 未发现函数
+- 认知复杂度: 未发现函数
+- 嵌套深度: 未发现函数
+- 函数长度: 未发现函数
+- 文件长度: 13 代码量 (16 总计)
+- 参数数量: 未发现函数
+- 代码重复: 未发现函数
+- 结构分析: 未发现函数
+- 错误处理: 未发现函数
+- 注释比例: 0.0% (0/13)
+- 命名规范: 无命名违规
+
+### 282. backend\learning\admin.py
+
+**糟糕指数: 2.50**
+
+> 行数: 29 总计, 22 代码, 0 注释 | 函数: 0 | 类: 3
+
+**问题**: 📝 注释问题: 1
+
+✓ 代码质量良好，没有明显问题
+
+**详情**:
+- 循环复杂度: 未发现函数
+- 认知复杂度: 未发现函数
+- 嵌套深度: 未发现函数
+- 函数长度: 未发现函数
+- 文件长度: 22 代码量 (29 总计)
+- 参数数量: 未发现函数
+- 代码重复: 未发现函数
+- 结构分析: 未发现函数
+- 错误处理: 未发现函数
+- 注释比例: 0.0% (0/22)
+- 命名规范: 无命名违规
+
+### 283. backend\knowledge\views.py
+
+**糟糕指数: 2.50**
+
+> 行数: 5 总计, 1 代码, 2 注释 | 函数: 0 | 类: 0
+
+**问题**: 📝 注释问题: 1
+
+✓ 代码质量良好，没有明显问题
+
+**详情**:
+- 循环复杂度: 未发现函数
+- 认知复杂度: 未发现函数
+- 嵌套深度: 未发现函数
+- 函数长度: 未发现函数
+- 文件长度: 1 代码量 (5 总计)
 - 参数数量: 未发现函数
 - 代码重复: 未发现函数
 - 结构分析: 未发现函数
 - 错误处理: 未发现函数
 - 注释比例: 200.0% (2/1)
+- 命名规范: 无命名违规
+
+### 284. backend\knowledge\teacher_views.py
+
+**糟糕指数: 2.50**
+
+> 行数: 124 总计, 116 代码, 0 注释 | 函数: 0 | 类: 0
+
+**问题**: 📝 注释问题: 1
+
+✓ 代码质量良好，没有明显问题
+
+**详情**:
+- 循环复杂度: 未发现函数
+- 认知复杂度: 未发现函数
+- 嵌套深度: 未发现函数
+- 函数长度: 未发现函数
+- 文件长度: 116 代码量 (124 总计)
+- 参数数量: 未发现函数
+- 代码重复: 未发现函数
+- 结构分析: 未发现函数
+- 错误处理: 未发现函数
+- 注释比例: 0.0% (0/116)
+- 命名规范: 无命名违规
+
+### 285. backend\knowledge\apps.py
+
+**糟糕指数: 2.50**
+
+> 行数: 16 总计, 13 代码, 0 注释 | 函数: 0 | 类: 1
+
+**问题**: 📝 注释问题: 1
+
+✓ 代码质量良好，没有明显问题
+
+**详情**:
+- 循环复杂度: 未发现函数
+- 认知复杂度: 未发现函数
+- 嵌套深度: 未发现函数
+- 函数长度: 未发现函数
+- 文件长度: 13 代码量 (16 总计)
+- 参数数量: 未发现函数
+- 代码重复: 未发现函数
+- 结构分析: 未发现函数
+- 错误处理: 未发现函数
+- 注释比例: 0.0% (0/13)
+- 命名规范: 无命名违规
+
+### 286. backend\knowledge\admin.py
+
+**糟糕指数: 2.50**
+
+> 行数: 45 总计, 34 代码, 0 注释 | 函数: 0 | 类: 5
+
+**问题**: 📝 注释问题: 1
+
+✓ 代码质量良好，没有明显问题
+
+**详情**:
+- 循环复杂度: 未发现函数
+- 认知复杂度: 未发现函数
+- 嵌套深度: 未发现函数
+- 函数长度: 未发现函数
+- 文件长度: 34 代码量 (45 总计)
+- 参数数量: 未发现函数
+- 代码重复: 未发现函数
+- 结构分析: 未发现函数
+- 错误处理: 未发现函数
+- 注释比例: 0.0% (0/34)
+- 命名规范: 无命名违规
+
+### 287. backend\courses\teacher_views.py
+
+**糟糕指数: 2.50**
+
+> 行数: 86 总计, 81 代码, 0 注释 | 函数: 0 | 类: 0
+
+**问题**: 📝 注释问题: 1
+
+✓ 代码质量良好，没有明显问题
+
+**详情**:
+- 循环复杂度: 未发现函数
+- 认知复杂度: 未发现函数
+- 嵌套深度: 未发现函数
+- 函数长度: 未发现函数
+- 文件长度: 81 代码量 (86 总计)
+- 参数数量: 未发现函数
+- 代码重复: 未发现函数
+- 结构分析: 未发现函数
+- 错误处理: 未发现函数
+- 注释比例: 0.0% (0/81)
+- 命名规范: 无命名违规
+
+### 288. backend\courses\serializers.py
+
+**糟糕指数: 2.50**
+
+> 行数: 80 总计, 60 代码, 0 注释 | 函数: 0 | 类: 5
+
+**问题**: 📝 注释问题: 1
+
+✓ 代码质量良好，没有明显问题
+
+**详情**:
+- 循环复杂度: 未发现函数
+- 认知复杂度: 未发现函数
+- 嵌套深度: 未发现函数
+- 函数长度: 未发现函数
+- 文件长度: 60 代码量 (80 总计)
+- 参数数量: 未发现函数
+- 代码重复: 未发现函数
+- 结构分析: 未发现函数
+- 错误处理: 未发现函数
+- 注释比例: 0.0% (0/60)
+- 命名规范: 无命名违规
+
+### 289. backend\courses\course_cleanup.py
+
+**糟糕指数: 2.50**
+
+> 行数: 27 总计, 20 代码, 0 注释 | 函数: 1 | 类: 0
+
+**问题**: 📝 注释问题: 1
+
+#### 函数详情
+
+| 函数 | 行范围 | 行数 | 复杂度 | 嵌套 | 参数 | 注释 |
+|:-----|------:|------:|------:|------:|------:|:------:|
+| `cleanup_course_runtime_artifacts` | L15-27 | 13 | 1 | 0 | 1 | ✓ |
+
+✓ 代码质量良好，没有明显问题
+
+**详情**:
+- 循环复杂度: 平均: 1.0, 最大: 1
+- 认知复杂度: 平均: 1.0, 最大: 1
+- 嵌套深度: 平均: 0.0, 最大: 0
+- 函数长度: 平均: 13.0 行, 最大: 13 行
+- 文件长度: 20 代码量 (27 总计)
+- 参数数量: 平均: 1.0, 最大: 1
+- 代码重复: 未发现函数
+- 结构分析: 0 个结构问题
+- 错误处理: 未检测到易出错调用
+- 注释比例: 0.0% (0/20)
+- 命名规范: 无命名违规
+
+### 290. backend\courses\admin.py
+
+**糟糕指数: 2.50**
+
+> 行数: 38 总计, 29 代码, 0 注释 | 函数: 0 | 类: 4
+
+**问题**: 📝 注释问题: 1
+
+✓ 代码质量良好，没有明显问题
+
+**详情**:
+- 循环复杂度: 未发现函数
+- 认知复杂度: 未发现函数
+- 嵌套深度: 未发现函数
+- 函数长度: 未发现函数
+- 文件长度: 29 代码量 (38 总计)
+- 参数数量: 未发现函数
+- 代码重复: 未发现函数
+- 结构分析: 未发现函数
+- 错误处理: 未发现函数
+- 注释比例: 0.0% (0/29)
 - 命名规范: 无命名违规
 
 ### 291. backend\common\utils.py
@@ -12753,7 +12770,30 @@
 - 注释比例: 0.0% (0/13)
 - 命名规范: 无命名违规
 
-### 310. frontend\src\utils\markdown.ts
+### 310. backend\application\__init__.py
+
+**糟糕指数: 2.50**
+
+> 行数: 6 总计, 1 代码, 2 注释 | 函数: 0 | 类: 0
+
+**问题**: 📝 注释问题: 1
+
+✓ 代码质量良好，没有明显问题
+
+**详情**:
+- 循环复杂度: 未发现函数
+- 认知复杂度: 未发现函数
+- 嵌套深度: 未发现函数
+- 函数长度: 未发现函数
+- 文件长度: 1 代码量 (6 总计)
+- 参数数量: 未发现函数
+- 代码重复: 未发现函数
+- 结构分析: 未发现函数
+- 错误处理: 未发现函数
+- 注释比例: 200.0% (2/1)
+- 命名规范: 无命名违规
+
+### 311. frontend\src\utils\markdown.ts
 
 **糟糕指数: 2.50**
 
@@ -12783,7 +12823,7 @@
 - 注释比例: 100.0% (19/19)
 - 命名规范: 无命名违规
 
-### 311. frontend\src\stores\index.ts
+### 312. frontend\src\stores\index.ts
 
 **糟糕指数: 2.50**
 
@@ -12806,7 +12846,7 @@
 - 注释比例: 120.0% (6/5)
 - 命名规范: 无命名违规
 
-### 312. frontend\src\api\types.ts
+### 313. frontend\src\api\types.ts
 
 **糟糕指数: 2.50**
 
@@ -12829,7 +12869,7 @@
 - 注释比例: 0.0% (0/26)
 - 命名规范: 无命名违规
 
-### 313. frontend\src\api\course.ts
+### 314. frontend\src\api\course.ts
 
 **糟糕指数: 2.50**
 
@@ -12860,7 +12900,7 @@
 - 注释比例: 200.0% (24/12)
 - 命名规范: 无命名违规
 
-### 314. frontend\src\api\authTokens.ts
+### 315. frontend\src\api\authTokens.ts
 
 **糟糕指数: 2.50**
 
@@ -12892,7 +12932,7 @@
 - 注释比例: 0.0% (0/27)
 - 命名规范: 无命名违规
 
-### 315. frontend\src\api\auth.ts
+### 316. frontend\src\api\auth.ts
 
 **糟糕指数: 2.50**
 
@@ -12929,29 +12969,6 @@
 - 注释比例: 262.1% (76/29)
 - 命名规范: 无命名违规
 
-### 316. backend\platform_ai\mcp\__init__.py
-
-**糟糕指数: 2.50**
-
-> 行数: 10 总计, 7 代码, 0 注释 | 函数: 0 | 类: 0
-
-**问题**: 📝 注释问题: 1
-
-✓ 代码质量良好，没有明显问题
-
-**详情**:
-- 循环复杂度: 未发现函数
-- 认知复杂度: 未发现函数
-- 嵌套深度: 未发现函数
-- 函数长度: 未发现函数
-- 文件长度: 7 代码量 (10 总计)
-- 参数数量: 未发现函数
-- 代码重复: 未发现函数
-- 结构分析: 未发现函数
-- 错误处理: 未发现函数
-- 注释比例: 0.0% (0/7)
-- 命名规范: 无命名违规
-
 ### 317. backend\platform_ai\search\__init__.py
 
 **糟糕指数: 2.50**
@@ -12975,7 +12992,30 @@
 - 注释比例: 0.0% (0/3)
 - 命名规范: 无命名违规
 
-### 318. backend\platform_ai\rag\__init__.py
+### 318. backend\platform_ai\mcp\__init__.py
+
+**糟糕指数: 2.50**
+
+> 行数: 10 总计, 7 代码, 0 注释 | 函数: 0 | 类: 0
+
+**问题**: 📝 注释问题: 1
+
+✓ 代码质量良好，没有明显问题
+
+**详情**:
+- 循环复杂度: 未发现函数
+- 认知复杂度: 未发现函数
+- 嵌套深度: 未发现函数
+- 函数长度: 未发现函数
+- 文件长度: 7 代码量 (10 总计)
+- 参数数量: 未发现函数
+- 代码重复: 未发现函数
+- 结构分析: 未发现函数
+- 错误处理: 未发现函数
+- 注释比例: 0.0% (0/7)
+- 命名规范: 无命名违规
+
+### 319. backend\platform_ai\rag\__init__.py
 
 **糟糕指数: 2.50**
 
@@ -12998,7 +13038,7 @@
 - 注释比例: 0.0% (0/3)
 - 命名规范: 无命名违规
 
-### 319. backend\platform_ai\rag\student.py
+### 320. backend\platform_ai\rag\student.py
 
 **糟糕指数: 2.50**
 
@@ -13021,7 +13061,7 @@
 - 注释比例: 0.0% (0/94)
 - 命名规范: 无命名违规
 
-### 320. backend\platform_ai\rag\runtime_course.py
+### 321. backend\platform_ai\rag\runtime_course.py
 
 **糟糕指数: 2.50**
 
@@ -13044,7 +13084,7 @@
 - 注释比例: 0.0% (0/10)
 - 命名规范: 无命名违规
 
-### 321. backend\platform_ai\rag\corpus_types.py
+### 322. backend\platform_ai\rag\corpus_types.py
 
 **糟糕指数: 2.50**
 
@@ -13075,7 +13115,7 @@
 - 注释比例: 0.0% (0/58)
 - 命名规范: 无命名违规
 
-### 322. backend\platform_ai\rag\corpus_storage.py
+### 323. backend\platform_ai\rag\corpus_storage.py
 
 **糟糕指数: 2.50**
 
@@ -13107,7 +13147,7 @@
 - 注释比例: 0.0% (0/27)
 - 命名规范: 无命名违规
 
-### 323. backend\platform_ai\rag\corpus.py
+### 324. backend\platform_ai\rag\corpus.py
 
 **糟糕指数: 2.50**
 
@@ -13137,93 +13177,7 @@
 - 注释比例: 0.0% (0/22)
 - 命名规范: 无命名违规
 
-### 324. backend\platform_ai\kt\__init__.py
-
-**糟糕指数: 2.50**
-
-> 行数: 12 总计, 8 代码, 0 注释 | 函数: 0 | 类: 0
-
-**问题**: 📝 注释问题: 1
-
-✓ 代码质量良好，没有明显问题
-
-**详情**:
-- 循环复杂度: 未发现函数
-- 认知复杂度: 未发现函数
-- 嵌套深度: 未发现函数
-- 函数长度: 未发现函数
-- 文件长度: 8 代码量 (12 总计)
-- 参数数量: 未发现函数
-- 代码重复: 未发现函数
-- 结构分析: 未发现函数
-- 错误处理: 未发现函数
-- 注释比例: 0.0% (0/8)
-- 命名规范: 无命名违规
-
-### 325. backend\platform_ai\kt\facade.py
-
-**糟糕指数: 2.50**
-
-> 行数: 39 总计, 26 代码, 0 注释 | 函数: 4 | 类: 1
-
-**问题**: 📝 注释问题: 1
-
-#### 函数详情
-
-| 函数 | 行范围 | 行数 | 复杂度 | 嵌套 | 参数 | 注释 |
-|:-----|------:|------:|------:|------:|------:|:------:|
-| `predict_mastery` | L14-16 | 3 | 1 | 0 | 0 | ✓ |
-| `batch_predict` | L19-21 | 3 | 1 | 0 | 0 | ✓ |
-| `get_learning_recommendations` | L24-26 | 3 | 1 | 0 | 0 | ✓ |
-| `get_model_info` | L29-34 | 6 | 1 | 0 | 0 | ✓ |
-
-✓ 代码质量良好，没有明显问题
-
-**详情**:
-- 循环复杂度: 平均: 1.0, 最大: 1
-- 认知复杂度: 平均: 1.0, 最大: 1
-- 嵌套深度: 平均: 0.0, 最大: 0
-- 函数长度: 平均: 3.8 行, 最大: 6 行
-- 文件长度: 26 代码量 (39 总计)
-- 参数数量: 平均: 0.0, 最大: 0
-- 代码重复: 0.0% 重复 (0/4)
-- 结构分析: 0 个结构问题
-- 错误处理: 未检测到易出错调用
-- 注释比例: 0.0% (0/26)
-- 命名规范: 无命名违规
-
-### 326. backend\platform_ai\kt\datasets.py
-
-**糟糕指数: 2.50**
-
-> 行数: 98 总计, 78 代码, 0 注释 | 函数: 3 | 类: 1
-
-**问题**: 📝 注释问题: 1
-
-#### 函数详情
-
-| 函数 | 行范围 | 行数 | 复杂度 | 嵌套 | 参数 | 注释 |
-|:-----|------:|------:|------:|------:|------:|:------:|
-| `list_public_datasets` | L81-96 | 16 | 4 | 1 | 0 | ✓ |
-| `get_public_dataset_info` | L63-78 | 16 | 3 | 1 | 1 | ✓ |
-| `is_available` | L29-31 | 3 | 2 | 0 | 1 | ✓ |
-
-✓ 代码质量良好，没有明显问题
-
-**详情**:
-- 循环复杂度: 平均: 3.0, 最大: 4
-- 认知复杂度: 平均: 4.3, 最大: 6
-- 嵌套深度: 平均: 0.7, 最大: 1
-- 函数长度: 平均: 11.7 行, 最大: 16 行
-- 文件长度: 78 代码量 (98 总计)
-- 参数数量: 平均: 0.7, 最大: 1
-- 代码重复: 0.0% 重复 (0/3)
-- 结构分析: 0 个结构问题
-- 错误处理: 未检测到易出错调用
-- 注释比例: 0.0% (0/78)
-- 命名规范: 无命名违规
-
-### 327. backend\platform_ai\llm\__init__.py
+### 325. backend\platform_ai\llm\__init__.py
 
 **糟糕指数: 2.50**
 
@@ -13246,7 +13200,7 @@
 - 注释比例: 0.0% (0/4)
 - 命名规范: 无命名违规
 
-### 328. backend\platform_ai\llm\facade.py
+### 326. backend\platform_ai\llm\facade.py
 
 **糟糕指数: 2.50**
 
@@ -13284,7 +13238,93 @@
 - 注释比例: 0.0% (0/40)
 - 命名规范: 无命名违规
 
-### 329. backend\models\MEFKT\constants.py
+### 327. backend\platform_ai\kt\__init__.py
+
+**糟糕指数: 2.50**
+
+> 行数: 12 总计, 8 代码, 0 注释 | 函数: 0 | 类: 0
+
+**问题**: 📝 注释问题: 1
+
+✓ 代码质量良好，没有明显问题
+
+**详情**:
+- 循环复杂度: 未发现函数
+- 认知复杂度: 未发现函数
+- 嵌套深度: 未发现函数
+- 函数长度: 未发现函数
+- 文件长度: 8 代码量 (12 总计)
+- 参数数量: 未发现函数
+- 代码重复: 未发现函数
+- 结构分析: 未发现函数
+- 错误处理: 未发现函数
+- 注释比例: 0.0% (0/8)
+- 命名规范: 无命名违规
+
+### 328. backend\platform_ai\kt\facade.py
+
+**糟糕指数: 2.50**
+
+> 行数: 39 总计, 26 代码, 0 注释 | 函数: 4 | 类: 1
+
+**问题**: 📝 注释问题: 1
+
+#### 函数详情
+
+| 函数 | 行范围 | 行数 | 复杂度 | 嵌套 | 参数 | 注释 |
+|:-----|------:|------:|------:|------:|------:|:------:|
+| `predict_mastery` | L14-16 | 3 | 1 | 0 | 0 | ✓ |
+| `batch_predict` | L19-21 | 3 | 1 | 0 | 0 | ✓ |
+| `get_learning_recommendations` | L24-26 | 3 | 1 | 0 | 0 | ✓ |
+| `get_model_info` | L29-34 | 6 | 1 | 0 | 0 | ✓ |
+
+✓ 代码质量良好，没有明显问题
+
+**详情**:
+- 循环复杂度: 平均: 1.0, 最大: 1
+- 认知复杂度: 平均: 1.0, 最大: 1
+- 嵌套深度: 平均: 0.0, 最大: 0
+- 函数长度: 平均: 3.8 行, 最大: 6 行
+- 文件长度: 26 代码量 (39 总计)
+- 参数数量: 平均: 0.0, 最大: 0
+- 代码重复: 0.0% 重复 (0/4)
+- 结构分析: 0 个结构问题
+- 错误处理: 未检测到易出错调用
+- 注释比例: 0.0% (0/26)
+- 命名规范: 无命名违规
+
+### 329. backend\platform_ai\kt\datasets.py
+
+**糟糕指数: 2.50**
+
+> 行数: 98 总计, 78 代码, 0 注释 | 函数: 3 | 类: 1
+
+**问题**: 📝 注释问题: 1
+
+#### 函数详情
+
+| 函数 | 行范围 | 行数 | 复杂度 | 嵌套 | 参数 | 注释 |
+|:-----|------:|------:|------:|------:|------:|:------:|
+| `list_public_datasets` | L81-96 | 16 | 4 | 1 | 0 | ✓ |
+| `get_public_dataset_info` | L63-78 | 16 | 3 | 1 | 1 | ✓ |
+| `is_available` | L29-31 | 3 | 2 | 0 | 1 | ✓ |
+
+✓ 代码质量良好，没有明显问题
+
+**详情**:
+- 循环复杂度: 平均: 3.0, 最大: 4
+- 认知复杂度: 平均: 4.3, 最大: 6
+- 嵌套深度: 平均: 0.7, 最大: 1
+- 函数长度: 平均: 11.7 行, 最大: 16 行
+- 文件长度: 78 代码量 (98 总计)
+- 参数数量: 平均: 0.7, 最大: 1
+- 代码重复: 0.0% 重复 (0/3)
+- 结构分析: 0 个结构问题
+- 错误处理: 未检测到易出错调用
+- 注释比例: 0.0% (0/78)
+- 命名规范: 无命名违规
+
+### 330. backend\models\MEFKT\constants.py
 
 **糟糕指数: 2.50**
 
@@ -13305,29 +13345,6 @@
 - 结构分析: 未发现函数
 - 错误处理: 未发现函数
 - 注释比例: 0.0% (0/36)
-- 命名规范: 无命名违规
-
-### 330. backend\application\teacher\__init__.py
-
-**糟糕指数: 2.50**
-
-> 行数: 6 总计, 1 代码, 2 注释 | 函数: 0 | 类: 0
-
-**问题**: 📝 注释问题: 1
-
-✓ 代码质量良好，没有明显问题
-
-**详情**:
-- 循环复杂度: 未发现函数
-- 认知复杂度: 未发现函数
-- 嵌套深度: 未发现函数
-- 函数长度: 未发现函数
-- 文件长度: 1 代码量 (6 总计)
-- 参数数量: 未发现函数
-- 代码重复: 未发现函数
-- 结构分析: 未发现函数
-- 错误处理: 未发现函数
-- 注释比例: 200.0% (2/1)
 - 命名规范: 无命名违规
 
 ### 331. backend\ai_services\services\__init__.py
@@ -13353,89 +13370,30 @@
 - 注释比例: 0.0% (0/20)
 - 命名规范: 无命名违规
 
-### 332. frontend\src\views\student\learningPathModels.js
+### 332. backend\application\teacher\__init__.py
 
 **糟糕指数: 2.50**
 
-> 行数: 101 总计, 89 代码, 0 注释 | 函数: 12 | 类: 0
+> 行数: 6 总计, 1 代码, 2 注释 | 函数: 0 | 类: 0
 
 **问题**: 📝 注释问题: 1
-
-#### 函数详情
-
-| 函数 | 行范围 | 行数 | 复杂度 | 嵌套 | 参数 | 注释 |
-|:-----|------:|------:|------:|------:|------:|:------:|
-| `normalizeLearningStatus` | L19-25 | 7 | 4 | 1 | 1 | ✗ |
-| `normalizeText` | L1-5 | 5 | 3 | 1 | 1 | ✗ |
-| `normalizeIdentifier` | L7-10 | 4 | 2 | 0 | 1 | ✗ |
-| `normalizeNumber` | L12-15 | 4 | 2 | 0 | 1 | ✗ |
-| `normalizeListFromPayload` | L17-17 | 1 | 2 | 0 | 1 | ✗ |
-| `normalizeDurationMinutes` | L27-30 | 4 | 2 | 0 | 1 | ✗ |
-| `buildDefaultLearningPathNode` | L32-43 | 12 | 1 | 0 | 0 | ✗ |
-| `normalizeLearningPathNode` | L45-57 | 13 | 1 | 0 | 1 | ✗ |
-| `normalizeLearningPathPayload` | L59-65 | 6 | 1 | 0 | 1 | ✗ |
-| `normalizeLearningPathRefreshSummary` | L67-80 | 14 | 1 | 0 | 1 | ✗ |
-| `getNodeTagType` | L82-90 | 9 | 1 | 0 | 1 | ✗ |
-| `getNodeStatusText` | L92-100 | 9 | 1 | 0 | 1 | ✗ |
 
 ✓ 代码质量良好，没有明显问题
 
 **详情**:
-- 循环复杂度: 平均: 1.8, 最大: 4
-- 认知复杂度: 平均: 2.1, 最大: 6
-- 嵌套深度: 平均: 0.2, 最大: 1
-- 函数长度: 平均: 7.3 行, 最大: 14 行
-- 文件长度: 89 代码量 (101 总计)
-- 参数数量: 平均: 0.9, 最大: 1
-- 代码重复: 0.0% 重复 (0/12)
-- 结构分析: 0 个结构问题
-- 错误处理: 未检测到易出错调用
-- 注释比例: 0.0% (0/89)
+- 循环复杂度: 未发现函数
+- 认知复杂度: 未发现函数
+- 嵌套深度: 未发现函数
+- 函数长度: 未发现函数
+- 文件长度: 1 代码量 (6 总计)
+- 参数数量: 未发现函数
+- 代码重复: 未发现函数
+- 结构分析: 未发现函数
+- 错误处理: 未发现函数
+- 注释比例: 200.0% (2/1)
 - 命名规范: 无命名违规
 
-### 333. frontend\src\views\student\examTakingModels.js
-
-**糟糕指数: 2.50**
-
-> 行数: 137 总计, 123 代码, 0 注释 | 函数: 14 | 类: 0
-
-**问题**: 📝 注释问题: 1
-
-#### 函数详情
-
-| 函数 | 行范围 | 行数 | 复杂度 | 嵌套 | 参数 | 注释 |
-|:-----|------:|------:|------:|------:|------:|:------:|
-| `normalizeText` | L1-9 | 9 | 4 | 1 | 1 | ✗ |
-| `normalizeIdentifier` | L16-21 | 6 | 3 | 1 | 1 | ✗ |
-| `normalizeFeedbackRouteId` | L118-128 | 11 | 3 | 1 | 1 | ✗ |
-| `normalizeNumber` | L11-14 | 4 | 2 | 0 | 1 | ✗ |
-| `normalizeListFromPayload` | L23-25 | 3 | 2 | 0 | 1 | ✗ |
-| `normalizeQuestionType` | L27-42 | 16 | 2 | 0 | 1 | ✗ |
-| `normalizeQuestionOption` | L74-84 | 11 | 2 | 0 | 2 | ✗ |
-| `createEmptyAnswer` | L114-116 | 3 | 2 | 0 | 1 | ✗ |
-| `formatTime` | L130-136 | 7 | 2 | 1 | 1 | ✗ |
-| `getQuestionTagType` | L44-53 | 10 | 1 | 0 | 1 | ✗ |
-| `getQuestionTypeName` | L55-64 | 10 | 1 | 0 | 1 | ✗ |
-| `buildDefaultExamInfo` | L66-72 | 7 | 1 | 0 | 0 | ✗ |
-| `normalizeExamQuestion` | L86-100 | 12 | 1 | 0 | 2 | ✗ |
-| `normalizeExamDetail` | L102-112 | 8 | 1 | 0 | 1 | ✗ |
-
-✓ 代码质量良好，没有明显问题
-
-**详情**:
-- 循环复杂度: 平均: 1.9, 最大: 4
-- 认知复杂度: 平均: 2.5, 最大: 6
-- 嵌套深度: 平均: 0.3, 最大: 1
-- 函数长度: 平均: 8.4 行, 最大: 16 行
-- 文件长度: 123 代码量 (137 总计)
-- 参数数量: 平均: 1.1, 最大: 2
-- 代码重复: 0.0% 重复 (0/14)
-- 结构分析: 0 个结构问题
-- 错误处理: 未检测到易出错调用
-- 注释比例: 0.0% (0/123)
-- 命名规范: 无命名违规
-
-### 334. frontend\src\views\teacher\resourceManageModels.js
+### 333. frontend\src\views\teacher\resourceManageModels.js
 
 **糟糕指数: 2.50**
 
@@ -13481,7 +13439,89 @@
 - 注释比例: 0.0% (0/129)
 - 命名规范: 无命名违规
 
-### 335. frontend\src\components\knowledge\knowledgeGraphModels.js
+### 334. frontend\src\views\student\learningPathModels.js
+
+**糟糕指数: 2.50**
+
+> 行数: 101 总计, 89 代码, 0 注释 | 函数: 12 | 类: 0
+
+**问题**: 📝 注释问题: 1
+
+#### 函数详情
+
+| 函数 | 行范围 | 行数 | 复杂度 | 嵌套 | 参数 | 注释 |
+|:-----|------:|------:|------:|------:|------:|:------:|
+| `normalizeLearningStatus` | L19-25 | 7 | 4 | 1 | 1 | ✗ |
+| `normalizeText` | L1-5 | 5 | 3 | 1 | 1 | ✗ |
+| `normalizeIdentifier` | L7-10 | 4 | 2 | 0 | 1 | ✗ |
+| `normalizeNumber` | L12-15 | 4 | 2 | 0 | 1 | ✗ |
+| `normalizeListFromPayload` | L17-17 | 1 | 2 | 0 | 1 | ✗ |
+| `normalizeDurationMinutes` | L27-30 | 4 | 2 | 0 | 1 | ✗ |
+| `buildDefaultLearningPathNode` | L32-43 | 12 | 1 | 0 | 0 | ✗ |
+| `normalizeLearningPathNode` | L45-57 | 13 | 1 | 0 | 1 | ✗ |
+| `normalizeLearningPathPayload` | L59-65 | 6 | 1 | 0 | 1 | ✗ |
+| `normalizeLearningPathRefreshSummary` | L67-80 | 14 | 1 | 0 | 1 | ✗ |
+| `getNodeTagType` | L82-90 | 9 | 1 | 0 | 1 | ✗ |
+| `getNodeStatusText` | L92-100 | 9 | 1 | 0 | 1 | ✗ |
+
+✓ 代码质量良好，没有明显问题
+
+**详情**:
+- 循环复杂度: 平均: 1.8, 最大: 4
+- 认知复杂度: 平均: 2.1, 最大: 6
+- 嵌套深度: 平均: 0.2, 最大: 1
+- 函数长度: 平均: 7.3 行, 最大: 14 行
+- 文件长度: 89 代码量 (101 总计)
+- 参数数量: 平均: 0.9, 最大: 1
+- 代码重复: 0.0% 重复 (0/12)
+- 结构分析: 0 个结构问题
+- 错误处理: 未检测到易出错调用
+- 注释比例: 0.0% (0/89)
+- 命名规范: 无命名违规
+
+### 335. frontend\src\views\student\examTakingModels.js
+
+**糟糕指数: 2.50**
+
+> 行数: 137 总计, 123 代码, 0 注释 | 函数: 14 | 类: 0
+
+**问题**: 📝 注释问题: 1
+
+#### 函数详情
+
+| 函数 | 行范围 | 行数 | 复杂度 | 嵌套 | 参数 | 注释 |
+|:-----|------:|------:|------:|------:|------:|:------:|
+| `normalizeText` | L1-9 | 9 | 4 | 1 | 1 | ✗ |
+| `normalizeIdentifier` | L16-21 | 6 | 3 | 1 | 1 | ✗ |
+| `normalizeFeedbackRouteId` | L118-128 | 11 | 3 | 1 | 1 | ✗ |
+| `normalizeNumber` | L11-14 | 4 | 2 | 0 | 1 | ✗ |
+| `normalizeListFromPayload` | L23-25 | 3 | 2 | 0 | 1 | ✗ |
+| `normalizeQuestionType` | L27-42 | 16 | 2 | 0 | 1 | ✗ |
+| `normalizeQuestionOption` | L74-84 | 11 | 2 | 0 | 2 | ✗ |
+| `createEmptyAnswer` | L114-116 | 3 | 2 | 0 | 1 | ✗ |
+| `formatTime` | L130-136 | 7 | 2 | 1 | 1 | ✗ |
+| `getQuestionTagType` | L44-53 | 10 | 1 | 0 | 1 | ✗ |
+| `getQuestionTypeName` | L55-64 | 10 | 1 | 0 | 1 | ✗ |
+| `buildDefaultExamInfo` | L66-72 | 7 | 1 | 0 | 0 | ✗ |
+| `normalizeExamQuestion` | L86-100 | 12 | 1 | 0 | 2 | ✗ |
+| `normalizeExamDetail` | L102-112 | 8 | 1 | 0 | 1 | ✗ |
+
+✓ 代码质量良好，没有明显问题
+
+**详情**:
+- 循环复杂度: 平均: 1.9, 最大: 4
+- 认知复杂度: 平均: 2.5, 最大: 6
+- 嵌套深度: 平均: 0.3, 最大: 1
+- 函数长度: 平均: 8.4 行, 最大: 16 行
+- 文件长度: 123 代码量 (137 总计)
+- 参数数量: 平均: 1.1, 最大: 2
+- 代码重复: 0.0% 重复 (0/14)
+- 结构分析: 0 个结构问题
+- 错误处理: 未检测到易出错调用
+- 注释比例: 0.0% (0/123)
+- 命名规范: 无命名违规
+
+### 336. frontend\src\components\knowledge\knowledgeGraphModels.js
 
 **糟糕指数: 2.50**
 
@@ -13520,7 +13560,7 @@
 - 注释比例: 0.0% (0/75)
 - 命名规范: 无命名违规
 
-### 336. frontend\src\api\teacher\settings.ts
+### 337. frontend\src\api\teacher\settings.ts
 
 **糟糕指数: 2.50**
 
@@ -13550,7 +13590,7 @@
 - 注释比例: 214.3% (15/7)
 - 命名规范: 无命名违规
 
-### 337. frontend\src\api\teacher\question.ts
+### 338. frontend\src\api\teacher\question.ts
 
 **糟糕指数: 2.50**
 
@@ -13588,7 +13628,7 @@
 - 注释比例: 174.4% (75/43)
 - 命名规范: 无命名违规
 
-### 338. frontend\src\api\teacher\knowledge.ts
+### 339. frontend\src\api\teacher\knowledge.ts
 
 **糟糕指数: 2.50**
 
@@ -13637,7 +13677,7 @@
 - 注释比例: 154.3% (142/92)
 - 命名规范: 无命名违规
 
-### 339. frontend\src\api\teacher\index.ts
+### 340. frontend\src\api\teacher\index.ts
 
 **糟糕指数: 2.50**
 
@@ -13660,7 +13700,7 @@
 - 注释比例: 240.0% (12/5)
 - 命名规范: 无命名违规
 
-### 340. frontend\src\api\teacher\exam.ts
+### 341. frontend\src\api\teacher\exam.ts
 
 **糟糕指数: 2.50**
 
@@ -13701,7 +13741,7 @@
 - 注释比例: 193.9% (95/49)
 - 命名规范: 无命名违规
 
-### 341. frontend\src\api\teacher\course.ts
+### 342. frontend\src\api\teacher\course.ts
 
 **糟糕指数: 2.50**
 
@@ -13736,7 +13776,7 @@
 - 注释比例: 152.9% (52/34)
 - 命名规范: 无命名违规
 
-### 342. frontend\src\api\teacher\class.ts
+### 343. frontend\src\api\teacher\class.ts
 
 **糟糕指数: 2.50**
 
@@ -13782,261 +13822,7 @@
 - 注释比例: 207.0% (118/57)
 - 命名规范: 无命名违规
 
-### 343. frontend\src\api\admin\user.ts
-
-**糟糕指数: 2.50**
-
-> 行数: 147 总计, 51 代码, 82 注释 | 函数: 13 | 类: 0
-
-**问题**: 📝 注释问题: 1
-
-#### 函数详情
-
-| 函数 | 行范围 | 行数 | 复杂度 | 嵌套 | 参数 | 注释 |
-|:-----|------:|------:|------:|------:|------:|:------:|
-| `getUsers` | L17-19 | 3 | 1 | 0 | 1 | ✗ |
-| `getUserList` | L26-28 | 3 | 1 | 0 | 1 | ✗ |
-| `getUserDetail` | L35-37 | 3 | 1 | 0 | 1 | ✗ |
-| `createUser` | L49-51 | 3 | 1 | 0 | 1 | ✗ |
-| `updateUser` | L59-61 | 3 | 1 | 0 | 2 | ✗ |
-| `deleteUser` | L68-70 | 3 | 1 | 0 | 1 | ✗ |
-| `batchDeleteUsers` | L77-79 | 3 | 1 | 0 | 1 | ✗ |
-| `resetUserPassword` | L87-91 | 5 | 1 | 0 | 2 | ✗ |
-| `disableUser` | L98-100 | 3 | 1 | 0 | 1 | ✗ |
-| `enableUser` | L107-109 | 3 | 1 | 0 | 1 | ✗ |
-| `importUsers` | L117-123 | 7 | 1 | 0 | 1 | ✗ |
-| `exportUsers` | L131-136 | 6 | 1 | 0 | 1 | ✗ |
-| `getUserImportTemplate` | L142-146 | 5 | 1 | 0 | 0 | ✗ |
-
-✓ 代码质量良好，没有明显问题
-
-**详情**:
-- 循环复杂度: 平均: 1.0, 最大: 1
-- 认知复杂度: 平均: 1.0, 最大: 1
-- 嵌套深度: 平均: 0.0, 最大: 0
-- 函数长度: 平均: 3.8 行, 最大: 7 行
-- 文件长度: 51 代码量 (147 总计)
-- 参数数量: 平均: 1.1, 最大: 2
-- 代码重复: 0.0% 重复 (0/13)
-- 结构分析: 0 个结构问题
-- 错误处理: 0/13 个错误被忽略 (0.0%)
-- 注释比例: 160.8% (82/51)
-- 命名规范: 无命名违规
-
-### 344. frontend\src\api\admin\statistics.ts
-
-**糟糕指数: 2.50**
-
-> 行数: 105 总计, 31 代码, 64 注释 | 函数: 9 | 类: 0
-
-**问题**: 📝 注释问题: 1
-
-#### 函数详情
-
-| 函数 | 行范围 | 行数 | 复杂度 | 嵌套 | 参数 | 注释 |
-|:-----|------:|------:|------:|------:|------:|:------:|
-| `getOverviewStats` | L12-14 | 3 | 1 | 0 | 0 | ✗ |
-| `getSystemStats` | L20-22 | 3 | 1 | 0 | 0 | ✗ |
-| `getUserStats` | L33-35 | 3 | 1 | 0 | 1 | ✗ |
-| `getCourseStats` | L45-47 | 3 | 1 | 0 | 1 | ✗ |
-| `getLearningStats` | L58-60 | 3 | 1 | 0 | 1 | ✗ |
-| `getExamStats` | L68-70 | 3 | 1 | 0 | 1 | ✗ |
-| `getActiveUserRanking` | L78-80 | 3 | 1 | 0 | 1 | ✗ |
-| `getSystemReport` | L88-90 | 3 | 1 | 0 | 1 | ✗ |
-| `exportStatistics` | L99-104 | 6 | 1 | 0 | 1 | ✗ |
-
-✓ 代码质量良好，没有明显问题
-
-**详情**:
-- 循环复杂度: 平均: 1.0, 最大: 1
-- 认知复杂度: 平均: 1.0, 最大: 1
-- 嵌套深度: 平均: 0.0, 最大: 0
-- 函数长度: 平均: 3.3 行, 最大: 6 行
-- 文件长度: 31 代码量 (105 总计)
-- 参数数量: 平均: 0.8, 最大: 1
-- 代码重复: 0.0% 重复 (0/9)
-- 结构分析: 0 个结构问题
-- 错误处理: 0/9 个错误被忽略 (0.0%)
-- 注释比例: 206.5% (64/31)
-- 命名规范: 无命名违规
-
-### 345. frontend\src\api\admin\profile.ts
-
-**糟糕指数: 2.50**
-
-> 行数: 27 总计, 9 代码, 15 注释 | 函数: 2 | 类: 0
-
-**问题**: 📝 注释问题: 1
-
-#### 函数详情
-
-| 函数 | 行范围 | 行数 | 复杂度 | 嵌套 | 参数 | 注释 |
-|:-----|------:|------:|------:|------:|------:|:------:|
-| `getStudentProfiles` | L13-15 | 3 | 1 | 0 | 1 | ✗ |
-| `getStudentProfileDetail` | L22-26 | 5 | 1 | 0 | 2 | ✗ |
-
-✓ 代码质量良好，没有明显问题
-
-**详情**:
-- 循环复杂度: 平均: 1.0, 最大: 1
-- 认知复杂度: 平均: 1.0, 最大: 1
-- 嵌套深度: 平均: 0.0, 最大: 0
-- 函数长度: 平均: 4.0 行, 最大: 5 行
-- 文件长度: 9 代码量 (27 总计)
-- 参数数量: 平均: 1.5, 最大: 2
-- 代码重复: 未发现函数
-- 结构分析: 0 个结构问题
-- 错误处理: 0/2 个错误被忽略 (0.0%)
-- 注释比例: 166.7% (15/9)
-- 命名规范: 无命名违规
-
-### 346. frontend\src\api\admin\log.ts
-
-**糟糕指数: 2.50**
-
-> 行数: 112 总计, 37 代码, 64 注释 | 函数: 10 | 类: 0
-
-**问题**: 📝 注释问题: 1
-
-#### 函数详情
-
-| 函数 | 行范围 | 行数 | 复杂度 | 嵌套 | 参数 | 注释 |
-|:-----|------:|------:|------:|------:|------:|:------:|
-| `getLogs` | L20-22 | 3 | 1 | 0 | 1 | ✗ |
-| `getSystemLogs` | L29-31 | 3 | 1 | 0 | 1 | ✗ |
-| `getLogDetail` | L38-40 | 3 | 1 | 0 | 1 | ✗ |
-| `getLogStatistics` | L50-52 | 3 | 1 | 0 | 1 | ✗ |
-| `getLogOptions` | L58-60 | 3 | 1 | 0 | 0 | ✗ |
-| `getLogModules` | L67-69 | 3 | 1 | 0 | 0 | ✗ |
-| `getLogActions` | L75-77 | 3 | 1 | 0 | 0 | ✗ |
-| `exportLogs` | L84-89 | 6 | 1 | 0 | 1 | ✗ |
-| `exportData` | L96-101 | 6 | 1 | 0 | 1 | ✗ |
-| `cleanExpiredLogs` | L109-111 | 3 | 1 | 0 | 1 | ✗ |
-
-✓ 代码质量良好，没有明显问题
-
-**详情**:
-- 循环复杂度: 平均: 1.0, 最大: 1
-- 认知复杂度: 平均: 1.0, 最大: 1
-- 嵌套深度: 平均: 0.0, 最大: 0
-- 函数长度: 平均: 3.6 行, 最大: 6 行
-- 文件长度: 37 代码量 (112 总计)
-- 参数数量: 平均: 0.7, 最大: 1
-- 代码重复: 0.0% 重复 (0/10)
-- 结构分析: 0 个结构问题
-- 错误处理: 0/10 个错误被忽略 (0.0%)
-- 注释比例: 173.0% (64/37)
-- 命名规范: 无命名违规
-
-### 347. frontend\src\api\admin\course.ts
-
-**糟糕指数: 2.50**
-
-> 行数: 81 总计, 24 代码, 49 注释 | 函数: 7 | 类: 0
-
-**问题**: 📝 注释问题: 1
-
-#### 函数详情
-
-| 函数 | 行范围 | 行数 | 复杂度 | 嵌套 | 参数 | 注释 |
-|:-----|------:|------:|------:|------:|------:|:------:|
-| `getAllCourses` | L17-19 | 3 | 1 | 0 | 1 | ✗ |
-| `getCourseDetail` | L26-28 | 3 | 1 | 0 | 1 | ✗ |
-| `createCourse` | L38-40 | 3 | 1 | 0 | 1 | ✗ |
-| `updateCourse` | L48-50 | 3 | 1 | 0 | 2 | ✗ |
-| `deleteCourse` | L57-59 | 3 | 1 | 0 | 1 | ✗ |
-| `assignCourseTeacher` | L67-71 | 5 | 1 | 0 | 2 | ✗ |
-| `getCourseStats` | L78-80 | 3 | 1 | 0 | 1 | ✗ |
-
-✓ 代码质量良好，没有明显问题
-
-**详情**:
-- 循环复杂度: 平均: 1.0, 最大: 1
-- 认知复杂度: 平均: 1.0, 最大: 1
-- 嵌套深度: 平均: 0.0, 最大: 0
-- 函数长度: 平均: 3.3 行, 最大: 5 行
-- 文件长度: 24 代码量 (81 总计)
-- 参数数量: 平均: 1.3, 最大: 2
-- 代码重复: 0.0% 重复 (0/7)
-- 结构分析: 0 个结构问题
-- 错误处理: 0/7 个错误被忽略 (0.0%)
-- 注释比例: 204.2% (49/24)
-- 命名规范: 无命名违规
-
-### 348. frontend\src\api\admin\class.ts
-
-**糟糕指数: 2.50**
-
-> 行数: 113 总计, 35 代码, 67 注释 | 函数: 10 | 类: 0
-
-**问题**: 📝 注释问题: 1
-
-#### 函数详情
-
-| 函数 | 行范围 | 行数 | 复杂度 | 嵌套 | 参数 | 注释 |
-|:-----|------:|------:|------:|------:|------:|:------:|
-| `getClassList` | L17-19 | 3 | 1 | 0 | 1 | ✗ |
-| `getClassDetail` | L26-28 | 3 | 1 | 0 | 1 | ✗ |
-| `createClass` | L38-40 | 3 | 1 | 0 | 1 | ✗ |
-| `updateClass` | L48-50 | 3 | 1 | 0 | 2 | ✗ |
-| `deleteClass` | L57-59 | 3 | 1 | 0 | 1 | ✗ |
-| `getClassStudents` | L67-69 | 3 | 1 | 0 | 2 | ✗ |
-| `addStudentsToClass` | L77-81 | 5 | 1 | 0 | 2 | ✗ |
-| `removeStudentFromClass` | L89-91 | 3 | 1 | 0 | 2 | ✗ |
-| `assignClassTeacher` | L99-103 | 5 | 1 | 0 | 2 | ✗ |
-| `getClassStats` | L110-112 | 3 | 1 | 0 | 1 | ✗ |
-
-✓ 代码质量良好，没有明显问题
-
-**详情**:
-- 循环复杂度: 平均: 1.0, 最大: 1
-- 认知复杂度: 平均: 1.0, 最大: 1
-- 嵌套深度: 平均: 0.0, 最大: 0
-- 函数长度: 平均: 3.4 行, 最大: 5 行
-- 文件长度: 35 代码量 (113 总计)
-- 参数数量: 平均: 1.5, 最大: 2
-- 代码重复: 0.0% 重复 (0/10)
-- 结构分析: 0 个结构问题
-- 错误处理: 0/10 个错误被忽略 (0.0%)
-- 注释比例: 191.4% (67/35)
-- 命名规范: 无命名违规
-
-### 349. frontend\src\api\admin\activation.ts
-
-**糟糕指数: 2.50**
-
-> 行数: 84 总计, 27 代码, 49 注释 | 函数: 7 | 类: 0
-
-**问题**: 📝 注释问题: 1
-
-#### 函数详情
-
-| 函数 | 行范围 | 行数 | 复杂度 | 嵌套 | 参数 | 注释 |
-|:-----|------:|------:|------:|------:|------:|:------:|
-| `getActivationCodes` | L18-20 | 3 | 1 | 0 | 1 | ✗ |
-| `getActivationCodeDetail` | L27-29 | 3 | 1 | 0 | 1 | ✗ |
-| `generateActivationCodes` | L40-42 | 3 | 1 | 0 | 1 | ✗ |
-| `deleteActivationCode` | L49-51 | 3 | 1 | 0 | 1 | ✗ |
-| `batchDeleteActivationCodes` | L58-62 | 5 | 1 | 0 | 1 | ✗ |
-| `validateActivationCode` | L69-71 | 3 | 1 | 0 | 1 | ✗ |
-| `exportActivationCodes` | L78-83 | 6 | 1 | 0 | 1 | ✗ |
-
-✓ 代码质量良好，没有明显问题
-
-**详情**:
-- 循环复杂度: 平均: 1.0, 最大: 1
-- 认知复杂度: 平均: 1.0, 最大: 1
-- 嵌套深度: 平均: 0.0, 最大: 0
-- 函数长度: 平均: 3.7 行, 最大: 6 行
-- 文件长度: 27 代码量 (84 总计)
-- 参数数量: 平均: 1.0, 最大: 1
-- 代码重复: 0.0% 重复 (0/7)
-- 结构分析: 0 个结构问题
-- 错误处理: 0/7 个错误被忽略 (0.0%)
-- 注释比例: 181.5% (49/27)
-- 命名规范: 无命名违规
-
-### 350. frontend\src\api\student\profile.ts
+### 344. frontend\src\api\student\profile.ts
 
 **糟糕指数: 2.50**
 
@@ -14071,7 +13857,7 @@
 - 注释比例: 164.7% (56/34)
 - 命名规范: 无命名违规
 
-### 351. frontend\src\api\student\learning.ts
+### 345. frontend\src\api\student\learning.ts
 
 **糟糕指数: 2.50**
 
@@ -14115,7 +13901,7 @@
 - 注释比例: 170.1% (114/67)
 - 命名规范: 无命名违规
 
-### 352. frontend\src\api\student\knowledge.ts
+### 346. frontend\src\api\student\knowledge.ts
 
 **糟糕指数: 2.50**
 
@@ -14152,7 +13938,7 @@
 - 注释比例: 154.3% (71/46)
 - 命名规范: 无命名违规
 
-### 353. frontend\src\api\student\index.ts
+### 347. frontend\src\api\student\index.ts
 
 **糟糕指数: 2.50**
 
@@ -14175,7 +13961,7 @@
 - 注释比例: 157.1% (11/7)
 - 命名规范: 无命名违规
 
-### 354. frontend\src\api\student\exam.ts
+### 348. frontend\src\api\student\exam.ts
 
 **糟糕指数: 2.50**
 
@@ -14214,7 +14000,7 @@
 - 注释比例: 218.9% (81/37)
 - 命名规范: 无命名违规
 
-### 355. frontend\src\api\student\class.ts
+### 349. frontend\src\api\student\class.ts
 
 **糟糕指数: 2.50**
 
@@ -14250,7 +14036,7 @@
 - 注释比例: 111.5% (58/52)
 - 命名规范: 无命名违规
 
-### 356. frontend\src\api\student\assessment.ts
+### 350. frontend\src\api\student\assessment.ts
 
 **糟糕指数: 2.50**
 
@@ -14288,7 +14074,261 @@
 - 注释比例: 86.5% (64/74)
 - 命名规范: 无命名违规
 
-### 357. backend\users\auth_password_views.py
+### 351. frontend\src\api\admin\user.ts
+
+**糟糕指数: 2.50**
+
+> 行数: 147 总计, 51 代码, 82 注释 | 函数: 13 | 类: 0
+
+**问题**: 📝 注释问题: 1
+
+#### 函数详情
+
+| 函数 | 行范围 | 行数 | 复杂度 | 嵌套 | 参数 | 注释 |
+|:-----|------:|------:|------:|------:|------:|:------:|
+| `getUsers` | L17-19 | 3 | 1 | 0 | 1 | ✗ |
+| `getUserList` | L26-28 | 3 | 1 | 0 | 1 | ✗ |
+| `getUserDetail` | L35-37 | 3 | 1 | 0 | 1 | ✗ |
+| `createUser` | L49-51 | 3 | 1 | 0 | 1 | ✗ |
+| `updateUser` | L59-61 | 3 | 1 | 0 | 2 | ✗ |
+| `deleteUser` | L68-70 | 3 | 1 | 0 | 1 | ✗ |
+| `batchDeleteUsers` | L77-79 | 3 | 1 | 0 | 1 | ✗ |
+| `resetUserPassword` | L87-91 | 5 | 1 | 0 | 2 | ✗ |
+| `disableUser` | L98-100 | 3 | 1 | 0 | 1 | ✗ |
+| `enableUser` | L107-109 | 3 | 1 | 0 | 1 | ✗ |
+| `importUsers` | L117-123 | 7 | 1 | 0 | 1 | ✗ |
+| `exportUsers` | L131-136 | 6 | 1 | 0 | 1 | ✗ |
+| `getUserImportTemplate` | L142-146 | 5 | 1 | 0 | 0 | ✗ |
+
+✓ 代码质量良好，没有明显问题
+
+**详情**:
+- 循环复杂度: 平均: 1.0, 最大: 1
+- 认知复杂度: 平均: 1.0, 最大: 1
+- 嵌套深度: 平均: 0.0, 最大: 0
+- 函数长度: 平均: 3.8 行, 最大: 7 行
+- 文件长度: 51 代码量 (147 总计)
+- 参数数量: 平均: 1.1, 最大: 2
+- 代码重复: 0.0% 重复 (0/13)
+- 结构分析: 0 个结构问题
+- 错误处理: 0/13 个错误被忽略 (0.0%)
+- 注释比例: 160.8% (82/51)
+- 命名规范: 无命名违规
+
+### 352. frontend\src\api\admin\statistics.ts
+
+**糟糕指数: 2.50**
+
+> 行数: 105 总计, 31 代码, 64 注释 | 函数: 9 | 类: 0
+
+**问题**: 📝 注释问题: 1
+
+#### 函数详情
+
+| 函数 | 行范围 | 行数 | 复杂度 | 嵌套 | 参数 | 注释 |
+|:-----|------:|------:|------:|------:|------:|:------:|
+| `getOverviewStats` | L12-14 | 3 | 1 | 0 | 0 | ✗ |
+| `getSystemStats` | L20-22 | 3 | 1 | 0 | 0 | ✗ |
+| `getUserStats` | L33-35 | 3 | 1 | 0 | 1 | ✗ |
+| `getCourseStats` | L45-47 | 3 | 1 | 0 | 1 | ✗ |
+| `getLearningStats` | L58-60 | 3 | 1 | 0 | 1 | ✗ |
+| `getExamStats` | L68-70 | 3 | 1 | 0 | 1 | ✗ |
+| `getActiveUserRanking` | L78-80 | 3 | 1 | 0 | 1 | ✗ |
+| `getSystemReport` | L88-90 | 3 | 1 | 0 | 1 | ✗ |
+| `exportStatistics` | L99-104 | 6 | 1 | 0 | 1 | ✗ |
+
+✓ 代码质量良好，没有明显问题
+
+**详情**:
+- 循环复杂度: 平均: 1.0, 最大: 1
+- 认知复杂度: 平均: 1.0, 最大: 1
+- 嵌套深度: 平均: 0.0, 最大: 0
+- 函数长度: 平均: 3.3 行, 最大: 6 行
+- 文件长度: 31 代码量 (105 总计)
+- 参数数量: 平均: 0.8, 最大: 1
+- 代码重复: 0.0% 重复 (0/9)
+- 结构分析: 0 个结构问题
+- 错误处理: 0/9 个错误被忽略 (0.0%)
+- 注释比例: 206.5% (64/31)
+- 命名规范: 无命名违规
+
+### 353. frontend\src\api\admin\profile.ts
+
+**糟糕指数: 2.50**
+
+> 行数: 27 总计, 9 代码, 15 注释 | 函数: 2 | 类: 0
+
+**问题**: 📝 注释问题: 1
+
+#### 函数详情
+
+| 函数 | 行范围 | 行数 | 复杂度 | 嵌套 | 参数 | 注释 |
+|:-----|------:|------:|------:|------:|------:|:------:|
+| `getStudentProfiles` | L13-15 | 3 | 1 | 0 | 1 | ✗ |
+| `getStudentProfileDetail` | L22-26 | 5 | 1 | 0 | 2 | ✗ |
+
+✓ 代码质量良好，没有明显问题
+
+**详情**:
+- 循环复杂度: 平均: 1.0, 最大: 1
+- 认知复杂度: 平均: 1.0, 最大: 1
+- 嵌套深度: 平均: 0.0, 最大: 0
+- 函数长度: 平均: 4.0 行, 最大: 5 行
+- 文件长度: 9 代码量 (27 总计)
+- 参数数量: 平均: 1.5, 最大: 2
+- 代码重复: 未发现函数
+- 结构分析: 0 个结构问题
+- 错误处理: 0/2 个错误被忽略 (0.0%)
+- 注释比例: 166.7% (15/9)
+- 命名规范: 无命名违规
+
+### 354. frontend\src\api\admin\log.ts
+
+**糟糕指数: 2.50**
+
+> 行数: 112 总计, 37 代码, 64 注释 | 函数: 10 | 类: 0
+
+**问题**: 📝 注释问题: 1
+
+#### 函数详情
+
+| 函数 | 行范围 | 行数 | 复杂度 | 嵌套 | 参数 | 注释 |
+|:-----|------:|------:|------:|------:|------:|:------:|
+| `getLogs` | L20-22 | 3 | 1 | 0 | 1 | ✗ |
+| `getSystemLogs` | L29-31 | 3 | 1 | 0 | 1 | ✗ |
+| `getLogDetail` | L38-40 | 3 | 1 | 0 | 1 | ✗ |
+| `getLogStatistics` | L50-52 | 3 | 1 | 0 | 1 | ✗ |
+| `getLogOptions` | L58-60 | 3 | 1 | 0 | 0 | ✗ |
+| `getLogModules` | L67-69 | 3 | 1 | 0 | 0 | ✗ |
+| `getLogActions` | L75-77 | 3 | 1 | 0 | 0 | ✗ |
+| `exportLogs` | L84-89 | 6 | 1 | 0 | 1 | ✗ |
+| `exportData` | L96-101 | 6 | 1 | 0 | 1 | ✗ |
+| `cleanExpiredLogs` | L109-111 | 3 | 1 | 0 | 1 | ✗ |
+
+✓ 代码质量良好，没有明显问题
+
+**详情**:
+- 循环复杂度: 平均: 1.0, 最大: 1
+- 认知复杂度: 平均: 1.0, 最大: 1
+- 嵌套深度: 平均: 0.0, 最大: 0
+- 函数长度: 平均: 3.6 行, 最大: 6 行
+- 文件长度: 37 代码量 (112 总计)
+- 参数数量: 平均: 0.7, 最大: 1
+- 代码重复: 0.0% 重复 (0/10)
+- 结构分析: 0 个结构问题
+- 错误处理: 0/10 个错误被忽略 (0.0%)
+- 注释比例: 173.0% (64/37)
+- 命名规范: 无命名违规
+
+### 355. frontend\src\api\admin\course.ts
+
+**糟糕指数: 2.50**
+
+> 行数: 81 总计, 24 代码, 49 注释 | 函数: 7 | 类: 0
+
+**问题**: 📝 注释问题: 1
+
+#### 函数详情
+
+| 函数 | 行范围 | 行数 | 复杂度 | 嵌套 | 参数 | 注释 |
+|:-----|------:|------:|------:|------:|------:|:------:|
+| `getAllCourses` | L17-19 | 3 | 1 | 0 | 1 | ✗ |
+| `getCourseDetail` | L26-28 | 3 | 1 | 0 | 1 | ✗ |
+| `createCourse` | L38-40 | 3 | 1 | 0 | 1 | ✗ |
+| `updateCourse` | L48-50 | 3 | 1 | 0 | 2 | ✗ |
+| `deleteCourse` | L57-59 | 3 | 1 | 0 | 1 | ✗ |
+| `assignCourseTeacher` | L67-71 | 5 | 1 | 0 | 2 | ✗ |
+| `getCourseStats` | L78-80 | 3 | 1 | 0 | 1 | ✗ |
+
+✓ 代码质量良好，没有明显问题
+
+**详情**:
+- 循环复杂度: 平均: 1.0, 最大: 1
+- 认知复杂度: 平均: 1.0, 最大: 1
+- 嵌套深度: 平均: 0.0, 最大: 0
+- 函数长度: 平均: 3.3 行, 最大: 5 行
+- 文件长度: 24 代码量 (81 总计)
+- 参数数量: 平均: 1.3, 最大: 2
+- 代码重复: 0.0% 重复 (0/7)
+- 结构分析: 0 个结构问题
+- 错误处理: 0/7 个错误被忽略 (0.0%)
+- 注释比例: 204.2% (49/24)
+- 命名规范: 无命名违规
+
+### 356. frontend\src\api\admin\class.ts
+
+**糟糕指数: 2.50**
+
+> 行数: 113 总计, 35 代码, 67 注释 | 函数: 10 | 类: 0
+
+**问题**: 📝 注释问题: 1
+
+#### 函数详情
+
+| 函数 | 行范围 | 行数 | 复杂度 | 嵌套 | 参数 | 注释 |
+|:-----|------:|------:|------:|------:|------:|:------:|
+| `getClassList` | L17-19 | 3 | 1 | 0 | 1 | ✗ |
+| `getClassDetail` | L26-28 | 3 | 1 | 0 | 1 | ✗ |
+| `createClass` | L38-40 | 3 | 1 | 0 | 1 | ✗ |
+| `updateClass` | L48-50 | 3 | 1 | 0 | 2 | ✗ |
+| `deleteClass` | L57-59 | 3 | 1 | 0 | 1 | ✗ |
+| `getClassStudents` | L67-69 | 3 | 1 | 0 | 2 | ✗ |
+| `addStudentsToClass` | L77-81 | 5 | 1 | 0 | 2 | ✗ |
+| `removeStudentFromClass` | L89-91 | 3 | 1 | 0 | 2 | ✗ |
+| `assignClassTeacher` | L99-103 | 5 | 1 | 0 | 2 | ✗ |
+| `getClassStats` | L110-112 | 3 | 1 | 0 | 1 | ✗ |
+
+✓ 代码质量良好，没有明显问题
+
+**详情**:
+- 循环复杂度: 平均: 1.0, 最大: 1
+- 认知复杂度: 平均: 1.0, 最大: 1
+- 嵌套深度: 平均: 0.0, 最大: 0
+- 函数长度: 平均: 3.4 行, 最大: 5 行
+- 文件长度: 35 代码量 (113 总计)
+- 参数数量: 平均: 1.5, 最大: 2
+- 代码重复: 0.0% 重复 (0/10)
+- 结构分析: 0 个结构问题
+- 错误处理: 0/10 个错误被忽略 (0.0%)
+- 注释比例: 191.4% (67/35)
+- 命名规范: 无命名违规
+
+### 357. frontend\src\api\admin\activation.ts
+
+**糟糕指数: 2.50**
+
+> 行数: 84 总计, 27 代码, 49 注释 | 函数: 7 | 类: 0
+
+**问题**: 📝 注释问题: 1
+
+#### 函数详情
+
+| 函数 | 行范围 | 行数 | 复杂度 | 嵌套 | 参数 | 注释 |
+|:-----|------:|------:|------:|------:|------:|:------:|
+| `getActivationCodes` | L18-20 | 3 | 1 | 0 | 1 | ✗ |
+| `getActivationCodeDetail` | L27-29 | 3 | 1 | 0 | 1 | ✗ |
+| `generateActivationCodes` | L40-42 | 3 | 1 | 0 | 1 | ✗ |
+| `deleteActivationCode` | L49-51 | 3 | 1 | 0 | 1 | ✗ |
+| `batchDeleteActivationCodes` | L58-62 | 5 | 1 | 0 | 1 | ✗ |
+| `validateActivationCode` | L69-71 | 3 | 1 | 0 | 1 | ✗ |
+| `exportActivationCodes` | L78-83 | 6 | 1 | 0 | 1 | ✗ |
+
+✓ 代码质量良好，没有明显问题
+
+**详情**:
+- 循环复杂度: 平均: 1.0, 最大: 1
+- 认知复杂度: 平均: 1.0, 最大: 1
+- 嵌套深度: 平均: 0.0, 最大: 0
+- 函数长度: 平均: 3.7 行, 最大: 6 行
+- 文件长度: 27 代码量 (84 总计)
+- 参数数量: 平均: 1.0, 最大: 1
+- 代码重复: 0.0% 重复 (0/7)
+- 结构分析: 0 个结构问题
+- 错误处理: 0/7 个错误被忽略 (0.0%)
+- 注释比例: 181.5% (49/27)
+- 命名规范: 无命名违规
+
+### 358. backend\users\auth_password_views.py
 
 **糟糕指数: 2.39**
 
@@ -14320,7 +14360,7 @@
 - 注释比例: 3.8% (2/52)
 - 命名规范: 无命名违规
 
-### 358. frontend\src\api\common.ts
+### 359. frontend\src\api\common.ts
 
 **糟糕指数: 2.31**
 
@@ -14349,7 +14389,7 @@
 - 注释比例: 75.0% (3/4)
 - 命名规范: 无命名违规
 
-### 359. backend\models\DKT\KnowledgeTracing\evaluation\run.py
+### 360. backend\models\DKT\KnowledgeTracing\evaluation\run.py
 
 **糟糕指数: 2.26**
 
@@ -14372,7 +14412,7 @@
 - 注释比例: 73.7% (14/19)
 - 命名规范: 无命名违规
 
-### 360. backend\tools\browser_audit.py
+### 361. backend\tools\browser_audit.py
 
 **糟糕指数: 2.14**
 
@@ -14401,7 +14441,7 @@
 - 注释比例: 6.1% (2/33)
 - 命名规范: 无命名违规
 
-### 361. backend\ai_services\migrations\0001_initial.py
+### 362. backend\ai_services\migrations\0001_initial.py
 
 **糟糕指数: 2.05**
 
@@ -14424,7 +14464,7 @@
 - 注释比例: 67.9% (19/28)
 - 命名规范: 无命名违规
 
-### 362. frontend\src\router\guards.ts
+### 363. frontend\src\router\guards.ts
 
 **糟糕指数: 2.03**
 
@@ -14457,7 +14497,7 @@
 - 注释比例: 67.6% (50/74)
 - 命名规范: 无命名违规
 
-### 363. backend\ai_services\services\llm_provider_config.py
+### 364. backend\ai_services\services\llm_provider_config.py
 
 **糟糕指数: 1.96**
 
@@ -14480,7 +14520,7 @@
 - 注释比例: 1.5% (2/130)
 - 命名规范: 无命名违规
 
-### 364. backend\exams\migrations\0001_initial.py
+### 365. backend\exams\migrations\0001_initial.py
 
 **糟糕指数: 1.92**
 
@@ -14503,7 +14543,7 @@
 - 注释比例: 64.6% (51/79)
 - 命名规范: 无命名违规
 
-### 365. backend\logs\migrations\0001_initial.py
+### 366. backend\logs\migrations\0001_initial.py
 
 **糟糕指数: 1.89**
 
@@ -14526,7 +14566,7 @@
 - 注释比例: 63.9% (23/36)
 - 命名规范: 无命名违规
 
-### 366. frontend\src\composables\useCourse.ts
+### 367. frontend\src\composables\useCourse.ts
 
 **糟糕指数: 1.87**
 
@@ -14562,7 +14602,7 @@
 - 注释比例: 53.8% (49/91)
 - 命名规范: 无命名违规
 
-### 367. backend\learning\migrations\0001_initial.py
+### 368. backend\learning\migrations\0001_initial.py
 
 **糟糕指数: 1.83**
 
@@ -14585,7 +14625,7 @@
 - 注释比例: 62.3% (38/61)
 - 命名规范: 无命名违规
 
-### 368. backend\assessments\migrations\0001_initial.py
+### 369. backend\assessments\migrations\0001_initial.py
 
 **糟糕指数: 1.80**
 
@@ -14608,7 +14648,7 @@
 - 注释比例: 61.4% (70/114)
 - 命名规范: 无命名违规
 
-### 369. backend\common\config.py
+### 370. backend\common\config.py
 
 **糟糕指数: 1.77**
 
@@ -14676,7 +14716,7 @@
 - 注释比例: 5.8% (14/240)
 - 命名规范: 发现 1 个违规
 
-### 370. backend\knowledge\migrations\0001_initial.py
+### 371. backend\knowledge\migrations\0001_initial.py
 
 **糟糕指数: 1.75**
 
@@ -14699,7 +14739,7 @@
 - 注释比例: 60.0% (54/90)
 - 命名规范: 无命名违规
 
-### 371. backend\courses\migrations\0001_initial.py
+### 372. backend\courses\migrations\0001_initial.py
 
 **糟糕指数: 1.73**
 
@@ -14722,7 +14762,7 @@
 - 注释比例: 59.6% (31/52)
 - 命名规范: 无命名违规
 
-### 372. backend\users\migrations\0001_initial.py
+### 373. backend\users\migrations\0001_initial.py
 
 **糟糕指数: 1.73**
 
@@ -14745,7 +14785,7 @@
 - 注释比例: 59.5% (44/74)
 - 命名规范: 无命名违规
 
-### 373. backend\tools\rebuild_demo.py
+### 374. backend\tools\rebuild_demo.py
 
 **糟糕指数: 1.66**
 
@@ -14774,7 +14814,7 @@
 - 注释比例: 6.6% (4/61)
 - 命名规范: 无命名违规
 
-### 374. backend\courses\admin_course_class_stats_views.py
+### 375. backend\courses\admin_course_class_stats_views.py
 
 **糟糕指数: 1.65**
 
@@ -14804,7 +14844,7 @@
 - 注释比例: 2.4% (1/41)
 - 命名规范: 无命名违规
 
-### 375. backend\courses\views.py
+### 376. backend\courses\views.py
 
 **糟糕指数: 1.64**
 
@@ -14827,7 +14867,7 @@
 - 注释比例: 57.1% (4/7)
 - 命名规范: 无命名违规
 
-### 376. backend\knowledge\urls.py
+### 377. backend\knowledge\urls.py
 
 **糟糕指数: 1.61**
 
@@ -14850,7 +14890,7 @@
 - 注释比例: 2.5% (5/198)
 - 命名规范: 无命名违规
 
-### 377. frontend\src\utils\courseCover.ts
+### 378. frontend\src\utils\courseCover.ts
 
 **糟糕指数: 1.60**
 
@@ -14880,7 +14920,7 @@
 - 注释比例: 56.1% (23/41)
 - 命名规范: 无命名违规
 
-### 378. backend\assessments\migrations\0004_alter_surveyquestion_options_and_more.py
+### 379. backend\assessments\migrations\0004_alter_surveyquestion_options_and_more.py
 
 **糟糕指数: 1.56**
 
@@ -14903,7 +14943,7 @@
 - 注释比例: 54.8% (57/104)
 - 命名规范: 无命名违规
 
-### 379. backend\users\migrations\0005_remove_habitpreference_reminder_settings.py
+### 380. backend\users\migrations\0005_remove_habitpreference_reminder_settings.py
 
 **糟糕指数: 1.55**
 
@@ -14926,7 +14966,7 @@
 - 注释比例: 54.5% (6/11)
 - 命名规范: 无命名违规
 
-### 380. frontend\src\main.ts
+### 381. frontend\src\main.ts
 
 **糟糕指数: 1.53**
 
@@ -14949,7 +14989,7 @@
 - 注释比例: 54.2% (13/24)
 - 命名规范: 无命名违规
 
-### 381. frontend\src\composables\useAIProgress.ts
+### 382. frontend\src\composables\useAIProgress.ts
 
 **糟糕指数: 1.53**
 
@@ -14983,7 +15023,7 @@
 - 注释比例: 54.1% (46/85)
 - 命名规范: 无命名违规
 
-### 382. backend\courses\migrations\0005_announcement.py
+### 383. backend\courses\migrations\0005_announcement.py
 
 **糟糕指数: 1.51**
 
@@ -15006,7 +15046,7 @@
 - 注释比例: 53.6% (15/28)
 - 命名规范: 无命名违规
 
-### 383. backend\exams\student_views.py
+### 384. backend\exams\student_views.py
 
 **糟糕指数: 1.48**
 
@@ -15029,7 +15069,7 @@
 - 注释比例: 2.9% (2/69)
 - 命名规范: 无命名违规
 
-### 384. backend\users\views.py
+### 385. backend\users\views.py
 
 **糟糕指数: 1.38**
 
@@ -15052,7 +15092,7 @@
 - 注释比例: 50.0% (4/8)
 - 命名规范: 无命名违规
 
-### 385. backend\users\migrations\0004_alter_habitpreference_review_frequency.py
+### 386. backend\users\migrations\0004_alter_habitpreference_review_frequency.py
 
 **糟糕指数: 1.38**
 
@@ -15075,7 +15115,30 @@
 - 注释比例: 50.0% (6/12)
 - 命名规范: 无命名违规
 
-### 386. backend\learning\migrations\0005_nodeprogress_extra_data.py
+### 387. backend\logs\migrations\0002_alter_operationlog_module.py
+
+**糟糕指数: 1.38**
+
+> 行数: 24 总计, 12 代码, 6 注释 | 函数: 0 | 类: 1
+
+**问题**: 📝 注释问题: 1
+
+✓ 代码质量良好，没有明显问题
+
+**详情**:
+- 循环复杂度: 未发现函数
+- 认知复杂度: 未发现函数
+- 嵌套深度: 未发现函数
+- 函数长度: 未发现函数
+- 文件长度: 12 代码量 (24 总计)
+- 参数数量: 未发现函数
+- 代码重复: 未发现函数
+- 结构分析: 未发现函数
+- 错误处理: 未发现函数
+- 注释比例: 50.0% (6/12)
+- 命名规范: 无命名违规
+
+### 388. backend\learning\migrations\0005_nodeprogress_extra_data.py
 
 **糟糕指数: 1.38**
 
@@ -15098,7 +15161,7 @@
 - 注释比例: 50.0% (6/12)
 - 命名规范: 无命名违规
 
-### 387. backend\learning\migrations\0003_add_skipped_status.py
+### 389. backend\learning\migrations\0003_add_skipped_status.py
 
 **糟糕指数: 1.38**
 
@@ -15121,7 +15184,7 @@
 - 注释比例: 50.0% (6/12)
 - 命名规范: 无命名违规
 
-### 388. backend\logs\migrations\0002_alter_operationlog_module.py
+### 390. backend\knowledge\migrations\0005_alter_knowledgerelation_relation_type.py
 
 **糟糕指数: 1.38**
 
@@ -15144,7 +15207,7 @@
 - 注释比例: 50.0% (6/12)
 - 命名规范: 无命名违规
 
-### 389. backend\knowledge\migrations\0005_alter_knowledgerelation_relation_type.py
+### 391. backend\courses\migrations\0004_course_config.py
 
 **糟糕指数: 1.38**
 
@@ -15167,7 +15230,7 @@
 - 注释比例: 50.0% (6/12)
 - 命名规范: 无命名违规
 
-### 390. backend\courses\migrations\0004_course_config.py
+### 392. backend\ai_services\migrations\0003_add_chat_kt_call_types.py
 
 **糟糕指数: 1.38**
 
@@ -15190,30 +15253,7 @@
 - 注释比例: 50.0% (6/12)
 - 命名规范: 无命名违规
 
-### 391. backend\ai_services\migrations\0003_add_chat_kt_call_types.py
-
-**糟糕指数: 1.38**
-
-> 行数: 24 总计, 12 代码, 6 注释 | 函数: 0 | 类: 1
-
-**问题**: 📝 注释问题: 1
-
-✓ 代码质量良好，没有明显问题
-
-**详情**:
-- 循环复杂度: 未发现函数
-- 认知复杂度: 未发现函数
-- 嵌套深度: 未发现函数
-- 函数长度: 未发现函数
-- 文件长度: 12 代码量 (24 总计)
-- 参数数量: 未发现函数
-- 代码重复: 未发现函数
-- 结构分析: 未发现函数
-- 错误处理: 未发现函数
-- 注释比例: 50.0% (6/12)
-- 命名规范: 无命名违规
-
-### 392. frontend\src\utils\logger.ts
+### 393. frontend\src\utils\logger.ts
 
 **糟糕指数: 1.35**
 
@@ -15246,7 +15286,7 @@
 - 注释比例: 15.0% (6/40)
 - 命名规范: 无命名违规
 
-### 393. backend\users\migrations\0002_habitpreference_accept_challenge_and_more.py
+### 394. backend\users\migrations\0002_habitpreference_accept_challenge_and_more.py
 
 **糟糕指数: 1.34**
 
@@ -15269,7 +15309,7 @@
 - 注释比例: 49.1% (57/116)
 - 命名规范: 无命名违规
 
-### 394. backend\tools\cli.py
+### 395. backend\tools\cli.py
 
 **糟糕指数: 1.32**
 
@@ -15301,7 +15341,7 @@
 - 注释比例: 9.5% (2/21)
 - 命名规范: 发现 1 个违规
 
-### 395. backend\users\migrations\0003_alter_user_email_alter_user_phone.py
+### 396. backend\users\migrations\0003_alter_user_email_alter_user_phone.py
 
 **糟糕指数: 1.27**
 
@@ -15324,7 +15364,7 @@
 - 注释比例: 47.1% (8/17)
 - 命名规范: 无命名违规
 
-### 396. backend\learning\migrations\0004_pathnode_estimated_minutes_pathnode_node_type.py
+### 397. backend\learning\migrations\0004_pathnode_estimated_minutes_pathnode_node_type.py
 
 **糟糕指数: 1.27**
 
@@ -15347,7 +15387,7 @@
 - 注释比例: 47.1% (8/17)
 - 命名规范: 无命名违规
 
-### 397. backend\assessments\migrations\0006_assessmentstatus_generating_and_more.py
+### 398. backend\assessments\migrations\0006_assessmentstatus_generating_and_more.py
 
 **糟糕指数: 1.27**
 
@@ -15370,7 +15410,7 @@
 - 注释比例: 47.1% (8/17)
 - 命名规范: 无命名违规
 
-### 398. backend\assessments\migrations\0005_question_chapter_question_suggested_score.py
+### 399. backend\assessments\migrations\0005_question_chapter_question_suggested_score.py
 
 **糟糕指数: 1.27**
 
@@ -15393,7 +15433,7 @@
 - 注释比例: 47.1% (8/17)
 - 命名规范: 无命名违规
 
-### 399. backend\assessments\migrations\0002_initial.py
+### 400. backend\assessments\migrations\0002_initial.py
 
 **糟糕指数: 1.25**
 
@@ -15416,7 +15456,7 @@
 - 注释比例: 46.7% (7/15)
 - 命名规范: 无命名违规
 
-### 400. backend\knowledge\migrations\0004_resource_chapter_number_resource_duration_and_more.py
+### 401. backend\knowledge\migrations\0004_resource_chapter_number_resource_duration_and_more.py
 
 **糟糕指数: 1.20**
 
@@ -15439,7 +15479,7 @@
 - 注释比例: 45.5% (10/22)
 - 命名规范: 无命名违规
 
-### 401. backend\common\defense_demo.py
+### 402. backend\common\defense_demo.py
 
 **糟糕指数: 1.20**
 
@@ -15462,7 +15502,7 @@
 - 注释比例: 3.7% (2/54)
 - 命名规范: 无命名违规
 
-### 402. backend\courses\migrations\0003_alter_class_options_class_description_and_more.py
+### 403. backend\courses\migrations\0003_alter_class_options_class_description_and_more.py
 
 **糟糕指数: 1.16**
 
@@ -15485,7 +15525,7 @@
 - 注释比例: 44.3% (27/61)
 - 命名规范: 无命名违规
 
-### 403. backend\ai_services\migrations\0002_initial.py
+### 404. backend\ai_services\migrations\0002_initial.py
 
 **糟糕指数: 1.14**
 
@@ -15508,7 +15548,7 @@
 - 注释比例: 43.8% (7/16)
 - 命名规范: 无命名违规
 
-### 404. backend\common\permissions.py
+### 405. backend\common\permissions.py
 
 **糟糕指数: 1.12**
 
@@ -15542,7 +15582,7 @@
 - 注释比例: 7.0% (4/57)
 - 命名规范: 无命名违规
 
-### 405. backend\knowledge\migrations\0003_knowledgepoint_category_and_more.py
+### 406. backend\knowledge\migrations\0003_knowledgepoint_category_and_more.py
 
 **糟糕指数: 1.12**
 
@@ -15565,7 +15605,7 @@
 - 注释比例: 43.2% (16/37)
 - 命名规范: 无命名违规
 
-### 406. frontend\src\stores\assessment.ts
+### 407. frontend\src\stores\assessment.ts
 
 **糟糕指数: 1.09**
 
@@ -15605,7 +15645,7 @@
 - 注释比例: 42.5% (85/200)
 - 命名规范: 无命名违规
 
-### 407. frontend\src\router\routes\auth.ts
+### 408. frontend\src\router\routes\auth.ts
 
 **糟糕指数: 1.06**
 
@@ -15635,7 +15675,7 @@
 - 注释比例: 41.7% (10/24)
 - 命名规范: 无命名违规
 
-### 408. backend\wisdom_edu_api\urls.py
+### 409. backend\wisdom_edu_api\urls.py
 
 **糟糕指数: 1.02**
 
@@ -15658,7 +15698,7 @@
 - 注释比例: 40.5% (15/37)
 - 命名规范: 无命名违规
 
-### 409. backend\platform_ai\__init__.py
+### 410. backend\platform_ai\__init__.py
 
 **糟糕指数: 1.00**
 
@@ -15681,7 +15721,7 @@
 - 注释比例: 40.0% (2/5)
 - 命名规范: 无命名违规
 
-### 410. backend\courses\migrations\0002_initial.py
+### 411. backend\courses\migrations\0002_initial.py
 
 **糟糕指数: 1.00**
 
@@ -15704,7 +15744,7 @@
 - 注释比例: 40.0% (16/40)
 - 命名规范: 无命名违规
 
-### 411. backend\exams\migrations\0003_alter_feedbackreport_unique_together_and_more.py
+### 412. backend\exams\migrations\0003_alter_feedbackreport_unique_together_and_more.py
 
 **糟糕指数: 0.96**
 
@@ -15727,7 +15767,7 @@
 - 注释比例: 39.4% (13/33)
 - 命名规范: 无命名违规
 
-### 412. backend\ai_services\urls.py
+### 413. backend\ai_services\urls.py
 
 **糟糕指数: 0.94**
 
@@ -15750,7 +15790,7 @@
 - 注释比例: 4.4% (4/90)
 - 命名规范: 无命名违规
 
-### 413. backend\learning\views.py
+### 414. backend\learning\views.py
 
 **糟糕指数: 0.87**
 
@@ -15773,7 +15813,7 @@
 - 注释比例: 4.7% (2/43)
 - 命名规范: 无命名违规
 
-### 414. backend\exams\migrations\0002_initial.py
+### 415. backend\exams\migrations\0002_initial.py
 
 **糟糕指数: 0.87**
 
@@ -15796,7 +15836,7 @@
 - 注释比例: 38.0% (27/71)
 - 命名规范: 无命名违规
 
-### 415. backend\knowledge\migrations\0002_initial.py
+### 416. backend\knowledge\migrations\0002_initial.py
 
 **糟糕指数: 0.86**
 
@@ -15819,7 +15859,7 @@
 - 注释比例: 38.0% (30/79)
 - 命名规范: 无命名违规
 
-### 416. backend\assessments\migrations\0003_initial.py
+### 417. backend\assessments\migrations\0003_initial.py
 
 **糟糕指数: 0.86**
 
@@ -15842,7 +15882,7 @@
 - 注释比例: 37.9% (36/95)
 - 命名规范: 无命名违规
 
-### 417. backend\learning\migrations\0002_initial.py
+### 418. backend\learning\migrations\0002_initial.py
 
 **糟糕指数: 0.83**
 
@@ -15865,7 +15905,7 @@
 - 注释比例: 37.5% (21/56)
 - 命名规范: 无命名违规
 
-### 418. frontend\src\router\index.ts
+### 419. frontend\src\router\index.ts
 
 **糟糕指数: 0.67**
 
@@ -15900,7 +15940,7 @@
 - 注释比例: 35.1% (26/74)
 - 命名规范: 无命名违规
 
-### 419. backend\logs\urls.py
+### 420. backend\logs\urls.py
 
 **糟糕指数: 0.67**
 
@@ -15923,7 +15963,7 @@
 - 注释比例: 5.6% (1/18)
 - 命名规范: 无命名违规
 
-### 420. backend\courses\signals.py
+### 421. backend\courses\signals.py
 
 **糟糕指数: 0.67**
 
@@ -15952,7 +15992,7 @@
 - 注释比例: 5.6% (1/18)
 - 命名规范: 无命名违规
 
-### 421. backend\ai_services\services\mefkt_loader.py
+### 422. backend\ai_services\services\mefkt_loader.py
 
 **糟糕指数: 0.66**
 
@@ -15982,7 +16022,7 @@
 - 注释比例: 7.7% (2/26)
 - 命名规范: 无命名违规
 
-### 422. frontend\src\router\routes\teacher.ts
+### 423. frontend\src\router\routes\teacher.ts
 
 **糟糕指数: 0.66**
 
@@ -16022,7 +16062,7 @@
 - 注释比例: 5.6% (11/196)
 - 命名规范: 无命名违规
 
-### 423. backend\manage.py
+### 424. backend\manage.py
 
 **糟糕指数: 0.62**
 
@@ -16051,7 +16091,7 @@
 - 注释比例: 5.9% (1/17)
 - 命名规范: 无命名违规
 
-### 424. backend\models\MEFKT\__init__.py
+### 425. backend\models\MEFKT\__init__.py
 
 **糟糕指数: 0.59**
 
@@ -16074,7 +16114,7 @@
 - 注释比例: 6.1% (2/33)
 - 命名规范: 无命名违规
 
-### 425. frontend\src\router\routes\student.ts
+### 426. frontend\src\router\routes\student.ts
 
 **糟糕指数: 0.58**
 
@@ -16121,7 +16161,7 @@
 - 注释比例: 6.1% (13/212)
 - 命名规范: 无命名违规
 
-### 426. backend\exams\views.py
+### 427. backend\exams\views.py
 
 **糟糕指数: 0.56**
 
@@ -16144,7 +16184,7 @@
 - 注释比例: 33.3% (2/6)
 - 命名规范: 无命名违规
 
-### 427. frontend\src\env.d.ts
+### 428. frontend\src\env.d.ts
 
 **糟糕指数: 0.34**
 
@@ -16167,7 +16207,7 @@
 - 注释比例: 7.7% (1/13)
 - 命名规范: 无命名违规
 
-### 428. backend\knowledge\migrations\0006_knowledgepoint_introduction_fields.py
+### 429. backend\knowledge\migrations\0006_knowledgepoint_introduction_fields.py
 
 **糟糕指数: 0.31**
 
@@ -16190,7 +16230,7 @@
 - 注释比例: 29.6% (8/27)
 - 命名规范: 无命名违规
 
-### 429. backend\models\MEFKT\model.py
+### 430. backend\models\MEFKT\model.py
 
 **糟糕指数: 0.30**
 
@@ -16213,7 +16253,7 @@
 - 注释比例: 8.0% (2/25)
 - 命名规范: 无命名违规
 
-### 430. backend\tools\dkt_paths.py
+### 431. backend\tools\dkt_paths.py
 
 **糟糕指数: 0.24**
 
@@ -16236,7 +16276,7 @@
 - 注释比例: 28.6% (2/7)
 - 命名规范: 无命名违规
 
-### 431. backend\models\DKT\KnowledgeTracing\Constant\Constants.py
+### 432. backend\models\DKT\KnowledgeTracing\Constant\Constants.py
 
 **糟糕指数: 0.17**
 
@@ -16259,7 +16299,7 @@
 - 注释比例: 27.6% (8/29)
 - 命名规范: 无命名违规
 
-### 432. frontend\vite.config.ts
+### 433. frontend\vite.config.ts
 
 **糟糕指数: 0.00**
 
@@ -16286,27 +16326,6 @@
 - 结构分析: 0 个结构问题
 - 错误处理: 未检测到易出错调用
 - 注释比例: 17.4% (16/92)
-- 命名规范: 无命名违规
-
-### 433. backend\wisdom_edu_api\__init__.py
-
-**糟糕指数: 0.00**
-
-> 行数: 1 总计, 0 代码, 0 注释 | 函数: 0 | 类: 0
-
-✓ 代码质量良好，没有明显问题
-
-**详情**:
-- 循环复杂度: 未发现函数
-- 认知复杂度: 未发现函数
-- 嵌套深度: 未发现函数
-- 函数长度: 未发现函数
-- 文件长度: 0 代码量 (1 总计)
-- 参数数量: 未发现函数
-- 代码重复: 未发现函数
-- 结构分析: 未发现函数
-- 错误处理: 未发现函数
-- 注释比例: 无代码行
 - 命名规范: 无命名违规
 
 ### 434. backend\tools\__init__.py
@@ -16351,7 +16370,7 @@
 - 注释比例: 22.2% (2/9)
 - 命名规范: 无命名违规
 
-### 436. backend\users\__init__.py
+### 436. backend\wisdom_edu_api\__init__.py
 
 **糟糕指数: 0.00**
 
@@ -16372,7 +16391,28 @@
 - 注释比例: 无代码行
 - 命名规范: 无命名违规
 
-### 437. backend\users\urls.py
+### 437. backend\users\__init__.py
+
+**糟糕指数: 0.00**
+
+> 行数: 1 总计, 0 代码, 0 注释 | 函数: 0 | 类: 0
+
+✓ 代码质量良好，没有明显问题
+
+**详情**:
+- 循环复杂度: 未发现函数
+- 认知复杂度: 未发现函数
+- 嵌套深度: 未发现函数
+- 函数长度: 未发现函数
+- 文件长度: 0 代码量 (1 总计)
+- 参数数量: 未发现函数
+- 代码重复: 未发现函数
+- 结构分析: 未发现函数
+- 错误处理: 未发现函数
+- 注释比例: 无代码行
+- 命名规范: 无命名违规
+
+### 438. backend\users\urls.py
 
 **糟糕指数: 0.00**
 
@@ -16393,7 +16433,7 @@
 - 注释比例: 15.2% (7/46)
 - 命名规范: 无命名违规
 
-### 438. backend\learning\__init__.py
+### 439. backend\logs\__init__.py
 
 **糟糕指数: 0.00**
 
@@ -16414,7 +16454,70 @@
 - 注释比例: 无代码行
 - 命名规范: 无命名违规
 
-### 439. backend\learning\urls.py
+### 440. backend\exams\__init__.py
+
+**糟糕指数: 0.00**
+
+> 行数: 1 总计, 0 代码, 0 注释 | 函数: 0 | 类: 0
+
+✓ 代码质量良好，没有明显问题
+
+**详情**:
+- 循环复杂度: 未发现函数
+- 认知复杂度: 未发现函数
+- 嵌套深度: 未发现函数
+- 函数长度: 未发现函数
+- 文件长度: 0 代码量 (1 总计)
+- 参数数量: 未发现函数
+- 代码重复: 未发现函数
+- 结构分析: 未发现函数
+- 错误处理: 未发现函数
+- 注释比例: 无代码行
+- 命名规范: 无命名违规
+
+### 441. backend\exams\urls.py
+
+**糟糕指数: 0.00**
+
+> 行数: 56 总计, 41 代码, 7 注释 | 函数: 0 | 类: 0
+
+✓ 代码质量良好，没有明显问题
+
+**详情**:
+- 循环复杂度: 未发现函数
+- 认知复杂度: 未发现函数
+- 嵌套深度: 未发现函数
+- 函数长度: 未发现函数
+- 文件长度: 41 代码量 (56 总计)
+- 参数数量: 未发现函数
+- 代码重复: 未发现函数
+- 结构分析: 未发现函数
+- 错误处理: 未发现函数
+- 注释比例: 17.1% (7/41)
+- 命名规范: 无命名违规
+
+### 442. backend\learning\__init__.py
+
+**糟糕指数: 0.00**
+
+> 行数: 1 总计, 0 代码, 0 注释 | 函数: 0 | 类: 0
+
+✓ 代码质量良好，没有明显问题
+
+**详情**:
+- 循环复杂度: 未发现函数
+- 认知复杂度: 未发现函数
+- 嵌套深度: 未发现函数
+- 函数长度: 未发现函数
+- 文件长度: 0 代码量 (1 总计)
+- 参数数量: 未发现函数
+- 代码重复: 未发现函数
+- 结构分析: 未发现函数
+- 错误处理: 未发现函数
+- 注释比例: 无代码行
+- 命名规范: 无命名违规
+
+### 443. backend\learning\urls.py
 
 **糟糕指数: 0.00**
 
@@ -16435,7 +16538,7 @@
 - 注释比例: 10.7% (3/28)
 - 命名规范: 无命名违规
 
-### 440. backend\logs\__init__.py
+### 444. backend\knowledge\__init__.py
 
 **糟糕指数: 0.00**
 
@@ -16456,7 +16559,7 @@
 - 注释比例: 无代码行
 - 命名规范: 无命名违规
 
-### 441. backend\knowledge\__init__.py
+### 445. backend\courses\__init__.py
 
 **糟糕指数: 0.00**
 
@@ -16477,28 +16580,7 @@
 - 注释比例: 无代码行
 - 命名规范: 无命名违规
 
-### 442. backend\courses\__init__.py
-
-**糟糕指数: 0.00**
-
-> 行数: 1 总计, 0 代码, 0 注释 | 函数: 0 | 类: 0
-
-✓ 代码质量良好，没有明显问题
-
-**详情**:
-- 循环复杂度: 未发现函数
-- 认知复杂度: 未发现函数
-- 嵌套深度: 未发现函数
-- 函数长度: 未发现函数
-- 文件长度: 0 代码量 (1 总计)
-- 参数数量: 未发现函数
-- 代码重复: 未发现函数
-- 结构分析: 未发现函数
-- 错误处理: 未发现函数
-- 注释比例: 无代码行
-- 命名规范: 无命名违规
-
-### 443. backend\courses\urls.py
+### 446. backend\courses\urls.py
 
 **糟糕指数: 0.00**
 
@@ -16519,7 +16601,7 @@
 - 注释比例: 17.7% (11/62)
 - 命名规范: 无命名违规
 
-### 444. backend\courses\apps.py
+### 447. backend\courses\apps.py
 
 **糟糕指数: 0.00**
 
@@ -16546,49 +16628,7 @@
 - 注释比例: 13.3% (2/15)
 - 命名规范: 无命名违规
 
-### 445. backend\exams\__init__.py
-
-**糟糕指数: 0.00**
-
-> 行数: 1 总计, 0 代码, 0 注释 | 函数: 0 | 类: 0
-
-✓ 代码质量良好，没有明显问题
-
-**详情**:
-- 循环复杂度: 未发现函数
-- 认知复杂度: 未发现函数
-- 嵌套深度: 未发现函数
-- 函数长度: 未发现函数
-- 文件长度: 0 代码量 (1 总计)
-- 参数数量: 未发现函数
-- 代码重复: 未发现函数
-- 结构分析: 未发现函数
-- 错误处理: 未发现函数
-- 注释比例: 无代码行
-- 命名规范: 无命名违规
-
-### 446. backend\exams\urls.py
-
-**糟糕指数: 0.00**
-
-> 行数: 56 总计, 41 代码, 7 注释 | 函数: 0 | 类: 0
-
-✓ 代码质量良好，没有明显问题
-
-**详情**:
-- 循环复杂度: 未发现函数
-- 认知复杂度: 未发现函数
-- 嵌套深度: 未发现函数
-- 函数长度: 未发现函数
-- 文件长度: 41 代码量 (56 总计)
-- 参数数量: 未发现函数
-- 代码重复: 未发现函数
-- 结构分析: 未发现函数
-- 错误处理: 未发现函数
-- 注释比例: 17.1% (7/41)
-- 命名规范: 无命名违规
-
-### 447. backend\common\__init__.py
+### 448. backend\common\__init__.py
 
 **糟糕指数: 0.00**
 
@@ -16609,7 +16649,7 @@
 - 注释比例: 25.0% (2/8)
 - 命名规范: 无命名违规
 
-### 448. backend\common\urls.py
+### 449. backend\common\urls.py
 
 **糟糕指数: 0.00**
 
@@ -16630,7 +16670,7 @@
 - 注释比例: 11.1% (1/9)
 - 命名规范: 无命名违规
 
-### 449. backend\assessments\__init__.py
+### 450. backend\assessments\__init__.py
 
 **糟糕指数: 0.00**
 
@@ -16651,7 +16691,7 @@
 - 注释比例: 无代码行
 - 命名规范: 无命名违规
 
-### 450. backend\assessments\urls.py
+### 451. backend\assessments\urls.py
 
 **糟糕指数: 0.00**
 
@@ -16672,7 +16712,7 @@
 - 注释比例: 23.1% (6/26)
 - 命名规范: 无命名违规
 
-### 451. backend\ai_services\__init__.py
+### 452. backend\ai_services\__init__.py
 
 **糟糕指数: 0.00**
 
@@ -16693,28 +16733,7 @@
 - 注释比例: 无代码行
 - 命名规范: 无命名违规
 
-### 452. backend\users\migrations\__init__.py
-
-**糟糕指数: 0.00**
-
-> 行数: 1 总计, 0 代码, 0 注释 | 函数: 0 | 类: 0
-
-✓ 代码质量良好，没有明显问题
-
-**详情**:
-- 循环复杂度: 未发现函数
-- 认知复杂度: 未发现函数
-- 嵌套深度: 未发现函数
-- 函数长度: 未发现函数
-- 文件长度: 0 代码量 (1 总计)
-- 参数数量: 未发现函数
-- 代码重复: 未发现函数
-- 结构分析: 未发现函数
-- 错误处理: 未发现函数
-- 注释比例: 无代码行
-- 命名规范: 无命名违规
-
-### 453. backend\learning\migrations\__init__.py
+### 453. backend\users\migrations\__init__.py
 
 **糟糕指数: 0.00**
 
@@ -16756,7 +16775,7 @@
 - 注释比例: 无代码行
 - 命名规范: 无命名违规
 
-### 455. backend\knowledge\migrations\__init__.py
+### 455. backend\exams\migrations\__init__.py
 
 **糟糕指数: 0.00**
 
@@ -16777,7 +16796,7 @@
 - 注释比例: 无代码行
 - 命名规范: 无命名违规
 
-### 456. backend\courses\migrations\__init__.py
+### 456. backend\learning\migrations\__init__.py
 
 **糟糕指数: 0.00**
 
@@ -16798,7 +16817,7 @@
 - 注释比例: 无代码行
 - 命名规范: 无命名违规
 
-### 457. backend\exams\migrations\__init__.py
+### 457. backend\knowledge\migrations\__init__.py
 
 **糟糕指数: 0.00**
 
@@ -16819,7 +16838,7 @@
 - 注释比例: 无代码行
 - 命名规范: 无命名违规
 
-### 458. backend\common\migrations\__init__.py
+### 458. backend\courses\migrations\__init__.py
 
 **糟糕指数: 0.00**
 
@@ -16840,7 +16859,7 @@
 - 注释比例: 无代码行
 - 命名规范: 无命名违规
 
-### 459. backend\assessments\migrations\__init__.py
+### 459. backend\common\migrations\__init__.py
 
 **糟糕指数: 0.00**
 
@@ -16861,7 +16880,7 @@
 - 注释比例: 无代码行
 - 命名规范: 无命名违规
 
-### 460. backend\ai_services\migrations\__init__.py
+### 460. backend\assessments\migrations\__init__.py
 
 **糟糕指数: 0.00**
 
@@ -16882,7 +16901,28 @@
 - 注释比例: 无代码行
 - 命名规范: 无命名违规
 
-### 461. frontend\src\router\routes\admin.ts
+### 461. backend\ai_services\migrations\__init__.py
+
+**糟糕指数: 0.00**
+
+> 行数: 1 总计, 0 代码, 0 注释 | 函数: 0 | 类: 0
+
+✓ 代码质量良好，没有明显问题
+
+**详情**:
+- 循环复杂度: 未发现函数
+- 认知复杂度: 未发现函数
+- 嵌套深度: 未发现函数
+- 函数长度: 未发现函数
+- 文件长度: 0 代码量 (1 总计)
+- 参数数量: 未发现函数
+- 代码重复: 未发现函数
+- 结构分析: 未发现函数
+- 错误处理: 未发现函数
+- 注释比例: 无代码行
+- 命名规范: 无命名违规
+
+### 462. frontend\src\router\routes\admin.ts
 
 **糟糕指数: 0.00**
 
@@ -16915,7 +16955,7 @@
 - 注释比例: 13.4% (11/82)
 - 命名规范: 无命名违规
 
-### 462. frontend\src\api\admin\index.ts
+### 463. frontend\src\api\admin\index.ts
 
 **糟糕指数: 0.00**
 
@@ -16934,27 +16974,6 @@
 - 结构分析: 未发现函数
 - 错误处理: 未发现函数
 - 注释比例: 12.0% (3/25)
-- 命名规范: 无命名违规
-
-### 463. backend\models\DKT\KnowledgeTracing\data\__init__.py
-
-**糟糕指数: 0.00**
-
-> 行数: 1 总计, 0 代码, 0 注释 | 函数: 0 | 类: 0
-
-✓ 代码质量良好，没有明显问题
-
-**详情**:
-- 循环复杂度: 未发现函数
-- 认知复杂度: 未发现函数
-- 嵌套深度: 未发现函数
-- 函数长度: 未发现函数
-- 文件长度: 0 代码量 (1 总计)
-- 参数数量: 未发现函数
-- 代码重复: 未发现函数
-- 结构分析: 未发现函数
-- 错误处理: 未发现函数
-- 注释比例: 无代码行
 - 命名规范: 无命名违规
 
 ### 464. backend\models\DKT\KnowledgeTracing\model\__init__.py
@@ -16999,7 +17018,28 @@
 - 注释比例: 无代码行
 - 命名规范: 无命名违规
 
-### 466. backend\models\DKT\KnowledgeTracing\evaluation\__init__.py
+### 466. backend\models\DKT\KnowledgeTracing\data\__init__.py
+
+**糟糕指数: 0.00**
+
+> 行数: 1 总计, 0 代码, 0 注释 | 函数: 0 | 类: 0
+
+✓ 代码质量良好，没有明显问题
+
+**详情**:
+- 循环复杂度: 未发现函数
+- 认知复杂度: 未发现函数
+- 嵌套深度: 未发现函数
+- 函数长度: 未发现函数
+- 文件长度: 0 代码量 (1 总计)
+- 参数数量: 未发现函数
+- 代码重复: 未发现函数
+- 结构分析: 未发现函数
+- 错误处理: 未发现函数
+- 注释比例: 无代码行
+- 命名规范: 无命名违规
+
+### 467. backend\models\DKT\KnowledgeTracing\evaluation\__init__.py
 
 **糟糕指数: 0.00**
 
@@ -17030,10 +17070,10 @@
 | `update_userinfo` | backend\users\auth_views.py | 22 | 4 | 66 |
 | `admin_user_import` | backend\users\admin_user_management_views.py | 21 | 3 | 54 |
 | `build_excel_question_payload` | backend\tools\question_import_support.py | 20 | 1 | 44 |
-| `_preset_student1_demo_data` | backend\tools\db_demo_preset.py | 19 | 3 | 199 |
 | `_handle_kt_menu_choice` | backend\tools\cli_menu.py | 19 | 1 | 48 |
 | `question_detail` | backend\knowledge\teacher_question_views.py | 19 | 3 | 61 |
 | `ai_node_intro` | backend\ai_services\student_rag_views.py | 19 | 1 | 75 |
+| `resource_list` | backend\knowledge\teacher_resource_views.py | 18 | 3 | 53 |
 
 ## 诊断结论 {#conclusion}
 
