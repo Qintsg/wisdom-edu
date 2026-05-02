@@ -12,9 +12,15 @@ import logging
 from typing import Dict, List, Optional, Set, TYPE_CHECKING
 from django.db import transaction
 
-logger = logging.getLogger(__name__)
+from ai_services.services.path_generation_support import (
+    REMEDIAL_REINSERTION_THRESHOLD,
+    attach_resources_to_created_nodes,
+    build_generation_plan,
+    load_course_point_ids,
+    sync_course_mastery,
+)
 
-REMEDIAL_REINSERTION_THRESHOLD = 0.6
+logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     from courses.models import Course
@@ -28,155 +34,6 @@ class PathService:
 
     提供学习路径的生成、调整和进度管理功能
     """
-
-    def _load_course_point_ids(self, course_id: int) -> List[int]:
-        """返回课程内所有已发布知识点 ID。"""
-        from knowledge.models import KnowledgePoint
-
-        return list(
-            KnowledgePoint.objects.filter(course_id=course_id, is_published=True)
-            .order_by("order", "id")
-            .values_list("id", flat=True)
-        )
-
-    def _build_linked_pending_batch(
-        self,
-        pending_points: List["KnowledgePoint"],
-        mastery_dict: Dict[int, float],
-        prereq_map: Dict[int, List[int]],
-        dependents_map: Dict[int, List[int]],
-        batch_size: int,
-    ) -> List["KnowledgePoint"]:
-        """从待学习知识点中，选取“最低掌握度且尽量互相关联”的小批次。"""
-        if not pending_points or batch_size <= 0:
-            return []
-
-        pending_by_id = {point.id: point for point in pending_points}
-        pending_ids = set(pending_by_id.keys())
-
-        # 先按掌握度（低→高）排序，确定种子点。
-        ordered = sorted(
-            pending_points,
-            key=lambda point: (
-                float(mastery_dict.get(point.id, 0)),
-                point.order,
-                point.id,
-            ),
-        )
-        seed_point = ordered[0]
-
-        selected_ids: List[int] = [seed_point.id]
-        visited_ids: Set[int] = {seed_point.id}
-        queue_ids: List[int] = [seed_point.id]
-
-        # 在前置/后继图上做宽搜，优先把关联点拉进同一轮。
-        while queue_ids and len(selected_ids) < batch_size:
-            current_id = queue_ids.pop(0)
-            neighbor_ids = prereq_map.get(current_id, []) + dependents_map.get(
-                current_id, []
-            )
-            for neighbor_id in neighbor_ids:
-                if neighbor_id in visited_ids or neighbor_id not in pending_ids:
-                    continue
-                visited_ids.add(neighbor_id)
-                selected_ids.append(neighbor_id)
-                queue_ids.append(neighbor_id)
-                if len(selected_ids) >= batch_size:
-                    break
-
-        # 若关联点不足，回退为低掌握度补齐。
-        if len(selected_ids) < batch_size:
-            for point in ordered:
-                if point.id in visited_ids:
-                    continue
-                selected_ids.append(point.id)
-                visited_ids.add(point.id)
-                if len(selected_ids) >= batch_size:
-                    break
-
-        return [
-            pending_by_id[point_id]
-            for point_id in selected_ids
-            if point_id in pending_by_id
-        ]
-
-    def _sync_course_mastery(
-        self,
-        user: "User",
-        course: "Course",
-        course_point_ids: List[int],
-    ) -> Dict[int, float]:
-        """同步课程全量掌握度，保证路径规划覆盖全部知识点。"""
-        from assessments.models import AnswerHistory
-        from ai_services.services import kt_service
-        from knowledge.models import KnowledgeMastery
-        from learning.path_rules import apply_prerequisite_caps
-
-        course_id = course.id
-        mastery_dict: Dict[int, float] = {}
-
-        answer_records = list(
-            AnswerHistory.objects.filter(user=user, course_id=course_id)
-            .order_by("answered_at")
-            .values("question_id", "knowledge_point_id", "is_correct")
-        )
-        kt_history = [
-            {
-                "question_id": record["question_id"],
-                "knowledge_point_id": record["knowledge_point_id"],
-                "correct": 1 if record["is_correct"] else 0,
-            }
-            for record in answer_records
-            if record["knowledge_point_id"]
-        ]
-
-        if kt_history:
-            try:
-                kt_result = kt_service.predict_mastery(
-                    user_id=user.id,
-                    course_id=course_id,
-                    answer_history=kt_history,
-                    knowledge_points=course_point_ids,
-                )
-                raw_predictions = kt_result.get("predictions") or {}
-                mastery_dict = {
-                    int(point_id): float(value)
-                    for point_id, value in raw_predictions.items()
-                }
-                logger.info(
-                    "KT服务调用成功(路径生成): 用户=%s, 答题历史=%d条, 预测结果=%d条",
-                    user.id,
-                    len(kt_history),
-                    len(mastery_dict),
-                )
-            except Exception as kt_error:
-                logger.error(
-                    "KT预测失败(路径生成): 用户=%s, 错误=%s", user.id, kt_error
-                )
-
-        # 覆盖全部知识点：有记录沿用，无记录默认0.25。
-        existing_mastery = {
-            row.knowledge_point_id: float(row.mastery_rate)
-            for row in KnowledgeMastery.objects.filter(user=user, course_id=course_id)
-        }
-        for point_id in course_point_ids:
-            if point_id not in mastery_dict:
-                mastery_dict[point_id] = existing_mastery.get(point_id, 0.25)
-
-        mastery_dict = apply_prerequisite_caps(
-            mastery_dict, course_id=course_id, buffer=0.05
-        )
-
-        for point_id, mastery_rate in mastery_dict.items():
-            # 更新或创建记录
-            KnowledgeMastery.objects.update_or_create(
-                user=user,
-                course_id=course_id,
-                knowledge_point_id=point_id,
-                defaults={"mastery_rate": float(mastery_rate)},
-            )
-        return mastery_dict
-
     def generate_path(
         self,
         user: "User",
@@ -213,14 +70,14 @@ class PathService:
         course_id = course.id
 
         # --- 1. 统一同步全量掌握度（覆盖课程所有已发布知识点） ---
-        course_point_ids = self._load_course_point_ids(course_id)
+        course_point_ids = load_course_point_ids(course_id)
         mastery_dict = (
             {
                 int(item["knowledge_point_id"]): float(item["mastery_rate"])
                 for item in mastery_data
             }
             if mastery_data
-            else self._sync_course_mastery(
+            else sync_course_mastery(
                 user=user, course=course, course_point_ids=course_point_ids
             )
         )
@@ -261,9 +118,6 @@ class PathService:
 
             learning_path.nodes.filter(status="locked").delete()
 
-            max_order = max((n.order_index for n in preserved_nodes), default=-1)
-            next_order = max_order + 1
-
             # --- 5. 规划剩余知识点分层 ---
             auto_completed_points, pending_points, _ = partition_points_for_path(
                 course_id,
@@ -271,111 +125,24 @@ class PathService:
                 excluded_point_ids=preserved_kp_ids,
             )
             prereq_map, dependents_map = build_prerequisite_maps(course_id)
-
-            # --- 6. 按config上限和测试间隔创建学习节点 + 测评节点 ---
-            max_nodes = AppConfig.max_path_nodes()
-            test_interval = AppConfig.path_test_interval()
-            remaining_quota = max(0, max_nodes - len(preserved_nodes))
-
-            nodes_to_create = []
-            node_resource_map = []
-            study_batch = []
-            order_idx = next_order
-
-            completed_quota = min(len(auto_completed_points), remaining_quota)
-            for point in auto_completed_points[:completed_quota]:
-                nodes_to_create.append(
-                    PathNode(
-                        path=learning_path,
-                        knowledge_point=point,
-                        title=f"{point.name}巩固",
-                        goal=f"你已达到 {point.name} 的默认完成标准",
-                        criterion="掌握度已达默认完成阈值",
-                        suggestion="系统已将该知识点标记为默认完成，可按需回顾相关资源。",
-                        status="completed",
-                        order_index=order_idx,
-                        node_type="study",
-                        estimated_minutes=15,
-                    )
-                )
-                node_resource_map.append(point)
-                order_idx += 1
-
-            pending_quota = max(0, remaining_quota - completed_quota)
-            study_batch_size = max(
-                1, min(AppConfig.path_test_interval(), pending_quota)
-            )
-            linked_points = self._build_linked_pending_batch(
+            generation_plan = build_generation_plan(
+                learning_path=learning_path,
+                preserved_nodes=preserved_nodes,
+                auto_completed_points=auto_completed_points,
                 pending_points=pending_points,
                 mastery_dict=mastery_dict,
                 prereq_map=prereq_map,
                 dependents_map=dependents_map,
-                batch_size=study_batch_size,
+                remedial_point_ids=remedial_point_ids,
             )
-
-            for point in linked_points:
-                mastery = mastery_dict.get(point.id, 0)
-                is_remedial_reinsertion = point.id in remedial_point_ids
-                nodes_to_create.append(
-                    PathNode(
-                        path=learning_path,
-                        knowledge_point=point,
-                        title=(
-                            f"{point.name}补强"
-                            if is_remedial_reinsertion
-                            else f"{point.name}" + ("提升" if mastery > 0.5 else "基础")
-                        ),
-                        goal=f"掌握{point.name}的核心概念及应用",
-                        criterion="完成所有学习资源和测验，正确率≥80%",
-                        suggestion=(
-                            f"最近一次测试后，{point.name} 掌握度降至 {round(float(mastery) * 100)}%，请优先补强。"
-                            if is_remedial_reinsertion
-                            else f"{'巩固' if mastery > 0.5 else '重点学习'}{point.name}相关内容。"
-                        ),
-                        status="locked",
-                        order_index=order_idx,
-                        node_type="study",
-                        estimated_minutes=max(
-                            15, min(60, int(30 + (1 - mastery) * 30))
-                        ),
-                        is_inserted=is_remedial_reinsertion,
-                    )
-                )
-                node_resource_map.append(point)
-                study_batch.append(point)
-                order_idx += 1
-
-            if study_batch:
-                kp_name_list = [point.name for point in study_batch]
-                if len(kp_name_list) > 3:
-                    test_title = f"阶段测试：{'、'.join(kp_name_list[:3])}等{len(kp_name_list)}个知识点"
-                else:
-                    test_title = f"阶段测试：{'、'.join(kp_name_list)}"
-                nodes_to_create.append(
-                    PathNode(
-                        path=learning_path,
-                        knowledge_point=study_batch[-1],
-                        title=test_title,
-                        goal=f"检验{'、'.join(kp_name_list)}的掌握程度",
-                        criterion="正确率≥80%视为通过",
-                        suggestion="综合运用前几个知识点完成测试题。",
-                        status="locked",
-                        order_index=order_idx,
-                        node_type="test",
-                        estimated_minutes=15,
-                    )
-                )
-                node_resource_map.append(None)
-                order_idx += 1
+            nodes_to_create = generation_plan.nodes_to_create
+            node_resource_map = generation_plan.node_resource_points
+            linked_points = generation_plan.linked_points
 
             # --- 7. 批量创建并关联资源 ---
             if nodes_to_create:
                 created_nodes = PathNode.objects.bulk_create(nodes_to_create)
-                for node, point in zip(created_nodes, node_resource_map):
-                    if point is not None:
-                        resources = point.resources.filter(is_visible=True)[:5]
-                        if resources:
-                            node.resources.add(*list(resources))
+                attach_resources_to_created_nodes(created_nodes, node_resource_map)
 
             # --- 8. 确保有一个active节点 ---
             if not learning_path.nodes.filter(status="active").exists():

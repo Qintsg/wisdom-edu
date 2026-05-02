@@ -1,0 +1,146 @@
+.knowledge-map-view {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.map-card {
+  flex: 1;
+  animation: fadeInUp 0.42s ease-out;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.loading-container {
+  padding: 40px;
+}
+
+.graph-container {
+  min-height: 500px;
+}
+
+.list-container {
+  padding: 10px 0;
+}
+
+.tree-node {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  cursor: pointer;
+}
+
+.tree-node:hover {
+  color: var(--primary-color);
+}
+
+.evidence-tags {
+  margin-top: 12px;
+}
+
+.point-detail {
+  padding: 0 20px;
+}
+
+.detail-section {
+  margin-bottom: 24px;
+}
+
+.detail-section h4 {
+  font-size: 14px;
+  color: #666;
+  margin: 0 0 12px;
+}
+
+.detail-section p {
+  font-size: 14px;
+  color: #333;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.point-attrs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.point-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.clickable-tag {
+  cursor: pointer;
+}
+
+.clickable-tag:hover {
+  opacity: 0.8;
+}
+
+.resource-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.resource-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  background: rgba(37, 99, 235, 0.06);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: transform var(--transition-base), background var(--transition-base), box-shadow var(--transition-base);
+}
+
+.resource-item:hover {
+  background: rgba(37, 99, 235, 0.12);
+  color: var(--primary-color);
+  transform: translateY(-1px);
+  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.08);
+}
+
+.resource-item .el-icon {
+  font-size: 18px;
+}
+
+.resource-title {
+  font-size: 13px;
+  flex: 1;
+}
+
+.resource-duration {
+  font-size: 12px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.detail-actions {
+  margin-top: 32px;
+  text-align: center;
+}
+
+.legend-items {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.legend-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}

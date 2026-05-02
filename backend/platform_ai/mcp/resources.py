@@ -7,7 +7,6 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterable
 from dataclasses import dataclass
 from hashlib import sha1
 import logging
@@ -19,6 +18,12 @@ import requests
 
 from knowledge.models import KnowledgePoint, Resource
 from learning.models import PathNode
+from platform_ai.rag.resource_utils import (
+    normalize_resource_match_text as _normalize_match_text,
+    resource_rank_key as _resource_rank_key,
+    safe_resource_url as _safe_resource_url,
+    score_resource_point_match as _score_resource_point_match,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -43,115 +48,6 @@ def _resource_id(resource: Resource) -> int:
         return int(getattr(resource, "id", 0) or 0)
     except (TypeError, ValueError):
         return 0
-
-
-def _safe_resource_url(resource: Resource) -> str:
-    """返回课程内资源的可访问 URL。"""
-
-    resource_url = _coerce_text(getattr(resource, "url", ""))
-    if resource_url:
-        return resource_url
-    file_field = getattr(resource, "file", None)
-    if not file_field:
-        return ""
-    try:
-        return _coerce_text(file_field.url)
-    except (AttributeError, OSError, ValueError):
-        return ""
-
-
-def _normalize_match_text(value: object) -> str:
-    """归一化中英文匹配文本，减少空格导致的漏召回。"""
-
-    return _coerce_text(value).lower().replace(" ", "")
-
-
-def _dedupe_texts(items: Iterable[str]) -> list[str]:
-    """保留顺序去重非空字符串。"""
-
-    seen: set[str] = set()
-    results: list[str] = []
-    for item in items:
-        normalized = _coerce_text(item)
-        if not normalized or normalized in seen:
-            continue
-        seen.add(normalized)
-        results.append(normalized)
-    return results
-
-
-def _ascii_terms(value: str) -> list[str]:
-    """提取 Spark SQL、HDFS 等英文/数字术语。"""
-
-    terms: list[str] = []
-    buffer: list[str] = []
-    for char in value:
-        if char.isascii() and (char.isalnum() or char in {"+", "#", ".", " "}):
-            buffer.append(char)
-            continue
-        term = " ".join("".join(buffer).split())
-        if len(term) >= 2:
-            terms.append(term)
-        buffer = []
-    term = " ".join("".join(buffer).split())
-    if len(term) >= 2:
-        terms.append(term)
-    return terms
-
-
-def _point_resource_terms(point: KnowledgePoint) -> list[str]:
-    """从知识点名称、章节和常见后缀中提取资源匹配词。"""
-
-    point_name = _coerce_text(getattr(point, "name", ""))
-    chapter = _coerce_text(getattr(point, "chapter", ""))
-    terms: list[str] = []
-    for raw_term in [point_name, *chapter.replace("＞", ">").split(">")]:
-        term = raw_term.strip()
-        if len(term) >= 2:
-            terms.append(term)
-        terms.extend(_ascii_terms(term))
-
-    for suffix in ("定义与特征", "原理与特征", "基本操作", "工作原理", "模型原理", "方法原理", "应用"):
-        if point_name.endswith(suffix) and len(point_name) > len(suffix) + 1:
-            terms.append(point_name[: -len(suffix)].strip())
-    if point_name.startswith("大数据"):
-        terms.append("大数据")
-    return _dedupe_texts(terms)
-
-
-def _score_resource_point_match(resource: Resource, point: KnowledgePoint) -> int:
-    """计算未绑定课程资源与知识点上下文的文本匹配分。"""
-
-    haystack = _normalize_match_text(
-        " ".join(
-            [
-                _coerce_text(getattr(resource, "title", "")),
-                _coerce_text(getattr(resource, "description", "")),
-                _coerce_text(getattr(resource, "chapter_number", "")),
-            ]
-        )
-    )
-    if not haystack:
-        return 0
-
-    score = 0
-    for index, term in enumerate(_point_resource_terms(point)):
-        normalized_term = _normalize_match_text(term)
-        if normalized_term and normalized_term in haystack:
-            score += max(6, 30 - index)
-    return score
-
-
-def _resource_rank_key(resource: Resource, mastery_value: float | None) -> tuple[int, int, int, str]:
-    """根据学生掌握度排序课程内资源。"""
-
-    beginner_priority = {"video": 0, "document": 1, "exercise": 2, "link": 3}
-    advanced_priority = {"exercise": 0, "video": 1, "document": 2, "link": 3}
-    priority_map = advanced_priority if mastery_value is not None and mastery_value >= 0.7 else beginner_priority
-    resource_type = _coerce_text(getattr(resource, "resource_type", ""))
-    duration = getattr(resource, "duration", None) or 10**9
-    sort_order = getattr(resource, "sort_order", 0) or 0
-    return (priority_map.get(resource_type, 9), int(sort_order), int(duration), _coerce_text(resource.title))
 
 
 def _mastery_stage(student_mastery: float | None) -> str:

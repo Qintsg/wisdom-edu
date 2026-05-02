@@ -1,0 +1,140 @@
+.content-row {
+  margin-top: 20px;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.stats-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.stat-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid #ebeef5;
+}
+
+.stat-item:last-child {
+  border-bottom: none;
+}
+
+.stat-item strong {
+  color: #409eff;
+  font-size: 18px;
+}
+
+.invite-card {
+  margin-top: 16px;
+}
+
+.invite-current {
+  text-align: center;
+  padding: 12px 0 8px;
+}
+
+.invite-label {
+  color: #909399;
+  font-size: 13px;
+}
+
+.invite-code {
+  margin: 8px 0 12px;
+  color: #2563eb;
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: 5px;
+}
+
+.invite-actions {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.invite-list {
+  min-height: 72px;
+}
+
+.invite-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid #ebeef5;
+}
+
+.invite-item:last-child {
+  border-bottom: none;
+}
+
+.invite-item-code {
+  color: #303133;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 2px;
+}
+
+.invite-item-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  color: #909399;
+  font-size: 12px;
+}
+
+.invite-item-actions {
+  display: flex;
+  flex-shrink: 0;
+  gap: 4px;
+}
+
+.form-tip {
+  margin-top: 6px;
+  color: #909399;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.announcement-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.announcement-item {
+  padding: 12px;
+  border-radius: 8px;
+  background: #f9f9fb;
+  border: 1px solid #ebeef5;
+}
+
+.announcement-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.announcement-content {
+  color: #606266;
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 0 0 6px;
+  white-space: pre-line;
+}
+
+.announcement-time {
+  color: #909399;
+  font-size: 12px;
+}

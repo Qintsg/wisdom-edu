@@ -1,0 +1,147 @@
+.knowledge-graph-container {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  height: 100%;
+}
+
+.glass-panel {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 12px 14px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.76);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  box-shadow: 0 18px 46px rgba(15, 23, 42, 0.08);
+  backdrop-filter: blur(18px);
+}
+
+.toolbar-divider {
+  width: 1px;
+  height: 28px;
+  background: rgba(100, 116, 139, 0.18);
+}
+
+.graph-legend {
+  gap: 18px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.legend-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 999px;
+}
+
+.legend-dot.mastered {
+  background: #0f9d58;
+}
+
+.legend-dot.reinforce {
+  background: #d97706;
+}
+
+.legend-dot.weak {
+  background: #dc2626;
+}
+
+.legend-dot.unknown {
+  background: #94a3b8;
+}
+
+.legend-dot.chapter {
+  background: #2563eb;
+}
+
+.legend-line {
+  width: 32px;
+  border-top: 2px solid #64748b;
+}
+
+.legend-line.related {
+  border-top-style: dotted;
+}
+
+.legend-line.includes {
+  border-top-style: dashed;
+}
+
+.graph-surface {
+  position: relative;
+  border-radius: 24px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at top left, rgba(255, 255, 255, 0.92), rgba(241, 245, 249, 0.88)),
+    linear-gradient(135deg, rgba(219, 234, 254, 0.45), rgba(255, 255, 255, 0.1));
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5), 0 20px 50px rgba(15, 23, 42, 0.08);
+}
+
+.graph-surface::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(148, 163, 184, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.08) 1px, transparent 1px);
+  background-size: 28px 28px;
+  pointer-events: none;
+}
+
+.graph-svg {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  z-index: 1;
+}
+
+.node-drawer {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.resources-section h4 {
+  margin: 0 0 10px;
+}
+
+.drawer-resource-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.drawer-resource-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(248, 250, 252, 0.9);
+  border: 1px solid rgba(148, 163, 184, 0.14);
+}
+
+.drawer-actions {
+  display: flex;
+  gap: 12px;
+}
+
+@media (max-width: 768px) {
+  .glass-panel {
+    gap: 10px;
+  }
+
+  .graph-legend {
+    gap: 12px;
+  }
+}

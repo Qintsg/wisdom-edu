@@ -6,11 +6,11 @@
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from django.db.models import Count, Q
-from django.db import models
 from common.responses import success_response, error_response, created_response
 from common.permissions import IsAdmin
 from users.models import User
 from .models import Course, Class, ClassCourse, Enrollment
+from .admin_course_class_stats_views import admin_class_statistics, admin_course_statistics
 
 
 def _parse_pagination_params(query_params):
@@ -309,35 +309,6 @@ def admin_class_remove_student(_request, class_id, student_id):
         return error_response(msg='该学生不在班级中', code=404)
 
 
-@api_view(['GET'])
-@permission_classes([IsAuthenticated, IsAdmin])
-def admin_statistics_overview(_request):
-    """
-    管理端 - 获取系统统计概览
-    GET /api/admin/statistics/overview
-    """
-    user_count = User.objects.filter(is_active=True).count()
-    course_count = Course.objects.count()
-    class_count = Class.objects.count()
-    student_count = User.objects.filter(role='student', is_active=True).count()
-    teacher_count = User.objects.filter(role='teacher', is_active=True).count()
-    admin_count = User.objects.filter(role='admin', is_active=True).count()
-
-    return success_response(data={
-        'userCount': user_count,
-        'courseCount': course_count,
-        'classCount': class_count,
-        'studentCount': student_count,
-        'teacherCount': teacher_count,
-        'onlineRate': '99.9%',
-        'roleDistribution': {
-            'student': student_count,
-            'teacher': teacher_count,
-            'admin': admin_count,
-        },
-    })
-
-
 @api_view(['POST'])
 @permission_classes([IsAuthenticated, IsAdmin])
 def admin_course_create(request):
@@ -468,221 +439,6 @@ def admin_course_assign_teacher(request, course_id):
     return success_response(msg='教师分配成功')
 
 
-@api_view(['GET'])
-@permission_classes([IsAuthenticated, IsAdmin])
-def admin_course_statistics(_request, course_id):
-    """
-    管理端 - 课程统计
-    GET /api/admin/courses/{course_id}/statistics
-    """
-    try:
-        course = Course.objects.get(id=course_id)
-    except Course.DoesNotExist:
-        return error_response(msg='课程不存在', code=404)
-
-    class_count = ClassCourse.objects.filter(course=course).count()
-
-    student_count = Enrollment.objects.filter(
-        class_obj__in=Class.objects.filter(
-            id__in=ClassCourse.objects.filter(course=course).values_list('class_obj_id', flat=True)
-        )
-    ).values('user_id').distinct().count()
-
-    return success_response(data={
-        'class_count': class_count,
-        'student_count': student_count,
-        'avg_score': 85.5,  # 模拟数据，后续需对接 ScoreService。
-        'completion_rate': '78%'
-    })
-
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated, IsAdmin])
-def admin_statistics_users(request):
-    """
-    用户增长趋势 / 活跃度统计
-    GET /api/admin/statistics/users
-    """
-    from django.db.models.functions import TruncDate
-    from datetime import timedelta
-    from django.utils import timezone as tz
-
-    days = int(request.query_params.get('days', 30))
-    since = tz.now() - timedelta(days=days)
-
-    daily_reg = (
-        User.objects.filter(date_joined__gte=since)
-        .annotate(date=TruncDate('date_joined'))
-        .values('date')
-        .annotate(count=Count('id'))
-        .order_by('date')
-    )
-
-    role_dist = User.objects.values('role').annotate(count=Count('id'))
-
-    return success_response(data={
-        'total_users': User.objects.count(),
-        'daily_registrations': list(daily_reg),
-        'role_distribution': list(role_dist),
-    })
-
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated, IsAdmin])
-def admin_statistics_courses(_request):
-    """
-    课程使用情况统计
-    GET /api/admin/statistics/courses
-    """
-    total_courses = Course.objects.count()
-    total_classes = Class.objects.count()
-    total_enrollments = Enrollment.objects.count()
-
-    top_courses = (
-        ClassCourse.objects.values('course__name')
-        .annotate(
-            class_count=Count('class_obj', distinct=True),
-            student_count=Count('class_obj__enrollments', distinct=True),
-        )
-        .order_by('-student_count')[:10]
-    )
-
-    return success_response(data={
-        'total_courses': total_courses,
-        'total_classes': total_classes,
-        'total_enrollments': total_enrollments,
-        'top_courses': list(top_courses),
-    })
-
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated, IsAdmin])
-def admin_statistics_learning(_request):
-    """
-    整体学习统计
-    GET /api/admin/statistics/learning
-    """
-    from learning.models import NodeProgress
-    from assessments.models import AnswerHistory
-
-    total_records = NodeProgress.objects.count()
-    total_answers = AnswerHistory.objects.count()
-    correct_answers = AnswerHistory.objects.filter(is_correct=True).count()
-
-    return success_response(data={
-        'total_learning_records': total_records,
-        'total_answers': total_answers,
-        'correct_answers': correct_answers,
-        'accuracy': round(correct_answers / total_answers * 100, 1) if total_answers > 0 else 0,
-    })
-
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated, IsAdmin])
-def admin_statistics_exams(_request):
-    """
-    考试统计
-    GET /api/admin/statistics/exams
-    """
-    from exams.models import Exam, ExamSubmission
-
-    total_exams = Exam.objects.count()
-    total_submissions = ExamSubmission.objects.count()
-    avg_score = ExamSubmission.objects.aggregate(avg=models.Avg('score'))['avg']
-
-    return success_response(data={
-        'total_exams': total_exams,
-        'total_submissions': total_submissions,
-        'average_score': round(float(avg_score), 1) if avg_score else 0,
-    })
-
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated, IsAdmin])
-def admin_statistics_active_users(request):
-    """
-    活跃用户排行
-    GET /api/admin/statistics/active-users
-    """
-    from logs.models import OperationLog
-    from datetime import timedelta
-    from django.utils import timezone as tz
-
-    days = int(request.query_params.get('days', 7))
-    since = tz.now() - timedelta(days=days)
-
-    active = (
-        OperationLog.objects.filter(created_at__gte=since, user__isnull=False)
-        .values('user__id', 'user__username', 'user__real_name')
-        .annotate(action_count=Count('id'))
-        .order_by('-action_count')[:20]
-    )
-
-    return success_response(data={'active_users': list(active), 'days': days})
-
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated, IsAdmin])
-def admin_statistics_report(_request):
-    """
-    系统运行综合报告
-    GET /api/admin/statistics/report
-    """
-    from logs.models import OperationLog
-    from exams.models import Exam, ExamSubmission
-    from assessments.models import AnswerHistory
-
-    return success_response(data={
-        'users': {
-            'total': User.objects.count(),
-            'students': User.objects.filter(role='student').count(),
-            'teachers': User.objects.filter(role='teacher').count(),
-            'admins': User.objects.filter(role='admin').count(),
-        },
-        'courses': {
-            'total': Course.objects.count(),
-            'classes': Class.objects.count(),
-            'enrollments': Enrollment.objects.count(),
-        },
-        'exams': {
-            'total': Exam.objects.count(),
-            'submissions': ExamSubmission.objects.count(),
-        },
-        'answers': {
-            'total': AnswerHistory.objects.count(),
-        },
-        'logs': {
-            'total_operations': OperationLog.objects.count(),
-        },
-    })
-
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated, IsAdmin])
-def admin_statistics_export(_request):
-    """
-    导出统计数据为 CSV
-    GET /api/admin/statistics/export
-    """
-    import csv
-    from django.http import HttpResponse
-
-    response = HttpResponse(content_type='text/csv; charset=utf-8-sig')
-    response['Content-Disposition'] = 'attachment; filename="statistics.csv"'
-    response.write('\ufeff')
-
-    writer = csv.writer(response)
-    writer.writerow(['指标', '数值'])
-    writer.writerow(['总用户数', User.objects.count()])
-    writer.writerow(['学生数', User.objects.filter(role='student').count()])
-    writer.writerow(['教师数', User.objects.filter(role='teacher').count()])
-    writer.writerow(['课程数', Course.objects.count()])
-    writer.writerow(['班级数', Class.objects.count()])
-    writer.writerow(['选课人次', Enrollment.objects.count()])
-
-    return response
-
-
 @api_view(['POST'])
 @permission_classes([IsAuthenticated, IsAdmin])
 def admin_class_assign_teacher(request, class_id):
@@ -709,26 +465,3 @@ def admin_class_assign_teacher(request, class_id):
     class_obj.teacher = teacher
     class_obj.save()
     return success_response(msg=f'已将 {teacher.username} 分配为班级 {class_obj.name} 的教师')
-
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated, IsAdmin])
-def admin_class_statistics(_request, class_id):
-    """
-    获取班级统计数据
-    GET /api/admin/classes/{class_id}/statistics
-    """
-    try:
-        class_obj = Class.objects.get(id=class_id)
-    except Class.DoesNotExist:
-        return error_response(msg='班级不存在', code=404)
-
-    student_count = Enrollment.objects.filter(class_obj=class_obj).count()
-    course_count = ClassCourse.objects.filter(class_obj=class_obj).count()
-
-    return success_response(data={
-        'class_id': class_obj.id,
-        'class_name': class_obj.name,
-        'student_count': student_count,
-        'course_count': course_count,
-    })

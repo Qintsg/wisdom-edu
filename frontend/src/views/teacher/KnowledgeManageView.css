@@ -1,0 +1,60 @@
+.page-header {
+  margin-bottom: 20px;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-content h2 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.header-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.stats-row {
+  margin-bottom: 12px;
+}
+
+.stat-item {
+  text-align: center;
+}
+
+.stat-item .label {
+  color: #909399;
+  font-size: 13px;
+}
+
+.stat-item .value {
+  font-size: 24px;
+  font-weight: 600;
+  margin-top: 6px;
+  color: #303133;
+}
+
+.card-title {
+  font-weight: 600;
+}
+
+.tree-node {
+  flex: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-right: 8px;
+}
+
+.node-actions {
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.tree-node:hover .node-actions {
+  opacity: 1;
+}

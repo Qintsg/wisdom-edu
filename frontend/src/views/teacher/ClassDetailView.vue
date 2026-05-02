@@ -1,5 +1,4 @@
 <template>
-  <!-- 班级详情视图 -->
   <div class="class-detail-view">
     <el-page-header @back="goBack">
       <template #content>{{ classInfo.name }}</template>
@@ -45,7 +44,6 @@
           </div>
         </el-card>
 
-        <!-- 邀请学生加入 -->
         <el-card shadow="hover" class="invite-card">
           <template #header>
             <div class="card-header">
@@ -92,7 +90,6 @@
           </div>
         </el-card>
 
-        <!-- 班级公告管理 -->
         <el-card shadow="hover" style="margin-top: 16px;">
           <template #header>
             <div class="card-header">
@@ -121,7 +118,6 @@
       </el-col>
     </el-row>
 
-    <!-- 公告编辑对话框 -->
     <el-dialog v-model="announcementDialogVisible" :title="editingAnnouncement ? '编辑公告' : '发布公告'" width="500px">
       <el-form :model="announcementForm" label-width="70px">
         <el-form-item label="标题">
@@ -139,7 +135,6 @@
       </template>
     </el-dialog>
 
-    <!-- 邀请码生成对话框 -->
     <el-dialog v-model="inviteDialogVisible" title="邀请学生加入班级" width="420px" :close-on-click-modal="!inviteSubmitting">
       <el-form :model="inviteForm" label-width="100px">
         <el-form-item label="有效天数">
@@ -159,9 +154,6 @@
 </template>
 
 <script setup>
-/**
- * 班级详情视图
- */
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
@@ -264,9 +256,6 @@ const normalizeClassDetail = (value, classId) => {
   }
 }
 
-/**
- * 加载班级详情
- */
 const loadClassDetail = async () => {
   loading.value = true
   try {
@@ -301,7 +290,6 @@ const loadClassDetail = async () => {
   }
 }
 
-// 当前邀请码
 const currentInviteCode = ref('')
 const invitations = ref([])
 const invitationsLoading = ref(false)
@@ -362,9 +350,6 @@ const handleGenerateInvitation = async () => {
   }
 }
 
-/**
- * 复制邀请码
- */
 const copyInviteCode = (code) => {
   const invitationCode = normalizeText(code)
   if (!invitationCode) return
@@ -403,9 +388,6 @@ const handleDeleteInvitation = async (invitation) => {
   }
 }
 
-/**
- * 格式化时间
- */
 const formatTime = (timeStr) => {
   if (!timeStr) return '-'
   const date = new Date(timeStr)
@@ -425,10 +407,8 @@ const formatDateTime = (timeStr) => {
 
 const goBack = () => router.push('/teacher/classes')
 
-// 存储班级课程列表
 const classCourses = ref([])
 
-// ============ 公告管理 ============
 const announcements = ref([])
 const announcementsLoading = ref(false)
 const announcementDialogVisible = ref(false)
@@ -514,145 +494,4 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
-.content-row {
-  margin-top: 20px;
-}
-
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.stats-list {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.stat-item {
-  display: flex;
-  justify-content: space-between;
-  padding: 12px 0;
-  border-bottom: 1px solid #ebeef5;
-}
-
-.stat-item:last-child {
-  border-bottom: none;
-}
-
-.stat-item strong {
-  color: #409eff;
-  font-size: 18px;
-}
-
-.invite-card {
-  margin-top: 16px;
-}
-
-.invite-current {
-  text-align: center;
-  padding: 12px 0 8px;
-}
-
-.invite-label {
-  color: #909399;
-  font-size: 13px;
-}
-
-.invite-code {
-  margin: 8px 0 12px;
-  color: #2563eb;
-  font-size: 30px;
-  font-weight: 800;
-  letter-spacing: 5px;
-}
-
-.invite-actions {
-  display: flex;
-  justify-content: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.invite-list {
-  min-height: 72px;
-}
-
-.invite-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 12px;
-  padding: 12px 0;
-  border-bottom: 1px solid #ebeef5;
-}
-
-.invite-item:last-child {
-  border-bottom: none;
-}
-
-.invite-item-code {
-  color: #303133;
-  font-size: 16px;
-  font-weight: 700;
-  letter-spacing: 2px;
-}
-
-.invite-item-meta {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-  margin-top: 6px;
-  color: #909399;
-  font-size: 12px;
-}
-
-.invite-item-actions {
-  display: flex;
-  flex-shrink: 0;
-  gap: 4px;
-}
-
-.form-tip {
-  margin-top: 6px;
-  color: #909399;
-  font-size: 12px;
-  line-height: 1.5;
-}
-
-.announcement-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.announcement-item {
-  padding: 12px;
-  border-radius: 8px;
-  background: #f9f9fb;
-  border: 1px solid #ebeef5;
-}
-
-.announcement-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 6px;
-}
-
-.announcement-content {
-  color: #606266;
-  font-size: 14px;
-  line-height: 1.6;
-  margin: 0 0 6px;
-  white-space: pre-line;
-}
-
-.announcement-time {
-  color: #909399;
-  font-size: 12px;
-}
-</style>
+<style scoped src="./ClassDetailView.css"></style>

@@ -19,6 +19,12 @@ from typing import Any
 from django.db import DatabaseError, close_old_connections, transaction
 
 from common.logging_utils import build_log_message
+from exams.report_service_support import (
+    apply_completed_report,
+    build_report_generation_context,
+    build_report_overview,
+    normalize_llm_feedback,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -301,14 +307,12 @@ def generate_feedback_report_sync(
     :param force: 是否强制重跑已完成报告。
     :return: 更新后的概要字典，报告不存在时返回 None。
     """
-    from assessments.models import AbilityScore
     from ai_services.services import llm_service as _llm
     from .student_views import (
         _build_exam_question_details,
         _build_exam_score_map,
         _resolve_pass_threshold,
     )
-    from common.utils import score_questions
 
     report = _load_report_with_dependencies(report_id)
     if not report or not report.exam_submission or not report.exam:
@@ -328,112 +332,67 @@ def generate_feedback_report_sync(
         from common.utils import clean_display_text
         from .models import ExamQuestion
 
-        exam_questions = list(
-            ExamQuestion.objects.filter(exam=exam)
+        context = build_report_generation_context(
+            report=report,
+            exam=exam,
+            submission=submission,
+            load_exam_questions=lambda current_exam: ExamQuestion.objects.filter(exam=current_exam)
             .select_related("question")
             .prefetch_related("question__knowledge_points")
-            .order_by("order")
+            .order_by("order"),
+            build_exam_score_map=_build_exam_score_map,
+            build_exam_question_details=_build_exam_question_details,
+            build_answer_history_records=_build_answer_history_records,
+            refresh_kt_analysis=_refresh_kt_analysis,
+            build_detailed_mistakes=_build_detailed_mistakes,
+            extract_habit_preferences=_extract_habit_preferences,
         )
-        questions = [eq.question for eq in exam_questions]
-        score_map = _build_exam_score_map(exam, exam_questions)
-        grading = score_questions(
-            submission.answers or {}, questions, score_map=score_map
-        )
-        question_result_map = {
-            str(item["question_id"]): item for item in grading["question_results"]
-        }
-        question_details = _build_exam_question_details(
-            exam_questions, submission.answers or {}, question_result_map
-        )
-        mistakes = [detail for detail in question_details if not detail["is_correct"]]
-        correct_count = sum(1 for item in question_details if item["is_correct"])
-        total_count = len(question_details)
-        accuracy = round(correct_count / total_count * 100, 1) if total_count else 0
-
-        submission_answers = submission.answers or {}
-        answer_history_records = _build_answer_history_records(
-            exam_questions,
-            submission_answers,
-        )
-        kt_analysis = _refresh_kt_analysis(
-            report,
-            exam,
-            user,
-            answer_history_records,
-        )
-        detailed_mistakes = _build_detailed_mistakes(exam_questions, mistakes)
-
-        ability = AbilityScore.objects.filter(
-            user=user, course_id=exam.course_id
-        ).first()
-        ability_data = (
-            ability.scores if ability and isinstance(ability.scores, dict) else {}
-        )
-
-        habit_data = _extract_habit_preferences(user)
 
         llm_result = _llm.generate_feedback_report(
             exam_info={
                 "title": exam.title,
                 "type": getattr(exam, "exam_type", "课程作业"),
             },
-            score=float(grading["score"]),
+            score=float(context.grading["score"]),
             total_score=float(exam.total_score),
-            mistakes=detailed_mistakes,
-            kt_predictions=kt_analysis.get("predictions") or {},
+            mistakes=context.detailed_mistakes,
+            kt_predictions=context.kt_analysis.get("predictions") or {},
         )
 
-        summary = clean_display_text(llm_result.get("summary"))
-        analysis = clean_display_text(llm_result.get("analysis"))
-        knowledge_gaps = _normalize_llm_list(llm_result, "knowledge_gaps")
-        recommendations = _normalize_llm_list(llm_result, "recommendations")
-        next_tasks = _normalize_llm_list(llm_result, "next_tasks")
-        conclusion = clean_display_text(
-            llm_result.get("encouragement") or llm_result.get("conclusion")
+        normalized_feedback = normalize_llm_feedback(
+            llm_result=llm_result,
+            clean_text=clean_display_text,
+            normalize_list=_normalize_llm_list,
+        )
+        overview = build_report_overview(
+            report=report,
+            exam=exam,
+            grading=context.grading,
+            pass_threshold=_resolve_pass_threshold(exam),
+            correct_count=context.correct_count,
+            total_count=context.total_count,
+            accuracy=context.accuracy,
+            kt_analysis=context.kt_analysis,
+            ability_data=context.ability_data,
+            habit_data=context.habit_data,
+            summary=normalized_feedback.summary,
+            knowledge_gaps=normalized_feedback.knowledge_gaps,
+        )
+        apply_completed_report(
+            report=report,
+            overview=overview,
+            normalized_feedback=normalized_feedback,
+            detailed_mistakes=context.detailed_mistakes,
+            save_fields=_REPORT_SAVE_FIELDS,
         )
 
-        if not summary:
-            summary = analysis or conclusion or "AI 报告已生成。"
-
-        existing_overview = (
-            dict(report.overview) if isinstance(report.overview, dict) else {}
+        _save_llm_call_log(
+            user,
+            exam,
+            context.grading,
+            context.mistakes,
+            normalized_feedback.summary,
         )
-        overview = {
-            "score": float(grading["score"]),
-            "total_score": float(exam.total_score),
-            "passed": float(grading["score"]) >= _resolve_pass_threshold(exam),
-            "correct_count": correct_count,
-            "total_count": total_count,
-            "total_questions": total_count,
-            "accuracy": accuracy,
-            "kt_analysis": kt_analysis,
-            "ability_scores": ability_data,
-            "habit_preferences": habit_data,
-            "summary": summary,
-            "knowledge_gaps": knowledge_gaps,
-            "mastery_changes": existing_overview.get("mastery_changes", []),
-        }
-
-        report.overview = overview
-        report.status = "completed"
-        report.analysis = (
-            analysis
-            or knowledge_gaps
-            or [
-                {
-                    "question_id": item["question_id"],
-                    "analysis": item.get("analysis") or "暂无解析",
-                    "knowledge_point_name": item.get("knowledge_point_name", ""),
-                }
-                for item in detailed_mistakes
-            ]
-        )
-        report.recommendations = recommendations
-        report.next_tasks = next_tasks
-        report.conclusion = conclusion or "继续保持，按建议逐步巩固即可。"
-        report.save(update_fields=_REPORT_SAVE_FIELDS)
-
-        _save_llm_call_log(user, exam, grading, mistakes, summary)
 
         logger.info(
             build_log_message(

@@ -1,0 +1,32 @@
+.question-list-view {
+  display: grid;
+  gap: 20px;
+}
+
+.filter-bar {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.pagination {
+  margin-top: 20px;
+  justify-content: flex-end;
+}
+
+.option-item {
+  margin-bottom: 8px;
+}
+
+.option-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.option-label {
+  width: 20px;
+  flex-shrink: 0;
+  font-weight: 600;
+}

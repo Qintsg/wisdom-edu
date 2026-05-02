@@ -9,3 +9,4 @@
 from .student_views import *  # noqa: F401,F403
 from .teacher_views import *  # noqa: F401,F403
 from .admin_views import *  # noqa: F401,F403
+from .admin_statistics_views import *  # noqa: F401,F403

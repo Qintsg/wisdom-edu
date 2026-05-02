@@ -16,130 +16,17 @@ import json
 import re
 import logging
 import time
-from datetime import datetime
-from pathlib import Path
 from django.utils.deprecation import MiddlewareMixin
 from django.conf import settings
 from django.db import connection
 from .models import OperationLog
-
-# ============================================================
-# 日志目录配置
-# ============================================================
-LOG_BASE_DIR = Path(settings.BASE_DIR) / "runtime_logs"
-LOG_BASE_DIR.mkdir(parents=True, exist_ok=True)
-
-OPERATION_LOG_DIR = LOG_BASE_DIR / "operations"
-OPERATION_LOG_DIR.mkdir(parents=True, exist_ok=True)
-
-DEBUG_LOG_DIR = LOG_BASE_DIR / "debug"
-DEBUG_LOG_DIR.mkdir(parents=True, exist_ok=True)
-
-# DEBUG模式下是否输出数据库SQL明细（默认关闭，避免控制台噪音）
-DEBUG_LOG_DB_QUERIES = getattr(settings, "DEBUG_LOG_DB_QUERIES", False)
-
-# ============================================================
-# 日志格式配置
-# ============================================================
-LOG_FORMAT = "%(asctime)s [%(levelname)s] %(name)s | %(message)s"
-LOG_DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
-
-# ============================================================
-# 操作日志器
-# ============================================================
-operation_logger = logging.getLogger("operation_logs")
-operation_logger.setLevel(logging.INFO)
-operation_logger.propagate = False
-
-if not any(
-    isinstance(h, logging.FileHandler)
-    and "operations" in str(getattr(h, "baseFilename", ""))
-    for h in operation_logger.handlers
-):
-    op_log_file = OPERATION_LOG_DIR / "operations.log"
-    op_handler = logging.FileHandler(op_log_file, encoding="utf-8")
-    op_handler.setLevel(logging.INFO)
-    op_handler.setFormatter(logging.Formatter(LOG_FORMAT, datefmt=LOG_DATE_FORMAT))
-    operation_logger.addHandler(op_handler)
-
-# ============================================================
-# DEBUG调试日志器（仅在DEBUG模式启用）
-# ============================================================
-debug_logger = logging.getLogger("debug_logs")
-debug_logger.setLevel(logging.INFO if settings.DEBUG else logging.WARNING)
-debug_logger.propagate = False
-
-if settings.DEBUG:
-    if not any(
-        isinstance(h, logging.FileHandler)
-        and "debug" in str(getattr(h, "baseFilename", ""))
-        for h in debug_logger.handlers
-    ):
-        # 按日期分割的调试日志
-        today = datetime.now().strftime("%Y-%m-%d")
-        debug_log_file = DEBUG_LOG_DIR / f"debug_{today}.log"
-        debug_handler = logging.FileHandler(debug_log_file, encoding="utf-8")
-        debug_handler.setLevel(logging.DEBUG)
-        debug_handler.setFormatter(
-            logging.Formatter(
-                "%(asctime)s [%(levelname)s] %(name)s | %(message)s", datefmt="%H:%M:%S"
-            )
-        )
-        debug_logger.addHandler(debug_handler)
-
-        # 同时输出到控制台（带颜色）
-        class ColorFormatter(logging.Formatter):
-            """带 ANSI 颜色的控制台日志格式化器"""
-
-            COLORS = {
-                "DEBUG": "\033[36m",  # 青色
-                "INFO": "\033[32m",  # 绿色
-                "WARNING": "\033[33m",  # 黄色
-                "ERROR": "\033[31m",  # 红色
-                "CRITICAL": "\033[1;31m",  # 加粗红色
-            }
-            RESET = "\033[0m"
-            BOLD = "\033[1m"
-            DIM = "\033[2m"
-
-            def format(self, record):
-                """Render colored console output for debug log records."""
-                color = self.COLORS.get(record.levelname, self.RESET)
-                ts = self.formatTime(record, "%H:%M:%S")
-                tag = f"{color}[{record.levelname}]{self.RESET}"
-                return f"{self.DIM}{ts}{self.RESET} {tag} {record.name} | {record.getMessage()}"
-
-        console_handler = logging.StreamHandler()
-        console_handler.setLevel(logging.INFO)
-        console_handler.setFormatter(ColorFormatter())
-        debug_logger.addHandler(console_handler)
-
-# ============================================================
-# 中文映射配置
-# ============================================================
-ACTION_TYPE_DISPLAY = {
-    "create": "创建",
-    "update": "更新",
-    "delete": "删除",
-    "read": "查询",
-    "login": "登录",
-    "logout": "登出",
-    "export": "导出",
-    "import": "导入",
-    "other": "其他",
-}
-
-MODULE_DISPLAY = {
-    "users": "用户模块",
-    "courses": "课程模块",
-    "knowledge": "知识模块",
-    "exams": "考试模块",
-    "assessments": "测评模块",
-    "learning": "学习模块",
-    "ai_services": "AI服务",
-    "logs": "日志模块",
-    "system": "系统管理",
-}
+from .descriptions import generate_operation_description
+from .logging_setup import (
+    DEBUG_LOG_DB_QUERIES,
+    MODULE_DISPLAY,
+    debug_logger,
+    operation_logger,
+)
 
 class OperationLogMiddleware(MiddlewareMixin):
     """
@@ -466,107 +353,6 @@ class OperationLogMiddleware(MiddlewareMixin):
                 if isinstance(item, (dict, list)):
                     self._mask_sensitive_data(item, fields)
 
-    def _generate_description(self, request, action_type, module):
-        """
-        生成中文描述
-
-        根据请求路径和操作类型生成易读的中文描述
-        """
-        action_display = ACTION_TYPE_DISPLAY.get(action_type, action_type)
-        module_display = MODULE_DISPLAY.get(module, module)
-        path = request.path
-
-        # 用户相关
-        if "register" in path:
-            return "用户注册"
-        elif "login" in path:
-            return "用户登录"
-        elif "logout" in path:
-            return "用户登出"
-        elif "userinfo/update" in path:
-            return "更新用户信息"
-        elif "userinfo" in path:
-            return "查询用户信息"
-        elif "profile/habit" in path:
-            return "更新学习偏好"
-        elif "profile/update" in path:
-            return "更新学习画像"
-        elif "profile/history" in path:
-            return "查询画像历史"
-        elif "profile" in path:
-            return "查询学习画像"
-
-        # 激活码相关
-        elif "activation-codes/generate" in path:
-            return "生成激活码"
-        elif "activation-codes" in path and request.method == "DELETE":
-            return "删除激活码"
-        elif "activation-codes" in path:
-            return "管理激活码"
-
-        # 邀请码相关
-        elif "invitations/generate" in path:
-            return "生成班级邀请码"
-        elif "invitations" in path and request.method == "DELETE":
-            return "删除邀请码"
-
-        # 课程相关
-        elif "/courses/create" in path:
-            return "创建课程"
-        elif "/courses/select" in path:
-            return "切换当前课程"
-        elif "/classes/create" in path:
-            return "创建班级"
-        elif "/classes/join" in path:
-            return "加入班级"
-        elif "/leave" in path:
-            return "退出班级"
-        elif "/publish-course" in path:
-            return "发布课程到班级"
-        elif "students" in path and request.method == "DELETE":
-            return "从班级移除学生"
-
-        # 知识图谱相关
-        elif "knowledge-map/import" in path:
-            return "导入知识图谱"
-        elif "knowledge-map/publish" in path:
-            return "发布知识图谱"
-        elif "knowledge-map/sync-neo4j" in path:
-            return "同步知识图谱到Neo4j"
-        elif "knowledge-points" in path:
-            return f"{action_display}知识点"
-        elif "resources" in path:
-            return f"{action_display}学习资源"
-
-        # 题库相关
-        elif "questions/import" in path:
-            return "导入题库"
-        elif "questions" in path:
-            return f"{action_display}题目"
-
-        # 测评相关
-        elif "assessments" in path and "submit" in path:
-            return "提交测评答案"
-        elif "assessments/start" in path:
-            return "开始测评"
-
-        # 考试相关
-        elif "exams" in path and "submit" in path:
-            return "提交考试答案"
-        elif "exams" in path and "create" in path:
-            return "创建考试"
-        elif "feedback/generate" in path:
-            return "生成反馈报告"
-
-        # 学习路径相关
-        elif "learning-path" in path:
-            return f"{action_display}学习路径"
-        elif "learning-record" in path:
-            return "记录学习进度"
-
-        # 默认描述
-        return f"{module_display} - {action_display}操作"
-
     def _log_debug_info(self, request, response):
         """
         记录DEBUG模式下的详细信息
@@ -649,7 +435,7 @@ class OperationLogMiddleware(MiddlewareMixin):
         try:
             action_type = self.get_action_type(request)
             module = self.get_module(request.path)
-            description = self._generate_description(request, action_type, module)
+            description = generate_operation_description(request, action_type, module)
             is_success = 200 <= response.status_code < 400
             client_ip = self.get_client_ip(request)
 

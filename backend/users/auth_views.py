@@ -5,8 +5,6 @@
 """
 from typing import cast
 import re
-import secrets
-import string
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.exceptions import TokenError
@@ -19,6 +17,7 @@ from common.responses import success_response, created_response, error_response
 from courses.models import Enrollment, Class, ClassCourse
 from .models import User, ActivationCode
 from .serializers import UserRegisterSerializer, CustomTokenObtainPairSerializer
+from .auth_password_views import password_reset, password_reset_send
 
 
 class CustomTokenObtainPairView(TokenObtainPairView):
@@ -411,86 +410,6 @@ def logout(request):
         except TokenError:
             pass  # token无效也不影响退出
     return success_response(msg='退出成功')
-
-
-# ============ 密码重置（公开接口） ============
-
-@api_view(['POST'])
-@authentication_classes([])
-@permission_classes([AllowAny])
-def password_reset_send(request):
-    """
-    发送密码重置验证码
-    POST /api/auth/password/reset/send
-
-    请求参数：
-    - email: 注册邮箱
-    """
-    email = request.data.get('email')
-    if not email:
-        return error_response(msg='请提供邮箱')
-
-    try:
-        user = User.objects.get(email=email)
-    except User.DoesNotExist:
-        # 安全考虑：不泄露用户是否存在
-        return success_response(msg='如果该邮箱已注册，验证码已发送')
-
-    code = ''.join(secrets.choice(string.digits) for _ in range(6))
-
-    from django.core.cache import cache
-    cache_key = f'pwd_reset:{email}'
-    cache.set(cache_key, {'code': code, 'user_id': user.id}, timeout=600)  # 10分钟
-
-    # TODO: 接入邮件服务 / 短信服务发送验证码
-    # send_email(email, subject='密码重置验证码', body=f'您的验证码是：{code}')
-
-    import logging
-    logging.getLogger(__name__).info(f'密码重置验证码已生成 email={email} code={code}')
-
-    return success_response(msg='验证码已发送，请检查邮箱')
-
-
-@api_view(['POST'])
-@authentication_classes([])
-@permission_classes([AllowAny])
-def password_reset(request):
-    """
-    使用验证码重置密码
-    POST /api/auth/password/reset
-
-    请求参数：
-    - email: 注册邮箱
-    - code: 验证码
-    - new_password: 新密码
-    """
-    email = request.data.get('email')
-    code = request.data.get('code')
-    new_password = request.data.get('new_password')
-
-    if not all([email, code, new_password]):
-        return error_response(msg='请提供邮箱、验证码和新密码')
-
-    if len(new_password) < 6:
-        return error_response(msg='密码长度不能少于6位')
-
-    from django.core.cache import cache
-    cache_key = f'pwd_reset:{email}'
-    cached = cache.get(cache_key)
-
-    if not cached or cached['code'] != code:
-        return error_response(msg='验证码无效或已过期')
-
-    try:
-        user = User.objects.get(id=cached['user_id'])
-    except User.DoesNotExist:
-        return error_response(msg='用户不存在')
-
-    user.set_password(new_password)
-    user.save()
-    cache.delete(cache_key)
-
-    return success_response(msg='密码重置成功')
 
 
 @api_view(['GET'])

@@ -4,17 +4,13 @@
 提供学习者画像生成、更新和管理相关的业务逻辑服务。
 将画像相关功能集中管理，便于维护和扩展。
 """
-import logging
 from typing import Dict, List, Optional, Any
-from django.db import DatabaseError, transaction
+from django.db import transaction
 from django.utils import timezone
 
-from knowledge.models import KnowledgeMastery, ProfileSummary, KnowledgePoint
+from knowledge.models import KnowledgeMastery, ProfileSummary
 from assessments.models import AbilityScore, AnswerHistory, ProfileHistory, AssessmentStatus
 from .models import User, HabitPreference
-from common.logging_utils import build_log_message
-
-logger = logging.getLogger(__name__)
 
 
 class LearnerProfileService:
@@ -374,155 +370,9 @@ class LearnerProfileService:
         Returns:
             生成结果
         """
-        try:
-            if not force_refresh:
-                cached_result = self._build_cached_profile_result(course_id)
-                if cached_result:
-                    logger.info(
-                        build_log_message(
-                            'profile.refresh.cache_hit',
-                            user_id=self.user.id,
-                            course_id=course_id,
-                        )
-                    )
-                    return cached_result
+        from .profile_generation import generate_profile_for_course
 
-            mastery_list = self.get_knowledge_mastery(course_id)
-            ability_scores = self.get_ability_scores(course_id)
-            habit_prefs = self.get_habit_preferences()
-            course_name: Optional[str] = None
-            kt_predictions: Dict[str, Any] = {}
-
-            try:
-                from courses.models import Course
-                course_name = Course.objects.filter(id=course_id).values_list('name', flat=True).first()
-            except (DatabaseError, ImportError):
-                course_name = None
-
-            kt_enhanced = False
-
-            # KT 预测成功后会回刷掌握度，保证后续画像分析读取的是最新结果。
-            try:
-                from ai_services.services import kt_service
-                answer_records = AnswerHistory.objects.filter(
-                    user=self.user, course_id=course_id
-                ).order_by('answered_at').values(
-                    'question_id', 'knowledge_point_id', 'is_correct'
-                )
-                if answer_records.exists():
-                    answer_history = [
-                        {
-                            'question_id': r['question_id'],
-                            'knowledge_point_id': r['knowledge_point_id'],
-                            'correct': 1 if r['is_correct'] else 0
-                        }
-                        for r in answer_records if r['knowledge_point_id']
-                    ]
-                    kt_result = kt_service.predict_mastery(
-                        user_id=self.user.id,
-                        course_id=course_id,
-                        answer_history=answer_history
-                    )
-                    kt_predictions = kt_result.get('predictions') or {}
-                    if kt_predictions:
-                        for kp_id_str, rate in kt_predictions.items():
-                            try:
-                                rate_f = float(rate)
-                            except (TypeError, ValueError):
-                                continue
-                            KnowledgeMastery.objects.update_or_create(
-                                user=self.user,
-                                course_id=course_id,
-                                knowledge_point_id=kp_id_str,
-                                defaults={'mastery_rate': rate_f}
-                            )
-
-                        mastery_list = self.get_knowledge_mastery(course_id)
-                        kt_enhanced = True
-                        logger.info(build_log_message('kt.profile_refresh.success', user_id=self.user.id, course_id=course_id, knowledge_points=len(kt_predictions)))
-            except (DatabaseError, ImportError, RuntimeError, TypeError, ValueError) as e:
-                logger.warning(build_log_message('kt.profile_refresh.fail', user_id=self.user.id, course_id=course_id, error=e))
-
-            summary: str = ''
-            weakness: str = ''
-            suggestion: str = ''
-            strength_list: List[Any] = []
-
-            # LLM 失败时退化为规则摘要，避免画像接口因为外部依赖波动而直接失败。
-            try:
-                from ai_services.services import llm_service as _llm
-                llm_result = _llm.analyze_profile(
-                    mastery_data=mastery_list,
-                    ability_data=ability_scores or None,
-                    habit_data=habit_prefs or None,
-                    course_name=course_name,
-                    kt_predictions=kt_predictions or None,
-                )
-                summary = llm_result.get('summary', '')
-                weakness_raw = llm_result.get('weakness', [])
-                weakness = '、'.join(weakness_raw) if isinstance(weakness_raw, list) else str(weakness_raw)
-                suggestion = llm_result.get('suggestion', '')
-                strength_list = llm_result.get('strength', [])
-                logger.info(build_log_message('llm.profile.success', user_id=self.user.id, course_id=course_id, strength_count=len(strength_list)))
-            except (DatabaseError, ImportError, RuntimeError, TypeError, ValueError) as e:
-                logger.warning(build_log_message('llm.profile.fail', user_id=self.user.id, course_id=course_id, error=e))
-                avg_mastery = sum(m['mastery_rate'] for m in mastery_list) / len(mastery_list) if mastery_list else 0
-                weak_points = [m['point_name'] for m in mastery_list if m['mastery_rate'] < 0.6]
-                summary = f"您的平均知识掌握度为{avg_mastery:.0%}。"
-                weakness = '、'.join(weak_points[:5]) if weak_points else '暂无明显薄弱点'
-                suggestion = '建议多练习薄弱知识点相关的题目，加深理解。' if weak_points else '继续保持，可以挑战更高难度的内容。'
-
-            ProfileSummary.objects.update_or_create(
-                user=self.user,
-                course_id=course_id,
-                defaults={
-                    'summary': summary,
-                    'weakness': weakness,
-                    'suggestion': suggestion
-                }
-            )
-
-            ProfileHistory.objects.create(
-                user=self.user,
-                course_id=course_id,
-                knowledge_mastery={str(m['point_id']): m['mastery_rate'] for m in mastery_list},
-                ability_scores=ability_scores,
-                habit_preferences=habit_prefs,
-                update_reason='ai_refresh' if force_refresh else 'auto'
-            )
-
-            # 日志写入失败不影响画像主流程。
-            try:
-                from ai_services.models import LLMCallLog
-                LLMCallLog.objects.create(
-                    user=self.user,
-                    call_type='profile_analysis',
-                    input_summary=f"course:{course_id}, mastery:{len(mastery_list)}, kt:{kt_enhanced}",
-                    output_summary=summary[:500],
-                    is_success=True
-                )
-            except DatabaseError:
-                pass
-
-            logger.info(build_log_message('profile.refresh.complete', user_id=self.user.id, course_id=course_id, kt_enhanced=kt_enhanced))
-
-            return {
-                'success': True,
-                'course_id': course_id,
-                'summary': summary,
-                'weakness': weakness,
-                'suggestion': suggestion,
-                'strength': strength_list,
-                'kt_enhanced': kt_enhanced,
-                'cached': False,
-            }
-
-        except Exception as e:
-            logger.error(build_log_message('profile.refresh.fail', user_id=self.user.id, course_id=course_id, error=e))
-            return {
-                'success': False,
-                'error': str(e)
-            }
+        return generate_profile_for_course(self, course_id, force_refresh)
 
 
 def get_learner_profile_service(user: User) -> LearnerProfileService:

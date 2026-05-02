@@ -1,31 +1,31 @@
 #!/user/bin/env python
 # -*- coding: UTF-8 -*-
-"""
-MEFKT 推理模块。
-@Project : wisdom-edu
-@File : mefkt_inference.py
-@Author : Qintsg
-@Date : 2026-04-04
-"""
+"""MEFKT 推理模块。"""
 
 from __future__ import annotations
 
 import json
 import logging
 import os
-from dataclasses import dataclass
-from datetime import datetime
 from pathlib import Path
 from typing import TYPE_CHECKING, cast
 
 from platform_ai.kt.torch_device import resolve_torch_device
+from .mefkt_runtime import (
+    CourseQuestionRuntimeBundle,
+    _append_history_outcome,
+    _build_sorted_history_records,
+    _coerce_int,
+    _move_bundle_tensors_to_device,
+    build_course_runtime_bundle,
+)
 
 logger = logging.getLogger(__name__)
 BACKEND_ROOT = Path(__file__).resolve().parent.parent.parent
 
 if TYPE_CHECKING:
     from models.MEFKT.model import MEFKTSequenceModel
-    from torch import Tensor, device as TorchDevice
+    from torch import Tensor
 
 
 def _resolve_backend_path(path_value: str | None) -> Path | None:
@@ -39,123 +39,6 @@ def _resolve_backend_path(path_value: str | None) -> Path | None:
     if candidate.is_absolute():
         return candidate
     return (BACKEND_ROOT / candidate).resolve()
-
-
-@dataclass(frozen=True)
-class CourseQuestionRuntimeBundle:
-    """课程题目级在线部署所需的静态特征与映射。"""
-
-    question_ids: list[int]
-    question_id_to_index: dict[int, int]
-    question_to_points: dict[int, list[int]]
-    point_to_question_indices: dict[int, list[int]]
-    representative_question_index: dict[int, int]
-    node_feature_matrix: Tensor
-    relation_stats_matrix: Tensor
-    adjacency_matrix: Tensor
-    difficulty_vector: Tensor
-    response_time_vector: Tensor
-    exercise_type_vector: Tensor
-
-
-HistorySortRecord = tuple[int, datetime | None, dict[str, object]]
-
-
-def _coerce_float(value: object, default: float = 0.0) -> float:
-    """将元数据或动态字典中的值安全转换为浮点数。"""
-    try:
-        return float(value)
-    except (TypeError, ValueError):
-        return default
-
-
-def _coerce_int(value: object, default: int) -> int:
-    """将元数据中的值安全转换为整数。"""
-    try:
-        return int(value)
-    except (TypeError, ValueError):
-        return default
-
-
-def _build_sorted_history_records(answer_history: list[dict[str, object]]) -> list[HistorySortRecord]:
-    """按时间优先、原顺序兜底的方式整理历史作答记录。"""
-    sortable_records: list[HistorySortRecord] = []
-    for order_index, record in enumerate(answer_history):
-        sortable_records.append((order_index, _parse_timestamp(str(record.get("timestamp") or "")), record))
-    sortable_records.sort(key=lambda item: item[1] or datetime.min)
-    if not any(record_time is not None for _, record_time, _ in sortable_records):
-        sortable_records.sort(key=lambda item: item[0])
-    return sortable_records
-
-
-def _append_history_outcome(
-    history_correct: list[int],
-    history_gap_hours: list[float],
-    record: dict[str, object],
-    current_time: datetime | None,
-    previous_time: datetime | None,
-) -> datetime | None:
-    """追加答题正确性与相邻时间间隔特征。"""
-    history_correct.append(1 if _coerce_int(record.get("correct", 0), 0) == 1 else 0)
-    if current_time is None or previous_time is None:
-        history_gap_hours.append(1.0)
-    else:
-        gap_seconds = max((current_time - previous_time).total_seconds(), 60.0)
-        history_gap_hours.append(gap_seconds / 3600.0)
-    return current_time or previous_time
-
-
-def _move_bundle_tensors_to_device(
-    bundle: CourseQuestionRuntimeBundle,
-    device: TorchDevice | str,
-) -> tuple[Tensor, Tensor, Tensor, Tensor, Tensor, Tensor]:
-    """将课程运行时张量批量迁移到指定设备。"""
-    return (
-        bundle.node_feature_matrix.to(device),
-        bundle.relation_stats_matrix.to(device),
-        bundle.adjacency_matrix.to(device),
-        bundle.difficulty_vector.to(device),
-        bundle.response_time_vector.to(device),
-        bundle.exercise_type_vector.to(device),
-    )
-
-
-def _parse_timestamp(timestamp_text: str | None) -> datetime | None:
-    """尝试解析接口层传入的时间文本。"""
-    if not timestamp_text:
-        return None
-    normalized = str(timestamp_text).strip()
-    if not normalized:
-        return None
-    try:
-        return datetime.fromisoformat(normalized.replace("Z", "+00:00"))
-    except ValueError:
-        return None
-
-
-def _normalize_values(values: list[float], default_value: float = 0.5) -> list[float]:
-    """将一维数值归一化到 [0,1]。"""
-    if not values:
-        return [default_value]
-    lower = min(values)
-    upper = max(values)
-    if abs(upper - lower) <= 1e-8:
-        return [default_value for _ in values]
-    return [(value - lower) / (upper - lower) for value in values]
-
-
-def _clamp(value: float, lower: float = 0.0, upper: float = 1.0) -> float:
-    """将运行时特征值裁剪到闭区间内，避免异常值放大。"""
-    return max(lower, min(upper, value))
-
-
-def _difficulty_to_score(difficulty: str | None) -> float:
-    """将题目难度枚举转换成数值特征。"""
-    return {
-        "easy": 0.25,
-        "medium": 0.5,
-        "hard": 0.75,
-    }.get(str(difficulty or "").strip(), 0.5)
 
 
 class MEFKTPredictor:
@@ -308,241 +191,7 @@ class MEFKTPredictor:
         """基于课程题目、知识图谱与资源关系构建题目级在线特征。"""
         if course_id in self._course_bundle_cache:
             return self._course_bundle_cache[course_id]
-
-        import torch
-        from assessments.models import AnswerHistory, Question
-        from knowledge.models import KnowledgeRelation, Resource
-        from models.MEFKT.model import NODE_FEATURE_SCHEMA, QUESTION_TYPE_VOCAB
-
-        questions = list(
-            Question.objects.filter(course_id=course_id, is_visible=True)
-            .prefetch_related("knowledge_points")
-            .order_by("id")
-        )
-        if not questions:
-            raise ValueError("当前课程没有可用于题目级在线部署的题目")
-
-        resources = list(
-            Resource.objects.filter(course_id=course_id, is_visible=True).prefetch_related("knowledge_points")
-        )
-        point_to_resources: dict[int, set[int]] = {}
-        for resource in resources:
-            for point_id in resource.knowledge_points.values_list("id", flat=True):
-                point_to_resources.setdefault(int(point_id), set()).add(int(resource.id))
-
-        prereq_points: dict[int, set[int]] = {}
-        dependent_points: dict[int, set[int]] = {}
-        related_points: dict[int, set[int]] = {}
-        for relation in KnowledgeRelation.objects.filter(course_id=course_id).values_list(
-            "pre_point_id",
-            "post_point_id",
-            "relation_type",
-        ):
-            pre_point_id, post_point_id, relation_type = relation
-            pre_point_id = int(pre_point_id)
-            post_point_id = int(post_point_id)
-            if relation_type == "prerequisite":
-                prereq_points.setdefault(post_point_id, set()).add(pre_point_id)
-                dependent_points.setdefault(pre_point_id, set()).add(post_point_id)
-            else:
-                related_points.setdefault(pre_point_id, set()).add(post_point_id)
-                related_points.setdefault(post_point_id, set()).add(pre_point_id)
-
-        answer_stats = {}
-        for question_id_raw, is_correct in AnswerHistory.objects.filter(course_id=course_id).values_list(
-            "question_id",
-            "is_correct",
-        ):
-            question_id = int(question_id_raw)
-            stats = answer_stats.setdefault(question_id, {"total": 0.0, "correct": 0.0})
-            stats["total"] += 1.0
-            stats["correct"] += 1.0 if bool(is_correct) else 0.0
-
-        chapter_values = sorted({str(question.chapter or "").strip() for question in questions})
-        chapter_mapping = {
-            chapter: index for index, chapter in enumerate(chapter_values)
-        }
-        chapter_norm = _normalize_values([float(chapter_mapping[chapter]) for chapter in chapter_values], default_value=0.0)
-        chapter_norm_map = {
-            chapter: chapter_norm[index] for index, chapter in enumerate(chapter_values)
-        }
-
-        score_values = []
-        content_lengths = []
-        analysis_lengths = []
-        attempt_counts = []
-        correct_rates = []
-        question_kp_counts = []
-        question_resource_counts = []
-        difficulty_values_raw = []
-        question_meta: list[dict[str, object]] = []
-        question_to_points: dict[int, list[int]] = {}
-        point_to_question_indices: dict[int, list[int]] = {}
-        question_ids = [int(question.id) for question in questions]
-        question_id_to_index = {question_id: index for index, question_id in enumerate(question_ids)}
-
-        for question in questions:
-            point_ids = [int(point_id) for point_id in question.knowledge_points.values_list("id", flat=True)]
-            question_to_points[int(question.id)] = point_ids
-            for point_id in point_ids:
-                point_to_question_indices.setdefault(point_id, []).append(question_id_to_index[int(question.id)])
-            resource_ids = sorted({resource_id for point_id in point_ids for resource_id in point_to_resources.get(point_id, set())})
-            prereq_count = len({pre for point_id in point_ids for pre in prereq_points.get(point_id, set())})
-            dependent_count = len({post for point_id in point_ids for post in dependent_points.get(point_id, set())})
-            related_count = len({rel for point_id in point_ids for rel in related_points.get(point_id, set())})
-            stats = answer_stats.get(int(question.id), {"total": 0.0, "correct": 0.0})
-            attempt_count = float(stats["total"])
-            correct_rate = float(stats["correct"] / stats["total"]) if stats["total"] > 0 else 0.5
-            score_value = float(question.score or 1.0)
-
-            score_values.append(score_value)
-            content_lengths.append(float(len(question.content or "")))
-            analysis_lengths.append(float(len(question.analysis or "")))
-            attempt_counts.append(attempt_count)
-            correct_rates.append(correct_rate)
-            question_kp_counts.append(float(len(point_ids)))
-            question_resource_counts.append(float(len(resource_ids)))
-            difficulty_values_raw.append(_difficulty_to_score(question.difficulty))
-            question_meta.append(
-                {
-                    "question": question,
-                    "point_ids": point_ids,
-                    "resource_ids": set(resource_ids),
-                    "prereq_count": float(prereq_count),
-                    "dependent_count": float(dependent_count),
-                    "related_count": float(related_count),
-                    "attempt_count": attempt_count,
-                    "correct_rate": correct_rate,
-                    "score_value": score_value,
-                }
-            )
-
-        score_norm = _normalize_values(score_values)
-        content_norm = _normalize_values(content_lengths, default_value=0.3)
-        analysis_norm = _normalize_values(analysis_lengths, default_value=0.2)
-        attempt_norm = _normalize_values(attempt_counts, default_value=0.0)
-        kp_count_norm = _normalize_values(question_kp_counts, default_value=0.2)
-        resource_count_norm = _normalize_values(question_resource_counts, default_value=0.0)
-        prereq_norm = _normalize_values([
-            _coerce_float(item["prereq_count"]) for item in question_meta
-        ], default_value=0.0)
-        dependent_norm = _normalize_values([
-            _coerce_float(item["dependent_count"]) for item in question_meta
-        ], default_value=0.0)
-        related_norm = _normalize_values([
-            _coerce_float(item["related_count"]) for item in question_meta
-        ], default_value=0.0)
-
-        question_count = len(questions)
-        adjacency_matrix = torch.zeros((question_count, question_count), dtype=torch.float32)
-        knowledge_overlap_scores = [0.0 for _ in range(question_count)]
-        resource_overlap_scores = [0.0 for _ in range(question_count)]
-        for left_index in range(question_count):
-            left_points = set(cast(list[int], question_meta[left_index]["point_ids"]))
-            left_resources = cast(set[int], question_meta[left_index]["resource_ids"])
-            left_question = questions[left_index]
-            shared_kp_total = 0.0
-            shared_resource_total = 0.0
-            for right_index in range(left_index + 1, question_count):
-                right_points = set(cast(list[int], question_meta[right_index]["point_ids"]))
-                right_resources = cast(set[int], question_meta[right_index]["resource_ids"])
-                share_points = float(len(left_points & right_points))
-                share_resources = float(len(left_resources & right_resources))
-                related_bridge = 0.0
-                if not share_points:
-                    left_neighbors = {rel for point_id in left_points for rel in related_points.get(point_id, set())}
-                    left_dependents = {rel for point_id in left_points for rel in dependent_points.get(point_id, set())}
-                    left_prereqs = {rel for point_id in left_points for rel in prereq_points.get(point_id, set())}
-                    if right_points & (left_neighbors | left_dependents | left_prereqs):
-                        related_bridge = 1.0
-                same_chapter = 1.0 if str(left_question.chapter or "").strip() == str(questions[right_index].chapter or "").strip() else 0.0
-                same_type = 1.0 if str(left_question.question_type or "") == str(questions[right_index].question_type or "") else 0.0
-                weight = share_points * 2.0 + share_resources * 0.5 + related_bridge * 1.25 + same_chapter * 0.5 + same_type * 0.2
-                if weight > 0:
-                    adjacency_matrix[left_index, right_index] = weight
-                    adjacency_matrix[right_index, left_index] = weight
-                    shared_kp_total += share_points
-                    shared_resource_total += share_resources
-                    knowledge_overlap_scores[right_index] += share_points
-                    resource_overlap_scores[right_index] += share_resources
-            knowledge_overlap_scores[left_index] += shared_kp_total
-            resource_overlap_scores[left_index] += shared_resource_total
-
-        degree = adjacency_matrix.sum(dim=1)
-        degree_norm = degree / degree.max().clamp_min(1.0)
-        if question_count > 1:
-            two_hop = (torch.matmul((adjacency_matrix > 0).float(), (adjacency_matrix > 0).float()) > 0).float()
-            two_hop_density = two_hop.sum(dim=1) / float(question_count - 1)
-        else:
-            two_hop_density = torch.zeros_like(degree_norm)
-        knowledge_overlap_norm = torch.tensor(
-            _normalize_values(knowledge_overlap_scores, default_value=0.0),
-            dtype=torch.float32,
-        )
-        resource_overlap_norm = torch.tensor(
-            _normalize_values(resource_overlap_scores, default_value=0.0),
-            dtype=torch.float32,
-        )
-        difficulty_tensor = torch.tensor(difficulty_values_raw, dtype=torch.float32)
-        neighbor_difficulty_tensor = torch.where(
-            degree > 0,
-            torch.matmul(adjacency_matrix, difficulty_tensor.unsqueeze(1)).squeeze(1) / degree.clamp_min(1.0),
-            difficulty_tensor,
-        )
-
-        difficulty_vector_values = [float(value) for value in difficulty_values_raw]
-        response_time_proxy_values = []
-        feature_rows = []
-        type_indices = []
-        for index, question in enumerate(questions):
-            difficulty_value = difficulty_vector_values[index]
-            response_time_proxy = _clamp(
-                0.35
-                + difficulty_value * 0.35
-                + (1.0 - correct_rates[index]) * 0.2
-                + content_norm[index] * 0.1,
-            )
-            response_time_proxy_values.append(response_time_proxy)
-            feature_map = {
-                "difficulty_proxy": difficulty_value,
-                "response_time_proxy": response_time_proxy,
-                "occurrence_proxy": attempt_norm[index],
-                "degree_norm": float(degree_norm[index].item()),
-                "two_hop_density": float(two_hop_density[index].item()),
-                "neighbor_difficulty": float(neighbor_difficulty_tensor[index].item()),
-                "knowledge_count_norm": kp_count_norm[index],
-                "resource_count_norm": resource_count_norm[index],
-                "prerequisite_count_norm": prereq_norm[index],
-                "dependent_count_norm": dependent_norm[index],
-                "related_count_norm": related_norm[index],
-                "chapter_position_norm": chapter_norm_map.get(str(question.chapter or "").strip(), 0.0),
-                "content_length_norm": content_norm[index],
-                "analysis_length_norm": analysis_norm[index],
-                "question_score_norm": score_norm[index],
-                "historical_correct_rate": correct_rates[index],
-            }
-            feature_rows.append([float(feature_map[column]) for column in NODE_FEATURE_SCHEMA])
-            type_indices.append(int(QUESTION_TYPE_VOCAB.get(str(question.question_type or "").strip(), 0)))
-
-        relation_stats_matrix = torch.stack(
-            [degree_norm, two_hop_density, knowledge_overlap_norm, resource_overlap_norm],
-            dim=1,
-        )
-        bundle = CourseQuestionRuntimeBundle(
-            question_ids=question_ids,
-            question_id_to_index=question_id_to_index,
-            question_to_points=question_to_points,
-            point_to_question_indices=point_to_question_indices,
-            representative_question_index={
-                point_id: indices[0] for point_id, indices in point_to_question_indices.items() if indices
-            },
-            node_feature_matrix=torch.tensor(feature_rows, dtype=torch.float32),
-            relation_stats_matrix=relation_stats_matrix,
-            adjacency_matrix=adjacency_matrix,
-            difficulty_vector=torch.tensor(difficulty_vector_values, dtype=torch.float32),
-            response_time_vector=torch.tensor(response_time_proxy_values, dtype=torch.float32),
-            exercise_type_vector=torch.tensor(type_indices, dtype=torch.long),
-        )
+        bundle = build_course_runtime_bundle(course_id)
         self._course_bundle_cache[course_id] = bundle
         return bundle
 
@@ -845,13 +494,6 @@ mefkt_predictor = MEFKTPredictor()
 
 def auto_load_model() -> bool:
     """从环境变量或默认路径自动加载 MEFKT 模型。"""
-    model_path = os.getenv("KT_MEFKT_MODEL_PATH", "").strip()
-    metadata_path = os.getenv("KT_MEFKT_META_PATH", "").strip()
-    if not model_path:
-        default_model_path = BACKEND_ROOT / "models" / "MEFKT" / "mefkt_model.pt"
-        if not default_model_path.exists():
-            logger.debug("未配置 KT_MEFKT_MODEL_PATH 且默认模型不存在，跳过自动加载")
-            return False
-        model_path = str(default_model_path)
-    effective_metadata_path = metadata_path if metadata_path else None
-    return mefkt_predictor.load_model(model_path=model_path, metadata_path=effective_metadata_path)
+    from .mefkt_loader import auto_load_mefkt_model
+
+    return auto_load_mefkt_model(mefkt_predictor, BACKEND_ROOT, os.environ)

@@ -1,6 +1,5 @@
 <template>
     <div class="course-detail-view">
-        <!-- 课程信息头部 -->
         <el-card class="course-header" shadow="never">
             <div class="header-row">
                 <div class="header-info">
@@ -16,7 +15,6 @@
             <p class="course-desc" v-if="courseInfo.description">{{ courseInfo.description }}</p>
         </el-card>
 
-        <!-- 统计卡片 -->
         <el-row :gutter="16" class="stat-row">
             <el-col :xs="12" :sm="6">
                 <el-card shadow="hover" class="stat-card">
@@ -40,10 +38,8 @@
             </el-col>
         </el-row>
 
-        <!-- Tab 面板 -->
         <el-card shadow="hover">
             <el-tabs v-model="activeTab" type="border-card">
-                <!-- 班级管理 Tab -->
                 <el-tab-pane label="班级管理" name="classes">
                     <div class="tab-toolbar">
                         <el-button type="primary" size="small" @click="showCreateClassDialog = true">
@@ -68,7 +64,6 @@
                     </el-table>
                 </el-tab-pane>
 
-                <!-- 知识图谱 Tab -->
                 <el-tab-pane label="知识图谱" name="knowledge">
                     <div class="tab-toolbar">
                         <el-button-group>
@@ -93,7 +88,6 @@
                     </div>
                 </el-tab-pane>
 
-                <!-- 题库管理 Tab -->
                 <el-tab-pane label="题库管理" name="questions">
                     <div class="tab-toolbar">
                         <el-select v-model="questionFilter.type" placeholder="题目类型" clearable size="small"
@@ -128,7 +122,6 @@
                         @current-change="loadQuestions" />
                 </el-tab-pane>
 
-                <!-- 作业管理 Tab -->
                 <el-tab-pane label="作业管理" name="exams">
                     <div class="tab-toolbar">
                         <el-button type="primary" size="small"
@@ -159,7 +152,6 @@
             </el-tabs>
         </el-card>
 
-        <!-- 创建班级对话框 -->
         <el-dialog v-model="showCreateClassDialog" title="创建班级" width="400px">
             <el-form :model="classForm" label-width="80px">
                 <el-form-item label="班级名称" required>
@@ -178,10 +170,6 @@
 </template>
 
 <script setup>
-/**
- * 教师端 - 课程详情视图
- * 以课程为核心，通过 Tab 管理班级、知识图谱、题库、考试
- */
 import { ref, reactive, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
@@ -212,7 +200,6 @@ const normalizeNumber = (value, fallback = 0) => {
     return Number.isFinite(parsedValue) ? parsedValue : fallback
 }
 
-// Utility to strip HTML tags from text
 const stripHtml = (text) => {
     if (!text) return ''
     return text.replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&').trim()
@@ -324,32 +311,26 @@ const normalizePaginatedList = (value, key, mapper) => {
 const activeTab = ref('classes')
 const courseInfo = ref(normalizeCourseInfo(null))
 
-// Stats
 const stats = reactive({ classCount: 0, knowledgeCount: 0, questionCount: 0, examCount: 0 })
 
-// Classes
 const classes = ref([])
 const classLoading = ref(false)
 const showCreateClassDialog = ref(false)
 const classForm = reactive({ name: '', semester: '' })
 
-// Knowledge
 const knowledgePoints = ref([])
 const knowledgeRelations = ref([])
 const knowledgeLoading = ref(false)
 const knowledgeViewMode = ref('graph')
 
-// Questions
 const questions = ref([])
 const questionLoading = ref(false)
 const questionTotal = ref(0)
 const questionFilter = reactive({ type: '', keyword: '', page: 1 })
 
-// Exams
 const exams = ref([])
 const examLoading = ref(false)
 
-// Graph data computed - 教师端不传mastery（教师端使用统一配色）
 const graphData = computed(() => {
     const pointIdMap = new Map()
     const nodes = knowledgePoints.value.map((point) => {
@@ -378,7 +359,6 @@ const graphData = computed(() => {
     return { nodes, edges }
 })
 
-// Load course detail
 const loadCourseDetail = async () => {
     try {
         courseInfo.value = normalizeCourseInfo(await getCourseDetail(courseId.value))
@@ -387,7 +367,6 @@ const loadCourseDetail = async () => {
     }
 }
 
-// Load classes for this course
 const loadClasses = async () => {
     classLoading.value = true
     try {
@@ -405,7 +384,6 @@ const loadClasses = async () => {
     }
 }
 
-// Load knowledge points
 const loadKnowledge = async () => {
     knowledgeLoading.value = true
     try {
@@ -423,7 +401,6 @@ const loadKnowledge = async () => {
     }
 }
 
-// Load questions
 const loadQuestions = async () => {
     questionLoading.value = true
     try {
@@ -449,7 +426,6 @@ const loadQuestions = async () => {
     }
 }
 
-// Load exams
 const loadExams = async () => {
     examLoading.value = true
     try {
@@ -462,7 +438,6 @@ const loadExams = async () => {
     }
 }
 
-// Actions
 const editCourse = () => {
     router.push(`/teacher/courses/${courseId.value}/edit`)
 }
@@ -518,82 +493,4 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
-.course-detail-view {
-    padding: 0;
-}
-
-.course-header {
-    margin-bottom: 16px;
-    background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%);
-    border: none;
-    color: #fff;
-}
-
-.course-header :deep(.el-card__body) {
-    padding: 20px 24px;
-}
-
-.header-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.header-info {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.header-info h2 {
-    margin: 0;
-    font-size: 22px;
-}
-
-.header-info .el-button {
-    color: rgba(255, 255, 255, 0.8);
-}
-
-.header-info .el-button:hover {
-    color: #fff;
-}
-
-.header-actions .el-button {
-    background: rgba(255, 255, 255, 0.15);
-    border-color: rgba(255, 255, 255, 0.3);
-    color: #fff;
-}
-
-.course-desc {
-    margin: 8px 0 0;
-    opacity: 0.85;
-    font-size: 14px;
-}
-
-.stat-row {
-    margin-bottom: 16px;
-}
-
-.stat-card {
-    text-align: center;
-}
-
-.tab-toolbar {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 16px;
-}
-
-.pagination {
-    margin-top: 16px;
-    justify-content: flex-end;
-}
-
-.graph-container {
-    border: 1px solid #ebeef5;
-    border-radius: 8px;
-    overflow: hidden;
-}
-</style>
+<style scoped src="./CourseDetailView.css"></style>

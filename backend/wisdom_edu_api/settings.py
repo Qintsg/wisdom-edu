@@ -17,6 +17,8 @@ import os
 from datetime import timedelta
 from dotenv import load_dotenv
 
+from .settings_ai import load_ai_settings
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / ".env")
@@ -187,64 +189,15 @@ CHANNEL_LAYERS = {
     }
 }
 
-# Neo4j Configuration / Neo4j图数据库配置
-# Neo4j用于存储知识图谱，支持高效的图查询
-# 如果Neo4j不可用，系统会自动回退到PostgreSQL
-NEO4J_BOLT_URL = os.getenv("NEO4J_BOLT_URL", "bolt://localhost:7687")
-NEO4J_USERNAME = os.getenv("NEO4J_USERNAME", "neo4j")
-NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD", "password")
-
-# GraphRAG runtime configuration / GraphRAG 运行时配置
-GRAPHRAG_EMBEDDER_PROVIDER = os.getenv(
-    "GRAPHRAG_EMBEDDER_PROVIDER",
-    _config_value("graphrag", "embedder_provider", "hash"),
-).strip() or "hash"
-GRAPHRAG_SENTENCE_MODEL = os.getenv(
-    "GRAPHRAG_SENTENCE_MODEL",
-    _config_value(
-        "graphrag",
-        "sentence_model",
-        "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
-    ),
-).strip() or "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
-GRAPHRAG_VECTOR_DIMENSION = _config_int(
-    "graphrag",
-    "vector_dimension",
-    256,
+globals().update(
+    load_ai_settings(
+        _config_value,
+        _config_int,
+        _env_config_bool,
+        _config_json_dict,
+        DEBUG,
+    )
 )
-if os.getenv("GRAPHRAG_VECTOR_DIMENSION", "").strip().isdigit():
-    GRAPHRAG_VECTOR_DIMENSION = int(os.getenv("GRAPHRAG_VECTOR_DIMENSION", "256"))
-GRAPHRAG_QDRANT_PATH = os.getenv(
-    "GRAPHRAG_QDRANT_PATH",
-    _config_value("graphrag", "qdrant_path", "runtime_logs/rag/qdrant"),
-).strip() or "runtime_logs/rag/qdrant"
-
-# Learning resource MCP configuration / 学习资源 MCP 配置
-RESOURCE_MCP_ENABLED = _env_config_bool("RESOURCE_MCP_ENABLED", "resource_mcp", "enabled", True)
-RESOURCE_MCP_EXA_ENABLED = _env_config_bool("RESOURCE_MCP_EXA_ENABLED", "resource_mcp", "exa_enabled", True)
-RESOURCE_MCP_FIRECRAWL_ENABLED = _env_config_bool(
-    "RESOURCE_MCP_FIRECRAWL_ENABLED",
-    "resource_mcp",
-    "firecrawl_enabled",
-    True,
-)
-RESOURCE_MCP_TIMEOUT_SECONDS = _config_int("resource_mcp", "timeout_seconds", 12)
-if os.getenv("RESOURCE_MCP_TIMEOUT_SECONDS", "").strip().isdigit():
-    RESOURCE_MCP_TIMEOUT_SECONDS = int(os.getenv("RESOURCE_MCP_TIMEOUT_SECONDS", "12"))
-RESOURCE_MCP_FIRECRAWL_LIMIT = _config_int("resource_mcp", "firecrawl_limit", 2)
-if os.getenv("RESOURCE_MCP_FIRECRAWL_LIMIT", "").strip().isdigit():
-    RESOURCE_MCP_FIRECRAWL_LIMIT = int(os.getenv("RESOURCE_MCP_FIRECRAWL_LIMIT", "2"))
-EXA_API_KEY = os.getenv("EXA_API_KEY", "")
-EXA_SEARCH_URL = os.getenv("EXA_SEARCH_URL", "https://api.exa.ai/search")
-EXA_SEARCH_TYPE = os.getenv("EXA_SEARCH_TYPE", _config_value("resource_mcp", "exa_search_type", "neural"))
-EXA_MAX_RESULTS = _config_int("resource_mcp", "exa_max_results", 8)
-if os.getenv("EXA_MAX_RESULTS", "").strip().isdigit():
-    EXA_MAX_RESULTS = int(os.getenv("EXA_MAX_RESULTS", "8"))
-FIRECRAWL_API_KEY = os.getenv("FIRECRAWL_API_KEY", "")
-FIRECRAWL_SCRAPE_URL = os.getenv("FIRECRAWL_SCRAPE_URL", "https://api.firecrawl.dev/v1/scrape")
-FIRECRAWL_TIMEOUT_MILLISECONDS = _config_int("resource_mcp", "firecrawl_timeout_milliseconds", 15000)
-if os.getenv("FIRECRAWL_TIMEOUT_MILLISECONDS", "").strip().isdigit():
-    FIRECRAWL_TIMEOUT_MILLISECONDS = int(os.getenv("FIRECRAWL_TIMEOUT_MILLISECONDS", "15000"))
 
 # Custom user model / 自定义用户模型
 # 使用根目录下的users应用中的User模型
@@ -351,118 +304,6 @@ SPECTACULAR_SETTINGS = {
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
 }
-
-# ============================================================================
-# LLM大模型配置 / Large Language Model Configuration
-# ============================================================================
-# 支持的模型提供方：
-# - 通义千问 / Qwen（DashScope OpenAI 兼容接口）
-# - DeepSeek（OpenAI 兼容接口）
-# - 豆包 / ModelArk（OpenAI 兼容接口）
-# - 智谱 / GLM（OpenAI 兼容接口）
-# - Kimi / Moonshot（OpenAI 兼容接口）
-# - 自定义兼容网关（通过 LLM_API_FORMAT 描述接口格式）
-
-LLM_PROVIDER = os.getenv(
-    "LLM_PROVIDER",
-    _config_value("llm", "provider", "deepseek"),
-).strip().lower() or "deepseek"
-
-# 默认使用的模型
-LLM_MODEL = os.getenv(
-    "LLM_MODEL",
-    _config_value("llm", "model", "deepseek-v4-flash"),
-).strip() or "deepseek-v4-flash"
-
-# OpenAI 兼容网关描述
-LLM_API_FORMAT = os.getenv(
-    "LLM_API_FORMAT",
-    _config_value("llm", "api_format", "openai-compatible"),
-).strip().lower() or "openai-compatible"
-
-LLM_REQUEST_TIMEOUT = _config_int(
-    "llm",
-    "request_timeout_seconds",
-    _config_int("ai_services", "api_timeout", 120),
-)
-if os.getenv("LLM_REQUEST_TIMEOUT", "").strip().isdigit():
-    LLM_REQUEST_TIMEOUT = int(os.getenv("LLM_REQUEST_TIMEOUT", "120"))
-
-LLM_MAX_RETRIES = _config_int("llm", "max_retries", 2)
-if os.getenv("LLM_MAX_RETRIES", "").strip().isdigit():
-    LLM_MAX_RETRIES = int(os.getenv("LLM_MAX_RETRIES", "2"))
-
-# 统一兼容网关地址（可选）
-LLM_BASE_URL = os.getenv(
-    "LLM_BASE_URL",
-    _config_value("llm", "base_url", ""),
-).strip()
-
-# 非思考模式配置。默认关闭 reasoning/thinking，并通过 extra_body 兼容常见
-# OpenAI 兼容网关的 enable_thinking=false 写法。
-LLM_REASONING_ENABLED = _env_config_bool(
-    "LLM_REASONING_ENABLED",
-    "llm",
-    "reasoning_enabled",
-    False,
-)
-LLM_REASONING_EFFORT = os.getenv(
-    "LLM_REASONING_EFFORT",
-    _config_value("llm", "reasoning_effort", ""),
-).strip().lower()
-LLM_EXTRA_BODY = _config_json_dict("LLM_EXTRA_BODY_JSON", "llm", "extra_body_json")
-
-# LLM 请求代理（可选）
-LLM_HTTP_PROXY = os.getenv("LLM_HTTP_PROXY", os.getenv("HTTP_PROXY", "")).strip()
-LLM_HTTPS_PROXY = os.getenv("LLM_HTTPS_PROXY", os.getenv("HTTPS_PROXY", "")).strip()
-
-# 通用 / 自定义密钥入口（用于统一网关或自定义服务）
-LLM_API_KEY = os.getenv("LLM_API_KEY", "")
-CUSTOM_LLM_API_KEY = os.getenv("CUSTOM_LLM_API_KEY", "")
-CUSTOM_LLM_BASE_URL = os.getenv("CUSTOM_LLM_BASE_URL", "")
-
-# 通义千问API密钥（推荐）
-DASHSCOPE_API_KEY = os.getenv("DASHSCOPE_API_KEY", "")
-QWEN_BASE_URL = os.getenv("QWEN_BASE_URL", "")
-
-# DeepSeek API密钥
-DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY", "")
-DEEPSEEK_BASE_URL = os.getenv("DEEPSEEK_BASE_URL", "")
-
-# 豆包 / ModelArk 密钥与地址
-ARK_API_KEY = os.getenv("ARK_API_KEY", "")
-DOUBAO_API_KEY = os.getenv("DOUBAO_API_KEY", ARK_API_KEY)
-DOUBAO_BASE_URL = os.getenv("DOUBAO_BASE_URL", "")
-
-# 智谱 / GLM 密钥与地址
-ZAI_API_KEY = os.getenv("ZAI_API_KEY", "")
-ZHIPU_API_KEY = os.getenv("ZHIPU_API_KEY", ZAI_API_KEY)
-ZHIPU_BASE_URL = os.getenv("ZHIPU_BASE_URL", "")
-
-# Kimi / Moonshot 密钥与地址
-MOONSHOT_API_KEY = os.getenv("MOONSHOT_API_KEY", "")
-KIMI_API_KEY = os.getenv("KIMI_API_KEY", MOONSHOT_API_KEY)
-KIMI_BASE_URL = os.getenv("KIMI_BASE_URL", "")
-
-_llm_key = (
-    LLM_API_KEY
-    or CUSTOM_LLM_API_KEY
-    or DASHSCOPE_API_KEY
-    or DEEPSEEK_API_KEY
-    or ARK_API_KEY
-    or DOUBAO_API_KEY
-    or ZAI_API_KEY
-    or ZHIPU_API_KEY
-    or MOONSHOT_API_KEY
-    or KIMI_API_KEY
-)
-if not DEBUG and not _llm_key:
-    import logging
-
-    logging.warning("未配置LLM API密钥，AI功能将使用Mock响应。")
-    logging.warning(
-        "请设置 LLM_API_KEY，或配置 DASHSCOPE_API_KEY / DEEPSEEK_API_KEY / ARK_API_KEY / ZAI_API_KEY / MOONSHOT_API_KEY。"
-    )
 
 # File upload settings
 FILE_UPLOAD_MAX_MEMORY_SIZE = 50 * 1024 * 1024  # 50MB
