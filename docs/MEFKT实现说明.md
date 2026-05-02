@@ -4,9 +4,8 @@
 
 本项目的知识追踪（KT）服务由 `backend/ai_services/services/kt_service.py` 统一编排，当前支持：
 
-- `DKT`
 - `MEFKT`
-- `fusion / single / ensemble` 三种预测模式
+- `single / fusion / ensemble` 三种预测模式（默认只启用 `mefkt`）
 
 其中，MEFKT 负责提供“多视角习题表征 + 遗忘机制”的深度知识追踪能力，并通过课程题目级在线部署结果重新聚合回知识点掌握度。
 
@@ -63,6 +62,10 @@
 公开数据烟测或额外基线可输出到：
 
 - `backend/models/MEFKT/public_baselines/`
+
+公开训练数据集位于：
+
+- `backend/models/MEFKT/public_datasets/`
 
 元数据中会记录：
 
@@ -143,7 +146,7 @@
 - `KT_MEFKT_META_PATH`
 - `KT_USE_GPU`
 
-当 `prediction_mode=fusion` 时，MEFKT 与 DKT 的预测结果会按权重加权融合。
+当前仓库已移除 DKT 运行时和训练入口，默认权重为 `{"mefkt": 1.0}`；保留 `fusion / ensemble` 模式仅用于未来多 MEFKT 派生模型或其他 KT 模型接入时复用响应结构。
 
 ## 对外接口
 
@@ -182,6 +185,6 @@ cd backend
 当前 MEFKT 在项目中承担两个角色：
 
 1. 为 KT 接口提供更强的深度知识追踪预测。
-2. 与 DKT 一起构成 `fusion` 模式下的双模型掌握度估计。
+2. 在模型缺失或加载失败时，为内置统计算法提供统一降级边界。
 
 因此，MEFKT 既是独立模型能力，也是整个学习路径、反馈报告和推荐链路的上游信号来源之一。

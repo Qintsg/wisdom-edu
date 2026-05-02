@@ -16,7 +16,7 @@ neo4j>=6.1.0,<7.0                          # Neo4j图数据库驱动（升级到
 
 # ---- AI/LLM ----
 torch==2.11.0
-scikit-learn>=1.8.0,<2.0                   # DKT训练评估（AUC等指标）
+scikit-learn>=1.8.0,<2.0                   # MEFKT训练评估（AUC等指标）
 langchain>=1.2.7,<2.0                      # LangChain框架（升级到1.x）
 langchain-openai>=1.1.7,<2.0               # LangChain兼容聊天客户端（用于 Qwen / DeepSeek）
 langchain-community>=0.4.1,<1.0            # LangChain社区组件（升级到0.4.x）

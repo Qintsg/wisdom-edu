@@ -1,7 +1,7 @@
 """
 知识追踪服务模块 (Knowledge Tracing Service)
 
-本模块保留 DKT / MEFKT 知识追踪服务的公开入口，具体运行时、预测策略与统计回退
+本模块保留 MEFKT 知识追踪服务的公开入口，具体运行时、预测策略与统计回退
 拆分到相邻 mixin 模块中，保持旧导入路径与响应结构兼容。
 """
 
@@ -22,27 +22,18 @@ BACKEND_ROOT = Path(__file__).resolve().parent.parent.parent
 
 
 MODEL_CONFIGS = {
-    "dkt": {
-        "name": "Deep Knowledge Tracing",
-        "description": "基于RNN(tanh)的深度知识追踪模型，支持本地推理",
-        "github": "https://github.com/pydaxing/Deep-Knowledge-Tracing-DKT-Pytorch",
-        "input_format": "三行格式：答题数/题目编号/答题结果(0或1)",
-        "requires": ["torch", "numpy"],
-        "default_weight": 0.5,
-    },
     "mefkt": {
         "name": "Multi-view Exercise Fusion KT",
         "description": "融合结构视角、属性视角与遗忘机制的知识追踪模型，支持公开预训练 + 题目级在线部署",
         "paper_title": "融合多视角习题表征与遗忘机制的深度知识追踪",
         "paper_doi": "10.11896/jsjkx.250700092",
         "requires": ["torch", "numpy", "scikit-learn"],
-        "default_weight": 0.5,
+        "default_weight": 1.0,
     },
 }
 
 DEFAULT_FUSION_WEIGHTS = {
-    "dkt": 0.5,
-    "mefkt": 0.5,
+    "mefkt": 1.0,
 }
 
 
@@ -63,7 +54,7 @@ class KnowledgeTracingService(KTModelRuntimeMixin, KTPredictionModeMixin):
     """
     知识追踪服务类。
 
-    提供基于 DKT / MEFKT 的知识追踪能力，并在模型不可用时自动降级到
+    提供基于 MEFKT 的知识追踪能力，并在模型不可用时自动降级到
     内置统计预测，避免学习、测评和画像链路因模型文件缺失而中断。
     """
 
@@ -79,10 +70,8 @@ class KnowledgeTracingService(KTModelRuntimeMixin, KTPredictionModeMixin):
         enabled_models: List[str] = None,
     ):
         """初始化知识追踪服务和预测模式配置。"""
-        default_dkt_model_root = BACKEND_ROOT / "models" / "DKT"
         default_mefkt_model_root = BACKEND_ROOT / "models" / "MEFKT"
         raw_model_paths = model_paths or {
-            "dkt": os.getenv("KT_DKT_MODEL_PATH", str(default_dkt_model_root / "dkt_model.pt")),
             "mefkt": os.getenv(
                 "KT_MEFKT_MODEL_PATH", str(default_mefkt_model_root / "mefkt_model.pt")
             ),
@@ -90,6 +79,7 @@ class KnowledgeTracingService(KTModelRuntimeMixin, KTPredictionModeMixin):
         self.model_paths = {
             model_type: _resolve_backend_path(model_path)
             for model_type, model_path in raw_model_paths.items()
+            if model_type in self.MODEL_CONFIGS
         }
 
         self.fusion_weights = fusion_weights or self._load_fusion_weights()
@@ -149,10 +139,10 @@ class KnowledgeTracingService(KTModelRuntimeMixin, KTPredictionModeMixin):
                     if model.strip().lower() in self.MODEL_CONFIGS
                 ]
             else:
-                configured_models = ["dkt", "mefkt"]
+                configured_models = ["mefkt"]
 
         if not configured_models:
-            configured_models = ["dkt"]
+            configured_models = ["mefkt"]
         return configured_models
 
     def _load_fusion_weights(self) -> Dict[str, float]:
@@ -267,13 +257,6 @@ class KnowledgeTracingService(KTModelRuntimeMixin, KTPredictionModeMixin):
 
     def _load_runtime_info(self, model_type: str) -> Dict[str, Any] | None:
         """按模型类型读取运行时状态，导入失败时保持空值兼容。"""
-        if model_type == "dkt":
-            try:
-                from ai_services.services.dkt_inference import dkt_predictor
-
-                return dkt_predictor.get_info()
-            except ImportError:
-                return None
         if model_type == "mefkt":
             try:
                 from ai_services.services.mefkt_inference import mefkt_predictor

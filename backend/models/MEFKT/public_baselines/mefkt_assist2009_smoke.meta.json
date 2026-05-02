@@ -267,7 +267,7 @@
   "batch_size": 16,
   "similarity_weight": 0.5,
   "training_sources": [
-    "models/DKT/KTDataset/assist2009/builder_train.csv",
+    "models/MEFKT/public_datasets/assist2009/builder_train.csv",
     "max_sequences=128"
   ],
   "type_mapping": {
@@ -278,7 +278,7 @@
     "acc": 0.7106796116504854,
     "samples": 1030.0
   },
-  "model_path": "models/DKT/public_baselines/mefkt_assist2009_smoke.pt",
+  "model_path": "models/MEFKT/public_baselines/mefkt_assist2009_smoke.pt",
   "response_time_proxy": "公开数据使用重访距离代理，业务数据使用答题时间间隔代理",
   "difficulty_proxy": "公开数据使用错误率，业务数据优先聚合题目难度并回退到错误率"
 }

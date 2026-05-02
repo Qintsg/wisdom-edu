@@ -132,7 +132,7 @@ class StageTestScoringTests(APITestCase):
         mock_predict_mastery.return_value = {
             "predictions": {self.point.id: 0.42},
             "confidence": 0.8,
-            "model_type": "dkt",
+            "model_type": "mefkt",
         }
         mock_feedback_report.return_value = {
             "summary": "阶段测试摘要",
@@ -298,7 +298,7 @@ class LearningPathRefreshTests(APITestCase):
                 self.point_active.id: 0.72,
             },
             "confidence": 0.8,
-            "model_type": "dkt",
+            "model_type": "mefkt",
             "answer_count": 3,
         }
 

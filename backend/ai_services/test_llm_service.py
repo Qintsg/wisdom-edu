@@ -28,7 +28,7 @@ from platform_ai.rag.runtime import (
     TokenHashEmbedder,
     student_graphrag_runtime,
 )
-from tools.dkt_training import _build_kp_profiles, _simulate_student_sequence
+from tools.kt_synthetic import _build_kp_profiles, _simulate_student_sequence
 from users.models import User
 
 class LLMProviderConfigTests(SimpleTestCase):

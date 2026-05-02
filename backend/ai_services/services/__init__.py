@@ -5,7 +5,7 @@ AI服务模块
 LLMService: 大模型调用服务（支持通义千问、DeepSeek等）
 ScoringService: 评分计算服务
 PathService: 学习路径服务
-KnowledgeTracingService: 知识追踪服务（支持 DKT、MEFKT 模型融合预测）
+KnowledgeTracingService: 知识追踪服务（支持 MEFKT 预测与统计降级）
 """
 from ai_services.services.llm_service import LLMService, llm_service
 from ai_services.services.scoring_service import ScoringService

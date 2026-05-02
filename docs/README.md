@@ -1,6 +1,6 @@
 # 知识图谱驱动的个性化自适应学习系统文档总览
 
-> 最后更新：2026-04-24
+> 最后更新：2026-05-02
 
 当前文档已按仓库中的**真实实现**重新整理，下面列出的文件均存在于当前工作树中，可直接阅读或继续维护。
 
@@ -11,7 +11,7 @@
 3. `演示数据导入说明.md`：评委演示 / 答辩所需账号与数据重建方法
 4. `服务器部署说明.md`：前端独立服务器 + `1Panel` 后端服务器的推荐部署方案
 5. `GraphRAG实现说明.md`：课程级 GraphRAG 的离线索引、Qdrant 和 Neo4j 投影
-6. `MEFKT实现说明.md`：MEFKT 训练、题目级在线部署与 KT 融合
+6. `MEFKT实现说明.md`：MEFKT 训练、题目级在线部署与 KT 接入
 7. `LangChain智能体说明.md`：LangChain agent 的边界和工具集
 8. `大模型接入说明.md`：通义千问 / DeepSeek 接入方式与 fallback 机制
 
@@ -48,9 +48,8 @@
 - GraphRAG 本地向量库默认位于：
   - `backend/runtime_logs/rag/qdrant/`
 - KT 当前支持：
-  - `DKT`
   - `MEFKT`
-  - `fusion / single / ensemble`
+  - 默认 `single` 模式；`fusion / ensemble` 响应结构保留用于后续扩展
 
 ## 常用命令
 

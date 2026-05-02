@@ -28,7 +28,7 @@ from platform_ai.rag.runtime import (
     TokenHashEmbedder,
     student_graphrag_runtime,
 )
-from tools.dkt_training import _build_kp_profiles, _simulate_student_sequence
+from tools.kt_synthetic import _build_kp_profiles, _simulate_student_sequence
 from users.models import User
 
 class MEFKTServiceTests(SimpleTestCase):
@@ -39,12 +39,13 @@ class MEFKTServiceTests(SimpleTestCase):
         from ai_services.services.kt_service import KnowledgeTracingService
 
         service = KnowledgeTracingService(
-            enabled_models=["dkt", "mefkt"],
-            fusion_weights={"dkt": 0.5, "mefkt": 0.5},
-            prediction_mode="fusion",
+            enabled_models=["mefkt"],
+            fusion_weights={"mefkt": 1.0},
+            prediction_mode="single",
         )
 
         info = service.get_model_info()
+        self.assertNotIn("dkt", info["models"])
         self.assertIn("mefkt", info["models"])
         self.assertEqual(
             info["models"]["mefkt"]["paper_doi"], "10.11896/jsjkx.250700092"
@@ -326,8 +327,8 @@ class KTServiceRegressionTests(SimpleTestCase):
         self.assertIn("默认预测", result["analysis"])
 
 
-class DKTSyntheticDataRealismTests(SimpleTestCase):
-    """Validate that synthetic DKT training data preserves expected structure."""
+class KTSyntheticDataRealismTests(SimpleTestCase):
+    """Validate that synthetic KT trajectories preserve expected structure."""
 
     def setUp(self):
         """Build a small prerequisite graph that is easy to reason about in tests."""

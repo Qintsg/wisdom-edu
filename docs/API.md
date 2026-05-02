@@ -1,5 +1,17 @@
 # API 变更记录
 
+## 2026-05-02
+
+### 知识追踪（KT）
+
+- `GET /api/ai/kt/model-info`
+  - `models` 现在只暴露 `mefkt`，不再返回旧版 `dkt` 模型配置和运行时状态。
+  - `enabled_models` 默认值调整为 `["mefkt"]`，`fusion_weights` 默认值调整为 `{"mefkt": 1.0}`。
+
+- `POST /api/ai/kt/predict`
+  - KT 服务只调用 MEFKT 运行时；本地 MEFKT 模型不可用时继续回退到内置统计算法。
+  - 旧环境变量中的 `dkt` 会被过滤，不再触发 DKT 模型加载或推理。
+
 ## 2026-04-30
 
 ### 学生端班级

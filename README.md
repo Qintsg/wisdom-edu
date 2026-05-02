@@ -8,7 +8,7 @@
 - 课程知识图谱可视化与知识点详情联动
 - 个性化学习路径、任务学习、阶段测试与在线考试
 - AI 学习画像、学习建议、反馈报告、课程内外资源推荐
-- Neo4j GraphRAG + Qdrant 混合检索、DKT、MEFKT、LLM、外部搜索统一封装在 `backend/platform_ai`
+- Neo4j GraphRAG + Qdrant 混合检索、MEFKT、LLM、外部搜索统一封装在 `backend/platform_ai`
 - 浏览器自动巡检、演示数据重建与 API 回归工具
 
 ## 技术架构

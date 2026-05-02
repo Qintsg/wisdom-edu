@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-05-02
+
+### Backend / AI — KT 仅保留 MEFKT
+
+- 移除旧版 DKT 训练、推理、CLI 命令与模型目录，KT 服务默认只启用 `mefkt`。
+- 公开训练数据从 `backend/models/DKT/KTDataset/` 迁移到 `backend/models/MEFKT/public_datasets/`，MEFKT 默认训练与状态命令保持可用。
+- `backend/.env.example`、`docs/API.md`、`docs/api.yaml` 与 MEFKT 说明文档同步为 MEFKT-only 配置口径。
+
 ## 2026-04-30
 
 ### Frontend / Backend — 学生端加入班级入口

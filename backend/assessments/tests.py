@@ -141,7 +141,7 @@ class KnowledgeAssessmentMasteryTests(APITestCase):
                 self.post_point.id: 0.91,
             },
             'confidence': 0.8,
-            'model_type': 'dkt_real',
+            'model_type': 'mefkt_real',
             'answer_count': 2,
         }
 

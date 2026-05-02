@@ -1,8 +1,8 @@
 """
-DKT 公开数据集适配。
+MEFKT 公开数据集适配。
 
 当前优先支持仓库内已经存在的标准三行文本数据集，
-并为训练流水线提供统一的数据集发现与路径解析能力。
+并为 MEFKT 训练流水线提供统一的数据集发现与路径解析能力。
 """
 
 from __future__ import annotations
@@ -12,7 +12,7 @@ from pathlib import Path
 
 
 BASE_DIR = Path(__file__).resolve().parents[2]
-DATASET_ROOT = BASE_DIR / "models" / "DKT" / "KTDataset"
+DATASET_ROOT = BASE_DIR / "models" / "MEFKT" / "public_datasets"
 DEFAULT_PUBLIC_DATASET = "assist2017"
 
 

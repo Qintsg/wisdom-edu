@@ -23,7 +23,6 @@ from tools.db_management import (
 )
 from tools.demo_course_archive import generate_demo_course_archive
 from tools.diagnostics import diagnose_env
-from tools.dkt_training import dkt_status, export_training_data, train_dkt_v2 as train_dkt
 from tools.exam_sets import import_exam_sets
 from tools.excel_templates import generate_template
 from tools.knowledge import (
@@ -185,14 +184,6 @@ def build_parser() -> argparse.ArgumentParser:
     rebuild_parser.add_argument("--teacher", default="teacher1")
     rebuild_parser.add_argument("--resources-root", default=None)
 
-    sub.add_parser("dkt-status", help="DKT模型状态")
-    dkt_parser = sub.add_parser("train-dkt", help="训练DKT模型")
-    dkt_parser.add_argument("--course-id", type=int)
-    dkt_parser.add_argument("--epochs", type=int, default=100)
-    dkt_parser.add_argument("--synthetic", action="store_true")
-    dkt_parser.add_argument("--dataset", type=str, default=None)
-    dkt_parser.add_argument("--with-business-data", action="store_true")
-
     sub.add_parser("mefkt-status", help="MEFKT模型状态")
     mefkt_parser = sub.add_parser("train-mefkt", help="训练MEFKT模型")
     mefkt_parser.add_argument("--course-id", type=int)
@@ -209,8 +200,6 @@ def build_parser() -> argparse.ArgumentParser:
     mefkt_parser.add_argument("--max-sequences", type=int, default=None)
     mefkt_parser.add_argument("--output", type=str, default=None)
 
-    export_training_parser = sub.add_parser("export-training-data", help="导出DKT训练数据")
-    export_training_parser.add_argument("--course-id", type=int)
     build_rag_parser = sub.add_parser("build-rag-index", help="构建 RAG 索引")
     build_rag_parser.add_argument("--course-id", type=int)
     refresh_rag_parser = sub.add_parser("refresh-rag-corpus", help="刷新 RAG 索引")
@@ -318,12 +307,8 @@ def _dispatch_test_commands(args: argparse.Namespace) -> bool:
 
 
 def _dispatch_training_commands(args: argparse.Namespace) -> bool:
-    """处理 DKT/MEFKT 训练与 RAG 索引命令。"""
-    if args.cmd == "dkt-status":
-        dkt_status()
-    elif args.cmd == "train-dkt":
-        train_dkt(args.course_id, epochs=args.epochs, use_synthetic=args.synthetic, public_dataset=args.dataset, blend_business_data=args.with_business_data)
-    elif args.cmd == "mefkt-status":
+    """处理 MEFKT 训练与 RAG 索引命令。"""
+    if args.cmd == "mefkt-status":
         mefkt_status()
     elif args.cmd == "train-mefkt":
         train_mefkt_v2(
@@ -341,8 +326,6 @@ def _dispatch_training_commands(args: argparse.Namespace) -> bool:
             max_sequences=args.max_sequences,
             output_path=args.output,
         )
-    elif args.cmd == "export-training-data":
-        export_training_data(course_id=args.course_id)
     elif args.cmd == "build-rag-index":
         print("\n".join(build_rag_index(course_id=args.course_id)))
     elif args.cmd == "refresh-rag-corpus":

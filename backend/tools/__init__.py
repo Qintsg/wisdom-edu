@@ -21,7 +21,6 @@
 - demo_course_archive: 答辩演示课程导入包生成
 - rebuild_demo: 演示数据全量重建
 - excel_templates: Excel模板生成
-- dkt_training: DKT模型训练与管理
 - mefkt_training: MEFKT模型训练与管理
 - rag_index: GraphRAG索引构建与刷新
 """
@@ -76,12 +75,6 @@ from tools.resources import import_resources_json, delete_link_resources
 from tools.survey import import_survey_questions, import_ability_scale
 from tools.activation import generate_activation_codes
 from tools.diagnostics import diagnose_env
-from tools.dkt_training import (
-    train_dkt,
-    dkt_status,
-    export_training_data,
-    generate_synthetic_data,
-)
 from tools.mefkt_training import train_mefkt_v2, mefkt_status
 from tools.rag_index import build_rag_index, refresh_rag_corpus
 from tools.rebuild_demo import rebuild_demo_data
@@ -148,11 +141,6 @@ __all__ = [
     'generate_activation_codes',
     # diagnostics
     'diagnose_env',
-    # dkt
-    'train_dkt',
-    'dkt_status',
-    'export_training_data',
-    'generate_synthetic_data',
     # mefkt
     'train_mefkt_v2',
     'mefkt_status',

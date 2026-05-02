@@ -65,7 +65,7 @@ export function getAIFeedbackReport(data) {
 
 /**
  * 知识追踪预测
- * AI使用KT模型(DKT+PEBG融合)预测学生对各知识点的掌握概率
+ * AI使用MEFKT知识追踪模型预测学生对各知识点的掌握概率
  * @param {Object} data
  * @param {number} data.course_id - 课程ID
  * @param {Array} data.answer_history - 答题历史

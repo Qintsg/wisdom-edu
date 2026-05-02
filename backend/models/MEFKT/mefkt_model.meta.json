@@ -231,7 +231,7 @@
   "similarity_weight": 0.5,
   "training_device": "cuda:0",
   "training_sources": [
-    "models/DKT/KTDataset/assist2017/assist2017_train.txt",
+    "models/MEFKT/public_datasets/assist2017/assist2017_train.txt",
     "sequence_max_step=32",
     "max_sequences=128"
   ],

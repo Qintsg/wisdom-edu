@@ -10,7 +10,7 @@ info:
     - Python 3.12 + Django 6 + DRF
     - PostgreSQL + Neo4j
     - JWT 身份认证
-    - DKT知识追踪（PyTorch，开源项目 [pydaxing/Deep-Knowledge-Tracing-DKT-Pytorch](https://github.com/pydaxing/Deep-Knowledge-Tracing-DKT-Pytorch) 提供基础模型）
+    - MEFKT知识追踪（PyTorch，融合多视角习题表征与遗忘机制）
     - LLM服务（DeepSeek / Qwen-plus，通过LangChain编排）
     
     ## API命名规范
@@ -1531,10 +1531,10 @@ paths:
       summary: 知识追踪预测
       description: |
         使用深度学习知识追踪模型预测学生对各知识点的掌握程度。
-        支持DKT、PEBG两种模型，以及三种预测模式：
-        - fusion: 融合模式（默认），同时使用多个模型并加权融合结果
-        - single: 单模型模式，仅使用指定的单个模型
-        - ensemble: 集成模式，使用多个模型但不融合，返回各模型独立结果
+        使用 MEFKT 模型预测学生对各知识点的掌握程度。本仓库默认仅启用 MEFKT：
+        - single: 单模型模式（默认），仅使用 MEFKT
+        - fusion: 融合模式，保留加权融合响应结构
+        - ensemble: 集成模式，保留各模型独立结果响应结构
       security:
         - BearerAuth: []
       requestBody:

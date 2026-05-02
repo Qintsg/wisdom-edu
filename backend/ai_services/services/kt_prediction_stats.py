@@ -178,11 +178,6 @@ class KTPredictionStatsMixin:
             "correct_flags": correct_flags,
             "knowledge_point_ids": knowledge_point_ids,
             "timestamps": timestamps,
-            "dkt_format": {
-                "num_questions": num_questions,
-                "question_ids": question_ids,
-                "correct_flags": correct_flags,
-            },
         }
 
     def _get_default_prediction(

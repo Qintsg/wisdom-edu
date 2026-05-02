@@ -17,7 +17,6 @@ from tools.db_management import (
     pg_bootstrap,
 )
 from tools.demo_course_archive import generate_demo_course_archive
-from tools.dkt_training import dkt_status, export_training_data, train_dkt_v2 as train_dkt
 from tools.exam_sets import import_exam_sets
 from tools.excel_templates import generate_template
 from tools.knowledge import export_knowledge_map, import_knowledge_map
@@ -72,19 +71,15 @@ MENU_SECTIONS = (
     "[24] 测试LLM服务",
     "",
     "── KT 模型管理 ──",
-    "[25] DKT模型状态",
-    "[26] 训练DKT模型(数据库)",
-    "[27] 训练DKT模型(合成数据)",
-    "[28] 导出训练数据",
-    "[29] MEFKT模型状态",
-    "[30] 训练MEFKT模型",
+    "[25] MEFKT模型状态",
+    "[26] 训练MEFKT模型",
     "",
     "── GraphRAG / 演示验证 ──",
-    "[31] 构建GraphRAG索引",
-    "[32] 刷新GraphRAG语料",
-    "[33] 重建演示数据",
-    "[34] 生成答辩演示导入包",
-    "[35] 浏览器巡检",
+    "[27] 构建GraphRAG索引",
+    "[28] 刷新GraphRAG语料",
+    "[29] 重建演示数据",
+    "[30] 生成答辩演示导入包",
+    "[31] 浏览器巡检",
     "",
     "[0]  退出",
 )
@@ -227,27 +222,10 @@ def _handle_api_and_service_menu_choice(choice: str) -> bool | None:
 def _handle_kt_menu_choice(choice: str) -> bool | None:
     """处理 KT 模型管理菜单选项。"""
     if choice == "25":
-        dkt_status()
-        return True
-    if choice == "26":
-        course_id = _parse_optional_course_id("课程ID(留空全部): ")
-        epochs = int(input("训练轮次(默认100): ").strip() or "100")
-        train_dkt(course_id=course_id, epochs=epochs)
-        return True
-    if choice == "27":
-        course_id = _parse_optional_course_id("课程ID(留空全部): ")
-        epochs = int(input("训练轮次(默认100): ").strip() or "100")
-        train_dkt(course_id=course_id, epochs=epochs, use_synthetic=True)
-        return True
-    if choice == "28":
-        export_training_data(course_id=_parse_optional_course_id("课程ID(留空全部): "))
-        return True
-    if choice == "29":
         mefkt_status()
         return True
-    if choice == "30":
-        public_dataset = input("公开数据集(留空则使用业务数据，如 assist2009): ").strip() or None
-        course_id = None if public_dataset else _parse_optional_course_id("课程ID(留空则使用业务数据默认): ")
+    if choice == "26":
+        public_dataset = input("公开数据集(留空使用默认 assist2017，如 assist2009): ").strip() or None
         epochs = int(input("训练轮次(默认16): ").strip() or "16")
         pretrain_epochs = int(input("预训练轮次(默认8): ").strip() or "8")
         batch_size = int(input("批大小(默认32): ").strip() or "32")
@@ -258,7 +236,7 @@ def _handle_kt_menu_choice(choice: str) -> bool | None:
         max_sequences_text = input("最大序列数(留空不限制): ").strip()
         output_path = input("输出路径(留空默认): ").strip() or None
         train_mefkt_v2(
-            course_id=course_id,
+            course_id=None,
             epochs=epochs,
             pretrain_epochs=pretrain_epochs,
             batch_size=batch_size,
@@ -276,24 +254,24 @@ def _handle_kt_menu_choice(choice: str) -> bool | None:
 
 def _handle_graphrag_and_demo_menu_choice(choice: str) -> bool | None:
     """处理 GraphRAG 与演示验证菜单选项。"""
-    if choice == "31":
+    if choice == "27":
         print("\n".join(build_rag_index(course_id=_parse_optional_course_id("课程ID(留空全部): "))))
         return True
-    if choice == "32":
+    if choice == "28":
         print("\n".join(refresh_rag_corpus(course_id=_parse_optional_course_id("课程ID(留空全部): "))))
         return True
-    if choice == "33":
+    if choice == "29":
         course_name = input("课程名(默认大数据技术与应用): ").strip() or "大数据技术与应用"
         teacher = input("教师账号(默认teacher1): ").strip() or "teacher1"
         resources_root = input("资源根目录(留空默认): ").strip() or None
         rebuild_demo_data(course_name=course_name, teacher=teacher, resources_root=resources_root)
         return True
-    if choice == "34":
+    if choice == "30":
         course_name = input("课程名(默认大数据技术与应用): ").strip() or "大数据技术与应用"
         output_path = input("输出路径(默认../output/答辩演示课程导入包.zip): ").strip() or "../output/答辩演示课程导入包.zip"
         generate_demo_course_archive(course_name=course_name, output_path=output_path)
         return True
-    if choice == "35":
+    if choice == "31":
         scenario = input("场景(audit/prepare-demo/simulate-demo/prepare-defense-demo/simulate-defense-demo): ").strip() or "audit"
         if scenario not in {"audit", "prepare-demo", "simulate-demo", "prepare-defense-demo", "simulate-defense-demo"}:
             print("无效场景")

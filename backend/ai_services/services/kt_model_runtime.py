@@ -1,7 +1,7 @@
 """
 知识追踪模型运行混入模块。
 
-本模块封装课程知识点加载和 DKT / MEFKT 运行时调用，
+本模块封装课程知识点加载和 MEFKT 运行时调用，
 主服务类只负责配置与公开入口。
 """
 
@@ -53,7 +53,6 @@ class KTModelRuntimeMixin:
             str,
             Callable[[int, List[Dict[str, Any]], Optional[List[int]]], Dict[str, Any]],
         ] = {
-            "dkt": self._predict_with_dkt,
             "mefkt": self._predict_with_mefkt,
         }
         predict_method = predict_methods.get(model_type)
@@ -76,63 +75,6 @@ class KTModelRuntimeMixin:
                 )
             )
             return None
-
-    def _predict_with_dkt(
-        self,
-        course_id: int,
-        answer_history: List[Dict[str, Any]],
-        knowledge_points: Optional[List[int]] = None,
-    ) -> Dict[str, Any]:
-        """优先使用 DKT 本地模型预测，失败时退回统计算法。"""
-        num_questions = len(answer_history)
-
-        try:
-            from ai_services.services.dkt_inference import (
-                auto_load_model,
-                dkt_predictor,
-            )
-
-            if not dkt_predictor.is_loaded:
-                auto_load_model()
-
-            if dkt_predictor.is_loaded:
-                result = dkt_predictor.predict(
-                    answer_history,
-                    knowledge_points,
-                    course_id=course_id,
-                )
-                logger.debug(
-                    build_log_message(
-                        "kt.dkt.inference_ok",
-                        answer_count=num_questions,
-                        prediction_count=len(result.get("predictions", {})),
-                    )
-                )
-                return result
-            logger.debug("DKT 模型未加载，使用统计算法降级")
-        except (
-            ImportError,
-            NameError,
-            OSError,
-            RuntimeError,
-            TypeError,
-            ValueError,
-        ) as error:
-            logger.warning(
-                build_log_message(
-                    "kt.dkt.inference_fail", answer_count=num_questions, error=error
-                )
-            )
-
-        predictions = self._calculate_point_mastery(answer_history, knowledge_points)
-        return {
-            "predictions": predictions,
-            "confidence": self._estimate_stat_confidence(
-                answer_history, floor=0.42, ceiling=0.82
-            ),
-            "model_type": "dkt",
-            "analysis": f"DKT降级：基于{num_questions}条答题记录的统计推断",
-        }
 
     def _predict_with_mefkt(
         self,
