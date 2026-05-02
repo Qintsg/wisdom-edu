@@ -11,12 +11,11 @@ from pathlib import Path
 from typing import TYPE_CHECKING, cast
 
 from platform_ai.kt.torch_device import resolve_torch_device
+from .mefkt_question_online import QuestionOnlinePredictionInput, predict_question_online
 from .mefkt_runtime import (
     CourseQuestionRuntimeBundle,
     _append_history_outcome,
     _build_sorted_history_records,
-    _coerce_int,
-    _move_bundle_tensors_to_device,
     build_course_runtime_bundle,
 )
 
@@ -306,150 +305,27 @@ class MEFKTPredictor:
     ) -> dict[str, object]:
         """执行题目级在线部署预测，并聚合回知识点掌握度。"""
         import torch
-        from models.MEFKT.model import (
-            GraphContrastiveEncoder,
-            LinearAlignmentFusion,
-            MEFKTSequenceModel,
-            MultiAttributeEncoder,
-            load_compatible_state,
-        )
 
         device = self._torch_device or torch.device("cpu")
         bundle = self._build_course_runtime_bundle(course_id)
-        feature_dim = _coerce_int(self._metadata.get("feature_dim"), int(bundle.node_feature_matrix.size(1)))
-        relation_dim = _coerce_int(self._metadata.get("relation_dim"), int(bundle.relation_stats_matrix.size(1)))
-        align_dim = _coerce_int(self._metadata.get("align_dim"), 128)
-        hidden_dim = _coerce_int(self._metadata.get("hidden_dim"), 128)
-        num_heads = _coerce_int(self._metadata.get("num_heads"), 4)
-        head_dim = _coerce_int(self._metadata.get("head_dim"), 32)
-        embedding_dim = _coerce_int(self._metadata.get("embedding_dim"), align_dim * 2)
-        type_mapping = cast(dict[str, int], self._metadata.get("type_mapping") or {"unknown": 0})
-
-        graph_encoder = GraphContrastiveEncoder(feature_dim, hidden_dim, align_dim).to(device)
-        attribute_encoder = MultiAttributeEncoder(feature_dim, max(type_mapping.values(), default=0) + 1, align_dim, relation_dim=relation_dim).to(device)
-        fusion_layer = LinearAlignmentFusion(align_dim, align_dim, align_dim).to(device)
-        load_compatible_state(graph_encoder, self._graph_state_dict)
-        load_compatible_state(attribute_encoder, self._attribute_state_dict)
-        load_compatible_state(fusion_layer, self._fusion_state_dict)
-        graph_encoder.eval()
-        attribute_encoder.eval()
-        fusion_layer.eval()
-
-        (
-            node_feature_matrix,
-            relation_stats_matrix,
-            adjacency_matrix,
-            difficulty_vector,
-            response_time_vector,
-            exercise_type_vector,
-        ) = _move_bundle_tensors_to_device(bundle, device)
-
-        with torch.no_grad():
-            struct_embedding = graph_encoder.encode(node_feature_matrix, adjacency_matrix)
-            attribute_result = attribute_encoder(
-                node_feature_matrix=node_feature_matrix,
-                difficulty_vector=difficulty_vector,
-                response_time_vector=response_time_vector,
-                exercise_type_vector=exercise_type_vector,
-                exercise_adjacency=adjacency_matrix,
-                relation_stats_matrix=relation_stats_matrix,
-            )
-            fused_embedding = fusion_layer(struct_embedding, attribute_result.embedding)
-
-        sequence_embedding_dim = int(fused_embedding.size(1))
-        if embedding_dim != sequence_embedding_dim:
-            logger.warning(
-                "MEFKT 运行时融合维度与元数据不一致，将使用运行时维度: metadata=%d, runtime=%d",
-                embedding_dim,
-                sequence_embedding_dim,
-            )
-
-        sequence_model = MEFKTSequenceModel(
-            item_count=len(bundle.question_ids),
-            item_embedding_dim=sequence_embedding_dim,
-            num_heads=num_heads,
-            head_dim=head_dim,
-            pretrained_item_embedding=fused_embedding.detach().cpu(),
-        ).to(device)
-        load_compatible_state(sequence_model, self._sequence_state_dict)
-        sequence_model.eval()
-
         history_indices, history_correct, history_gap_hours, recognized_count = self._build_history_tensors_runtime(answer_history, bundle)
-        target_point_ids = set(int(point_id) for point_id in (knowledge_point_ids or []))
-        if not target_point_ids:
-            for record in answer_history:
-                point_id_raw = record.get("knowledge_point_id")
-                if point_id_raw is not None:
-                    target_point_ids.add(int(str(point_id_raw)))
-                question_id_raw = record.get("question_id")
-                if question_id_raw is not None:
-                    target_point_ids.update(bundle.question_to_points.get(int(str(question_id_raw)), []))
-        if not target_point_ids:
-            target_point_ids.update(bundle.point_to_question_indices.keys())
-        candidate_question_indices = sorted(
-            {
-                question_index
-                for point_id in target_point_ids
-                for question_index in bundle.point_to_question_indices.get(int(point_id), [])
-            }
+        return predict_question_online(
+            QuestionOnlinePredictionInput(
+                answer_history=answer_history,
+                knowledge_point_ids=knowledge_point_ids,
+                metadata=self._metadata,
+                sequence_state_dict=self._sequence_state_dict,
+                graph_state_dict=self._graph_state_dict,
+                attribute_state_dict=self._attribute_state_dict,
+                fusion_state_dict=self._fusion_state_dict,
+                bundle=bundle,
+                history_indices=history_indices,
+                history_correct=history_correct,
+                history_gap_hours=history_gap_hours,
+                recognized_count=recognized_count,
+                device=device,
+            )
         )
-        if not candidate_question_indices:
-            return {
-                "predictions": {},
-                "confidence": 0.0,
-                "model_type": "mefkt_question_online",
-                "analysis": "当前课程题图中未找到可关联到目标知识点的题目节点",
-            }
-
-        candidate_tensor = torch.tensor(candidate_question_indices, dtype=torch.long, device=device)
-        if history_indices:
-            probability_tensor = sequence_model.predict_candidate(
-                history_item_indices=torch.tensor(history_indices, dtype=torch.long, device=device),
-                history_correct_flags=torch.tensor(history_correct, dtype=torch.long, device=device),
-                history_time_gaps=torch.tensor(history_gap_hours, dtype=torch.float32, device=device),
-                candidate_item_indices=candidate_tensor,
-            )
-        else:
-            probability_tensor = torch.full((len(candidate_question_indices),), 0.28, dtype=torch.float32, device=device)
-
-        per_question_predictions = {
-            bundle.question_ids[question_index]: float(probability)
-            for question_index, probability in zip(
-                candidate_question_indices,
-                probability_tensor.detach().cpu().tolist(),
-                strict=True,
-            )
-        }
-        predictions: dict[int, float] = {}
-        for point_id in sorted(target_point_ids):
-            point_question_indices = bundle.point_to_question_indices.get(int(point_id), [])
-            if not point_question_indices:
-                continue
-            probabilities = [
-                per_question_predictions.get(bundle.question_ids[question_index])
-                for question_index in point_question_indices
-                if bundle.question_ids[question_index] in per_question_predictions
-            ]
-            if not probabilities:
-                representative_index = bundle.representative_question_index.get(int(point_id))
-                if representative_index is not None:
-                    representative_question_id = bundle.question_ids[representative_index]
-                    representative_probability = per_question_predictions.get(representative_question_id, 0.35)
-                    probabilities = [representative_probability]
-            predictions[int(point_id)] = round(sum(probabilities) / max(len(probabilities), 1), 4)
-
-        history_coverage = recognized_count / max(len(answer_history), 1)
-        candidate_coverage = len(candidate_question_indices) / max(len(bundle.question_ids), 1)
-        confidence = min(0.93, 0.46 + len(history_indices) / 24.0 * 0.24 + history_coverage * 0.14 + candidate_coverage * 0.08)
-        return {
-            "predictions": predictions,
-            "confidence": round(confidence, 3),
-            "model_type": "mefkt_question_online",
-            "question_predictions": {
-                question_id: round(probability, 4) for question_id, probability in per_question_predictions.items()
-            },
-            "analysis": f"MEFKT 题目级在线部署完成：课程题图 {len(bundle.question_ids)} 题，识别 {recognized_count}/{len(answer_history)} 条有效交互，聚合输出 {len(predictions)} 个知识点掌握度",
-        }
 
     def predict(
         self,
