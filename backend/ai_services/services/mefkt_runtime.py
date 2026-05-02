@@ -9,7 +9,7 @@ from datetime import datetime
 from typing import TYPE_CHECKING, cast
 
 from ai_services.services.mefkt_runtime_support import (
-    _build_feature_sources,
+    build_feature_sources,
     build_graph_statistics,
     build_runtime_feature_rows,
     load_runtime_source_data,
@@ -145,7 +145,7 @@ def build_course_runtime_bundle(course_id: int) -> CourseQuestionRuntimeBundle:
     questions = source_data.questions
     if not questions:
         raise ValueError("当前课程没有可用于题目级在线部署的题目")
-    feature_sources = _build_feature_sources(source_data)
+    feature_sources = build_feature_sources(source_data)
     prepared = prepare_question_features(
         questions=questions,
         sources=feature_sources,
