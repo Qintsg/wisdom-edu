@@ -11,10 +11,15 @@ from common.permissions import IsTeacherOrAdmin
 from common.responses import error_response, success_response
 
 from .models import ExamSubmission, ExamQuestion
+from .teacher_result_support import (
+    build_question_analysis,
+    build_score_distribution,
+    build_submission_result,
+    build_teacher_question_detail,
+)
 from .teacher_helpers import (
     _ensure_teacher_exam_access,
     _get_exam_or_404,
-    _normalize_choice_answer_set,
     _parse_pagination,
 )
 
@@ -48,15 +53,7 @@ def exam_results(request, exam_id):
     end = start + size
     submissions = submissions[start:end]
 
-    results = [{
-        'submission_id': submission.id,
-        'user_id': submission.user.id,
-        'username': submission.user.username,
-        'real_name': submission.user.real_name or '',
-        'score': float(submission.score),
-        'is_passed': submission.is_passed,
-        'submitted_at': submission.submitted_at.isoformat(),
-    } for submission in submissions]
+    results = [build_submission_result(submission) for submission in submissions]
 
     return success_response(data={
         'exam_id': exam_id,
@@ -93,31 +90,10 @@ def exam_student_detail(request, exam_id, student_id):
     exam_questions = ExamQuestion.objects.filter(exam=exam).select_related('question')
     answers = submission.answers or {}
 
-    question_details = []
-    for exam_question in exam_questions.order_by('order'):
-        question = exam_question.question
-        student_answer = answers.get(str(question.id), '')
-        correct_answer = question.answer.get('answer', question.answer) if isinstance(question.answer, dict) else question.answer
-
-        if question.question_type in ['single_choice', 'true_false']:
-            is_correct = student_answer == correct_answer
-        elif question.question_type == 'multiple_choice':
-            correct_set = _normalize_choice_answer_set(correct_answer)
-            student_set = _normalize_choice_answer_set(student_answer)
-            is_correct = correct_set == student_set
-        else:
-            is_correct = str(student_answer).strip().lower() == str(correct_answer).strip().lower()
-
-        question_details.append({
-            'question_id': question.id,
-            'content': question.content,
-            'question_type': question.question_type,
-            'options': question.options,
-            'correct_answer': correct_answer,
-            'student_answer': student_answer,
-            'is_correct': is_correct,
-            'score': exam_question.score if is_correct else 0,
-        })
+    question_details = [
+        build_teacher_question_detail(exam_question, answers)
+        for exam_question in exam_questions.order_by('order')
+    ]
 
     return success_response(data={
         'exam_id': exam_id,
@@ -168,56 +144,10 @@ def exam_analysis(request, exam_id):
     max_score = max(scores)
     min_score = min(scores)
 
-    score_distribution = {
-        '0-59': 0,
-        '60-69': 0,
-        '70-79': 0,
-        '80-89': 0,
-        '90-100': 0,
-    }
-    for score in scores:
-        if score < 60:
-            score_distribution['0-59'] += 1
-        elif score < 70:
-            score_distribution['60-69'] += 1
-        elif score < 80:
-            score_distribution['70-79'] += 1
-        elif score < 90:
-            score_distribution['80-89'] += 1
-        else:
-            score_distribution['90-100'] += 1
+    score_distribution = build_score_distribution(scores)
 
     exam_questions = ExamQuestion.objects.filter(exam=exam).select_related('question')
-    question_analysis = []
-
-    for exam_question in exam_questions.order_by('order'):
-        question = exam_question.question
-        correct_count = 0
-        correct_answer = question.answer.get('answer', question.answer) if isinstance(question.answer, dict) else question.answer
-        for submission in submissions:
-            answers = submission.answers or {}
-            student_answer = answers.get(str(question.id))
-
-            if question.question_type in ['single_choice', 'true_false']:
-                if student_answer == correct_answer:
-                    correct_count += 1
-            elif question.question_type == 'multiple_choice':
-                correct_set = _normalize_choice_answer_set(correct_answer)
-                student_set = _normalize_choice_answer_set(student_answer)
-                if correct_set == student_set:
-                    correct_count += 1
-            else:
-                if student_answer is not None and str(student_answer).strip().lower() == str(correct_answer).strip().lower():
-                    correct_count += 1
-
-        accuracy = correct_count / total_submissions if total_submissions > 0 else 0
-        question_analysis.append({
-            'question_id': question.id,
-            'content': question.content[:50] + '...' if len(question.content) > 50 else question.content,
-            'accuracy': round(accuracy, 3),
-            'correct_count': correct_count,
-            'total_count': total_submissions,
-        })
+    question_analysis = build_question_analysis(exam_questions, list(submissions))
 
     return success_response(data={
         'exam_id': exam_id,

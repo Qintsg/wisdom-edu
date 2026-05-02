@@ -14,6 +14,7 @@ from common.utils import extract_answer_value, score_questions, serialize_answer
 
 from .models import Exam, ExamQuestion, ExamSubmission, FeedbackReport
 from .student_helpers import (
+    FeedbackOverviewInput,
     build_exam_question_details,
     build_feedback_overview,
     build_mastery_change_payload,
@@ -298,14 +299,16 @@ def build_submission_feedback_state(
         mastery_after_snapshot,
     )
     overview = build_feedback_overview(
-        score=context.score,
-        total_score=exam.total_score,
-        passed=context.passed,
-        correct_count=context.correct_count,
-        total_count=len(context.questions),
-        accuracy=context.accuracy,
-        kt_analysis=kt_analysis,
-        mastery_changes=mastery_changes,
+        FeedbackOverviewInput(
+            score=context.score,
+            total_score=exam.total_score,
+            passed=context.passed,
+            correct_count=context.correct_count,
+            total_count=len(context.questions),
+            accuracy=context.accuracy,
+            kt_analysis=kt_analysis,
+            mastery_changes=mastery_changes,
+        )
     )
     report, _ = FeedbackReport.objects.update_or_create(
         user=user,

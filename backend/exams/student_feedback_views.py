@@ -7,7 +7,12 @@ from rest_framework.permissions import IsAuthenticated
 from common.responses import error_response, success_response
 
 from .models import ExamSubmission, FeedbackReport
-from .student_helpers import build_feedback_overview, build_submission_feedback_snapshot, normalize_feedback_payload
+from .student_helpers import (
+    FeedbackOverviewInput,
+    build_feedback_overview,
+    build_submission_feedback_snapshot,
+    normalize_feedback_payload,
+)
 
 
 @api_view(["POST"])
@@ -33,15 +38,17 @@ def generate_feedback_report(request):
 
     overview = dict(report.overview) if report and isinstance(report.overview, dict) else {}
     overview.update(build_feedback_overview(
-        score=snapshot["grading"]["score"],
-        total_score=submission.exam.total_score,
-        passed=snapshot["passed"],
-        correct_count=snapshot["correct_count"],
-        total_count=snapshot["total_count"],
-        accuracy=snapshot["accuracy"],
-        kt_analysis=overview.get("kt_analysis", {}),
-        summary=overview.get("summary", ""),
-        knowledge_gaps=overview.get("knowledge_gaps", []),
+        FeedbackOverviewInput(
+            score=snapshot["grading"]["score"],
+            total_score=submission.exam.total_score,
+            passed=snapshot["passed"],
+            correct_count=snapshot["correct_count"],
+            total_count=snapshot["total_count"],
+            accuracy=snapshot["accuracy"],
+            kt_analysis=overview.get("kt_analysis", {}),
+            summary=str(overview.get("summary", "")),
+            knowledge_gaps=overview.get("knowledge_gaps", []),
+        )
     ))
     report, _ = FeedbackReport.objects.update_or_create(
         exam_id=exam_id,

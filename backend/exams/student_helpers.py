@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import logging
+from dataclasses import dataclass
 from decimal import Decimal, InvalidOperation
 
 from common.utils import (
@@ -19,6 +20,31 @@ from .models import ExamQuestion
 
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass(frozen=True)
+class FeedbackOverviewInput:
+    """反馈概览所需的评分与画像上下文。"""
+
+    score: object
+    total_score: object
+    passed: object
+    correct_count: object
+    total_count: object
+    accuracy: object
+    kt_analysis: object | None = None
+    summary: str = ""
+    knowledge_gaps: list[object] | None = None
+    mastery_changes: list[object] | None = None
+
+
+@dataclass(frozen=True)
+class NormalizedFeedbackText:
+    """反馈报告中可展示的文本字段。"""
+
+    summary: str
+    analysis_text: str
+    knowledge_gaps: list[str]
 
 
 def snapshot_mastery_for_points(user, course_id: int, point_ids: list[int]) -> dict[int, float]:
@@ -115,36 +141,9 @@ def build_exam_question_details(exam_questions, answers, question_result_map):
 
 def normalize_feedback_payload(report, question_details):
     """规范化反馈报告载荷。"""
-    overview = dict(report.overview) if isinstance(report.overview, dict) else {}
-    raw_analysis = report.analysis
-    summary = clean_display_text(overview.get("summary")) if isinstance(overview, dict) else ""
-    analysis_text = ""
-    knowledge_gaps = []
-    if isinstance(raw_analysis, str):
-        analysis_text = clean_display_text(raw_analysis)
-    elif isinstance(raw_analysis, list):
-        if raw_analysis and all(isinstance(item, str) for item in raw_analysis):
-            knowledge_gaps = [clean_display_text(item) for item in raw_analysis if clean_display_text(item)]
-        elif raw_analysis and all(isinstance(item, dict) for item in raw_analysis):
-            extracted_gaps = [clean_display_text(item.get("knowledge_point_name") or item.get("analysis")) for item in raw_analysis]
-            knowledge_gaps = [item for item in extracted_gaps if item]
-    elif isinstance(raw_analysis, dict):
-        analysis_text = clean_display_text(raw_analysis.get("analysis"))
-        gaps = raw_analysis.get("knowledge_gaps", [])
-        if isinstance(gaps, list):
-            knowledge_gaps = [clean_display_text(item) for item in gaps if clean_display_text(item)]
-
-    if not summary:
-        summary = analysis_text or clean_display_text(report.conclusion)
-    if analysis_text == summary:
-        analysis_text = ""
-    if question_details:
-        overview["score"] = round(sum(float(item.get("score") or 0) for item in question_details), 2)
-        overview["correct_count"] = sum(1 for item in question_details if item["is_correct"])
-        overview["total_count"] = len(question_details)
-        overview["total_questions"] = len(question_details)
-        overview["accuracy"] = round(overview["correct_count"] / max(len(question_details), 1) * 100, 1)
-
+    overview = _normalized_overview(report.overview)
+    feedback_text = _normalize_feedback_text(report, overview)
+    _apply_question_detail_stats(overview, question_details)
     correct_count = overview.get("correct_count")
     total_count = overview.get("total_count") or overview.get("total_questions")
     accuracy = overview.get("accuracy")
@@ -157,9 +156,9 @@ def normalize_feedback_payload(report, question_details):
         "retryable": report.status == "failed",
         "poll_interval_ms": 2000 if report.status == "pending" else None,
         "overview": overview,
-        "summary": summary,
-        "analysis": analysis_text,
-        "knowledge_gaps": knowledge_gaps,
+        "summary": feedback_text.summary,
+        "analysis": feedback_text.analysis_text,
+        "knowledge_gaps": feedback_text.knowledge_gaps,
         "recommendations": report.recommendations or [],
         "next_tasks": report.next_tasks or [],
         "conclusion": report.conclusion or "",
@@ -172,32 +171,90 @@ def normalize_feedback_payload(report, question_details):
     }
 
 
-def build_feedback_overview(
-    *,
-    score,
-    total_score,
-    passed,
-    correct_count,
-    total_count,
-    accuracy,
-    kt_analysis=None,
-    summary="",
-    knowledge_gaps=None,
-    mastery_changes=None,
-):
+def _normalized_overview(raw_overview: object) -> dict[str, object]:
+    """复制报告概览字典，避免直接修改模型 JSONField 原对象。"""
+    return dict(raw_overview) if isinstance(raw_overview, dict) else {}
+
+
+def _normalize_feedback_text(report, overview: dict[str, object]) -> NormalizedFeedbackText:
+    """从报告 analysis/conclusion/overview 中提取稳定展示文本。"""
+    analysis_text, knowledge_gaps = _extract_analysis_text_and_gaps(report.analysis)
+    summary = clean_display_text(overview.get("summary"))
+    if not summary:
+        summary = analysis_text or clean_display_text(report.conclusion)
+    if analysis_text == summary:
+        analysis_text = ""
+    return NormalizedFeedbackText(
+        summary=summary,
+        analysis_text=analysis_text,
+        knowledge_gaps=knowledge_gaps,
+    )
+
+
+def _extract_analysis_text_and_gaps(raw_analysis: object) -> tuple[str, list[str]]:
+    """兼容字符串、列表和字典三种历史 analysis 结构。"""
+    if isinstance(raw_analysis, str):
+        return clean_display_text(raw_analysis), []
+    if isinstance(raw_analysis, list):
+        return _extract_list_analysis(raw_analysis)
+    if isinstance(raw_analysis, dict):
+        gaps = raw_analysis.get("knowledge_gaps", [])
+        knowledge_gaps = _clean_text_list(gaps) if isinstance(gaps, list) else []
+        return clean_display_text(raw_analysis.get("analysis")), knowledge_gaps
+    return "", []
+
+
+def _extract_list_analysis(raw_analysis: list[object]) -> tuple[str, list[str]]:
+    """从列表型 analysis 中提取知识薄弱点。"""
+    if raw_analysis and all(isinstance(item, str) for item in raw_analysis):
+        return "", _clean_text_list(raw_analysis)
+    if raw_analysis and all(isinstance(item, dict) for item in raw_analysis):
+        extracted_gaps = [
+            clean_display_text(item.get("knowledge_point_name") or item.get("analysis"))
+            for item in raw_analysis
+            if isinstance(item, dict)
+        ]
+        return "", [item for item in extracted_gaps if item]
+    return "", []
+
+
+def _clean_text_list(items: list[object]) -> list[str]:
+    """清洗文本列表，过滤空白项。"""
+    cleaned_items = [clean_display_text(item) for item in items]
+    return [item for item in cleaned_items if item]
+
+
+def _apply_question_detail_stats(
+    overview: dict[str, object],
+    question_details: list[dict[str, object]],
+) -> None:
+    """用真实题目详情覆盖概览中的分数统计。"""
+    if not question_details:
+        return
+    overview["score"] = round(sum(float(item.get("score") or 0) for item in question_details), 2)
+    overview["correct_count"] = sum(1 for item in question_details if item["is_correct"])
+    overview["total_count"] = len(question_details)
+    overview["total_questions"] = len(question_details)
+    overview["accuracy"] = round(
+        overview["correct_count"] / max(len(question_details), 1) * 100,
+        1,
+    )
+
+
+def build_feedback_overview(input_payload: FeedbackOverviewInput):
     """构建反馈概览字典。"""
     return {
-        "score": float(score or 0),
-        "total_score": float(total_score or 0),
-        "passed": bool(passed),
-        "correct_count": int(correct_count or 0),
-        "total_count": int(total_count or 0),
-        "total_questions": int(total_count or 0),
-        "accuracy": float(accuracy or 0),
-        "kt_analysis": kt_analysis or {},
-        "summary": clean_display_text(summary),
-        "knowledge_gaps": knowledge_gaps or [],
-        "mastery_changes": mastery_changes or [],
+        "score": float(input_payload.score or 0),
+        "total_score": float(input_payload.total_score or 0),
+        "passed": bool(input_payload.passed),
+        "correct_count": int(input_payload.correct_count or 0),
+        "total_count": int(input_payload.total_count or 0),
+        "total_questions": int(input_payload.total_count or 0),
+        "accuracy": float(input_payload.accuracy or 0),
+        "kt_analysis": input_payload.kt_analysis or {},
+        "summary": clean_display_text(input_payload.summary),
+        "knowledge_gaps": input_payload.knowledge_gaps or [],
+        "mastery_changes": input_payload.mastery_changes or [],
     }
 
 
