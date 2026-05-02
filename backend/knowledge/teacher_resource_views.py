@@ -1,28 +1,30 @@
 """教师端资源库管理视图。"""
 from __future__ import annotations
 
-import json
-from typing import cast
-
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 
-from application.teacher.contracts import first_present
 from common.permissions import IsTeacherOrAdmin
 from common.responses import error_response, success_response
 from common.utils import resolve_course_id as _resolve_course_id
-
-from .models import KnowledgePoint, Resource
+from .models import Resource
 from .teacher_helpers import (
-    KnowledgePointRelationSetter,
     bad_request,
     link_knowledge_points,
     parse_pagination,
     refresh_course_rag_index,
-    replace_knowledge_points,
     require_point_ids,
+)
+from .teacher_resource_support import (
+    create_resource_from_payload,
+    filtered_teacher_resources,
+    parse_resource_write_payload,
+    resource_create_result,
+    resource_detail_payload,
+    resource_list_payload,
+    update_resource_from_payload,
 )
 
 
@@ -33,54 +35,17 @@ def resource_list(request: Request) -> Response:
     course_id, err = _resolve_course_id(request)
     if err:
         return err
-    resource_type = request.query_params.get("type")
-    keyword = request.query_params.get("keyword") or request.query_params.get("title", "")
-    point_id = request.query_params.get("point_id")
     page, size = parse_pagination(request)
-
-    resources = Resource.objects.filter(course_id=course_id).prefetch_related("knowledge_points").order_by("sort_order", "id")
-    if resource_type:
-        resources = resources.filter(resource_type=resource_type)
-    if keyword:
-        resources = resources.filter(title__icontains=keyword)
-    if point_id:
-        resources = resources.filter(knowledge_points__id=point_id)
-
+    resources = filtered_teacher_resources(course_id, request.query_params)
     total = resources.count()
     start = (page - 1) * size
-    data = []
-    for resource in resources[start : start + size]:
-        file_url = None
-        file_format = ""
-        try:
-            if resource.file:
-                file_url = resource.file.url
-                file_name = getattr(resource.file, "name", "") or ""
-                file_format = file_name.split(".")[-1] if "." in file_name else ""
-        except (ValueError, AttributeError):
-            pass
-
-        knowledge_points = cast(list[KnowledgePoint], list(resource.knowledge_points.all()))
-        first_point = knowledge_points[0] if knowledge_points else None
-        data.append({
-            "resource_id": getattr(resource, "id", None) or getattr(resource, "pk", None),
-            "title": resource.title,
-            "type": resource.resource_type,
-            "url": resource.url or file_url,
-            "format": file_format,
-            "point_id": first_point.id if first_point else None,
-            "point_name": ", ".join(point.name for point in knowledge_points) if knowledge_points else "",
-            "points": [{"id": point.id, "name": point.name} for point in knowledge_points],
-            "description": getattr(resource, "description", "") or "",
-            "visible": resource.is_visible,
-            "created_at": resource.created_at.isoformat(),
-            "duration": resource.duration,
-            "duration_display": f"{resource.duration // 60:02d}:{resource.duration % 60:02d}" if resource.duration else None,
-            "chapter_number": resource.chapter_number,
-            "sort_order": resource.sort_order,
-        })
-
-    return success_response(data={"total": total, "resources": data})
+    return success_response(data={
+        "total": total,
+        "resources": [
+            resource_list_payload(resource)
+            for resource in resources[start : start + size]
+        ],
+    })
 
 
 @api_view(["POST"])
@@ -90,64 +55,20 @@ def resource_create(request: Request) -> Response:
     course_id, err = _resolve_course_id(request)
     if err:
         return err
-    title = first_present(request.data, "title", "resource_name")
-    resource_type = first_present(request.data, "type", "resource_type")
-    url = first_present(request.data, "url", "resource_url")
-    file = request.FILES.get("file")
-    points = request.data.get("points", request.data.get("knowledge_point_ids", []))
-    point_id = request.data.get("point_id") or request.data.get("knowledge_point_id")
-    duration = request.data.get("duration")
-    chapter_number = request.data.get("chapter_number")
-    sort_order = request.data.get("sort_order", 0)
-    description = request.data.get("description", "")
 
-    if not title or not resource_type:
+    payload = parse_resource_write_payload(request.data, partial=False)
+    if not payload.title or not payload.resource_type:
         return bad_request("缺少必要参数")
 
-    if isinstance(points, str):
-        try:
-            points = json.loads(points)
-        except json.JSONDecodeError:
-            points = []
-    if not points and point_id:
-        points = [point_id]
-
-    duration_val = None
-    if duration is not None:
-        try:
-            duration_val = int(duration)
-        except (ValueError, TypeError):
-            pass
-
-    sort_order_val = 0
-    if sort_order:
-        try:
-            sort_order_val = int(sort_order)
-        except (ValueError, TypeError):
-            sort_order_val = 0
-
-    resource = Resource.objects.create(
+    resource = create_resource_from_payload(
         course_id=course_id,
-        title=title,
-        resource_type=resource_type,
-        url=url,
-        file=file,
-        description=description,
-        duration=duration_val,
-        chapter_number=chapter_number if chapter_number else None,
-        sort_order=sort_order_val,
-        uploaded_by=request.user,
+        payload=payload,
+        file=request.FILES.get("file"),
+        user=request.user,
     )
-    if points:
-        replace_knowledge_points(cast(KnowledgePointRelationSetter, resource.knowledge_points), points)
-
     refresh_course_rag_index(course_id)
     return success_response(
-        data={
-            "resource_id": getattr(resource, "id", None) or getattr(resource, "pk", None),
-            "title": resource.title,
-            "url": resource.url or (resource.file.url if resource.file else None),
-        },
+        data=resource_create_result(resource),
         msg="资源创建成功",
     )
 
@@ -162,68 +83,17 @@ def resource_update(request: Request, resource_id: int) -> Response:
         return error_response(msg="资源不存在", code=404)
 
     if request.method == "GET":
-        return success_response(data={
-            "resource_id": resource.id,
-            "title": resource.title,
-            "type": resource.resource_type,
-            "url": resource.url or "",
-            "file": resource.file.url if resource.file else None,
-            "description": resource.description or "",
-            "duration": resource.duration,
-            "chapter_number": resource.chapter_number or "",
-            "sort_order": resource.sort_order,
-            "is_visible": resource.is_visible,
-            "knowledge_points": list(resource.knowledge_points.values_list("id", flat=True)),
-            "course_id": resource.course_id,
-        })
+        return success_response(data=resource_detail_payload(resource))
 
-    title = first_present(request.data, "title", "resource_name")
-    resource_type = first_present(request.data, "type", "resource_type")
-    url = first_present(request.data, "url", "resource_url")
-    points = request.data.get("points", request.data.get("knowledge_point_ids", []))
-    point_id = request.data.get("point_id") or request.data.get("knowledge_point_id")
-    is_visible = first_present(request.data, "visible", "is_visible")
-    duration = request.data.get("duration")
-    chapter_number = request.data.get("chapter_number")
-    sort_order = request.data.get("sort_order")
-    description = request.data.get("description")
-
-    if title:
-        resource.title = title
-    if resource_type:
-        resource.resource_type = resource_type
-    if url:
-        resource.url = url
-    if is_visible is not None:
-        resource.is_visible = is_visible
-    if description is not None:
-        resource.description = description
-    if duration is not None:
-        try:
-            resource.duration = int(duration)
-        except (ValueError, TypeError):
-            pass
-    if chapter_number is not None:
-        resource.chapter_number = chapter_number
-    if sort_order is not None:
-        try:
-            resource.sort_order = int(sort_order)
-        except (ValueError, TypeError):
-            pass
-
-    resource.save()
-    if isinstance(points, str):
-        try:
-            points = json.loads(points)
-        except json.JSONDecodeError:
-            points = []
-    if not points and point_id:
-        points = [point_id]
-    if points:
-        replace_knowledge_points(cast(KnowledgePointRelationSetter, resource.knowledge_points), points)
-
+    update_resource_from_payload(
+        resource,
+        parse_resource_write_payload(request.data, partial=True),
+    )
     refresh_course_rag_index(resource.course_id)
-    return success_response(data={"resource_id": getattr(resource, "id", None) or getattr(resource, "pk", None)}, msg="资源更新成功")
+    return success_response(
+        data={"resource_id": getattr(resource, "id", None) or getattr(resource, "pk", None)},
+        msg="资源更新成功",
+    )
 
 
 @api_view(["DELETE"])
