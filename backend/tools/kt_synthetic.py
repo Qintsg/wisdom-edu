@@ -9,6 +9,10 @@ from random import Random
 from typing import cast
 
 from tools.kt_synthetic_support import (
+    InteractionStep,
+    SamplingContext,
+    SyntheticLearningContext,
+    SyntheticState,
     apply_session_gap_decay,
     build_children_map,
     build_kp_profile,
@@ -111,19 +115,14 @@ def _sample_student_profile(rng: Random) -> StudentProfile:
 
 def _choose_focus_kp(
     kp_profiles: dict[int, KnowledgePointProfile],
-    mastery: dict[int, float],
-    attempts: dict[int, int],
-    review_queue: dict[int, float],
+    state: SyntheticState,
     profile: StudentProfile,
     rng: Random,
 ) -> int:
     """根据先修掌握、复习队列和学生画像选择当前学习焦点。"""
     return choose_focus_kp(
-        kp_profiles=kp_profiles,
-        mastery=mastery,
-        attempts=attempts,
-        review_queue=review_queue,
-        profile=profile,
+        learning=SyntheticLearningContext(kp_profiles=kp_profiles, profile=profile),
+        state=state,
         rng=rng,
     )
 
@@ -140,9 +139,13 @@ def _simulate_student_sequence(
     profile = student_profile or _sample_student_profile(rng)
     kp_ids = list(kp_profiles.keys())
     mastery = initialize_mastery_levels(kp_profiles, profile, rng)
-    attempts: defaultdict[int, int] = defaultdict(int)
-    recent_wrong: defaultdict[int, int] = defaultdict(int)
-    review_queue: defaultdict[int, float] = defaultdict(float)
+    state = SyntheticState(
+        mastery=mastery,
+        attempts=defaultdict(int),
+        review_queue=defaultdict(float),
+        recent_wrong=defaultdict(int),
+    )
+    learning = SyntheticLearningContext(kp_profiles=kp_profiles, profile=profile)
     last_seen: dict[int, int] = {}
     last_results: list[int] = []
 
@@ -150,9 +153,7 @@ def _simulate_student_sequence(
     correct_flags: list[str] = []
     focus_kp = _choose_focus_kp(
         kp_profiles,
-        mastery,
-        attempts,
-        review_queue,
+        state,
         profile,
         rng,
     )
@@ -165,76 +166,57 @@ def _simulate_student_sequence(
             session_count += 1
             focus_kp = _choose_focus_kp(
                 kp_profiles,
-                mastery,
-                attempts,
-                review_queue,
+                state,
                 profile,
                 rng,
             )
             session_remaining = min(seq_len - step, max(4, int(rng.gauss(session_span, 2))))
             gap_scale = 1 + rng.random() * 1.2
             apply_session_gap_decay(
-                mastery=mastery,
-                attempts=attempts,
+                state=state,
                 last_seen=last_seen,
-                profile=profile,
-                kp_profiles=kp_profiles,
+                learning=learning,
                 step=step,
                 gap_scale=gap_scale,
-                review_queue=review_queue,
             )
 
         session_progress = 1 - (session_remaining / session_span)
         if rng.random() < 0.18:
             focus_kp = _choose_focus_kp(
                 kp_profiles,
-                mastery,
-                attempts,
-                review_queue,
+                state,
                 profile,
                 rng,
             )
 
         weights = build_sampling_weights(
-            kp_ids=kp_ids,
-            kp_profiles=kp_profiles,
-            mastery=mastery,
-            attempts=attempts,
-            review_queue=review_queue,
-            profile=profile,
-            focus_kp=focus_kp,
-            recent_wrong=recent_wrong,
+            kp_ids,
+            SamplingContext(learning=learning, state=state, focus_kp=focus_kp),
         )
         kp_id = rng.choices(kp_ids, weights=weights, k=1)[0]
-        correct, prereq_mastery, gain = compute_interaction_outcome(
-            kp_id=kp_id,
-            kp_profiles=kp_profiles,
-            mastery=mastery,
-            review_queue=review_queue,
-            recent_wrong=recent_wrong,
-            last_results=last_results,
-            profile=profile,
-            focus_kp=focus_kp,
-            session_progress=session_progress,
+        outcome = compute_interaction_outcome(
+            InteractionStep(
+                kp_id=kp_id,
+                focus_kp=focus_kp,
+                session_progress=session_progress,
+                last_results=last_results,
+            ),
+            learning=learning,
+            state=state,
             rng=rng,
         )
         update_mastery_after_interaction(
-            kp_id=kp_id,
-            correct=correct,
-            prereq_mastery=prereq_mastery,
-            gain=gain,
-            mastery=mastery,
-            review_queue=review_queue,
-            recent_wrong=recent_wrong,
-            kp_profiles=kp_profiles,
-            profile=profile,
+            kp_id,
+            outcome,
+            learning,
+            state,
         )
 
-        attempts[kp_id] += 1
+        state.attempts[kp_id] += 1
         last_seen[kp_id] = step
         kp_indices.append(str(kp_to_idx[kp_id]))
-        correct_flags.append(str(correct))
-        last_results.append(correct)
+        correct_flags.append(str(outcome.correct))
+        last_results.append(outcome.correct)
         session_remaining -= 1
 
     unique_kps = len(set(kp_indices))
