@@ -452,7 +452,7 @@
 
             <h2>快速开始</h2>
             <h3>安装依赖</h3>
-            <pre><code>pip install -r requirements.txt</code></pre>
+            <pre><code>uv sync</code></pre>
 
             <h3>配置环境变量</h3>
             <pre><code># 复制环境变量模板
@@ -465,13 +465,13 @@ cp .env.example .env
 # DASHSCOPE_API_KEY=your_api_key</code></pre>
 
             <h3>数据库迁移</h3>
-            <pre><code>python manage.py migrate</code></pre>
+            <pre><code>uv run python manage.py migrate</code></pre>
 
             <h3>创建测试数据</h3>
-            <pre><code>python tools.py create_test_data</code></pre>
+            <pre><code>uv run python tools.py create_test_data</code></pre>
 
             <h3>运行开发服务器</h3>
-            <pre><code>python manage.py runserver</code></pre>
+            <pre><code>uv run python manage.py runserver</code></pre>
 
             <h2>测试账号</h2>
             <table>
@@ -506,27 +506,27 @@ cp .env.example .env
             <p>项目根目录的 <code>tools.py</code> 和 <code>test.py</code> 提供了多个实用命令：</p>
             <h3>tools.py 管理工具</h3>
             <pre><code># 直接运行进入菜单模式
-python tools.py
+uv run python tools.py
 
 # 命令行模式
-python tools.py clear_db          # 清除数据库
-python tools.py create_test_data  # 创建测试数据
-python tools.py import_knowledge_map 大数据图谱.xlsx  # 导入知识图谱
-python tools.py export_knowledge_map output.json      # 导出知识图谱
-python tools.py neo4j_status      # 检查Neo4j状态
-python tools.py neo4j_sync_all    # 同步所有课程到Neo4j
-python tools.py neo4j_clear       # 清空Neo4j数据</code></pre>
+uv run python tools.py clear_db          # 清除数据库
+uv run python tools.py create_test_data  # 创建测试数据
+uv run python tools.py import_knowledge_map 大数据图谱.xlsx  # 导入知识图谱
+uv run python tools.py export_knowledge_map output.json      # 导出知识图谱
+uv run python tools.py neo4j_status      # 检查Neo4j状态
+uv run python tools.py neo4j_sync_all    # 同步所有课程到Neo4j
+uv run python tools.py neo4j_clear       # 清空Neo4j数据</code></pre>
 
             <h3>test.py 测试工具</h3>
             <pre><code># 直接运行进入菜单模式
-python test.py
+uv run python test.py
 
 # 命令行模式
-python test.py test_api           # 测试API接口
-python test.py test_neo4j         # 测试Neo4j连接
-python test.py import_neo4j       # 导入Neo4j测试数据
-python test.py clear_neo4j        # 清空Neo4j测试数据
-python test.py import_pg          # 导入PostgreSQL测试数据</code></pre>
+uv run python test.py test_api           # 测试API接口
+uv run python test.py test_neo4j         # 测试Neo4j连接
+uv run python test.py import_neo4j       # 导入Neo4j测试数据
+uv run python test.py clear_neo4j        # 清空Neo4j测试数据
+uv run python test.py import_pg          # 导入PostgreSQL测试数据</code></pre>
 
             <h2>更多信息</h2>
             <ul>

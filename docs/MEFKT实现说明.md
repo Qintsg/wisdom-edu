@@ -163,8 +163,8 @@ KT 相关 API 主要包括：
 
 ```bash
 cd backend
-.venv\Scripts\python.exe tools.py train-mefkt --dataset assist2017 --epochs 16 --pretrain-epochs 8
-.venv\Scripts\python.exe tools.py mefkt-status
+uv run python tools.py train-mefkt --dataset assist2017 --epochs 16 --pretrain-epochs 8
+uv run python tools.py mefkt-status
 ```
 
 ## 降级行为

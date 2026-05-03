@@ -29,32 +29,26 @@
 
 ## 快速启动
 
-### 推荐：一键安装
+### 推荐：uv 管理后端环境
 
 ```bash
-python install.py
+cd backend
+uv sync
+uv run python manage.py runserver 127.0.0.1:8000
 ```
 
-Windows 也可以直接执行：
-
-```bash
-install.bat
-```
-
-脚本会引导生成 `backend/.env`，并可按需完成依赖安装、迁移、静态资源收集与前端构建。前端开发期统一通过 `frontend/vite.config.ts` 代理 `/api`、`/media`、`/ws`。
+首次运行前请基于 `backend/.env.example` 准备 `backend/.env`，并填写数据库、Neo4j 与 LLM 配置。前端开发期统一通过 `frontend/vite.config.ts` 代理 `/api`、`/media`、`/ws`。
 当前开发代理默认联调 `http://127.0.0.1:8000`，并监听 `0.0.0.0:3000`，因此本地 `npm run dev` 无需额外配置 Nginx、Caddy 或其他反向代理；如需临时联调远端后端，可通过 `VITE_DEV_BACKEND_ORIGIN` 覆盖开发代理目标，通过 `VITE_DEV_PORT` 覆盖开发端口。生产构建默认直连 `http://127.0.0.1:8000`，如需让生产包改连其他后端入口，可通过 `VITE_BACKEND_ORIGIN` 覆盖后重新构建。
 
 ### 后端
 
 ```bash
 cd backend
-py -3.12 -m venv .venv
-.venv\Scripts\activate
-pip install -r requirements.txt
-.venv\Scripts\python.exe manage.py runserver 127.0.0.1:8000
+uv sync
+uv run python manage.py runserver 127.0.0.1:8000
 ```
 
-后端本地开发环境当前以 **Python 3.12** 为基线版本。
+后端本地开发环境当前以 **Python 3.12** 为基线版本，依赖由 `backend/pyproject.toml` 与 `backend/uv.lock` 锁定；`uv sync` 会创建或更新 `backend/.venv`。
 
 ### 前端
 
@@ -87,14 +81,14 @@ npm run dev
 
 ```bash
 cd backend
-.venv\Scripts\python.exe tools.py rebuild-demo-data --course-name "大数据技术与应用"
+uv run python tools.py rebuild-demo-data --course-name "大数据技术与应用"
 ```
 
 ### 浏览器巡检
 
 ```bash
 cd backend
-.venv\Scripts\python.exe tools.py browser-audit --scenario audit --frontend-url http://127.0.0.1:3000 --api-base-url http://127.0.0.1:8000
+uv run python tools.py browser-audit --scenario audit --frontend-url http://127.0.0.1:3000 --api-base-url http://127.0.0.1:8000
 ```
 
 说明：

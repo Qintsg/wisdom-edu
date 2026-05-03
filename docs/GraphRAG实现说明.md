@@ -186,8 +186,8 @@ qdrant_path = runtime_logs/rag/qdrant
 
 ```bash
 cd backend
-.venv\Scripts\python.exe tools.py build-rag-index --course-id 72
-.venv\Scripts\python.exe tools.py refresh-rag-corpus --course-id 72
+uv run python tools.py build-rag-index --course-id 72
+uv run python tools.py refresh-rag-corpus --course-id 72
 ```
 
 省略 `--course-id` 时会对全部课程构建索引。

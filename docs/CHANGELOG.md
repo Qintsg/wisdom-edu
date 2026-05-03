@@ -2,13 +2,18 @@
 
 ## 2026-05-02
 
+### Backend / Tooling — uv 环境管理
+
+- 后端依赖从 `requirements.txt` 迁移到 `pyproject.toml` 与 `uv.lock`，由 `uv sync` 创建和更新 `backend/.venv`。
+- README、安装说明、使用说明、演示说明、服务器部署说明与内置接口文档中的后端命令同步为 `uv sync` / `uv run python ...`。
+- 移除仓库内旧版 `requirements.txt`，依赖版本以锁文件为准。
+
 ### Quality — 报告评分权重与高扣分模块解耦
 
-- 恢复项目级 `.fuckucoderc.json` 为 `fuck-u-code` 默认指标权重，后续报告分数只按默认口径统计。
 - 拆分 MEFKT 在线运行时、学习路径节点计划、阶段测试提交、题库导入、知识图谱学生端视图与浏览器审计脚本，保留原入口兼容导出。
 - 拆分考试反馈报告生成、教师端题库视图、GraphRAG Text2Cypher 降级查询与课程图社区报告构建逻辑，降低长函数和跨职责耦合。
 - 补强后端函数/类级维护意图、边界和风险说明注释，提升默认评分口径下的文档覆盖质量。
-- `report.md` 已用 `fuck-u-code analyze . -v -t 1024 -f markdown -o report.md -l zh` 重新生成，默认权重评分为 `93.01/100`。
+- 移除仓库内本地评分配置与生成报告产物，避免将一次性质量报告继续纳入版本库维护。
 
 ### Backend / AI — LangChain Agent GraphRAG 工具拆分
 
