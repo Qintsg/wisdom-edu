@@ -6,6 +6,9 @@ from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from .models import User, HabitPreference, UserCourseContext
 
 
+# 维护意图：用户管理
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
     """用户管理"""
@@ -17,6 +20,9 @@ class UserAdmin(BaseUserAdmin):
     )
 
 
+# 维护意图：学习习惯偏好管理
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @admin.register(HabitPreference)
 class HabitPreferenceAdmin(admin.ModelAdmin):
     """学习习惯偏好管理"""
@@ -25,6 +31,9 @@ class HabitPreferenceAdmin(admin.ModelAdmin):
     search_fields = ['user__username']
 
 
+# 维护意图：用户课程上下文管理
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @admin.register(UserCourseContext)
 class UserCourseContextAdmin(admin.ModelAdmin):
     """用户课程上下文管理"""

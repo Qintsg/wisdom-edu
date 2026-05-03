@@ -10,6 +10,9 @@ from common.responses import error_response, success_response
 from .models import Class, ClassCourse, Course, Enrollment
 
 
+# 维护意图：管理端 - 课程统计
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(['GET'])
 @permission_classes([IsAuthenticated, IsAdmin])
 def admin_course_statistics(_request, course_id):
@@ -33,6 +36,9 @@ def admin_course_statistics(_request, course_id):
     })
 
 
+# 维护意图：获取班级统计数据
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(['GET'])
 @permission_classes([IsAuthenticated, IsAdmin])
 def admin_class_statistics(_request, class_id):

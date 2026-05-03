@@ -28,12 +28,18 @@ if TYPE_CHECKING:
     from users.models import User
 
 
+# 维护意图：学习路径服务类 提供学习路径的生成、调整和进度管理功能
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class PathService:
     """
     学习路径服务类
 
     提供学习路径的生成、调整和进度管理功能
     """
+    # 维护意图：为用户生成学习路径（与手动刷新对齐的完整逻辑） 流程： 1. 调用KT服务更新掌握度 2. 保留已完成/进行中/跳过/失败的节点 3. 按掌握度排序剩余知识点 4. 根据配置节点上限和测试间隔。
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def generate_path(
         self,
         user: "User",
@@ -169,6 +175,9 @@ class PathService:
 
         return learning_path
 
+    # 维护意图：解锁下一个节点
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def unlock_next_node(self, current_node):
         """
         解锁下一个节点
@@ -193,6 +202,9 @@ class PathService:
             next_node.save()
             logger.info(f"解锁节点: {next_node.title}")
 
+    # 维护意图：在路径中插入补救节点 当学生某个知识点掌握度不足时，动态插入补救学习节点
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def insert_remedial_node(self, path, knowledge_point, after_node):
         """
         在路径中插入补救节点
@@ -233,6 +245,9 @@ class PathService:
 
         return remedial_node
 
+    # 维护意图：获取学习路径的进度信息
+    # 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+    # 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
     def get_path_progress(self, path) -> Dict[str, object]:
         """
         获取学习路径的进度信息

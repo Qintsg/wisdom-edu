@@ -49,6 +49,9 @@ from .student_utils import (
 logger = logging.getLogger(__name__)
 
 
+# 维护意图：学生端统一 GraphRAG 服务
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class StudentLearningRAG(
     StudentResourceRecommendationMixin,
     StudentAnswerMixin,

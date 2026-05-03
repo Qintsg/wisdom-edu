@@ -5,6 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 
 from common.responses import error_response, success_response
 from learning.node_detail_support import (
+    NodeExamMasteryRefresh,
     build_node_detail_payload,
     build_node_exam_context,
     ensure_progress_baseline,
@@ -17,6 +18,10 @@ from learning.node_detail_support import (
 )
 from learning.view_helpers import _get_authenticated_user
 
+
+# 维护意图：获取节点任务详情与资源列表 GET /api/path-nodes/{node_id}
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def get_path_node_detail(request, node_id):
@@ -36,6 +41,9 @@ def get_path_node_detail(request, node_id):
     return success_response(data=build_node_detail_payload(node=node, progress=progress, current_mastery_rate=current_mastery_rate))
 
 
+# 维护意图：标记资源学习完成 POST /api/path-nodes/{node_id}/resources/{resource_id}/complete 支持内部资源ID（整数）和外部资源ID（ext。
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def complete_node_resource(request, node_id, resource_id):
@@ -55,6 +63,9 @@ def complete_node_resource(request, node_id, resource_id):
     return success_response(data=payload, msg="资源已标记为已学习")
 
 
+# 维护意图：提交节点练习/小测验结果 POST /api/path-nodes/{node_id}/exams/{exam_id}/submit
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def submit_node_exam(request, node_id, exam_id):
@@ -91,7 +102,7 @@ def submit_node_exam(request, node_id, exam_id):
         exam_id=exam_id,
         passed=exam_context["passed"],
     )
-    answer_history_records = persist_node_exam_histories(
+    persist_node_exam_histories(
         user=user,
         node=node,
         answers=answers,
@@ -99,13 +110,14 @@ def submit_node_exam(request, node_id, exam_id):
         question_result_map=exam_context["question_result_map"],
     )
     mastery_update = refresh_node_exam_mastery(
-        user=user,
-        node=node,
-        point_stats=exam_context["point_stats"],
-        answer_history_records=answer_history_records,
-        score=exam_context["score"],
-        total_score=exam_context["total_score"],
-        progress=progress,
+        NodeExamMasteryRefresh(
+            user=user,
+            node=node,
+            point_stats=exam_context["point_stats"],
+            score=exam_context["score"],
+            total_score=exam_context["total_score"],
+            progress=progress,
+        )
     )
 
     return success_response(

@@ -13,10 +13,16 @@ from typing import Iterable
 from common.config import AppConfig
 
 
+# 维护意图：to decimal
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _to_decimal(value) -> Decimal:
     return Decimal(str(value or 0))
 
 
+# 维护意图：汇总考试题目配置中的分值并返回总分
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def sum_exam_question_scores(exam_questions: Iterable) -> Decimal:
     """汇总考试题目配置中的分值并返回总分。"""
 
@@ -29,6 +35,9 @@ def sum_exam_question_scores(exam_questions: Iterable) -> Decimal:
     return total
 
 
+# 维护意图：根据总分与及格比例计算标准化后的及格分
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def compute_exam_pass_score(total_score: Decimal, pass_ratio: float | None = None) -> Decimal:
     """根据总分与及格比例计算标准化后的及格分。"""
 
@@ -36,6 +45,9 @@ def compute_exam_pass_score(total_score: Decimal, pass_ratio: float | None = Non
     return (total_score * ratio).quantize(Decimal('0.01'))
 
 
+# 维护意图：同步单场考试的总分与及格分，并按需持久化
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def sync_exam_totals(exam, save: bool = True, pass_ratio: float | None = None) -> tuple[float, float]:
     """同步单场考试的总分与及格分，并按需持久化。"""
 
@@ -52,6 +64,9 @@ def sync_exam_totals(exam, save: bool = True, pass_ratio: float | None = None) -
     return float(total_score), float(pass_score)
 
 
+# 维护意图：批量同步指定课程下考试的总分与及格分
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def sync_course_exam_totals(course_id: int, exam_types: list[str] | None = None) -> int:
     """批量同步指定课程下考试的总分与及格分。"""
 

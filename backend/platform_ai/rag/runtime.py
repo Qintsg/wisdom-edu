@@ -12,7 +12,6 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 import json
-import re
 
 from neo4j_graphrag.llm import LLMInterfaceV2, LLMResponse
 from neo4j_graphrag.llm.types import ToolCall, ToolCallResponse
@@ -22,6 +21,7 @@ from neo4j_graphrag.types import LLMMessage
 
 from common.neo4j_service import neo4j_service
 from platform_ai.llm import llm_facade
+from platform_ai.rag.runtime_cypher import fallback_cypher_from_prompt
 from platform_ai.rag.runtime_course import CourseGraphRAGRuntime
 from platform_ai.rag.runtime_models import (
     COURSE_DOCUMENT_LABEL,
@@ -39,12 +39,14 @@ from platform_ai.rag.runtime_models import (
     SourcePayload,
     StructuredCourseGraphExtractor,
     TokenHashEmbedder,
-    _coerce_int,
     _coerce_string,
-    _dedupe_strings,
-    _escape_cypher_string,
     _message_history_text,
 )
+
+
+# 维护意图：让官方 GraphRAG 检索器复用仓库内现有的 LLM 门面
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class FacadeGraphRAGLLM(LLMInterfaceV2):
     """让官方 GraphRAG 检索器复用仓库内现有的 LLM 门面。"""
 
@@ -54,22 +56,11 @@ class FacadeGraphRAGLLM(LLMInterfaceV2):
             model_params={"temperature": 0},
         )
 
+    # 维护意图：兼容 V2 message list 与仓库内旧式字符串 prompt 调用
+    # 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+    # 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
     @staticmethod
-    def _extract_line_value(prompt_text: str, key: str) -> str:
-        """从结构化提示中提取单行键值。"""
-        matched = re.search(rf"{re.escape(key)}\s*:\s*(.+)", prompt_text)
-        return _coerce_string(matched.group(1)) if matched else ""
-
-    @staticmethod
-    def _extract_user_question(prompt_text: str) -> str:
-        """从 Text2Cypher 自定义提示中提取用户问题。"""
-        matched = re.search(r"User question:\s*(.*?)\n\nRules:", prompt_text, re.S)
-        if matched:
-            return _coerce_string(matched.group(1))
-        return _coerce_string(prompt_text)
-
-    @staticmethod
-    def _normalize_invoke_input(
+    def normalize_invoke_input(
         raw_input: list[LLMMessage] | str,
     ) -> tuple[str, list[LLMMessage]]:
         """兼容 V2 message list 与仓库内旧式字符串 prompt 调用。"""
@@ -99,8 +90,11 @@ class FacadeGraphRAGLLM(LLMInterfaceV2):
             normalized_messages = [{"role": "user", "content": prompt_text}]
         return prompt_text, normalized_messages
 
+    # 维护意图：为 V2 structured output 参数生成可读提示
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     @staticmethod
-    def _response_format_hint(response_format: object | None) -> str:
+    def response_format_hint(response_format: object | None) -> str:
         """为 V2 structured output 参数生成可读提示。"""
         if response_format is None:
             return "无"
@@ -108,120 +102,11 @@ class FacadeGraphRAGLLM(LLMInterfaceV2):
             return json.dumps(response_format, ensure_ascii=False)
         return _coerce_string(getattr(response_format, "__name__", response_format)) or "无"
 
-    @classmethod
-    def _build_target_match(
-        cls,
-        *,
-        course_id: int,
-        focus_point_id: int,
-        focus_point_name: str,
-        question: str,
-    ) -> str:
-        """为启发式 Cypher 生成稳定的目标知识点匹配子句。"""
-        if focus_point_id > 0:
-            return (
-                f"MATCH (target:KnowledgePoint {{course_id: {course_id}}})\n"
-                f"WHERE target.id = {focus_point_id} AND coalesce(target.is_published, true) = true"
-            )
-
-        lookup_name = _escape_cypher_string(focus_point_name or question)
-        return (
-            f"MATCH (target:KnowledgePoint {{course_id: {course_id}}})\n"
-            "WHERE coalesce(target.is_published, true) = true "
-            f"AND toLower(target.name) CONTAINS toLower('{lookup_name}')"
-        )
-
-    @classmethod
-    def _fallback_cypher_from_prompt(cls, prompt_text: str) -> str:
-        """在无可用模型时，为 Text2CypherRetriever 生成启发式 Cypher。"""
-        course_id = _coerce_int(cls._extract_line_value(prompt_text, "course_id"), default=0)
-        focus_point_id = _coerce_int(
-            cls._extract_line_value(prompt_text, "focus_point_id"),
-            default=0,
-        )
-        focus_point_name = cls._extract_line_value(prompt_text, "focus_point_name")
-        question = cls._extract_user_question(prompt_text)
-        normalized_question = question.lower()
-        target_match = cls._build_target_match(
-            course_id=course_id,
-            focus_point_id=focus_point_id,
-            focus_point_name=focus_point_name,
-            question=question,
-        )
-
-        if any(keyword in normalized_question for keyword in ["前置", "先修", "先学", "基础"]):
-            return (
-                f"{target_match}\n"
-                f"OPTIONAL MATCH (pre:KnowledgePoint {{course_id: {course_id}}})-[:PREREQUISITE]->(target)\n"
-                f"OPTIONAL MATCH (doc:CourseDocument {{course_id: {course_id}}})-[:ABOUT]->(target)\n"
-                "RETURN 'prerequisite' AS item_type,\n"
-                "       target.id AS point_id,\n"
-                "       target.name AS point_name,\n"
-                "       'PREREQUISITE' AS relation_type,\n"
-                "       pre.id AS related_point_id,\n"
-                "       COALESCE(pre.name, '') AS related_point_name,\n"
-                "       COALESCE(doc.title, '') AS source_title,\n"
-                "       COALESCE(doc.excerpt, '') AS source_excerpt,\n"
-                "       '说明该知识点的前置知识。' AS reasoning\n"
-                "LIMIT 8"
-            )
-
-        if any(keyword in normalized_question for keyword in ["后续", "下一步", "之后", "延伸", "进阶"]):
-            return (
-                f"{target_match}\n"
-                f"OPTIONAL MATCH (target)-[:PREREQUISITE]->(post:KnowledgePoint {{course_id: {course_id}}})\n"
-                f"OPTIONAL MATCH (doc:CourseDocument {{course_id: {course_id}}})-[:ABOUT]->(target)\n"
-                "RETURN 'postrequisite' AS item_type,\n"
-                "       target.id AS point_id,\n"
-                "       target.name AS point_name,\n"
-                "       'PREREQUISITE' AS relation_type,\n"
-                "       post.id AS related_point_id,\n"
-                "       COALESCE(post.name, '') AS related_point_name,\n"
-                "       COALESCE(doc.title, '') AS source_title,\n"
-                "       COALESCE(doc.excerpt, '') AS source_excerpt,\n"
-                "       '说明该知识点的后续知识。' AS reasoning\n"
-                "LIMIT 8"
-            )
-
-        if any(keyword in normalized_question for keyword in ["路径", "顺序", "链路", "关系", "联系", "关联"]):
-            return (
-                f"{target_match}\n"
-                "CALL {\n"
-                "  WITH target\n"
-                f"  OPTIONAL MATCH (pre:KnowledgePoint {{course_id: {course_id}}})-[:PREREQUISITE]->(target)\n"
-                "  RETURN 'prerequisite' AS item_type, target.id AS point_id, target.name AS point_name,\n"
-                "         'PREREQUISITE' AS relation_type, pre.id AS related_point_id, COALESCE(pre.name, '') AS related_point_name\n"
-                "  UNION ALL\n"
-                "  WITH target\n"
-                f"  OPTIONAL MATCH (target)-[:PREREQUISITE]->(post:KnowledgePoint {{course_id: {course_id}}})\n"
-                "  RETURN 'postrequisite' AS item_type, target.id AS point_id, target.name AS point_name,\n"
-                "         'PREREQUISITE' AS relation_type, post.id AS related_point_id, COALESCE(post.name, '') AS related_point_name\n"
-                "}\n"
-                f"OPTIONAL MATCH (doc:CourseDocument {{course_id: {course_id}}})-[:ABOUT]->(target)\n"
-                "RETURN item_type, point_id, point_name, relation_type, related_point_id, related_point_name,\n"
-                "       COALESCE(doc.title, '') AS source_title,\n"
-                "       COALESCE(doc.excerpt, '') AS source_excerpt,\n"
-                "       '展示该知识点的局部知识链路。' AS reasoning\n"
-                "LIMIT 8"
-            )
-
-        return (
-            f"{target_match}\n"
-            f"OPTIONAL MATCH (doc:CourseDocument {{course_id: {course_id}}})-[:ABOUT]->(target)\n"
-            "RETURN 'resource' AS item_type,\n"
-            "       target.id AS point_id,\n"
-            "       target.name AS point_name,\n"
-            "       'ABOUT' AS relation_type,\n"
-            "       target.id AS related_point_id,\n"
-            "       target.name AS related_point_name,\n"
-            "       COALESCE(doc.title, '') AS source_title,\n"
-            "       COALESCE(doc.excerpt, '') AS source_excerpt,\n"
-            "       '展示该知识点的课程证据。' AS reasoning\n"
-            "LIMIT 8"
-        )
-
+    # 维护意图：在无模型或模型路由失败时，基于关键词选择检索工具
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     @staticmethod
-    def _heuristic_tool_calls(input_text: str, tools: list[Tool]) -> list[ToolCall]:
+    def heuristic_tool_calls(input_text: str, tools: list[Tool]) -> list[ToolCall]:
         """在无模型或模型路由失败时，基于关键词选择检索工具。"""
         normalized_query = input_text.lower()
         available_names = [tool.get_name() for tool in tools]
@@ -288,6 +173,9 @@ class FacadeGraphRAGLLM(LLMInterfaceV2):
             )
         return selected_calls
 
+    # 维护意图：将官方 Text2Cypher prompt 委托给仓库的 LLM 门面处理
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def invoke(
         self,
         input: list[LLMMessage] | str,
@@ -297,8 +185,8 @@ class FacadeGraphRAGLLM(LLMInterfaceV2):
         **_: object,
     ) -> LLMResponse:
         """将官方 Text2Cypher prompt 委托给仓库的 LLM 门面处理。"""
-        prompt_text, normalized_messages = self._normalize_invoke_input(input)
-        fallback_cypher = self._fallback_cypher_from_prompt(prompt_text)
+        prompt_text, normalized_messages = self.normalize_invoke_input(input)
+        fallback_cypher = fallback_cypher_from_prompt(prompt_text)
         if not llm_facade.is_available:
             return LLMResponse(content=fallback_cypher)
 
@@ -310,7 +198,7 @@ class FacadeGraphRAGLLM(LLMInterfaceV2):
                 "content 字段只能包含一条可执行 Cypher，不得包含 Markdown、解释或额外文本。"
                 f"\n系统指令：{system_instruction or '无'}"
                 f"\n历史对话：\n{history_text or '无'}"
-                f"\n响应格式：{self._response_format_hint(response_format)}"
+                f"\n响应格式：{self.response_format_hint(response_format)}"
                 f"\n消息输入：\n{json.dumps(normalized_messages, ensure_ascii=False, indent=2)}"
                 f"\n\n原始任务提示：\n{prompt_text}"
             ),
@@ -320,6 +208,9 @@ class FacadeGraphRAGLLM(LLMInterfaceV2):
         generated_cypher = _coerce_string(result.get("content")) or fallback_cypher
         return LLMResponse(content=generated_cypher)
 
+    # 维护意图：异步接口直接复用同步实现，保持与官方接口兼容
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     async def ainvoke(
         self,
         input: list[LLMMessage] | str,
@@ -333,6 +224,9 @@ class FacadeGraphRAGLLM(LLMInterfaceV2):
             **kwargs,
         )
 
+    # 维护意图：用结构化 JSON 路由官方 ToolsRetriever 所需的工具选择
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def invoke_with_tools(
         self,
         input: str,
@@ -344,12 +238,12 @@ class FacadeGraphRAGLLM(LLMInterfaceV2):
         normalized_tools = list(tools)
         fallback_tool_calls = [
             {"name": tool_call.name, "arguments": tool_call.arguments}
-            for tool_call in self._heuristic_tool_calls(input, normalized_tools)
+            for tool_call in self.heuristic_tool_calls(input, normalized_tools)
         ]
         if not llm_facade.is_available:
             return ToolCallResponse(
                 content="使用启发式规则选择检索工具。",
-                tool_calls=self._heuristic_tool_calls(input, normalized_tools),
+                tool_calls=self.heuristic_tool_calls(input, normalized_tools),
             )
 
         history_text = _message_history_text(message_history)
@@ -406,7 +300,7 @@ class FacadeGraphRAGLLM(LLMInterfaceV2):
                 )
 
         if not validated_tool_calls:
-            validated_tool_calls = self._heuristic_tool_calls(input, normalized_tools)
+            validated_tool_calls = self.heuristic_tool_calls(input, normalized_tools)
 
         return ToolCallResponse(
             content=_coerce_string(routing_result.get("content")) or "完成图查询工具选择。",

@@ -18,6 +18,9 @@ from assessments.models import Question
 from .models import Exam, ExamQuestion
 
 
+# 维护意图：校验总分与及格分关系
+# 边界说明：校验边界集中在这里，避免非法输入进入业务主流程。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def _validate_exam_scores(total_score, pass_score) -> None:
     """校验总分与及格分关系。"""
     try:
@@ -38,6 +41,9 @@ def _validate_exam_scores(total_score, pass_score) -> None:
         raise ValueError('及格分不能大于总分')
 
 
+# 维护意图：安全解析分页参数
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def _parse_pagination(
     query_params: Mapping[str, object],
     *,
@@ -55,6 +61,9 @@ def _parse_pagination(
     return page, page_size
 
 
+# 维护意图：将多选答案规整成可比较的字符串集合
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def _normalize_choice_answer_set(answer_value: object) -> set[str]:
     """将多选答案规整成可比较的字符串集合。"""
 
@@ -75,6 +84,9 @@ def _normalize_choice_answer_set(answer_value: object) -> set[str]:
     return {normalized_text} if normalized_text else set()
 
 
+# 维护意图：按 ID 获取考试，不存在时返回标准错误响应
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 def _get_exam_or_404(exam_id: int) -> tuple[Exam | None, Response | None]:
     """按 ID 获取考试，不存在时返回标准错误响应。"""
 
@@ -84,6 +96,9 @@ def _get_exam_or_404(exam_id: int) -> tuple[Exam | None, Response | None]:
         return None, error_response(msg='作业不存在', code=404)
 
 
+# 维护意图：获取当前教师创建的考试，不存在时返回标准错误响应
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 def _get_owned_exam_or_404(user: User, exam_id: int) -> tuple[Exam | None, Response | None]:
     """获取当前教师创建的考试，不存在时返回标准错误响应。"""
 
@@ -93,12 +108,18 @@ def _get_owned_exam_or_404(user: User, exam_id: int) -> tuple[Exam | None, Respo
         return None, error_response(msg='作业不存在', code=404)
 
 
+# 维护意图：获取教师可管理的课程 ID 集合
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 def _get_teacher_course_ids(user: User) -> set[int]:
     """获取教师可管理的课程 ID 集合。"""
 
     return set(Class.objects.filter(teacher=user).values_list('course_id', flat=True))
 
 
+# 维护意图：校验教师是否可访问指定考试
+# 边界说明：校验边界集中在这里，避免非法输入进入业务主流程。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def _ensure_teacher_exam_access(
     user: User,
     exam: Exam,
@@ -117,6 +138,9 @@ def _ensure_teacher_exam_access(
     return forbidden_response(msg=deny_message)
 
 
+# 维护意图：按顺序构造考试题目关联记录
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def _build_exam_question_rows(
     exam: Exam,
     questions: Iterable[Question],

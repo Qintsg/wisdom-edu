@@ -10,9 +10,15 @@ from .corpus import build_course_graph_index, load_course_index, save_course_ind
 logger = logging.getLogger(__name__)
 
 
+# 维护意图：提供课程索引构建、物化校验与安全载荷读取
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class StudentIndexMixin:
     """提供课程索引构建、物化校验与安全载荷读取。"""
 
+    # 维护意图：构建课程 GraphRAG 索引
+    # 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+    # 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
     def build_index(self, course_id: int, persist: bool = True, force_rebuild: bool = False) -> dict[str, object]:
         """构建课程 GraphRAG 索引。"""
         if not force_rebuild:
@@ -39,6 +45,9 @@ class StudentIndexMixin:
             save_course_index(course_id, payload)
         return payload
 
+    # 维护意图：确保课程索引已可用，必要时自动重建
+    # 边界说明：校验边界集中在这里，避免非法输入进入业务主流程。
+    # 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
     def _ensure_index(self, course_id: int, persist: bool = True) -> dict[str, object]:
         """确保课程索引已可用，必要时自动重建。"""
         payload = load_course_index(course_id)
@@ -50,6 +59,9 @@ class StudentIndexMixin:
             return payload
         return self.build_index(course_id, persist=persist, force_rebuild=True)
 
+    # 维护意图：安全读取实体列表
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def _entity_list(self, payload: dict[str, object]) -> list[dict[str, object]]:
         """安全读取实体列表。"""
         raw_entities = payload.get("entities")
@@ -57,6 +69,9 @@ class StudentIndexMixin:
             return []
         return [item for item in raw_entities if isinstance(item, dict)]
 
+    # 维护意图：安全读取关系列表
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def _relationship_list(self, payload: dict[str, object]) -> list[dict[str, object]]:
         """安全读取关系列表。"""
         raw_relationships = payload.get("relationships")
@@ -64,6 +79,9 @@ class StudentIndexMixin:
             return []
         return [item for item in raw_relationships if isinstance(item, dict)]
 
+    # 维护意图：安全读取文档列表
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def _document_list(self, payload: dict[str, object]) -> list[dict[str, object]]:
         """安全读取文档列表。"""
         raw_documents = payload.get("documents")
@@ -71,6 +89,9 @@ class StudentIndexMixin:
             return []
         return [item for item in raw_documents if isinstance(item, dict)]
 
+    # 维护意图：安全读取社区列表
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def _community_list(self, payload: dict[str, object]) -> list[dict[str, object]]:
         """安全读取社区列表。"""
         raw_communities = payload.get("communities")
@@ -78,6 +99,9 @@ class StudentIndexMixin:
             return []
         return [item for item in raw_communities if isinstance(item, dict)]
 
+    # 维护意图：安全读取社区报告列表
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def _community_report_list(self, payload: dict[str, object]) -> list[dict[str, object]]:
         """安全读取社区报告列表。"""
         raw_reports = payload.get("community_reports")
@@ -85,6 +109,9 @@ class StudentIndexMixin:
             return []
         return [item for item in raw_reports if isinstance(item, dict)]
 
+    # 维护意图：将实体列表转换为按实体 ID 索引的映射
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def _entity_map(self, payload: dict[str, object]) -> dict[str, dict[str, object]]:
         """将实体列表转换为按实体 ID 索引的映射。"""
         entity_map: dict[str, dict[str, object]] = {}
@@ -94,6 +121,9 @@ class StudentIndexMixin:
                 entity_map[entity_id] = entity
         return entity_map
 
+    # 维护意图：构建社区 ID 到社区描述的映射
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def _community_lookup(self, payload: dict[str, object]) -> dict[str, dict[str, object]]:
         """构建社区 ID 到社区描述的映射。"""
         community_lookup: dict[str, dict[str, object]] = {}
@@ -103,6 +133,9 @@ class StudentIndexMixin:
                 community_lookup[community_id] = community
         return community_lookup
 
+    # 维护意图：构建实体到社区的反向索引
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def _entity_to_communities(self, payload: dict[str, object]) -> dict[str, list[str]]:
         """构建实体到社区的反向索引。"""
         membership: dict[str, list[str]] = defaultdict(list)

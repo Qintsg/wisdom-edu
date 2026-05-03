@@ -25,12 +25,18 @@ from tools.knowledge_import_support import (
 )
 
 
+# 维护意图：校验JSON文件结构
+# 边界说明：校验边界集中在这里，避免非法输入进入业务主流程。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def validate_json(file: str, schema: str):
     """校验JSON文件结构"""
     validate_import_json_payload(file, schema)
     print(f'校验通过: {file} ({schema})')
 
 
+# 维护意图：导入知识图谱（JSON格式）
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def import_knowledge(file: str, course_id: int, replace: bool = False,
                      dry_run: bool = False):
     """导入知识图谱（JSON格式）"""
@@ -68,6 +74,9 @@ def import_knowledge(file: str, course_id: int, replace: bool = False,
     sync_knowledge_graph_copy(course)
 
 
+# 维护意图：导入知识图谱（支持JSON和Excel格式）
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def import_knowledge_map(file_path: str, course_id: Optional[int] = None,
                          course_name: Optional[str] = None):
     """导入知识图谱（支持JSON和Excel格式）"""
@@ -101,21 +110,33 @@ def import_knowledge_map(file_path: str, course_id: Optional[int] = None,
     }
 
 
+# 维护意图：解析Excel格式的知识图谱文件
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def _parse_knowledge_excel(path: Path) -> Optional[dict]:
     """解析Excel格式的知识图谱文件"""
     return parse_knowledge_excel(path)
 
 
+# 维护意图：解析层级知识点格式的Excel
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def _parse_hierarchical_excel(path: Path, header_row: int) -> dict:
     """解析层级知识点格式的Excel"""
     return parse_hierarchical_knowledge_excel(path, header_row)
 
 
+# 维护意图：解析普通单sheet格式的Excel
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def _parse_flat_excel(path: Path) -> dict:
     """解析普通单sheet格式的Excel"""
     return parse_flat_knowledge_excel(path)
 
 
+# 维护意图：导出知识图谱为JSON
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def export_knowledge_map(course_id: int, output_path: str):
     """导出知识图谱为JSON"""
     course = get_course(course_id)

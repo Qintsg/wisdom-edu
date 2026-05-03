@@ -7,6 +7,9 @@ from knowledge.models import KnowledgeMastery, KnowledgePoint
 from learning.models import PathNode
 from users.models import User
 
+# 维护意图：将请求中的用户对象收窄为项目内 User 类型。
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 def _get_authenticated_user(request) -> User:
     """
     将请求中的用户对象收窄为项目内 User 类型。
@@ -16,6 +19,9 @@ def _get_authenticated_user(request) -> User:
     return cast(User, request.user)
 
 
+# 维护意图：将 JSONField 中的资源 ID 值规整为字符串列表。
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def _coerce_string_list(raw_value: object) -> list[str]:
     """
     将 JSONField 中的资源 ID 值规整为字符串列表。
@@ -27,6 +33,9 @@ def _coerce_string_list(raw_value: object) -> list[str]:
     return [str(item) for item in raw_value]
 
 
+# 维护意图：生成仪表盘节点预览的排序键，优先展示未完成节点。
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _path_node_sort_key(node: PathNode) -> tuple[int, int, int]:
     """
     生成仪表盘节点预览的排序键，优先展示未完成节点。
@@ -37,6 +46,9 @@ def _path_node_sort_key(node: PathNode) -> tuple[int, int, int]:
     return (completion_rank, node.order_index, node.id)
 
 
+# 维护意图：截取题干摘要供 LLM 选题使用。
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _clean_text_for_llm(text: str, max_len: int = 80) -> str:
     """
     截取题干摘要供 LLM 选题使用。
@@ -54,6 +66,9 @@ def _clean_text_for_llm(text: str, max_len: int = 80) -> str:
     return cleaned_text[:max_len]
 
 
+# 维护意图：构建试卷题目分值映射。
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def _build_exam_score_map(exam, exam_questions):
     """
     构建试卷题目分值映射。
@@ -70,6 +85,9 @@ def _build_exam_score_map(exam, exam_questions):
     )
 
 
+# 维护意图：统一序列化学习路径节点。
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def _serialize_path_nodes(path, max_visible_order: int | None = None) -> list[dict[str, object]]:
     """
     统一序列化学习路径节点。
@@ -102,6 +120,9 @@ def _serialize_path_nodes(path, max_visible_order: int | None = None) -> list[di
     ]
 
 
+# 维护意图：读取指定知识点的当前掌握度快照。
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _snapshot_mastery_for_points(
     user, course_id: int, point_ids: list[int]
 ) -> dict[int, float]:
@@ -125,6 +146,9 @@ def _snapshot_mastery_for_points(
     }
 
 
+# 维护意图：计算一组知识点掌握度的平均值。
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _average_mastery(mastery_snapshot: dict[int, float]) -> float | None:
     """
     计算一组知识点掌握度的平均值。
@@ -138,6 +162,9 @@ def _average_mastery(mastery_snapshot: dict[int, float]) -> float | None:
     return round(sum(values) / len(values), 4)
 
 
+# 维护意图：构建掌握度变化明细。
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def _build_mastery_change_payload(
     before_snapshot: dict[int, float], after_snapshot: dict[int, float]
 ) -> list[dict[str, object]]:

@@ -10,6 +10,9 @@ from knowledge.models import KnowledgePoint
 logger = logging.getLogger(__name__)
 
 
+# 维护意图：将 GraphRAG sources 规范化为紧凑、JSON 安全的工具载荷
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def trim_graph_sources(raw_sources: object, limit: int = 4) -> list[dict[str, object]]:
     """将 GraphRAG sources 规范化为紧凑、JSON 安全的工具载荷。"""
     if not isinstance(raw_sources, list):
@@ -24,6 +27,9 @@ def trim_graph_sources(raw_sources: object, limit: int = 4) -> list[dict[str, ob
     return normalized_sources
 
 
+# 维护意图：规范化单条 GraphRAG 证据来源
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def normalize_graph_source(item: dict[object, object]) -> dict[str, object]:
     """规范化单条 GraphRAG 证据来源。"""
     return {
@@ -36,11 +42,17 @@ def normalize_graph_source(item: dict[object, object]) -> dict[str, object]:
     }
 
 
+# 维护意图：安全读取 source 字段并转为展示字符串
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def clean_source_field(item: dict[object, object], field_name: str) -> str:
     """安全读取 source 字段并转为展示字符串。"""
     return str(item.get(field_name, "")).strip()
 
 
+# 维护意图：获取单个知识点的 GraphRAG 摘要
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_point_graphrag_payload(course_id: int, point: KnowledgePoint) -> dict[str, object]:
     """获取单个知识点的 GraphRAG 摘要。"""
     payload = fetch_point_support_payload(course_id=course_id, point=point)
@@ -54,6 +66,9 @@ def build_point_graphrag_payload(course_id: int, point: KnowledgePoint) -> dict[
     }
 
 
+# 维护意图：调用学生学习 RAG 服务读取知识点证据，失败时降级为空载荷
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 def fetch_point_support_payload(course_id: int, point: KnowledgePoint) -> dict[str, object]:
     """调用学生学习 RAG 服务读取知识点证据，失败时降级为空载荷。"""
     try:
@@ -74,6 +89,9 @@ def fetch_point_support_payload(course_id: int, point: KnowledgePoint) -> dict[s
         return {}
 
 
+# 维护意图：按需查询课程 GraphRAG，供 agent 基于课程证据生成结构化回答
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_course_graphrag_payload(
     *,
     course_id: int,
@@ -104,6 +122,9 @@ def build_course_graphrag_payload(
     )
 
 
+# 维护意图：解析当前聚焦知识点名称
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def resolve_point_name(course_id: int, point_id: int | None) -> str:
     """解析当前聚焦知识点名称。"""
     if not point_id:
@@ -112,6 +133,9 @@ def resolve_point_name(course_id: int, point_id: int | None) -> str:
     return point.name if point else ""
 
 
+# 维护意图：返回空查询时的稳定响应结构
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def empty_course_graphrag_payload(
     course_id: int,
     point_id: int | None,
@@ -133,6 +157,9 @@ def empty_course_graphrag_payload(
     }
 
 
+# 维护意图：调用课程 GraphRAG runtime，失败时返回空载荷保持 agent 可降级
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 def query_course_graph(
     *,
     course_id: int,
@@ -163,6 +190,9 @@ def query_course_graph(
         return {}
 
 
+# 维护意图：将 runtime 返回的 GraphRAG 载荷压缩为 agent 工具响应
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def normalize_course_graphrag_payload(
     *,
     payload: dict[str, object],
@@ -188,11 +218,17 @@ def normalize_course_graphrag_payload(
     }
 
 
+# 维护意图：读取 runtime 文本字段并去除空白
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def clean_payload_text(payload: dict[str, object], field_name: str) -> str:
     """读取 runtime 文本字段并去除空白。"""
     return str(payload.get(field_name, "")).strip()
 
 
+# 维护意图：规范化 runtime 返回的字符串列表
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def clean_string_list(raw_items: object) -> list[str]:
     """规范化 runtime 返回的字符串列表。"""
     if not isinstance(raw_items, list):
@@ -200,6 +236,9 @@ def clean_string_list(raw_items: object) -> list[str]:
     return [cleaned for item in raw_items if (cleaned := str(item).strip())]
 
 
+# 维护意图：只保留正整数知识点 ID
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def clean_positive_ids(raw_items: object) -> list[int]:
     """只保留正整数知识点 ID。"""
     if not isinstance(raw_items, list):
@@ -207,6 +246,9 @@ def clean_positive_ids(raw_items: object) -> list[int]:
     return [item for item in raw_items if isinstance(item, int) and item > 0]
 
 
+# 维护意图：查询课程和可选知识点上下文
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_lookup_course_context_payload(
     course_id: int,
     point_id: int | None = None,
@@ -224,6 +266,9 @@ def build_lookup_course_context_payload(
     return build_point_context_payload(course_id=course_id, course=course, point=point)
 
 
+# 维护意图：构建课程存在但知识点缺失时的上下文响应
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_missing_point_payload(course: Course) -> dict[str, object]:
     """构建课程存在但知识点缺失时的上下文响应。"""
     return {
@@ -233,6 +278,9 @@ def build_missing_point_payload(course: Course) -> dict[str, object]:
     }
 
 
+# 维护意图：构建包含知识点摘要与 GraphRAG 摘要的课程上下文响应
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_point_context_payload(
     *,
     course_id: int,

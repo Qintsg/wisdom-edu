@@ -10,6 +10,9 @@ from knowledge.models import KnowledgeMastery, KnowledgePoint, Resource
 from learning.models import NodeProgress, PathNode
 from users.models import User
 
+# 维护意图：激活当前节点之后的下一个锁定节点。
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _activate_next_locked_node(node: PathNode) -> None:
     """
     激活当前节点之后的下一个锁定节点。
@@ -26,6 +29,9 @@ def _activate_next_locked_node(node: PathNode) -> None:
         next_node.save(update_fields=["status"])
 
 
+# 维护意图：统一设置题目或资源的知识点关联，避免 ManyToMany 静态推断噪声。
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _set_related_knowledge_points(target: Question | Resource, point: KnowledgePoint) -> None:
     """
     统一设置题目或资源的知识点关联，避免 ManyToMany 静态推断噪声。
@@ -37,6 +43,9 @@ def _set_related_knowledge_points(target: Question | Resource, point: KnowledgeP
     relation_manager.set([point])
 
 
+# 维护意图：获取题目关联的知识点列表，并为静态分析提供明确类型。
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _question_knowledge_points(question: Question) -> list[KnowledgePoint]:
     """
     获取题目关联的知识点列表，并为静态分析提供明确类型。
@@ -47,6 +56,9 @@ def _question_knowledge_points(question: Question) -> list[KnowledgePoint]:
     return [point for point in relation_manager.all() if isinstance(point, KnowledgePoint)]
 
 
+# 维护意图：归一化题目选项，避免 JSONField 推断为 Any 时带来的类型噪声。
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _question_options(question: Question) -> list[dict[str, object]]:
     """
     归一化题目选项，避免 JSONField 推断为 Any 时带来的类型噪声。
@@ -63,6 +75,9 @@ def _question_options(question: Question) -> list[dict[str, object]]:
     return normalized_options
 
 
+# 维护意图：将任意对象收窄为字符串键字典。
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _as_object_dict(raw_value: object) -> dict[str, object]:
     """
     将任意对象收窄为字符串键字典。
@@ -72,6 +87,9 @@ def _as_object_dict(raw_value: object) -> dict[str, object]:
     return raw_value if isinstance(raw_value, dict) else {}
 
 
+# 维护意图：规整阶段测试反馈中的掌握度映射。
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def _coerce_mastery_after_map(raw_value: object) -> dict[int, float]:
     """
     规整阶段测试反馈中的掌握度映射。
@@ -91,6 +109,9 @@ def _coerce_mastery_after_map(raw_value: object) -> dict[int, float]:
     return mastery_after_map
 
 
+# 维护意图：计算掌握度快照的平均值。
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _average_snapshot(snapshot: dict[int, float]) -> float | None:
     """
     计算掌握度快照的平均值。
@@ -102,6 +123,9 @@ def _average_snapshot(snapshot: dict[int, float]) -> float | None:
     return round(sum(snapshot.values()) / len(snapshot), 4)
 
 
+# 维护意图：读取指定知识点的当前掌握度快照。
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _capture_mastery_snapshot(
     course: Course,
     student: User,
@@ -124,6 +148,9 @@ def _capture_mastery_snapshot(
     }
 
 
+# 维护意图：构建阶段测试前后的掌握度变化明细。
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def _build_mastery_change_payload(
     points: list[KnowledgePoint],
     mastery_before_snapshot: dict[int, float],
@@ -152,6 +179,9 @@ def _build_mastery_change_payload(
     return mastery_changes
 
 
+# 维护意图：按预置顺序推进学习路径，而不是触发完整重规划。
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def advance_defense_demo_path(node: PathNode, user: User, mark_skipped: bool = False) -> None:
     """
     按预置顺序推进学习路径，而不是触发完整重规划。
@@ -166,6 +196,9 @@ def advance_defense_demo_path(node: PathNode, user: User, mark_skipped: bool = F
     _activate_next_locked_node(node)
 
 
+# 维护意图：完成阶段测试后的固定解锁动作。
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def complete_defense_demo_stage_test(
     node: PathNode,
     user: User,

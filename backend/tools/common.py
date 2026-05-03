@@ -26,6 +26,9 @@ SEMICOLON_SEPARATOR_PATTERN = re.compile(r"[;；]")
 MULTI_SEPARATOR_PATTERN = re.compile(r"[;；,，、|\s]+")
 
 
+# 维护意图：课程资源包数据类
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @dataclass
 class CourseAssetBundle:
     """课程资源包数据类"""
@@ -40,12 +43,18 @@ class CourseAssetBundle:
     textbook_files: List[Path] = field(default_factory=list)
 
 
+# 维护意图：分割多值字符串（分号、逗号、顿号、竖线、空格等）
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def split_multi_values(value: str) -> List[str]:
     """分割多值字符串（分号、逗号、顿号、竖线、空格等）"""
     values = MULTI_SEPARATOR_PATTERN.split(value or "")
     return [v.strip() for v in values if v and v.strip()]
 
 
+# 维护意图：在指定目录中查找第一个匹配模式的文件
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def find_first_file(base_dir: Path, patterns: List[str]) -> Optional[Path]:
     """在指定目录中查找第一个匹配模式的文件"""
     for pattern in patterns:
@@ -55,12 +64,18 @@ def find_first_file(base_dir: Path, patterns: List[str]) -> Optional[Path]:
     return None
 
 
+# 维护意图：解析文件路径，相对路径转为基于BASE_DIR的绝对路径
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def resolve_path(file_path: str) -> Path:
     """解析文件路径，相对路径转为基于BASE_DIR的绝对路径"""
     p = Path(file_path)
     return p if p.is_absolute() else BASE_DIR / p
 
 
+# 维护意图：加载JSON文件
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 def load_json(file_path: str) -> dict:
     """加载JSON文件"""
     path = resolve_path(file_path)
@@ -70,6 +85,9 @@ def load_json(file_path: str) -> dict:
         return json.load(f)
 
 
+# 维护意图：根据ID获取课程对象
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 def get_course(course_id: int) -> Course:
     """根据ID获取课程对象"""
     try:
@@ -78,6 +96,9 @@ def get_course(course_id: int) -> Course:
         raise ValueError(f"课程不存在: {course_id}") from e
 
 
+# 维护意图：清理NaN和None值，返回干净的字符串
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def clean_nan(value) -> str:
     """清理NaN和None值，返回干净的字符串"""
     if value is None:
@@ -90,6 +111,9 @@ def clean_nan(value) -> str:
     return s
 
 
+# 维护意图：安全转换为浮点数，处理NaN
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def safe_float(value, default: float = 0.0) -> float:
     """安全转换为浮点数，处理NaN"""
     if value is None:
@@ -103,6 +127,9 @@ def safe_float(value, default: float = 0.0) -> float:
         return default
 
 
+# 维护意图：构建课程资源包，自动查找并关联资源文件
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_course_asset_bundle(
     course_name: str, base_dir: Optional[Path] = None
 ) -> CourseAssetBundle:
@@ -197,6 +224,9 @@ def build_course_asset_bundle(
     )
 
 
+# 维护意图：列出所有课程
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 def list_courses(show_all: bool = True):
     """列出所有课程"""
     queryset = Course.objects.all() if show_all else Course.objects.filter(is_public=True)

@@ -5,6 +5,9 @@
 """
 
 
+# 维护意图：测试知识追踪(KT)服务的预测功能
+# 边界说明：测试步骤保持显式，便于定位回归阶段和失败上下文。
+# 风险说明：调整测试断言时，需保留失败上下文和可复现实例。
 def test_kt_service():
     """测试知识追踪(KT)服务的预测功能。"""
     from ai_services.services import kt_service
@@ -68,6 +71,9 @@ def test_kt_service():
     print(f"预测结果: {result.get('predictions', {})}")
 
 
+# 维护意图：测试大语言模型(LLM)服务的推荐理由生成功能
+# 边界说明：测试步骤保持显式，便于定位回归阶段和失败上下文。
+# 风险说明：调整测试断言时，需保留失败上下文和可复现实例。
 def test_llm_service():
     """测试大语言模型(LLM)服务的推荐理由生成功能。"""
     from ai_services.services import llm_service

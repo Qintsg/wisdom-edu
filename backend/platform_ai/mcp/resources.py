@@ -35,12 +35,18 @@ EXTERNAL_REQUEST_HEADERS = {
 }
 
 
+# 维护意图：将外部 JSON 或模型字段规整为单行文本
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def _coerce_text(value: object) -> str:
     """将外部 JSON 或模型字段规整为单行文本。"""
 
     return WHITESPACE_PATTERN.sub(" ", str(value or "")).strip()
 
 
+# 维护意图：读取资源主键，兼容测试中的轻量对象
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _resource_id(resource: Resource) -> int:
     """读取资源主键，兼容测试中的轻量对象。"""
 
@@ -50,6 +56,9 @@ def _resource_id(resource: Resource) -> int:
         return 0
 
 
+# 维护意图：将掌握度映射为资源难度阶段
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _mastery_stage(student_mastery: float | None) -> str:
     """将掌握度映射为资源难度阶段。"""
 
@@ -64,6 +73,9 @@ def _mastery_stage(student_mastery: float | None) -> str:
     return "拓展"
 
 
+# 维护意图：过滤空 URL、搜索页锚点和非 HTTP 协议
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _is_valid_http_url(url: str) -> bool:
     """过滤空 URL、搜索页锚点和非 HTTP 协议。"""
 
@@ -71,12 +83,18 @@ def _is_valid_http_url(url: str) -> bool:
     return parsed.scheme in {"http", "https"} and bool(parsed.netloc)
 
 
+# 维护意图：提取资源来源域名
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _domain_from_url(url: str) -> str:
     """提取资源来源域名。"""
 
     return urlparse(url).netloc.lower().removeprefix("www.")
 
 
+# 维护意图：根据域名和标题粗略判断外部资源类型
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _guess_resource_type(url: str, title: str = "") -> str:
     """根据域名和标题粗略判断外部资源类型。"""
 
@@ -91,6 +109,9 @@ def _guess_resource_type(url: str, title: str = "") -> str:
     return "link"
 
 
+# 维护意图：限制摘要长度，避免把整页正文带入 API 响应
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _truncate_text(value: str, limit: int = 360) -> str:
     """限制摘要长度，避免把整页正文带入 API 响应。"""
 
@@ -100,6 +121,9 @@ def _truncate_text(value: str, limit: int = 360) -> str:
     return f"{text[:limit].rstrip()}..."
 
 
+# 维护意图：项目内资源 MCP 检索结果
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @dataclass(frozen=True)
 class InternalResourceCandidate:
     """项目内资源 MCP 检索结果。"""
@@ -108,6 +132,9 @@ class InternalResourceCandidate:
     score: int
     source: str
 
+    # 维护意图：返回资源主键
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     @property
     def resource_id(self) -> int:
         """返回资源主键。"""
@@ -115,6 +142,9 @@ class InternalResourceCandidate:
         return _resource_id(self.resource)
 
 
+# 维护意图：Exa / Firecrawl MCP 外部资源结果
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @dataclass(frozen=True)
 class ExternalResourceCandidate:
     """Exa / Firecrawl MCP 外部资源结果。"""
@@ -128,6 +158,9 @@ class ExternalResourceCandidate:
     reason: str
     learning_tips: str
 
+    # 维护意图：转换为学生端资源推荐 API 的响应结构
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def to_response(self) -> dict[str, object]:
         """转换为学生端资源推荐 API 的响应结构。"""
 
@@ -148,6 +181,9 @@ class ExternalResourceCandidate:
         }
 
 
+# 维护意图：学习资源 MCP 编排服务
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class LearningResourceMCPService:
     """学习资源 MCP 编排服务。"""
 
@@ -156,6 +192,9 @@ class LearningResourceMCPService:
 
         self.session = session or requests.Session()
 
+    # 维护意图：搜索项目内课程、节点和知识点绑定资源
+    # 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+    # 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
     def search_internal_resources(
         self,
         *,
@@ -228,6 +267,9 @@ class LearningResourceMCPService:
             for resource in ordered_resources[:limit]
         ]
 
+    # 维护意图：使用 Exa 搜索，并按需用 Firecrawl 抓取正文摘要
+    # 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+    # 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
     def search_external_resources(
         self,
         *,
@@ -260,6 +302,9 @@ class LearningResourceMCPService:
             enriched_results.append(candidate)
         return enriched_results
 
+    # 维护意图：判断外部 MCP 搜索是否具备必要配置
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def _external_search_enabled(self) -> bool:
         """判断外部 MCP 搜索是否具备必要配置。"""
 
@@ -269,6 +314,9 @@ class LearningResourceMCPService:
             and _coerce_text(getattr(settings, "EXA_API_KEY", ""))
         )
 
+    # 维护意图：判断 Firecrawl 摘要抓取是否可用
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def _firecrawl_enabled(self) -> bool:
         """判断 Firecrawl 摘要抓取是否可用。"""
 
@@ -278,6 +326,9 @@ class LearningResourceMCPService:
             and _coerce_text(getattr(settings, "FIRECRAWL_API_KEY", ""))
         )
 
+    # 维护意图：构造面向学习资源的 Exa 查询
+    # 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+    # 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
     def _build_search_query(
         self,
         *,
@@ -291,6 +342,9 @@ class LearningResourceMCPService:
         course_prefix = f"{course_name} " if course_name else ""
         return f"{course_prefix}{point_name} {stage} 学习资源 教程 示例 官方文档"
 
+    # 维护意图：调用 Exa search API 返回候选资源
+    # 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+    # 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
     def _search_with_exa(
         self,
         *,
@@ -371,6 +425,9 @@ class LearningResourceMCPService:
                 break
         return candidates
 
+    # 维护意图：从 Exa 响应中提取高亮或正文摘要
+    # 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+    # 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
     def _extract_exa_snippet(self, raw_item: dict[str, object]) -> str:
         """从 Exa 响应中提取高亮或正文摘要。"""
 
@@ -381,6 +438,9 @@ class LearningResourceMCPService:
                 return _truncate_text(highlight_text)
         return _truncate_text(_coerce_text(raw_item.get("text")))
 
+    # 维护意图：用 Firecrawl 抓取主正文，增强摘要可信度
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def _enrich_with_firecrawl(self, candidate: ExternalResourceCandidate) -> ExternalResourceCandidate:
         """用 Firecrawl 抓取主正文，增强摘要可信度。"""
 

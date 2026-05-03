@@ -4,10 +4,13 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Optional
 
-from tools.api_regression_helpers import TEMP_PREFIX, _blob, _record
+from tools.api_regression_helpers import TEMP_PREFIX, record_blob_check, record_check
 from tools.testing import CheckResult, _request
 
 
+# 维护意图：执行管理端只读列表、日志和导出检查
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def run_admin_read_checks(
     *,
     checks: List[CheckResult],
@@ -15,67 +18,67 @@ def run_admin_read_checks(
     admin_headers: Dict[str, str],
 ) -> None:
     """执行管理端只读列表、日志和导出检查。"""
-    _record(
+    record_check(
         checks,
         "管理员-用户列表",
         *_request("GET", f"{base_url}/api/admin/users", headers=admin_headers),
         expected=(200,),
     )
-    _record(
+    record_check(
         checks,
         "管理员-课程列表",
         *_request("GET", f"{base_url}/api/admin/courses", headers=admin_headers),
         expected=(200,),
     )
-    _record(
+    record_check(
         checks,
         "管理员-班级列表",
         *_request("GET", f"{base_url}/api/admin/classes", headers=admin_headers),
         expected=(200,),
     )
-    _record(
+    record_check(
         checks,
         "管理员-激活码列表",
         *_request("GET", f"{base_url}/api/admin/activation-codes", headers=admin_headers),
         expected=(200,),
     )
-    _record(
+    record_check(
         checks,
         "管理员-日志列表",
         *_request("GET", f"{base_url}/api/admin/logs", headers=admin_headers),
         expected=(200,),
     )
-    _record(
+    record_check(
         checks,
         "管理员-日志统计",
         *_request("GET", f"{base_url}/api/admin/logs/statistics", headers=admin_headers),
         expected=(200,),
     )
-    _record(
+    record_check(
         checks,
         "管理员-日志筛选项",
         *_request("GET", f"{base_url}/api/admin/logs/options", headers=admin_headers),
         expected=(200,),
     )
-    _record(
+    record_check(
         checks,
         "管理员-日志模块",
         *_request("GET", f"{base_url}/api/admin/logs/modules", headers=admin_headers),
         expected=(200,),
     )
-    _record(
+    record_check(
         checks,
         "管理员-日志操作类型",
         *_request("GET", f"{base_url}/api/admin/logs/actions", headers=admin_headers),
         expected=(200,),
     )
-    _blob(
+    record_blob_check(
         checks,
         "管理员-日志导出",
         *_request("GET", f"{base_url}/api/admin/logs/export", headers=admin_headers),
         expected=(200,),
     )
-    _record(
+    record_check(
         checks,
         "管理员-日志清理",
         *_request(
@@ -88,6 +91,9 @@ def run_admin_read_checks(
     )
 
 
+# 维护意图：执行管理端临时用户创建和后续操作链路
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def run_admin_user_flow(
     *,
     checks: List[CheckResult],
@@ -96,7 +102,7 @@ def run_admin_user_flow(
     temp_suffix: str,
 ) -> Optional[int]:
     """执行管理端临时用户创建和后续操作链路。"""
-    user_resp, user_ok = _record(
+    user_resp, user_ok = record_check(
         checks,
         "管理员-创建用户",
         *_request(
@@ -118,7 +124,7 @@ def run_admin_user_flow(
     user_id = user_resp.get("user_id") or user_resp.get("id")
     if user_id is None:
         return None
-    _record(
+    record_check(
         checks,
         "管理员-用户详情",
         *_request(
@@ -128,7 +134,7 @@ def run_admin_user_flow(
         ),
         expected=(200,),
     )
-    _record(
+    record_check(
         checks,
         "管理员-更新用户",
         *_request(
@@ -139,7 +145,7 @@ def run_admin_user_flow(
         ),
         expected=(200,),
     )
-    _record(
+    record_check(
         checks,
         "管理员-禁用用户",
         *_request(
@@ -149,7 +155,7 @@ def run_admin_user_flow(
         ),
         expected=(200,),
     )
-    _record(
+    record_check(
         checks,
         "管理员-启用用户",
         *_request(
@@ -159,7 +165,7 @@ def run_admin_user_flow(
         ),
         expected=(200,),
     )
-    _record(
+    record_check(
         checks,
         "管理员-重置密码",
         *_request(
@@ -173,6 +179,9 @@ def run_admin_user_flow(
     return int(user_id)
 
 
+# 维护意图：执行管理端激活码生成链路
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def run_admin_activation_flow(
     *,
     checks: List[CheckResult],
@@ -180,7 +189,7 @@ def run_admin_activation_flow(
     admin_headers: Dict[str, str],
 ) -> Optional[int]:
     """执行管理端激活码生成链路。"""
-    activation_resp, activation_ok = _record(
+    activation_resp, activation_ok = record_check(
         checks,
         "管理员-生成激活码",
         *_request(
@@ -201,6 +210,9 @@ def run_admin_activation_flow(
     return int(activation_id) if activation_id is not None else None
 
 
+# 维护意图：执行管理端课程创建和只读详情链路
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def run_admin_course_flow(
     *,
     checks: List[CheckResult],
@@ -209,7 +221,7 @@ def run_admin_course_flow(
     temp_suffix: str,
 ) -> Optional[int]:
     """执行管理端课程创建和只读详情链路。"""
-    course_resp, course_ok = _record(
+    course_resp, course_ok = record_check(
         checks,
         "管理员-创建课程",
         *_request(
@@ -226,7 +238,7 @@ def run_admin_course_flow(
     course_id = course_resp.get("course_id") or course_resp.get("id")
     if course_id is None:
         return None
-    _record(
+    record_check(
         checks,
         "管理员-课程详情",
         *_request(
@@ -236,7 +248,7 @@ def run_admin_course_flow(
         ),
         expected=(200,),
     )
-    _record(
+    record_check(
         checks,
         "管理员-课程统计",
         *_request(
@@ -249,6 +261,9 @@ def run_admin_course_flow(
     return int(course_id)
 
 
+# 维护意图：执行管理端班级创建、查详情和学生管理链路
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def run_admin_class_flow(
     *,
     checks: List[CheckResult],
@@ -259,7 +274,7 @@ def run_admin_class_flow(
     user_id: Optional[int],
 ) -> Optional[int]:
     """执行管理端班级创建、查详情和学生管理链路。"""
-    class_resp, class_ok = _record(
+    class_resp, class_ok = record_check(
         checks,
         "管理员-创建班级",
         *_request(
@@ -279,7 +294,7 @@ def run_admin_class_flow(
     class_id = class_resp.get("class_id") or class_resp.get("id")
     if class_id is None:
         return None
-    _record(
+    record_check(
         checks,
         "管理员-班级详情",
         *_request(
@@ -289,7 +304,7 @@ def run_admin_class_flow(
         ),
         expected=(200,),
     )
-    _record(
+    record_check(
         checks,
         "管理员-班级学生",
         *_request(
@@ -300,7 +315,7 @@ def run_admin_class_flow(
         expected=(200,),
     )
     if user_id is not None:
-        _record(
+        record_check(
             checks,
             "管理员-班级加学生",
             *_request(
@@ -311,7 +326,7 @@ def run_admin_class_flow(
             ),
             expected=(200,),
         )
-        _record(
+        record_check(
             checks,
             "管理员-班级移除学生",
             *_request(
@@ -321,7 +336,7 @@ def run_admin_class_flow(
             ),
             expected=(200,),
         )
-    _record(
+    record_check(
         checks,
         "管理员-班级统计",
         *_request(

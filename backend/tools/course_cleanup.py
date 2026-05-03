@@ -8,6 +8,9 @@ from courses.course_cleanup import cleanup_course_runtime_artifacts
 from courses.models import Course
 
 
+# 维护意图：删除课程；若课程已不存在，则补做残留图谱资产清理
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def delete_course_with_cleanup(course_id: int, yes: bool = False) -> dict[str, object]:
     """删除课程；若课程已不存在，则补做残留图谱资产清理。"""
     if not yes:

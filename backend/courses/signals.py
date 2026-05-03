@@ -14,6 +14,9 @@ from .models import Course
 logger = logging.getLogger(__name__)
 
 
+# 维护意图：课程删除后同步清理外部 GraphRAG / Neo4j 运行时资产
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @receiver(post_delete, sender=Course)
 def cleanup_deleted_course_artifacts(sender, instance: Course, **_kwargs) -> None:
     """课程删除后同步清理外部 GraphRAG / Neo4j 运行时资产。"""

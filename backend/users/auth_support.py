@@ -24,17 +24,26 @@ USERNAME_PATTERN = re.compile(r"^[\w\u4e00-\u9fff]+$")
 USERINFO_ALLOWED_FIELDS = ["username", "email", "phone", "real_name", "student_id"]
 
 
+# 维护意图：认证后请求只需要 user 属性用于类型收窄
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class AuthenticatedRequest(Protocol):
     """认证后请求只需要 user 属性用于类型收窄。"""
 
     user: object
 
 
+# 维护意图：收窄认证后 request.user 的类型
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 def get_authenticated_user(request: AuthenticatedRequest) -> User:
     """收窄认证后 request.user 的类型。"""
     return cast(User, request.user)
 
 
+# 维护意图：安全获取头像访问地址
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 def get_avatar_url(user: User) -> str | None:
     """安全获取头像访问地址。"""
     avatar = user.avatar
@@ -46,6 +55,9 @@ def get_avatar_url(user: User) -> str | None:
         return None
 
 
+# 维护意图：执行注册校验、激活码消费与登录令牌生成
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def register_user(data: Mapping[str, object]) -> tuple[dict[str, object] | None, str | None, int]:
     """执行注册校验、激活码消费与登录令牌生成。"""
     serializer = UserRegisterSerializer(data=data)
@@ -64,6 +76,9 @@ def register_user(data: Mapping[str, object]) -> tuple[dict[str, object] | None,
     return build_auth_payload(user), None, 201
 
 
+# 维护意图：检查注册时的用户名、邮箱和手机号唯一性
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def registration_duplicate_error(validated_data: Mapping[str, object], data: Mapping[str, object]) -> str | None:
     """检查注册时的用户名、邮箱和手机号唯一性。"""
     if User.objects.filter(username=validated_data["username"]).exists():
@@ -77,6 +92,9 @@ def registration_duplicate_error(validated_data: Mapping[str, object], data: Map
     return None
 
 
+# 维护意图：注册教师或管理员，并在同一事务内消费激活码
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def register_privileged_user(
     serializer: UserRegisterSerializer,
     data: Mapping[str, object],
@@ -93,6 +111,9 @@ def register_privileged_user(
     return build_auth_payload(user), None, 201
 
 
+# 维护意图：校验教师或管理员注册所需激活码
+# 边界说明：校验边界集中在这里，避免非法输入进入业务主流程。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def validate_activation_code(activation_code: object, role: object) -> tuple[ActivationCode | None, str | None]:
     """校验教师或管理员注册所需激活码。"""
     if not activation_code:
@@ -109,6 +130,9 @@ def validate_activation_code(activation_code: object, role: object) -> tuple[Act
     return code_obj, None
 
 
+# 维护意图：校验账号密码并生成登录令牌
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def authenticate_user_login(
     request: object,
     data: Mapping[str, object],
@@ -129,6 +153,9 @@ def authenticate_user_login(
     return build_auth_payload(user), None, 200
 
 
+# 维护意图：构造登录和注册共用的令牌响应
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_auth_payload(user: User) -> dict[str, object]:
     """构造登录和注册共用的令牌响应。"""
     refresh = RefreshToken.for_user(user)
@@ -141,6 +168,9 @@ def build_auth_payload(user: User) -> dict[str, object]:
     }
 
 
+# 维护意图：组装当前用户资料、班级和课程上下文
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_userinfo_payload(user: User) -> dict[str, object]:
     """组装当前用户资料、班级和课程上下文。"""
     classes, courses = build_user_learning_context(user)
@@ -158,6 +188,9 @@ def build_userinfo_payload(user: User) -> dict[str, object]:
     }
 
 
+# 维护意图：读取学生加入班级与教师授课班级，并去重课程列表
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_user_learning_context(user: User) -> tuple[list[dict[str, object]], list[dict[str, object]]]:
     """读取学生加入班级与教师授课班级，并去重课程列表。"""
     classes: list[dict[str, object]] = []
@@ -177,6 +210,9 @@ def build_user_learning_context(user: User) -> tuple[list[dict[str, object]], li
     return classes, courses
 
 
+# 维护意图：读取用户加入班级关系，并预取班级绑定课程
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def user_enrollments(user: User) -> QuerySet[Enrollment]:
     """读取用户加入班级关系，并预取班级绑定课程。"""
     return (
@@ -186,6 +222,9 @@ def user_enrollments(user: User) -> QuerySet[Enrollment]:
     )
 
 
+# 维护意图：序列化学生加入班级项，同时返回课程去重所需信息
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_enrollment_class_payload(enrollment: Enrollment) -> tuple[dict[str, object], int | None, str | None]:
     """序列化学生加入班级项，同时返回课程去重所需信息。"""
     class_obj = enrollment.class_obj
@@ -207,6 +246,9 @@ def build_enrollment_class_payload(enrollment: Enrollment) -> tuple[dict[str, ob
     }, course_id, course_name
 
 
+# 维护意图：班级默认课程为空时，从有效的班级课程绑定中选择第一个兜底课程
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def resolve_class_course(class_obj: Class) -> Course | None:
     """班级默认课程为空时，从有效的班级课程绑定中选择第一个兜底课程。"""
     course = class_obj.course
@@ -216,11 +258,17 @@ def resolve_class_course(class_obj: Class) -> Course | None:
     return linked_courses[0] if linked_courses else None
 
 
+# 维护意图：读取教师直接负责的班级
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def teaching_classes(user: User) -> QuerySet[Class]:
     """读取教师直接负责的班级。"""
     return Class.objects.filter(teacher=user).select_related("course")
 
 
+# 维护意图：序列化教师授课班级项，同时返回课程去重所需信息
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_teaching_class_payload(class_obj: Class) -> tuple[dict[str, object], int | None, str | None]:
     """序列化教师授课班级项，同时返回课程去重所需信息。"""
     course = class_obj.course
@@ -236,6 +284,9 @@ def build_teaching_class_payload(class_obj: Class) -> tuple[dict[str, object], i
     }, course_id, course_name
 
 
+# 维护意图：按课程 ID 去重追加当前用户可见课程
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def append_unique_course(
     courses: list[dict[str, object]],
     course_ids_seen: set[int],
@@ -248,6 +299,9 @@ def append_unique_course(
         courses.append({"course_id": course_id, "course_name": course_name})
 
 
+# 维护意图：校验并更新当前用户资料
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def update_userinfo_payload(
     user: User,
     data: Mapping[str, object],
@@ -276,6 +330,9 @@ def update_userinfo_payload(
     return {"updated_fields": updated_fields, "avatar": get_avatar_url(user)}, None
 
 
+# 维护意图：将空字符串邮箱和手机号转成 NULL，兼容唯一索引
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def normalize_userinfo_value(field: str, value: object) -> object | None:
     """将空字符串邮箱和手机号转成 NULL，兼容唯一索引。"""
     if field in ("phone", "email") and value == "":
@@ -283,6 +340,9 @@ def normalize_userinfo_value(field: str, value: object) -> object | None:
     return value
 
 
+# 维护意图：按字段执行当前用户资料更新校验
+# 边界说明：校验边界集中在这里，避免非法输入进入业务主流程。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def validate_userinfo_field(user: User, field: str, value: object | None) -> str | None:
     """按字段执行当前用户资料更新校验。"""
     if field == "phone" and value:
@@ -294,6 +354,9 @@ def validate_userinfo_field(user: User, field: str, value: object | None) -> str
     return None
 
 
+# 维护意图：校验中国手机号格式和唯一性
+# 边界说明：校验边界集中在这里，避免非法输入进入业务主流程。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def validate_phone_value(user: User, value: object) -> str | None:
     """校验中国手机号格式和唯一性。"""
     if not PHONE_PATTERN.match(str(value)):
@@ -303,6 +366,9 @@ def validate_phone_value(user: User, value: object) -> str | None:
     return None
 
 
+# 维护意图：校验邮箱格式和唯一性
+# 边界说明：校验边界集中在这里，避免非法输入进入业务主流程。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def validate_email_value(user: User, value: object) -> str | None:
     """校验邮箱格式和唯一性。"""
     if not EMAIL_PATTERN.match(str(value)):
@@ -312,6 +378,9 @@ def validate_email_value(user: User, value: object) -> str | None:
     return None
 
 
+# 维护意图：校验用户名长度、字符集和唯一性
+# 边界说明：校验边界集中在这里，避免非法输入进入业务主流程。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def validate_username_value(user: User, value: object) -> str | None:
     """校验用户名长度、字符集和唯一性。"""
     username = str(value)
@@ -326,6 +395,9 @@ def validate_username_value(user: User, value: object) -> str | None:
     return None
 
 
+# 维护意图：根据 refresh token 生成新的 access token
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def refresh_access_token(refresh_token: object) -> tuple[dict[str, str] | None, str | None, int]:
     """根据 refresh token 生成新的 access token。"""
     if not refresh_token:
@@ -337,6 +409,9 @@ def refresh_access_token(refresh_token: object) -> tuple[dict[str, str] | None, 
         return None, "刷新令牌无效或已过期", 401
 
 
+# 维护意图：校验旧密码并保存新密码，返回错误消息或 None
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def change_user_password(user: User, data: Mapping[str, object]) -> str | None:
     """校验旧密码并保存新密码，返回错误消息或 None。"""
     old_password = data.get("old_password")
@@ -353,6 +428,9 @@ def change_user_password(user: User, data: Mapping[str, object]) -> str | None:
     return None
 
 
+# 维护意图：退出登录时尽力拉黑 refresh token，非法 token 不影响幂等退出
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def blacklist_refresh_token(refresh_token: object) -> None:
     """退出登录时尽力拉黑 refresh token，非法 token 不影响幂等退出。"""
     if not refresh_token:

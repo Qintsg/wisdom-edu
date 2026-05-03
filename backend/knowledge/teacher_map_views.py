@@ -29,6 +29,9 @@ from .teacher_helpers import bad_request, refresh_course_rag_index
 logger = logging.getLogger(__name__)
 
 
+# 维护意图：批量保存知识图谱并同步数据库副本
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["POST"])
 @permission_classes([IsAuthenticated, IsTeacherOrAdmin])
 def knowledge_graph_save(request: Request) -> Response:
@@ -56,6 +59,9 @@ def knowledge_graph_save(request: Request) -> Response:
     return success_response(msg="知识图谱保存成功")
 
 
+# 维护意图：导入知识图谱，支持 JSON / Excel
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["POST"])
 @permission_classes([IsAuthenticated, IsTeacherOrAdmin])
 def knowledge_map_import(request: Request) -> Response:
@@ -101,6 +107,9 @@ def knowledge_map_import(request: Request) -> Response:
     return success_response(data={"imported_nodes": imported_nodes, "imported_edges": imported_edges}, msg="知识图谱导入成功")
 
 
+# 维护意图：发布课程知识图谱
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["POST"])
 @permission_classes([IsAuthenticated, IsTeacherOrAdmin])
 def knowledge_map_publish(request: Request) -> Response:
@@ -124,6 +133,9 @@ def knowledge_map_publish(request: Request) -> Response:
     return success_response(data={"published_count": updated}, msg="知识图谱发布成功")
 
 
+# 维护意图：构建课程 GraphRAG 索引
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["POST"])
 @permission_classes([IsAuthenticated, IsTeacherOrAdmin])
 def knowledge_map_build_rag_index(request: Request) -> Response:
@@ -137,6 +149,9 @@ def knowledge_map_build_rag_index(request: Request) -> Response:
     return success_response(data={"course_id": course_id, "index_paths": built_paths}, msg="课程 GraphRAG 索引构建完成")
 
 
+# 维护意图：导出知识图谱为 JSON 文件
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["GET"])
 @permission_classes([IsAuthenticated, IsTeacherOrAdmin])
 def knowledge_map_export(request: Request) -> HttpResponse | Response:
@@ -167,6 +182,9 @@ def knowledge_map_export(request: Request) -> HttpResponse | Response:
     return response
 
 
+# 维护意图：获取知识图谱导入模板
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["GET"])
 @permission_classes([IsAuthenticated, IsTeacherOrAdmin])
 def knowledge_map_template(request: Request) -> HttpResponse:

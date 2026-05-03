@@ -13,6 +13,9 @@ if TYPE_CHECKING:
 TRUTHY_VALUES = {"1", "true", "yes", "y", "on"}
 
 
+# 维护意图：统一描述当前 KT 训练/推理使用的设备决策结果
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @dataclass(frozen=True)
 class TorchRuntimeDevice:
     """统一描述当前 KT 训练/推理使用的设备决策结果。"""
@@ -24,6 +27,9 @@ class TorchRuntimeDevice:
     reason: str
 
 
+# 维护意图：将环境变量解析成布尔值，避免各处重复手写真假判断
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def _parse_bool_env(name: str, default: bool = False) -> bool:
     """将环境变量解析成布尔值，避免各处重复手写真假判断。"""
     raw_value = os.getenv(name)
@@ -32,6 +38,9 @@ def _parse_bool_env(name: str, default: bool = False) -> bool:
     return raw_value.strip().lower() in TRUTHY_VALUES
 
 
+# 维护意图：根据显式参数与 KT_USE_GPU 环境变量解析 PyTorch 设备
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def resolve_torch_device(use_gpu: bool | None = None) -> TorchRuntimeDevice:
     """根据显式参数与 KT_USE_GPU 环境变量解析 PyTorch 设备。"""
     import torch

@@ -4,10 +4,13 @@ from __future__ import annotations
 
 from typing import Dict, List, Optional
 
-from tools.api_regression_helpers import _blob, _build_exam_answers, _pick_first_id, _record
+from tools.api_regression_helpers import record_blob_check, build_exam_answers, pick_first_id, record_check
 from tools.testing import CheckResult, _request
 
 
+# 维护意图：执行学生考试、答题、反馈生成和报告下载接口检查
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _run_student_exam_checks(
     checks: List[CheckResult],
     base_url: str,
@@ -15,7 +18,7 @@ def _run_student_exam_checks(
     course_id: int,
 ) -> None:
     """执行学生考试、答题、反馈生成和报告下载接口检查。"""
-    exams_data, _ = _record(
+    exams_data, _ = record_check(
         checks,
         "学生-考试列表",
         *_request(
@@ -26,11 +29,11 @@ def _run_student_exam_checks(
         ),
         expected=(200,),
     )
-    target_exam_id = _pick_first_id(exams_data, "exams", "exam_id", "id")
+    target_exam_id = pick_first_id(exams_data, "exams", "exam_id", "id")
     if not target_exam_id:
         return
 
-    exam_detail, detail_ok = _record(
+    exam_detail, detail_ok = record_check(
         checks,
         "学生-考试详情",
         *_request(
@@ -43,8 +46,8 @@ def _run_student_exam_checks(
     if not detail_ok or not isinstance(exam_detail, dict):
         return
 
-    answers = _build_exam_answers(exam_detail.get("questions") or [])
-    _record(
+    answers = build_exam_answers(exam_detail.get("questions") or [])
+    record_check(
         checks,
         "学生-考试草稿",
         *_request(
@@ -55,7 +58,7 @@ def _run_student_exam_checks(
         ),
         expected=(200, 400, 404),
     )
-    _record(
+    record_check(
         checks,
         "学生-考试提交",
         *_request(
@@ -66,7 +69,7 @@ def _run_student_exam_checks(
         ),
         expected=(200, 400),
     )
-    _record(
+    record_check(
         checks,
         "学生-考试结果",
         *_request(
@@ -76,7 +79,7 @@ def _run_student_exam_checks(
         ),
         expected=(200,),
     )
-    _record(
+    record_check(
         checks,
         "学生-考试统计",
         *_request(
@@ -86,7 +89,7 @@ def _run_student_exam_checks(
         ),
         expected=(200,),
     )
-    _record(
+    record_check(
         checks,
         "学生-试卷答案",
         *_request(
@@ -96,7 +99,7 @@ def _run_student_exam_checks(
         ),
         expected=(200, 400, 404),
     )
-    _record(
+    record_check(
         checks,
         "学生-反馈生成",
         *_request(
@@ -108,7 +111,7 @@ def _run_student_exam_checks(
         ),
         expected=(200, 500),
     )
-    _record(
+    record_check(
         checks,
         "学生-反馈获取",
         *_request(
@@ -118,7 +121,7 @@ def _run_student_exam_checks(
         ),
         expected=(200, 404),
     )
-    _blob(
+    record_blob_check(
         checks,
         "学生-报告下载",
         *_request(
@@ -131,6 +134,9 @@ def _run_student_exam_checks(
     )
 
 
+# 维护意图：执行学生 AI 服务与 KT 知识追踪接口检查
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _run_student_ai_kt_checks(
     checks: List[CheckResult],
     base_url: str,
@@ -140,7 +146,7 @@ def _run_student_ai_kt_checks(
 ) -> None:
     """执行学生 AI 服务与 KT 知识追踪接口检查。"""
     if point_id:
-        _record(
+        record_check(
             checks,
             "学生-AI知识点介绍",
             *_request(
@@ -151,7 +157,7 @@ def _run_student_ai_kt_checks(
             ),
             expected=(200,),
         )
-    _record(
+    record_check(
         checks,
         "学生-AI画像分析",
         *_request(
@@ -162,7 +168,7 @@ def _run_student_ai_kt_checks(
         ),
         expected=(200, 400, 404, 500),
     )
-    _record(
+    record_check(
         checks,
         "学生-AI路径规划",
         *_request(
@@ -174,7 +180,7 @@ def _run_student_ai_kt_checks(
         ),
         expected=(200, 404, 500),
     )
-    _record(
+    record_check(
         checks,
         "学生-AI画像刷新",
         *_request(
@@ -185,7 +191,7 @@ def _run_student_ai_kt_checks(
         ),
         expected=(200, 500),
     )
-    _record(
+    record_check(
         checks,
         "学生-AI路径刷新",
         *_request(
@@ -196,7 +202,7 @@ def _run_student_ai_kt_checks(
         ),
         expected=(200, 404, 500),
     )
-    _record(
+    record_check(
         checks,
         "学生-AI对话",
         *_request(
@@ -212,13 +218,13 @@ def _run_student_ai_kt_checks(
         ),
         expected=(200,),
     )
-    _record(
+    record_check(
         checks,
         "KT模型信息",
         *_request("GET", f"{base_url}/api/ai/kt/model-info", headers=student_headers),
         expected=(200,),
     )
-    _record(
+    record_check(
         checks,
         "KT单次预测",
         *_request(

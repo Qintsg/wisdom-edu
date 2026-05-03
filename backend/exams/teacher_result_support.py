@@ -6,6 +6,9 @@ from .models import ExamQuestion, ExamSubmission
 from .teacher_helpers import _normalize_choice_answer_set
 
 
+# 维护意图：构建成绩列表中的单条提交摘要
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_submission_result(submission: ExamSubmission) -> dict[str, object]:
     """构建成绩列表中的单条提交摘要。"""
     return {
@@ -19,6 +22,9 @@ def build_submission_result(submission: ExamSubmission) -> dict[str, object]:
     }
 
 
+# 维护意图：构建教师查看学生作业时的单题详情
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_teacher_question_detail(
     exam_question: ExamQuestion,
     answers: dict[str, object],
@@ -44,6 +50,9 @@ def build_teacher_question_detail(
     }
 
 
+# 维护意图：兼容直接答案和 {'answer': value} 两种题库答案结构
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def extract_question_answer(answer_payload: object) -> object:
     """兼容直接答案和 {'answer': value} 两种题库答案结构。"""
     if isinstance(answer_payload, dict):
@@ -51,6 +60,9 @@ def extract_question_answer(answer_payload: object) -> object:
     return answer_payload
 
 
+# 维护意图：按教师端历史规则判断答案是否正确
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def is_teacher_answer_correct(
     question_type: str,
     student_answer: object,
@@ -66,11 +78,17 @@ def is_teacher_answer_correct(
     return normalized_answer_text(student_answer) == normalized_answer_text(correct_answer)
 
 
+# 维护意图：归一化非选择题答案文本
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def normalized_answer_text(answer: object) -> str:
     """归一化非选择题答案文本。"""
     return str(answer).strip().lower()
 
 
+# 维护意图：按固定分段统计成绩分布
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_score_distribution(scores: list[object]) -> dict[str, int]:
     """按固定分段统计成绩分布。"""
     score_distribution = {
@@ -85,6 +103,9 @@ def build_score_distribution(scores: list[object]) -> dict[str, int]:
     return score_distribution
 
 
+# 维护意图：定位成绩分段
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _score_bucket(score: float) -> str:
     """定位成绩分段。"""
     if score < 60:
@@ -98,6 +119,9 @@ def _score_bucket(score: float) -> str:
     return "90-100"
 
 
+# 维护意图：统计每道题的正确率
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_question_analysis(
     exam_questions,
     submissions: list[ExamSubmission],
@@ -110,6 +134,9 @@ def build_question_analysis(
     ]
 
 
+# 维护意图：构建单道题正确率分析
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_single_question_analysis(
     exam_question: ExamQuestion,
     submissions: list[ExamSubmission],
@@ -137,6 +164,9 @@ def build_single_question_analysis(
     }
 
 
+# 维护意图：按原统计逻辑判断正确率，非选择题空答不计正确
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def is_teacher_analysis_answer_correct(
     question_type: str,
     student_answer: object,
@@ -148,6 +178,9 @@ def is_teacher_analysis_answer_correct(
     return is_teacher_answer_correct(question_type, student_answer, correct_answer)
 
 
+# 维护意图：教师统计页只展示题干摘要
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def truncate_question_content(content: str) -> str:
     """教师统计页只展示题干摘要。"""
     return content[:50] + "..." if len(content) > 50 else content

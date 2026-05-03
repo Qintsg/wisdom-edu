@@ -32,6 +32,9 @@ from platform_ai.rag.runtime_proxies import neo4j_service
 logger = logging.getLogger(__name__)
 
 
+# 维护意图：课程 GraphRAG 索引物化与清理能力
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class CourseGraphRAGMaterializationMixin:
     """课程 GraphRAG 索引物化与清理能力。"""
 
@@ -41,6 +44,9 @@ class CourseGraphRAGMaterializationMixin:
         self._configured_embedder: Embedder | None = None
         self._configured_provider: str | None = None
 
+    # 维护意图：读取向量维度配置；对哈希向量器直接决定桶数量
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def _vector_dimension(self) -> int:
         """读取向量维度配置；对哈希向量器直接决定桶数量。"""
         raw_value = str(getattr(settings, "GRAPHRAG_VECTOR_DIMENSION", DEFAULT_VECTOR_DIMENSION)).strip()
@@ -48,6 +54,9 @@ class CourseGraphRAGMaterializationMixin:
             return max(64, int(raw_value))
         return DEFAULT_VECTOR_DIMENSION
 
+    # 维护意图：返回本地 Qdrant 持久化目录
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def qdrant_directory(self) -> Path:
         """返回本地 Qdrant 持久化目录。"""
         configured_path = str(getattr(settings, "GRAPHRAG_QDRANT_PATH", "")).strip()
@@ -55,10 +64,16 @@ class CourseGraphRAGMaterializationMixin:
             return Path(configured_path)
         return Path(settings.BASE_DIR) / DEFAULT_QDRANT_DIRECTORY
 
+    # 维护意图：为每门课程生成稳定的向量集合名称
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def collection_name(self, course_id: int) -> str:
         """为每门课程生成稳定的向量集合名称。"""
         return f"course_{int(course_id)}_documents_v2"
 
+    # 维护意图：按需初始化本地 Qdrant 客户端
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def _qdrant(self) -> QdrantClient:
         """按需初始化本地 Qdrant 客户端。"""
         if self._qdrant_client is None:
@@ -67,6 +82,9 @@ class CourseGraphRAGMaterializationMixin:
             self._qdrant_client = QdrantClient(path=str(storage_path))
         return self._qdrant_client
 
+    # 维护意图：根据配置解析实际使用的 embedder
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def _embedder(self) -> tuple[str, Embedder]:
         """根据配置解析实际使用的 embedder。"""
         configured_provider = str(getattr(settings, "GRAPHRAG_EMBEDDER_PROVIDER", "hash")).strip().lower() or "hash"
@@ -83,6 +101,9 @@ class CourseGraphRAGMaterializationMixin:
         self._configured_provider = configured_provider
         return configured_provider, self._configured_embedder
 
+    # 维护意图：安全检查向量集合是否存在
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def _collection_exists(self, collection_name: str) -> bool:
         """安全检查向量集合是否存在。"""
         try:
@@ -91,6 +112,9 @@ class CourseGraphRAGMaterializationMixin:
             logger.warning("检查 Qdrant 集合失败: collection=%s error=%s", collection_name, error)
             return False
 
+    # 维护意图：把课程文档转换为 GraphRAG extractor 所需的 TextChunks
+    # 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+    # 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
     def _build_chunks(self, documents: list[DocumentPayload]) -> TextChunks:
         """把课程文档转换为 GraphRAG extractor 所需的 TextChunks。"""
         chunks: list[TextChunk] = []
@@ -116,6 +140,9 @@ class CourseGraphRAGMaterializationMixin:
             )
         return TextChunks(chunks=chunks)
 
+    # 维护意图：把 extractor 输出拆成 Neo4j 可直接写入的节点与关系投影
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def _projection_from_graph(self, graph: Neo4jGraph) -> tuple[list[DocumentPayload], list[DocumentPayload]]:
         """把 extractor 输出拆成 Neo4j 可直接写入的节点与关系投影。"""
         projected_documents: list[DocumentPayload] = []
@@ -159,6 +186,9 @@ class CourseGraphRAGMaterializationMixin:
 
         return projected_documents, projected_links
 
+    # 维护意图：为课程文档生成 Qdrant Point 列表，并返回向量维度
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def _vector_points(self, documents: list[DocumentPayload], embedder: Embedder) -> tuple[int, list[PointStruct]]:
         """为课程文档生成 Qdrant Point 列表，并返回向量维度。"""
         vector_points: list[PointStruct] = []
@@ -194,6 +224,9 @@ class CourseGraphRAGMaterializationMixin:
             )
         return vector_size, vector_points
 
+    # 维护意图：将课程索引物化到 Qdrant 与 Neo4j GraphRAG 投影
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def materialize_course_payload(self, course_id: int, payload: DocumentPayload) -> dict[str, object]:
         """将课程索引物化到 Qdrant 与 Neo4j GraphRAG 投影。"""
         raw_documents = payload.get("documents")
@@ -233,6 +266,9 @@ class CourseGraphRAGMaterializationMixin:
         payload["graph_rag_artifacts"] = artifact_report.as_dict()
         return artifact_report.as_dict()
 
+    # 维护意图：确保课程索引的向量集合与 Neo4j 投影同时存在
+    # 边界说明：校验边界集中在这里，避免非法输入进入业务主流程。
+    # 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
     def ensure_materialized(self, course_id: int, payload: DocumentPayload) -> dict[str, object]:
         """确保课程索引的向量集合与 Neo4j 投影同时存在。"""
         collection_name = self.collection_name(course_id)
@@ -243,6 +279,9 @@ class CourseGraphRAGMaterializationMixin:
             return artifact_payload
         return self.materialize_course_payload(course_id, payload)
 
+    # 维护意图：删除课程级 Qdrant 向量集合，避免删课后残留僵尸索引
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def clear_course_payload(self, course_id: int) -> bool:
         """删除课程级 Qdrant 向量集合，避免删课后残留僵尸索引。"""
         collection_name = self.collection_name(course_id)

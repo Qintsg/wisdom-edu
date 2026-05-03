@@ -12,6 +12,9 @@ from learning.view_helpers import _get_authenticated_user, _path_node_sort_key
 
 logger = logging.getLogger(__name__)
 
+# 维护意图：学生仪表盘聚合数据 GET /api/student/dashboard?course_id=xxx 合并学习进度、路径预览、画像摘要，减少前端并发请求
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def student_dashboard(request):

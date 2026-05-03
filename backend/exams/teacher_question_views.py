@@ -11,6 +11,9 @@ from assessments.models import Question
 from .teacher_helpers import _parse_pagination
 
 
+# 维护意图：获取题库列表
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(['GET'])
 @permission_classes([IsAuthenticated, IsTeacherOrAdmin])
 def question_list(request):
@@ -61,6 +64,9 @@ def question_list(request):
     })
 
 
+# 维护意图：创建题目
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(['POST'])
 @permission_classes([IsAuthenticated, IsTeacherOrAdmin])
 def question_create(request):
@@ -104,6 +110,9 @@ def question_create(request):
     }, msg='题目创建成功')
 
 
+# 维护意图：更新题目
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated, IsTeacherOrAdmin])
 def question_update(request, question_id):
@@ -138,6 +147,9 @@ def question_update(request, question_id):
     }, msg='题目更新成功')
 
 
+# 维护意图：删除题目
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated, IsTeacherOrAdmin])
 def question_delete(request, question_id):

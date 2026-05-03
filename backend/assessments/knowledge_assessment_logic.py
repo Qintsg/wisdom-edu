@@ -26,6 +26,9 @@ from .question_models import Question
 logger = logging.getLogger(__name__)
 
 
+# 维护意图：Normalized evaluation result for a single knowledge-assessment submission
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @dataclass
 class KnowledgeAssessmentEvaluation:
     """Normalized evaluation result for a single knowledge-assessment submission."""
@@ -41,6 +44,9 @@ class KnowledgeAssessmentEvaluation:
     mastery_map: dict[int, float]
 
 
+# 维护意图：将真假题答案归一化为布尔值
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def normalize_bool_answer(value: object) -> bool | None:
     """将真假题答案归一化为布尔值。"""
     if isinstance(value, bool):
@@ -55,6 +61,9 @@ def normalize_bool_answer(value: object) -> bool | None:
     return None
 
 
+# 维护意图：提取题目的标准答案载荷
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def resolve_correct_answer_payload(question: Question) -> object:
     """提取题目的标准答案载荷。"""
     if isinstance(question.answer, dict):
@@ -62,6 +71,9 @@ def resolve_correct_answer_payload(question: Question) -> object:
     return question.answer
 
 
+# 维护意图：根据题型判断学生答案是否正确
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def is_answer_correct(question: Question, student_answer_raw: object, correct_answer_raw: object) -> bool:
     """根据题型判断学生答案是否正确。"""
     if question.question_type == 'true_false':
@@ -88,6 +100,9 @@ def is_answer_correct(question: Question, student_answer_raw: object, correct_an
     return False
 
 
+# 维护意图：构建返回给前端的单题详情载荷
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_question_detail_payload(
     question: Question,
     *,
@@ -122,6 +137,9 @@ def build_question_detail_payload(
     }
 
 
+# 维护意图：构建 KT 预测记录和批量落库所需的答题历史模型
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_answer_history_models(
     *,
     user: User,
@@ -164,6 +182,9 @@ def build_answer_history_models(
     return history_records, history_models
 
 
+# 维护意图：对整份知识测评作答完成判题、统计与掌握度基线计算
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def evaluate_knowledge_answers(
     *,
     user: User,
@@ -235,6 +256,9 @@ def evaluate_knowledge_answers(
     )
 
 
+# 维护意图：结合 KT 预测结果对知识测评基线掌握度做保守融合
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def blend_mastery_with_kt(
     *,
     user_id: int,
@@ -276,6 +300,9 @@ def blend_mastery_with_kt(
     return apply_prerequisite_caps(blended_mastery_map, int(course_id))
 
 
+# 维护意图：将反馈报告模型规整为前端消费的响应结构
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_feedback_report_payload(report: object | None) -> dict[str, object] | None:
     """将反馈报告模型规整为前端消费的响应结构。"""
     if report is None or getattr(report, 'status', '') != 'completed':
@@ -296,6 +323,9 @@ def build_feedback_report_payload(report: object | None) -> dict[str, object] | 
     }
 
 
+# 维护意图：构建知识测评结果接口的空载荷
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_empty_knowledge_result(
     *,
     generating: bool = False,

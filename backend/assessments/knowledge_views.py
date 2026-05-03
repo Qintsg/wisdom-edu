@@ -46,6 +46,9 @@ from .models import (
 logger = logging.getLogger(__name__)
 
 
+# 维护意图：获取知识点掌握度测评试题。
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_knowledge_assessment(request: Request) -> Response:
@@ -122,6 +125,9 @@ def get_knowledge_assessment(request: Request) -> Response:
     })
 
 
+# 维护意图：提交知识点掌握度测评答案。
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(['POST'])
 @permission_classes([IsAuthenticated, IsStudent])
 def submit_knowledge_assessment(request: Request) -> Response:
@@ -224,6 +230,9 @@ def submit_knowledge_assessment(request: Request) -> Response:
     )
 
 
+# 维护意图：轮询获取知识测评结果（含异步生成状态）。
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 @api_view(['GET'])
 @permission_classes([IsAuthenticated, IsStudent])
 def get_knowledge_result(request: Request) -> Response:

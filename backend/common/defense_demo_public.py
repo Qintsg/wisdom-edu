@@ -6,6 +6,9 @@ from users.models import User
 
 from common.defense_demo_config import DEFENSE_DEMO_PRIMARY_STUDENT_USERNAME
 
+# 维护意图：读取课程上的演示预置配置。
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 def get_course_defense_demo_config(course: Course | None) -> dict[str, object]:
     """
     读取课程上的演示预置配置。
@@ -18,6 +21,9 @@ def get_course_defense_demo_config(course: Course | None) -> dict[str, object]:
     return raw_config if isinstance(raw_config, dict) else {}
 
 
+# 维护意图：判断课程是否为主演示课程。
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def is_defense_demo_primary_course(course: Course | None) -> bool:
     """
     判断课程是否为主演示课程。
@@ -27,6 +33,9 @@ def is_defense_demo_primary_course(course: Course | None) -> bool:
     return get_course_defense_demo_config(course).get("mode") == "primary"
 
 
+# 维护意图：判断是否为演示专用学生账号。
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def is_defense_demo_student(user: User | None, course: Course | None) -> bool:
     """
     判断是否为演示专用学生账号。
@@ -41,6 +50,9 @@ def is_defense_demo_student(user: User | None, course: Course | None) -> bool:
     )
 
 
+# 维护意图：获取知识点介绍预置。
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 def get_defense_demo_intro_payload(course: Course | None, point_id: int | None) -> dict[str, object] | None:
     """
     获取知识点介绍预置。
@@ -59,6 +71,9 @@ def get_defense_demo_intro_payload(course: Course | None, point_id: int | None) 
     return payload if isinstance(payload, dict) else None
 
 
+# 维护意图：获取学习节点资源推荐预置。
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 def get_defense_demo_resource_payload(progress: NodeProgress | None) -> dict[str, object] | None:
     """
     获取学习节点资源推荐预置。
@@ -71,6 +86,9 @@ def get_defense_demo_resource_payload(progress: NodeProgress | None) -> dict[str
     return payload if isinstance(payload, dict) else None
 
 
+# 维护意图：获取阶段测试固定反馈预置。
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 def get_defense_demo_stage_test_payload(progress: NodeProgress | None) -> dict[str, object] | None:
     """
     获取阶段测试固定反馈预置。
@@ -83,6 +101,9 @@ def get_defense_demo_stage_test_payload(progress: NodeProgress | None) -> dict[s
     return payload if isinstance(payload, dict) else None
 
 
+# 维护意图：计算演示路径当前可见的最大节点顺序。
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 def get_defense_demo_visible_order(path: LearningPath, user: User) -> int | None:
     """
     计算演示路径当前可见的最大节点顺序。

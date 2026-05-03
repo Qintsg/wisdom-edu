@@ -36,6 +36,9 @@ INITIAL_MASTERY_PRIOR_MEAN = 0.25
 INITIAL_MASTERY_PRIOR_STRENGTH = 4.0
 
 
+# 维护意图：为 student1 预置更贴近真实的“刚完成初始评测”状态
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def preset_student1_demo_data(
     student: "UserModel | None",
     course: "Course | None",
@@ -104,6 +107,9 @@ def preset_student1_demo_data(
     )
 
 
+# 维护意图：写入 student1 演示画像摘要和反馈报告
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def persist_student1_profile_and_feedback(
     *,
     student: "UserModel",
@@ -141,6 +147,9 @@ def persist_student1_profile_and_feedback(
     )
 
 
+# 维护意图：输出 student1 演示预置结果
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def print_student1_preset_result(
     *,
     total_score: Decimal,
@@ -155,6 +164,9 @@ def print_student1_preset_result(
     )
 
 
+# 维护意图：兼容旧导入路径的 student1 预置入口
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _preset_student1_demo_data(
     student: "UserModel | None",
     course: "Course | None",
@@ -163,6 +175,9 @@ def _preset_student1_demo_data(
     preset_student1_demo_data(student, course)
 
 
+# 维护意图：按课程名重建 student1 的演示预置，供 pg_bootstrap 复用
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def preset_student1_demo_course_state(
     course_name: str = DEFAULT_BOOTSTRAP_COURSE_NAME,
 ) -> bool:

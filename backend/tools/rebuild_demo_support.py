@@ -21,6 +21,9 @@ from learning.models import LearningPath
 from users.models import User
 
 
+# 维护意图：返回需要在重建结果中展示的全部演示账号
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def iter_demo_usernames() -> Iterable[str]:
     """返回需要在重建结果中展示的全部演示账号。"""
     yield DEFENSE_DEMO_WARMUP_STUDENT_USERNAME
@@ -29,11 +32,17 @@ def iter_demo_usernames() -> Iterable[str]:
         yield student_spec["username"]
 
 
+# 维护意图：按课程名称读取重建后的主课程
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 def load_demo_course(course_name: str) -> Course | None:
     """按课程名称读取重建后的主课程。"""
     return Course.objects.filter(name=course_name).first()
 
 
+# 维护意图：同步演示课程的图谱与考试总分口径
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def sync_demo_course_runtime(
     *,
     course: Course,
@@ -51,6 +60,9 @@ def sync_demo_course_runtime(
     return synced_exam_count, graph_stats
 
 
+# 维护意图：在启用 Neo4j 的场景下，确保演示课程图谱已经可用
+# 边界说明：测试步骤保持显式，便于定位回归阶段和失败上下文。
+# 风险说明：调整测试断言时，需保留失败上下文和可复现实例。
 def assert_demo_graph_ready(
     *,
     course: Course,
@@ -62,6 +74,9 @@ def assert_demo_graph_ready(
         raise RuntimeError(f"课程 {course.id} 的 Neo4j 图数据为空，请检查同步链路。")
 
 
+# 维护意图：打印主课程、图谱和答辩账号的整体就绪状态
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def print_demo_course_summary(
     *,
     course: Course,
@@ -91,6 +106,9 @@ def print_demo_course_summary(
     )
 
 
+# 维护意图：打印推荐的 AI 助手演示提问
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def print_assistant_demo_queries(course: Course) -> None:
     """打印推荐的 AI 助手演示提问。"""
     defense_demo_config = (
@@ -118,6 +136,9 @@ def print_assistant_demo_queries(course: Course) -> None:
             print(f"    * {title}{suffix}: {question}")
 
 
+# 维护意图：汇总单个演示账号在主演示课程下的关键状态
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _user_course_status(
     *,
     user: User,
@@ -148,6 +169,9 @@ def _user_course_status(
     }
 
 
+# 维护意图：输出演示账号在主演示课程下的关键信息
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def print_demo_user_statuses(course: Course, demo_summary: dict[str, int]) -> None:
     """输出演示账号在主演示课程下的关键信息。"""
     demo_class_id = demo_summary.get("class_id")
@@ -176,6 +200,9 @@ def print_demo_user_statuses(course: Course, demo_summary: dict[str, int]) -> No
         )
 
 
+# 维护意图：打印答辩链路预检建议
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def print_demo_followup_hint() -> None:
     """打印答辩链路预检建议。"""
     print(

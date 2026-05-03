@@ -13,6 +13,9 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 
 
+# 维护意图：通过 JWT token 解析 WebSocket 用户
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 @database_sync_to_async
 def _resolve_user_from_token(raw_token: str):
     """通过 JWT token 解析 WebSocket 用户。"""
@@ -21,6 +24,9 @@ def _resolve_user_from_token(raw_token: str):
     return authentication.get_user(validated_token)
 
 
+# 维护意图：从查询参数 `token` 中解析 JWT 并注入 scope.user
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 class QueryStringJWTAuthMiddleware(BaseMiddleware):
     """从查询参数 `token` 中解析 JWT 并注入 scope.user。"""
 
@@ -43,6 +49,9 @@ class QueryStringJWTAuthMiddleware(BaseMiddleware):
         return await super().__call__(scope, receive, send)
 
 
+# 维护意图：包装 channels 路由，提供 query string JWT 认证能力
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 def query_string_jwt_auth_middleware_stack(inner):
     """包装 channels 路由，提供 query string JWT 认证能力。"""
     return QueryStringJWTAuthMiddleware(inner)

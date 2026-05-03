@@ -13,6 +13,9 @@ from tools.api_regression_student_learning import _run_student_learning_checks
 from tools.testing import CheckResult
 
 
+# 维护意图：执行学生端主要学习链路与 AI 能力回归
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _run_student_regression(
     checks: List[CheckResult],
     base_url: str,

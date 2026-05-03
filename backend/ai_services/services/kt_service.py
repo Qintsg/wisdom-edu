@@ -37,6 +37,9 @@ DEFAULT_FUSION_WEIGHTS = {
 }
 
 
+# 维护意图：将配置中的相对模型路径统一解析为后端根目录下的绝对路径
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def _resolve_backend_path(path_value: str | None) -> str:
     """将配置中的相对模型路径统一解析为后端根目录下的绝对路径。"""
     if path_value is None:
@@ -50,6 +53,9 @@ def _resolve_backend_path(path_value: str | None) -> str:
     return str((BACKEND_ROOT / candidate).resolve())
 
 
+# 维护意图：知识追踪服务类。
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class KnowledgeTracingService(KTModelRuntimeMixin, KTPredictionModeMixin):
     """
     知识追踪服务类。
@@ -122,6 +128,9 @@ class KnowledgeTracingService(KTModelRuntimeMixin, KTPredictionModeMixin):
             )
         )
 
+    # 维护意图：解析启用模型列表，并保证至少返回一个有效模型
+    # 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+    # 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
     def _resolve_enabled_models(self, enabled_models: List[str] = None) -> List[str]:
         """解析启用模型列表，并保证至少返回一个有效模型。"""
         if enabled_models is not None:
@@ -145,6 +154,9 @@ class KnowledgeTracingService(KTModelRuntimeMixin, KTPredictionModeMixin):
             configured_models = ["mefkt"]
         return configured_models
 
+    # 维护意图：从环境变量加载融合权重，配置无效时使用默认权重
+    # 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+    # 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
     def _load_fusion_weights(self) -> Dict[str, float]:
         """从环境变量加载融合权重，配置无效时使用默认权重。"""
         try:
@@ -164,6 +176,9 @@ class KnowledgeTracingService(KTModelRuntimeMixin, KTPredictionModeMixin):
             )
         return self.DEFAULT_FUSION_WEIGHTS.copy()
 
+    # 维护意图：归一化融合权重，避免权重和异常影响融合预测
+    # 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+    # 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
     def _normalize_weights(self) -> None:
         """归一化融合权重，避免权重和异常影响融合预测。"""
         self.fusion_weights = {
@@ -188,6 +203,9 @@ class KnowledgeTracingService(KTModelRuntimeMixin, KTPredictionModeMixin):
                 )
             )
 
+    # 维护意图：检查服务是否可用；内置降级算法始终可用
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     @property
     def is_available(self) -> bool:
         """检查服务是否可用；内置降级算法始终可用。"""
@@ -219,6 +237,9 @@ class KnowledgeTracingService(KTModelRuntimeMixin, KTPredictionModeMixin):
         self._is_available = True
         return self._is_available
 
+    # 维护意图：获取各 KT 模型配置、运行时状态和当前预测模式
+    # 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+    # 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
     def get_model_info(self) -> Dict[str, Any]:
         """获取各 KT 模型配置、运行时状态和当前预测模式。"""
         models_info = {}
@@ -255,6 +276,9 @@ class KnowledgeTracingService(KTModelRuntimeMixin, KTPredictionModeMixin):
             "use_gpu": self.use_gpu,
         }
 
+    # 维护意图：按模型类型读取运行时状态，导入失败时保持空值兼容
+    # 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+    # 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
     def _load_runtime_info(self, model_type: str) -> Dict[str, Any] | None:
         """按模型类型读取运行时状态，导入失败时保持空值兼容。"""
         if model_type == "mefkt":

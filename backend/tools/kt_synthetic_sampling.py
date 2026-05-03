@@ -15,6 +15,9 @@ StudentProfile = dict[str, float | str | int]
 KnowledgePointProfiles = dict[int, dict[str, Any]]
 
 
+# 维护意图：合成学生在模拟过程中的动态状态
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @dataclass
 class SyntheticState:
     """合成学生在模拟过程中的动态状态。"""
@@ -25,6 +28,9 @@ class SyntheticState:
     recent_wrong: dict[int, int]
 
 
+# 维护意图：合成轨迹的静态学习上下文
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @dataclass(frozen=True)
 class SyntheticLearningContext:
     """合成轨迹的静态学习上下文。"""
@@ -33,6 +39,9 @@ class SyntheticLearningContext:
     profile: StudentProfile
 
 
+# 维护意图：单步知识点采样所需上下文
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @dataclass(frozen=True)
 class SamplingContext:
     """单步知识点采样所需上下文。"""
@@ -42,6 +51,9 @@ class SamplingContext:
     focus_kp: int
 
 
+# 维护意图：当前交互步骤的局部上下文
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @dataclass(frozen=True)
 class InteractionStep:
     """当前交互步骤的局部上下文。"""
@@ -52,6 +64,9 @@ class InteractionStep:
     last_results: list[int]
 
 
+# 维护意图：单次作答交互的模拟结果
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @dataclass(frozen=True)
 class InteractionOutcome:
     """单次作答交互的模拟结果。"""
@@ -61,6 +76,9 @@ class InteractionOutcome:
     gain: float
 
 
+# 维护意图：新会话开始时，对已学知识点施加遗忘衰减
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def apply_session_gap_decay(
     *,
     state: SyntheticState,
@@ -81,6 +99,9 @@ def apply_session_gap_decay(
             state.review_queue[kp_id] += 0.1
 
 
+# 维护意图：计算先修知识点的平均掌握度
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def prerequisite_mastery(
     prereq_ids: list[int],
     state: SyntheticState,
@@ -95,6 +116,9 @@ def prerequisite_mastery(
     )
 
 
+# 维护意图：判断知识点是否可被当前学生采样
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def is_kp_unlocked(
     kp_profile: dict[str, Any],
     state: SyntheticState,
@@ -109,6 +133,9 @@ def is_kp_unlocked(
     )
 
 
+# 维护意图：计算不含焦点和结构关系的基础采样权重
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def base_sampling_weight(
     kp_id: int,
     state: SyntheticState,
@@ -122,6 +149,9 @@ def base_sampling_weight(
     )
 
 
+# 维护意图：根据是否首练和解锁状态调整采样权重
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def apply_attempt_weight(weight: float, kp_id: int, state: SyntheticState, unlocked: bool) -> float:
     """根据是否首练和解锁状态调整采样权重。"""
     if state.attempts[kp_id] == 0:
@@ -129,6 +159,9 @@ def apply_attempt_weight(weight: float, kp_id: int, state: SyntheticState, unloc
     return weight + min(state.attempts[kp_id], 4) * 0.02
 
 
+# 维护意图：根据当前学习焦点和图谱邻接关系调整权重
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def apply_focus_weight(
     weight: float,
     kp_id: int,
@@ -147,6 +180,9 @@ def apply_focus_weight(
     return weight
 
 
+# 维护意图：根据最近错误、已掌握状态和锁定状态做最终权重调整
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def apply_recent_state_weight(
     weight: float,
     kp_id: int,
@@ -162,6 +198,9 @@ def apply_recent_state_weight(
     return max(adjusted_weight, 0.001)
 
 
+# 维护意图：计算单个知识点在当前时间步的采样权重
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_single_sampling_weight(kp_id: int, context: SamplingContext) -> float:
     """计算单个知识点在当前时间步的采样权重。"""
     state = context.state
@@ -180,11 +219,17 @@ def build_single_sampling_weight(kp_id: int, context: SamplingContext) -> float:
     return apply_recent_state_weight(weight, kp_id, state, unlocked)
 
 
+# 维护意图：为当前时间步计算知识点采样权重
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_sampling_weights(kp_ids: list[int], context: SamplingContext) -> list[float]:
     """为当前时间步计算知识点采样权重。"""
     return [build_single_sampling_weight(kp_id, context) for kp_id in kp_ids]
 
 
+# 维护意图：计算学习焦点候选权重，未解锁且未练习的知识点返回 None
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_focus_candidate_weight(
     kp_id: int,
     kp_profile: dict[str, Any],
@@ -205,6 +250,9 @@ def build_focus_candidate_weight(
     return weight + (0.3 if state.attempts.get(kp_id, 0) == 0 else 0.0)
 
 
+# 维护意图：根据先修掌握、复习队列和学生画像选择当前学习焦点
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def choose_focus_kp(
     learning: SyntheticLearningContext,
     state: SyntheticState,
@@ -224,6 +272,9 @@ def choose_focus_kp(
     return rng.choices(candidates, weights=weights, k=1)[0]
 
 
+# 维护意图：计算当前知识点作答是否正确及其先修掌握度、增益
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def compute_interaction_outcome(
     step: InteractionStep,
     learning: SyntheticLearningContext,
@@ -251,6 +302,9 @@ def compute_interaction_outcome(
     return InteractionOutcome(correct=correct, prereq_mastery=prereq_mastery_value, gain=gain)
 
 
+# 维护意图：根据会话进度和当前掌握度微调题目难度
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def adjusted_item_difficulty(
     step: InteractionStep,
     learning: SyntheticLearningContext,
@@ -267,6 +321,9 @@ def adjusted_item_difficulty(
     return clamp_value(raw_difficulty + challenge_shift, 0.15, 0.96)
 
 
+# 维护意图：综合掌握度、先修、疲劳和错题状态计算正确概率
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def compute_correct_probability(
     step: InteractionStep,
     learning: SyntheticLearningContext,
@@ -300,6 +357,9 @@ def compute_correct_probability(
     ) * base_prob
 
 
+# 维护意图：根据作答结果更新掌握度、复习队列和最近错误统计
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def update_mastery_after_interaction(
     kp_id: int,
     outcome: InteractionOutcome,
@@ -314,6 +374,9 @@ def update_mastery_after_interaction(
     update_child_mastery(kp_id, outcome, learning, state)
 
 
+# 维护意图：应用答对后的掌握度和复习状态变化
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def apply_correct_interaction(
     kp_id: int,
     outcome: InteractionOutcome,
@@ -329,6 +392,9 @@ def apply_correct_interaction(
     state.recent_wrong[kp_id] = 0
 
 
+# 维护意图：应用答错后的掌握度、复习队列和先修复习变化
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def apply_wrong_interaction(
     kp_id: int,
     outcome: InteractionOutcome,
@@ -347,6 +413,9 @@ def apply_wrong_interaction(
         state.review_queue[prereq_id] += 0.18
 
 
+# 维护意图：根据当前知识点作答结果对后继知识点施加轻量迁移影响
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def update_child_mastery(
     kp_id: int,
     outcome: InteractionOutcome,
@@ -362,6 +431,9 @@ def update_child_mastery(
         )
 
 
+# 维护意图：根据学生画像采样序列长度
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def sample_sequence_length(
     *,
     min_seq: int,

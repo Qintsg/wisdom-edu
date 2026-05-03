@@ -30,6 +30,9 @@ from tools.exam_sets_support import (
 from tools.testing import _status_flag
 
 
+# 维护意图：解析作业库目录。
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def resolve_homework_path(homework_dir: str | None) -> Path:
     """
     解析作业库目录。
@@ -41,6 +44,9 @@ def resolve_homework_path(homework_dir: str | None) -> Path:
     return COURSE_RESOURCES_DIR / "作业库(excel)"
 
 
+# 维护意图：收集目录下全部 Excel 文件。
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def collect_excel_files(homework_path: Path) -> list[Path]:
     """
     收集目录下全部 Excel 文件。
@@ -50,6 +56,9 @@ def collect_excel_files(homework_path: Path) -> list[Path]:
     return sorted(list(homework_path.glob("*.xlsx")) + list(homework_path.glob("*.xls")))
 
 
+# 维护意图：校验并收集本次要导入的作业库文件。
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def collect_import_files(homework_dir: str | None) -> list[Path]:
     """
     校验并收集本次要导入的作业库文件。
@@ -67,6 +76,9 @@ def collect_import_files(homework_dir: str | None) -> list[Path]:
     return files
 
 
+# 维护意图：根据文件名推导章节标题。
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_exam_title(set_name: str) -> str:
     """
     根据文件名推导章节标题。
@@ -79,6 +91,9 @@ def build_exam_title(set_name: str) -> str:
     return f"第{chapter_number}章 {chapter_name}" if chapter_number else chapter_name
 
 
+# 维护意图：导入单个 Excel 文件。
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def import_single_exam_file(
     file_path: Path,
     context: ExamSetImportContext,
@@ -113,6 +128,9 @@ def import_single_exam_file(
     return ExamSetImportResult(created=True, question_count=len(matched_questions))
 
 
+# 维护意图：打印 dry-run 预览结果。
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def print_dry_run(files: list[Path]) -> None:
     """
     打印 dry-run 预览结果。
@@ -124,6 +142,9 @@ def print_dry_run(files: list[Path]) -> None:
         print(f"  - {file_path.name}")
 
 
+# 维护意图：清理目标课程既有套题。
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def clear_existing_question_sets(course: Course) -> None:
     """
     清理目标课程既有套题。
@@ -134,6 +155,9 @@ def clear_existing_question_sets(course: Course) -> None:
     print(f"已清除旧套题: {deleted[0]} 条")
 
 
+# 维护意图：从作业库 Excel 目录导入套题。
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def import_exam_sets(
     course_id: int,
     homework_dir: str | None = None,

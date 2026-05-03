@@ -33,7 +33,13 @@ from users.models import User
 from .test_student_rag_base import StudentLearningRAGFixture
 
 
+# 维护意图：StudentLearningRAGRuntimeTests
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class StudentLearningRAGRuntimeTests(StudentLearningRAGFixture):
+    # 维护意图：Runtime materialization should create Qdrant points and GraphRAG artifact metadata
+    # 边界说明：测试步骤保持显式，便于定位回归阶段和失败上下文。
+    # 风险说明：调整测试断言时，需保留失败上下文和可复现实例。
     @patch("platform_ai.rag.runtime.neo4j_service.sync_course_graphrag_projection")
     @patch.object(student_graphrag_runtime, "_qdrant")
     @patch.object(student_graphrag_runtime, "_embedder")
@@ -45,6 +51,9 @@ class StudentLearningRAGRuntimeTests(StudentLearningRAGFixture):
     ):
         """Runtime materialization should create Qdrant points and GraphRAG artifact metadata."""
 
+        # 维护意图：轻量 Qdrant stub，避免测试依赖真实向量服务
+        # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+        # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
         class StubQdrantClient:
             """轻量 Qdrant stub，避免测试依赖真实向量服务。"""
 
@@ -52,16 +61,25 @@ class StudentLearningRAGRuntimeTests(StudentLearningRAGFixture):
                 self.created_collections = []
                 self.upserted_points = []
 
+            # 维护意图：Pretend that every collection needs to be created for this test
+            # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+            # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
             def collection_exists(self, collection_name):
                 """Pretend that every collection needs to be created for this test."""
                 _ = collection_name
                 return False
 
+            # 维护意图：Record collection creation inputs for later assertions
+            # 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+            # 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
             def create_collection(self, collection_name, vectors_config, on_disk_payload):
                 """Record collection creation inputs for later assertions."""
                 self.created_collections.append((collection_name, vectors_config, on_disk_payload))
                 return True
 
+            # 维护意图：Capture upserted points without contacting a real Qdrant service
+            # 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+            # 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
             def upsert(self, collection_name, points, wait):
                 """Capture upserted points without contacting a real Qdrant service."""
                 _ = (collection_name, wait)
@@ -111,6 +129,9 @@ class StudentLearningRAGRuntimeTests(StudentLearningRAGFixture):
         )
         UUID(str(stub_client.upserted_points[0].id))
 
+    # 维护意图：Node resource recommendations should surface linked internal resources first
+    # 边界说明：测试步骤保持显式，便于定位回归阶段和失败上下文。
+    # 风险说明：调整测试断言时，需保留失败上下文和可复现实例。
     @patch("platform_ai.rag.student.Resource.objects.filter")
     def test_recommend_resources_for_node_should_return_internal_course_resources(self, mock_resource_filter):
         """Node resource recommendations should surface linked internal resources first."""
@@ -137,6 +158,9 @@ class StudentLearningRAGRuntimeTests(StudentLearningRAGFixture):
         )
         self.assertEqual(recommendation["external_resources"], [])
 
+    # 维护意图：Unbound course resources should still be recommended when they match the node point
+    # 边界说明：测试步骤保持显式，便于定位回归阶段和失败上下文。
+    # 风险说明：调整测试断言时，需保留失败上下文和可复现实例。
     @patch("platform_ai.rag.student.Resource.objects.filter")
     def test_recommend_resources_for_node_should_fallback_to_course_local_resources(self, mock_resource_filter):
         """Unbound course resources should still be recommended when they match the node point."""

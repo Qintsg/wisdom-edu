@@ -30,6 +30,9 @@ LLM_KEY_ENV_NAMES = (
 )
 
 
+# 维护意图：输出本地运行环境诊断结果
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def diagnose_env() -> None:
     """输出本地运行环境诊断结果。"""
     _print_header("环境诊断")
@@ -43,6 +46,9 @@ def diagnose_env() -> None:
     print("\n" + "=" * 50)
 
 
+# 维护意图：打印诊断报告头部，保持 CLI 输出结构稳定
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _print_header(title: str) -> None:
     """打印诊断报告头部，保持 CLI 输出结构稳定。"""
     print("=" * 50)
@@ -50,6 +56,9 @@ def _print_header(title: str) -> None:
     print("=" * 50)
 
 
+# 维护意图：检查关键目录是否存在且 media 目录是否可写
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _print_directory_section() -> None:
     """检查关键目录是否存在且 media 目录是否可写。"""
     media_dir = BASE_DIR / "media"
@@ -61,6 +70,9 @@ def _print_directory_section() -> None:
     print(f"  media目录: {media_dir} ({'✓ 可写' if media_writable else '✗'})")
 
 
+# 维护意图：检查仓库根配置文件是否存在
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _print_config_section() -> None:
     """检查仓库根配置文件是否存在。"""
     config_path = BASE_DIR / "config.ini"
@@ -69,6 +81,9 @@ def _print_config_section() -> None:
     print(f"  config.ini: {_mark(config_path.exists(), fail_text='✗ 缺失')}")
 
 
+# 维护意图：检查 PostgreSQL 和 Neo4j 可用性
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _print_database_section() -> None:
     """检查 PostgreSQL 和 Neo4j 可用性。"""
     print("\n[数据库]")
@@ -81,6 +96,9 @@ def _print_database_section() -> None:
     print(f"  Neo4j: {'✓ 可用' if neo4j_service.is_available else '✗ 不可用'}")
 
 
+# 维护意图：执行最小查询，验证 Django 当前数据库连接
+# 边界说明：校验边界集中在这里，避免非法输入进入业务主流程。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def _check_postgres() -> None:
     """执行最小查询，验证 Django 当前数据库连接。"""
     from django.db import connection
@@ -89,6 +107,9 @@ def _check_postgres() -> None:
         cursor.execute("SELECT 1")
 
 
+# 维护意图：展示未应用迁移的数量和前几项名称
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _print_migration_section() -> None:
     """展示未应用迁移的数量和前几项名称。"""
     print("\n[迁移状态]")
@@ -107,6 +128,9 @@ def _print_migration_section() -> None:
         print(f"    - {migration_name}")
 
 
+# 维护意图：调用 Django showmigrations 并解析未应用项
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 def _get_unapplied_migrations() -> list[str]:
     """调用 Django showmigrations 并解析未应用项。"""
     from django.core.management import call_command
@@ -120,6 +144,9 @@ def _get_unapplied_migrations() -> list[str]:
     ]
 
 
+# 维护意图：检查 Python 依赖是否可被当前解释器发现
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _print_dependency_section(package_names: Iterable[str]) -> None:
     """检查 Python 依赖是否可被当前解释器发现。"""
     print("\n[依赖包]")
@@ -128,6 +155,9 @@ def _print_dependency_section(package_names: Iterable[str]) -> None:
         print(f"  {package_name}: {_mark(installed, fail_text='✗ 未安装')}")
 
 
+# 维护意图：展示当前 LLM 相关环境变量的有效配置
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _print_llm_section() -> None:
     """展示当前 LLM 相关环境变量的有效配置。"""
     llm_key = _first_configured_env(LLM_KEY_ENV_NAMES)
@@ -142,6 +172,9 @@ def _print_llm_section() -> None:
     )
 
 
+# 维护意图：返回第一个已配置的环境变量值
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _first_configured_env(env_names: Iterable[str]) -> str:
     """返回第一个已配置的环境变量值。"""
     for env_name in env_names:
@@ -151,6 +184,9 @@ def _first_configured_env(env_names: Iterable[str]) -> str:
     return ""
 
 
+# 维护意图：查询核心业务表规模，帮助确认演示/开发数据状态
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _print_data_summary_section() -> None:
     """查询核心业务表规模，帮助确认演示/开发数据状态。"""
     print("\n[数据摘要]")
@@ -170,6 +206,9 @@ def _print_data_summary_section() -> None:
     print(f"  考试: {summary['exams']}")
 
 
+# 维护意图：集中统计数据，避免诊断入口函数直接触碰多个模型
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _collect_data_summary() -> dict[str, int]:
     """集中统计数据，避免诊断入口函数直接触碰多个模型。"""
     from assessments.models import Question
@@ -189,6 +228,9 @@ def _collect_data_summary() -> dict[str, int]:
     }
 
 
+# 维护意图：统一 CLI 成功/失败标记文本
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _mark(condition: bool, *, fail_text: str = "✗") -> str:
     """统一 CLI 成功/失败标记文本。"""
     return "✓" if condition else fail_text

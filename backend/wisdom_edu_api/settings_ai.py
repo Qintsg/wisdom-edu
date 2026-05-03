@@ -13,6 +13,9 @@ EnvConfigBool = Callable[[str, str, str, bool], bool]
 ConfigJsonDict = Callable[[str, str, str], dict[str, object]]
 
 
+# 维护意图：读取环境变量优先的整数配置
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _int_setting(
     env_name: str,
     section: str,
@@ -28,6 +31,9 @@ def _int_setting(
     return value
 
 
+# 维护意图：加载 AI、Neo4j、GraphRAG 与资源 MCP settings。
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 def load_ai_settings(
     config_value: ConfigValue,
     config_int: ConfigInt,
@@ -57,6 +63,9 @@ def load_ai_settings(
     return settings_values
 
 
+# 维护意图：加载 Neo4j、GraphRAG 和资源 MCP settings
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 def _load_graph_and_resource_settings(
     config_value: ConfigValue,
     config_int: ConfigInt,
@@ -127,6 +136,9 @@ def _load_graph_and_resource_settings(
     }
 
 
+# 维护意图：加载 LLM provider、代理、重试和密钥 settings
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 def _load_llm_settings(
     config_value: ConfigValue,
     config_int: ConfigInt,

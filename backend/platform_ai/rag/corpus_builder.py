@@ -2,19 +2,21 @@
 
 from __future__ import annotations
 
-from collections import Counter
 from dataclasses import dataclass, field
 from datetime import datetime
 
 import networkx as nx
-from networkx.algorithms import community as nx_community
 
 from assessments.models import Question
 from knowledge.models import KnowledgePoint, KnowledgeRelation, Resource
+from .corpus_communities import build_community_records
 from .corpus_types import CorpusDocument, GraphEntity, GraphRelationship
-from .corpus_utils import _chapter_entity_id, _safe_resource_url, _top_themes
+from .corpus_utils import _chapter_entity_id, _safe_resource_url
 
 
+# 维护意图：Shared mutable state while assembling a course GraphRAG payload
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @dataclass
 class GraphCorpusBuildState:
     """Shared mutable state while assembling a course GraphRAG payload."""
@@ -26,6 +28,9 @@ class GraphCorpusBuildState:
     relationships: list[GraphRelationship] = field(default_factory=list)
     chapter_members: dict[str, list[str]] = field(default_factory=dict)
 
+    # 维护意图：Track which entities belong to a logical chapter bucket
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def remember_chapter_member(self, chapter_name: str, entity_id: str) -> tuple[str, str]:
         """Track which entities belong to a logical chapter bucket."""
         normalized_chapter = str(chapter_name or "").strip() or "未分章"
@@ -33,12 +38,18 @@ class GraphCorpusBuildState:
         self.chapter_members.setdefault(chapter_id, []).append(entity_id)
         return chapter_id, normalized_chapter
 
+    # 维护意图：Register an entity/document pair into the in-memory payload
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def add_entity(self, entity: GraphEntity, document: CorpusDocument) -> None:
         """Register an entity/document pair into the in-memory payload."""
         self.entities[entity.id] = entity
         self.documents.append(document)
         self.graph.add_node(entity.id, entity_type=entity.entity_type)
 
+    # 维护意图：Add a graph edge and the serialized relationship payload together
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def add_relationship(
         self,
         *,
@@ -61,15 +72,21 @@ class GraphCorpusBuildState:
         )
 
 
-def _join_nonempty(parts: list[str]) -> str:
+# 维护意图：Join non-empty text fragments into a single multiline summary
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
+def join_nonempty(parts: list[str]) -> str:
     """Join non-empty text fragments into a single multiline summary."""
     return "\n".join(part for part in parts if part.strip())
 
 
-def _point_summary(point: KnowledgePoint, chapter_name: str) -> str:
+# 维护意图：Render the retrievable summary for a knowledge point entity
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
+def point_summary(point: KnowledgePoint, chapter_name: str) -> str:
     """Render the retrievable summary for a knowledge point entity."""
     tags = point.get_tags_list()
-    return _join_nonempty(
+    return join_nonempty(
         [
             f"知识点：{point.name}",
             f"描述：{point.description or ''}",
@@ -83,9 +100,12 @@ def _point_summary(point: KnowledgePoint, chapter_name: str) -> str:
     )
 
 
-def _resource_summary(resource: Resource, chapter_name: str, linked_points: list[KnowledgePoint]) -> str:
+# 维护意图：Render the retrievable summary for a resource entity
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
+def resource_summary(resource: Resource, chapter_name: str, linked_points: list[KnowledgePoint]) -> str:
     """Render the retrievable summary for a resource entity."""
-    return _join_nonempty(
+    return join_nonempty(
         [
             f"资源标题：{resource.title}",
             f"资源类型：{resource.resource_type}",
@@ -96,9 +116,12 @@ def _resource_summary(resource: Resource, chapter_name: str, linked_points: list
     )
 
 
-def _question_summary(question: Question, linked_points: list[KnowledgePoint]) -> str:
+# 维护意图：Render the retrievable summary for a question entity
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
+def question_summary(question: Question, linked_points: list[KnowledgePoint]) -> str:
     """Render the retrievable summary for a question entity."""
-    return _join_nonempty(
+    return join_nonempty(
         [
             f"题目：{question.content}",
             f"题型：{question.question_type}",
@@ -109,19 +132,28 @@ def _question_summary(question: Question, linked_points: list[KnowledgePoint]) -
     )
 
 
-def _published_points(course_id: int) -> list[KnowledgePoint]:
+# 维护意图：Load the published knowledge points that can participate in GraphRAG
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
+def published_points(course_id: int) -> list[KnowledgePoint]:
     """Load the published knowledge points that can participate in GraphRAG."""
     return list(
         KnowledgePoint.objects.filter(course_id=course_id, is_published=True).order_by("order", "id")
     )
 
 
-def _visible_resources(course_id: int) -> list[Resource]:
+# 维护意图：Load course resources with knowledge-point associations materialized
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
+def visible_resources(course_id: int) -> list[Resource]:
     """Load course resources with knowledge-point associations materialized."""
     return list(Resource.objects.filter(course_id=course_id, is_visible=True).prefetch_related("knowledge_points"))
 
 
-def _visible_questions(course_id: int) -> list[Question]:
+# 维护意图：Load recent visible course questions with their linked knowledge points
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
+def visible_questions(course_id: int) -> list[Question]:
     """Load recent visible course questions with their linked knowledge points."""
     return list(
         Question.objects.filter(course_id=course_id, is_visible=True)
@@ -130,13 +162,16 @@ def _visible_questions(course_id: int) -> list[Question]:
     )
 
 
-def _populate_points(state: GraphCorpusBuildState, points: list[KnowledgePoint]) -> None:
+# 维护意图：Create point entities and seed chapter membership information
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
+def populate_points(state: GraphCorpusBuildState, points: list[KnowledgePoint]) -> None:
     """Create point entities and seed chapter membership information."""
     for point in points:
         point_id = f"kp:{point.id}"
         _, chapter_name = state.remember_chapter_member(point.chapter or "", point_id)
         tags = point.get_tags_list()
-        summary = _point_summary(point, chapter_name)
+        summary = point_summary(point, chapter_name)
         state.add_entity(
             GraphEntity(
                 id=point_id,
@@ -166,7 +201,10 @@ def _populate_points(state: GraphCorpusBuildState, points: list[KnowledgePoint])
         )
 
 
-def _populate_chapters(state: GraphCorpusBuildState) -> None:
+# 维护意图：Materialize chapter entities after the knowledge-point phase
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
+def populate_chapters(state: GraphCorpusBuildState) -> None:
     """Materialize chapter entities after the knowledge-point phase."""
     for chapter_id, member_ids in state.chapter_members.items():
         chapter_name = next(
@@ -194,7 +232,10 @@ def _populate_chapters(state: GraphCorpusBuildState) -> None:
         )
 
 
-def _populate_knowledge_relations(state: GraphCorpusBuildState) -> None:
+# 维护意图：Connect prerequisite relationships between published knowledge points
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
+def populate_knowledge_relations(state: GraphCorpusBuildState) -> None:
     """Connect prerequisite relationships between published knowledge points."""
     relation_rows = KnowledgeRelation.objects.filter(course_id=state.course_id).values_list(
         "pre_point_id",
@@ -215,13 +256,16 @@ def _populate_knowledge_relations(state: GraphCorpusBuildState) -> None:
         )
 
 
-def _populate_resources(state: GraphCorpusBuildState) -> None:
+# 维护意图：Create resource entities and connect them to knowledge points
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
+def populate_resources(state: GraphCorpusBuildState) -> None:
     """Create resource entities and connect them to knowledge points."""
-    for resource in _visible_resources(state.course_id):
+    for resource in visible_resources(state.course_id):
         resource_id = f"resource:{resource.id}"
         _, chapter_name = state.remember_chapter_member(resource.chapter_number or "", resource_id)
         linked_points = list(resource.knowledge_points.all())
-        summary = _resource_summary(resource, chapter_name, linked_points)
+        summary = resource_summary(resource, chapter_name, linked_points)
         state.add_entity(
             GraphEntity(
                 id=resource_id,
@@ -264,13 +308,16 @@ def _populate_resources(state: GraphCorpusBuildState) -> None:
             )
 
 
-def _populate_questions(state: GraphCorpusBuildState) -> None:
+# 维护意图：Create question entities and connect them to assessed knowledge points
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
+def populate_questions(state: GraphCorpusBuildState) -> None:
     """Create question entities and connect them to assessed knowledge points."""
-    for question in _visible_questions(state.course_id):
+    for question in visible_questions(state.course_id):
         question_id = f"question:{question.id}"
         _, chapter_name = state.remember_chapter_member(question.chapter or "", question_id)
         linked_points = list(question.knowledge_points.all())
-        summary = _question_summary(question, linked_points)
+        summary = question_summary(question, linked_points)
         state.add_entity(
             GraphEntity(
                 id=question_id,
@@ -314,7 +361,10 @@ def _populate_questions(state: GraphCorpusBuildState) -> None:
             )
 
 
-def _link_chapter_members(state: GraphCorpusBuildState) -> None:
+# 维护意图：Connect each chapter hub to all collected member entities
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
+def link_chapter_members(state: GraphCorpusBuildState) -> None:
     """Connect each chapter hub to all collected member entities."""
     for chapter_id, member_ids in state.chapter_members.items():
         if chapter_id not in state.entities:
@@ -330,102 +380,20 @@ def _link_chapter_members(state: GraphCorpusBuildState) -> None:
                 metadata={"course_id": state.course_id},
             )
 
-
-def _detect_communities(graph: nx.Graph) -> list[set[str]]:
-    """Return deterministic graph communities for the current course graph."""
-    if graph.number_of_nodes() == 0:
-        return []
-    if graph.number_of_edges() == 0:
-        return [{str(node_id)} for node_id in graph.nodes]
-    return [set(group) for group in nx_community.greedy_modularity_communities(graph)]
-
-
-def _build_community_records(state: GraphCorpusBuildState) -> tuple[list[dict], list[dict]]:
-    """Build community payloads, reports, and synthetic report documents."""
-    community_payloads: list[dict] = []
-    community_reports: list[dict] = []
-    for community_index, community_nodes in enumerate(_detect_communities(state.graph), start=1):
-        subgraph = state.graph.subgraph(community_nodes)
-        if subgraph.number_of_nodes() <= 1:
-            centrality = {str(node_id): 1.0 for node_id in subgraph.nodes}
-        else:
-            centrality = {str(node_id): score for node_id, score in nx.degree_centrality(subgraph).items()}
-        top_node_ids = [
-            node_id for node_id, _ in sorted(centrality.items(), key=lambda item: item[1], reverse=True)[:6]
-        ]
-        top_titles = [state.entities[node_id].title for node_id in top_node_ids if node_id in state.entities]
-        relation_counter = Counter(
-            str(edge_data.get("relation_type", "related")) for _, _, edge_data in subgraph.edges(data=True)
-        )
-        themes = _top_themes(
-            [
-                f"{state.entities[node_id].title} {state.entities[node_id].summary}"
-                for node_id in community_nodes
-                if node_id in state.entities
-            ]
-        )
-        community_id = f"community:{community_index}"
-        report_summary = (
-            f"该社区围绕 {'、'.join(top_titles[:4]) or '课程核心实体'} 组织，"
-            f"主要关系为 {'、'.join(relation_type for relation_type, _ in relation_counter.most_common(3)) or '关联'}，"
-            f"主题集中在 {'、'.join(themes[:5]) or '课程核心知识'}。"
-        )
-        community_payloads.append(
-            {
-                "id": community_id,
-                "entity_ids": sorted(community_nodes),
-                "entity_count": len(community_nodes),
-                "top_entities": top_node_ids,
-                "themes": themes,
-            }
-        )
-        community_reports.append(
-            {
-                "community_id": community_id,
-                "title": f"社区报告 {community_index}",
-                "summary": report_summary,
-                "themes": themes,
-                "top_entities": [
-                    {
-                        "id": node_id,
-                        "title": state.entities[node_id].title,
-                        "entity_type": state.entities[node_id].entity_type,
-                    }
-                    for node_id in top_node_ids
-                    if node_id in state.entities
-                ],
-                "relation_breakdown": dict(relation_counter),
-            }
-        )
-        state.documents.append(
-            CorpusDocument(
-                id=community_id,
-                kind="community_report",
-                title=f"社区报告 {community_index}",
-                content=report_summary,
-                url="",
-                metadata={
-                    "course_id": state.course_id,
-                    "community_id": community_id,
-                    "themes": themes,
-                    "entity_ids": sorted(community_nodes),
-                },
-            )
-        )
-    return community_payloads, community_reports
-
-
+# 维护意图：Assemble the full serializable GraphRAG payload for a course
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_course_graph_payload(course_id: int) -> dict:
     """Assemble the full serializable GraphRAG payload for a course."""
     state = GraphCorpusBuildState(course_id=course_id)
-    points = _published_points(course_id)
-    _populate_points(state, points)
-    _populate_chapters(state)
-    _populate_knowledge_relations(state)
-    _populate_resources(state)
-    _populate_questions(state)
-    _link_chapter_members(state)
-    community_payloads, community_reports = _build_community_records(state)
+    points = published_points(course_id)
+    populate_points(state, points)
+    populate_chapters(state)
+    populate_knowledge_relations(state)
+    populate_resources(state)
+    populate_questions(state)
+    link_chapter_members(state)
+    community_payloads, community_reports = build_community_records(state)
     return {
         "course_id": course_id,
         "index_type": "native_graphrag_v1",

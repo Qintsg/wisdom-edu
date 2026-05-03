@@ -24,6 +24,9 @@ import django
 django.setup()
 
 
+# 维护意图：加载真正的 CLI 入口，避免入口脚本与 tools 包同名引发静态分析混淆
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 def _load_cli_main() -> Callable[[], None]:
     """加载真正的 CLI 入口，避免入口脚本与 tools 包同名引发静态分析混淆。"""
     cli_module = import_module('tools.cli')

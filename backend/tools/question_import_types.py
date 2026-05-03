@@ -13,6 +13,9 @@ from courses.models import Course
 from knowledge.models import KnowledgePoint
 
 
+# 维护意图：缓存课程知识点，避免导入过程重复查库
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @dataclass
 class QuestionImportContext:
     """缓存课程知识点，避免导入过程重复查库。"""
@@ -22,6 +25,9 @@ class QuestionImportContext:
     knowledge_point_map: dict[str, KnowledgePoint]
 
 
+# 维护意图：记录导入统计信息
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @dataclass
 class QuestionImportSummary:
     """记录导入统计信息。"""
@@ -31,6 +37,9 @@ class QuestionImportSummary:
     skipped_duplicates: int = 0
     unmatched_names: set[str] = field(default_factory=set)
 
+    # 维护意图：记录单题导入结果
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def record_import(self, linked: bool) -> None:
         """记录单题导入结果。"""
         self.imported_count += 1
@@ -38,6 +47,9 @@ class QuestionImportSummary:
             self.linked_count += 1
 
 
+# 维护意图：标准化后的题目载荷
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @dataclass
 class QuestionPayload:
     """标准化后的题目载荷。"""
@@ -55,6 +67,9 @@ class QuestionPayload:
     is_visible: bool = True
 
 
+# 维护意图：Excel 题库数据源适配结果
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @dataclass
 class QuestionBankWorkbook:
     """Excel 题库数据源适配结果。"""

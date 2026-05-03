@@ -19,6 +19,9 @@ from .llm_response_support import (
 logger = logging.getLogger(__name__)
 
 
+# 维护意图：结构化 LLM 调用、JSON 修复与结果清洗能力
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class LLMResponseMixin:
     """结构化 LLM 调用、JSON 修复与结果清洗能力。"""
 
@@ -36,6 +39,9 @@ class LLMResponseMixin:
     _parse_json_response = staticmethod(parse_json_response)
     _coerce_message_text = staticmethod(coerce_message_text)
 
+    # 维护意图：要求模型将原始内容修复为可直接解析的合法 JSON
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def _repair_json_response(
         self, llm, raw_content: str, fallback_response: Dict[str, Any]
     ) -> Dict[str, Any]:
@@ -59,12 +65,18 @@ class LLMResponseMixin:
         )
         return self._parse_json_response(self._coerce_message_text(repaired.content))
 
+    # 维护意图：恢复调用前的温度配置
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     @staticmethod
     def _restore_temperature(llm: Any, original_temperature: float | None) -> None:
         """恢复调用前的温度配置。"""
         if original_temperature is not None:
             llm.temperature = original_temperature
 
+    # 维护意图：临时覆盖模型温度，并返回原始值
+    # 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+    # 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
     @staticmethod
     def _apply_temperature_override(llm: Any, temperature: float | None) -> float | None:
         """临时覆盖模型温度，并返回原始值。"""
@@ -76,6 +88,9 @@ class LLMResponseMixin:
 
     _build_retry_prompt = staticmethod(build_retry_prompt)
 
+    # 维护意图：统一补齐缺失字段并执行轻量清洗
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def _finalize_success_response(
         self,
         result: Dict[str, Any],
@@ -86,6 +101,9 @@ class LLMResponseMixin:
         merged_result = self._merge_missing_fields(result, fallback_response)
         return self._post_process_response(merged_result, call_type)
 
+    # 维护意图：尝试通过 Agent 服务完成结构化 JSON 调用
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def _run_agent_json_call(
         self,
         *,
@@ -122,6 +140,9 @@ class LLMResponseMixin:
             call_type,
         )
 
+    # 维护意图：执行一次 LangChain 消息调用，并提取规范化后的文本内容
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def _invoke_llm_messages(self, llm: Any, prompt: str) -> str:
         """执行一次 LangChain 消息调用，并提取规范化后的文本内容。"""
         from langchain_core.messages import HumanMessage, SystemMessage
@@ -134,6 +155,9 @@ class LLMResponseMixin:
         )
         return self._coerce_message_text(response.content)
 
+    # 维护意图：解析当前输出，必要时再尝试一次 JSON 修复
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def _attempt_llm_json_response(
         self,
         *,
@@ -158,6 +182,9 @@ class LLMResponseMixin:
             return None, False
         return repaired_result, True
 
+    # 维护意图：执行直接 LLM 调用、重试和 JSON 修复流程
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def _run_llm_json_call(
         self,
         *,
@@ -210,6 +237,9 @@ class LLMResponseMixin:
 
     _merge_missing_fields = staticmethod(merge_missing_fields)
 
+    # 维护意图：解析执行策略并截断 prompt
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def _prepare_structured_call(self, prompt: str, call_type: str) -> tuple[float, Any, str]:
         """解析执行策略并截断 prompt。"""
         start_time = time.time()
@@ -229,6 +259,9 @@ class LLMResponseMixin:
             )
         return start_time, execution_policy, prepared_prompt
 
+    # 维护意图：按调用类型尝试 Agent JSON 通道
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def _try_agent_structured_call(
         self,
         *,
@@ -261,6 +294,9 @@ class LLMResponseMixin:
             )
         return None
 
+    # 维护意图：执行模型 JSON 调用，并确保临时温度被恢复
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def _run_model_structured_call(
         self,
         *,
@@ -286,6 +322,9 @@ class LLMResponseMixin:
         finally:
             self._restore_temperature(llm, original_temp)
 
+    # 维护意图：调用 LLM，并在所有结构化输出尝试都失败后才降级
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def _call_with_fallback(
         self,
         prompt: str,
@@ -337,6 +376,9 @@ class LLMResponseMixin:
             )
             return fallback_response
 
+    # 维护意图：通过公共入口执行带降级保护的 LLM 调用
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def call_with_fallback(
         self,
         prompt: str,

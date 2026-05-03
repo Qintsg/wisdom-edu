@@ -34,6 +34,9 @@ GRAPH_STRUCTURE_KEYWORDS: tuple[str, ...] = (
 )
 
 
+# 维护意图：Graph search result item
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @dataclass(frozen=True)
 class PointSearchItem:
     """Graph search result item."""
@@ -46,6 +49,9 @@ class PointSearchItem:
     prerequisites: list[str]
     postrequisites: list[str]
 
+    # 维护意图：Convert the search item into a response payload
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def to_dict(self) -> dict[str, object]:
         """Convert the search item into a response payload."""
         return {
@@ -59,18 +65,27 @@ class PointSearchItem:
         }
 
 
+# 维护意图：Normalize free-form text for stable in-question point-name matching
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def normalize_match_text(text: str) -> str:
     """Normalize free-form text for stable in-question point-name matching."""
     lowered_text = text.strip().lower()
     return re.sub(r"[\W_]+", "", lowered_text, flags=re.UNICODE)
 
 
+# 维护意图：Detect whether the question is mainly about graph structure or relations
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def is_graph_structure_question(question: str) -> bool:
     """Detect whether the question is mainly about graph structure or relations."""
     normalized_question = question.strip()
     return any(keyword in normalized_question for keyword in GRAPH_STRUCTURE_KEYWORDS)
 
 
+# 维护意图：Resolve explicit course knowledge points directly mentioned in a question
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def match_points_by_query_text(*, course_id: int, query: str, limit: int = 3) -> list[KnowledgePoint]:
     """Resolve explicit course knowledge points directly mentioned in a question."""
     normalized_query = normalize_match_text(query)
@@ -89,6 +104,9 @@ def match_points_by_query_text(*, course_id: int, query: str, limit: int = 3) ->
     return unique_ranked_points(ranked_points, limit)
 
 
+# 维护意图：按排序结果去重知识点并限制数量
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def unique_ranked_points(ranked_points: list[tuple[int, int, int, KnowledgePoint]], limit: int) -> list[KnowledgePoint]:
     """按排序结果去重知识点并限制数量。"""
     matched_points: list[KnowledgePoint] = []
@@ -103,6 +121,9 @@ def unique_ranked_points(ranked_points: list[tuple[int, int, int, KnowledgePoint
     return matched_points
 
 
+# 维护意图：Pick the first existing published point from a candidate ID list
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def resolve_point_from_ids(*, course_id: int, point_ids: list[int]) -> KnowledgePoint | None:
     """Pick the first existing published point from a candidate ID list."""
     normalized_ids = [point_id for point_id in point_ids if point_id > 0]
@@ -120,6 +141,9 @@ def resolve_point_from_ids(*, course_id: int, point_ids: list[int]) -> Knowledge
     return None
 
 
+# 维护意图：Normalize a response field into a compact string list
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def extract_text_list(payload: Mapping[str, object], field: str) -> list[str]:
     """Normalize a response field into a compact string list."""
     raw_items = payload.get(field)
@@ -128,6 +152,9 @@ def extract_text_list(payload: Mapping[str, object], field: str) -> list[str]:
     return [str(item).strip() for item in raw_items if str(item).strip()]
 
 
+# 维护意图：Normalize matched point IDs from a course-level RAG payload
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def extract_matched_point_ids(rag_result: Mapping[str, object] | None) -> list[int]:
     """Normalize matched point IDs from a course-level RAG payload."""
     if not isinstance(rag_result, Mapping):
@@ -144,6 +171,9 @@ def extract_matched_point_ids(rag_result: Mapping[str, object] | None) -> list[i
     return normalized_ids
 
 
+# 维护意图：将输入转换为正整数，布尔值和非法字符串视为无效
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def coerce_positive_int(value: object) -> int | None:
     """将输入转换为正整数，布尔值和非法字符串视为无效。"""
     if isinstance(value, bool):
@@ -154,6 +184,9 @@ def coerce_positive_int(value: object) -> int | None:
     return int(value_text) if value_text.isdigit() else None
 
 
+# 维护意图：Check whether the course-level RAG payload contains usable evidence
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def has_course_rag_result(rag_result: Mapping[str, object] | None) -> bool:
     """Check whether the course-level RAG payload contains usable evidence."""
     if not isinstance(rag_result, Mapping):
@@ -162,6 +195,9 @@ def has_course_rag_result(rag_result: Mapping[str, object] | None) -> bool:
     return bool(raw_sources) or bool(extract_matched_point_ids(rag_result))
 
 
+# 维护意图：Get the first matched point ID from a search payload when available
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def extract_first_search_point_id(search_result: Mapping[str, object]) -> int | None:
     """Get the first matched point ID from a search payload when available."""
     raw_matches = search_result.get("matched_points", [])
@@ -174,6 +210,9 @@ def extract_first_search_point_id(search_result: Mapping[str, object]) -> int | 
     return coerce_positive_int(first_match.get("point_id"))
 
 
+# 维护意图：Convert RAG service output into the stable API response shape
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_graph_answer_payload(
     *,
     user,
@@ -197,6 +236,9 @@ def build_graph_answer_payload(
     }
 
 
+# 维护意图：Build a graph search item with relation summaries
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_search_item(user, point: KnowledgePoint) -> PointSearchItem:
     """Build a graph search item with relation summaries."""
     mastery_record = KnowledgeMastery.objects.filter(
@@ -218,6 +260,9 @@ def build_search_item(user, point: KnowledgePoint) -> PointSearchItem:
     )
 
 
+# 维护意图：读取 Neo4j 中的前置和后续知识点名称
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def neo4j_relation_names(point_id: int) -> tuple[list[str], list[str]]:
     """读取 Neo4j 中的前置和后续知识点名称。"""
     if not neo4j_service.is_available:
@@ -231,6 +276,9 @@ def neo4j_relation_names(point_id: int) -> tuple[list[str], list[str]]:
     )
 
 
+# 维护意图：从图关系载荷中提取最多 4 个知识点名称
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def relation_point_names(raw_relations: object) -> list[str]:
     """从图关系载荷中提取最多 4 个知识点名称。"""
     if not isinstance(raw_relations, list):
@@ -242,6 +290,9 @@ def relation_point_names(raw_relations: object) -> list[str]:
     ][:4]
 
 
+# 维护意图：Search knowledge points within the current course graph
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 def search_graph_points(*, user, course_id: int, query: str, limit: int = 8) -> dict[str, object]:
     """Search knowledge points within the current course graph."""
     normalized_query = query.strip()
@@ -258,6 +309,9 @@ def search_graph_points(*, user, course_id: int, query: str, limit: int = 8) -> 
     return search_with_database_keyword(user=user, course_id=course_id, query=normalized_query, limit=limit)
 
 
+# 维护意图：优先走 Neo4j GraphRAG + Qdrant 混合检索
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 def search_with_runtime(*, user, course_id: int, query: str, limit: int) -> dict[str, object] | None:
     """优先走 Neo4j GraphRAG + Qdrant 混合检索。"""
     try:
@@ -274,6 +328,9 @@ def search_with_runtime(*, user, course_id: int, query: str, limit: int) -> dict
     return {"query": query, "matched_points": matched_points, "retrieval_mode": COURSE_RETRIEVAL_MODE}
 
 
+# 维护意图：将运行时 GraphRAG 命中转换为搜索响应项
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_runtime_matched_points(
     *,
     user,
@@ -296,6 +353,9 @@ def build_runtime_matched_points(
     return matched_points
 
 
+# 维护意图：补齐运行时 GraphRAG 命中的分数、来源和图关系
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_runtime_match_item(user, point: KnowledgePoint, match: Mapping[str, object]) -> dict[str, object]:
     """补齐运行时 GraphRAG 命中的分数、来源和图关系。"""
     item = build_search_item(user, point).to_dict()
@@ -308,6 +368,9 @@ def build_runtime_match_item(user, point: KnowledgePoint, match: Mapping[str, ob
     return item
 
 
+# 维护意图：组装显式知识点名称命中的搜索响应
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_name_match_response(*, user, query: str, points: list[KnowledgePoint]) -> dict[str, object]:
     """组装显式知识点名称命中的搜索响应。"""
     return {
@@ -317,6 +380,9 @@ def build_name_match_response(*, user, query: str, points: list[KnowledgePoint])
     }
 
 
+# 维护意图：使用课程内数据库关键词匹配兜底搜索
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 def search_with_database_keyword(*, user, course_id: int, query: str, limit: int) -> dict[str, object]:
     """使用课程内数据库关键词匹配兜底搜索。"""
     point_queryset = (
@@ -337,6 +403,9 @@ def search_with_database_keyword(*, user, course_id: int, query: str, limit: int
     }
 
 
+# 维护意图：Run GraphRAG question answering under the current course context
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def answer_graph_question(
     *,
     user,
@@ -365,6 +434,9 @@ def answer_graph_question(
     return answer_course_or_llm_fallback(user=user, course_id=course_id, question=question, course_rag_result=course_rag_result)
 
 
+# 维护意图：按显式 point_id 查找当前课程内已发布知识点
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def point_from_explicit_id(*, course_id: int, point_id: int | None) -> KnowledgePoint | None:
     """按显式 point_id 查找当前课程内已发布知识点。"""
     if point_id is None:
@@ -372,6 +444,9 @@ def point_from_explicit_id(*, course_id: int, point_id: int | None) -> Knowledge
     return KnowledgePoint.objects.filter(id=point_id, course_id=course_id, is_published=True).first()
 
 
+# 维护意图：显式多知识点或结构类问题优先走课程级 GraphRAG
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def answer_explicit_or_structure_question(
     *,
     user,
@@ -402,6 +477,9 @@ def answer_explicit_or_structure_question(
     return matched_point, course_rag_response, None
 
 
+# 维护意图：通过搜索结果选择最可能的知识点
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def point_from_search(*, user, course_id: int, question: str) -> KnowledgePoint | None:
     """通过搜索结果选择最可能的知识点。"""
     search_result = search_graph_points(user=user, course_id=course_id, query=question, limit=1)
@@ -411,12 +489,18 @@ def point_from_search(*, user, course_id: int, question: str) -> KnowledgePoint 
     return KnowledgePoint.objects.filter(id=best_point_id, course_id=course_id, is_published=True).first()
 
 
+# 维护意图：围绕已定位知识点执行 GraphRAG 问答
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def answer_focused_point_question(*, user, course_id: int, point: KnowledgePoint, question: str) -> dict[str, object]:
     """围绕已定位知识点执行 GraphRAG 问答。"""
     rag_result = student_learning_rag.answer_graph_question(course_id=course_id, point=point, question=question)
     return build_graph_answer_payload(user=user, matched_point=point, rag_result=rag_result)
 
 
+# 维护意图：课程级 GraphRAG 无明确知识点时，按证据可用性决定是否 LLM 兜底
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def answer_course_or_llm_fallback(
     *,
     user,
@@ -433,6 +517,9 @@ def answer_course_or_llm_fallback(
     return build_llm_fallback(course_id=course_id, question=question)
 
 
+# 维护意图：构造无图谱证据时的通用回答
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_llm_fallback(*, course_id: int, question: str) -> dict[str, object]:
     """构造无图谱证据时的通用回答。"""
     fallback = {

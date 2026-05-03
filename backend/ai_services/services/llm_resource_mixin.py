@@ -10,9 +10,15 @@ from ai_services.services.llm_resource_support import (
     normalize_internal_resource_result,
 )
 
+# 维护意图：内部/外部学习资源推荐与阶段测试选题能力
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class LLMResourceMixin:
     """内部/外部学习资源推荐与阶段测试选题能力。"""
 
+    # 维护意图：根据知识点和学生掌握度，推荐外部学习资源（网站、视频、文章等）
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def recommend_external_resources(
         self,
         point_name: str,
@@ -59,6 +65,9 @@ class LLMResourceMixin:
             count=count,
         )
 
+    # 维护意图：从课程内部资源库中，由LLM选出最匹配当前知识点和学生掌握度的资源
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def recommend_internal_resources(
         self,
         point_name: str,
@@ -94,6 +103,9 @@ class LLMResourceMixin:
         )
         return normalize_internal_resource_result(result, fallback)
 
+    # 维护意图：LLM智能选择阶段测试题目 从候选题目中挑选最能检验知识点掌握程度的题目。
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def select_stage_test_questions(
         self, candidates: List[Dict], kp_names: List[str], count: int = 10
     ) -> Optional[List[int]]:

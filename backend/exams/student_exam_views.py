@@ -16,6 +16,9 @@ from .student_exam_support import (
 )
 
 
+# 维护意图：获取考试列表
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def exam_list(request: Request) -> Response:
@@ -23,6 +26,9 @@ def exam_list(request: Request) -> Response:
     return success_response(data=build_exam_list_payload(request.query_params, request.user))
 
 
+# 维护意图：获取考试详情（含题目，不含答案）
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def exam_detail(request: Request, exam_id: int) -> Response:

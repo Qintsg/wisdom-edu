@@ -18,15 +18,24 @@ from .models import Class, ClassCourse, Course, Enrollment
 from .teacher_course_helpers import COURSE_CONFIG_DEFAULTS, extract_course_archive, resolve_archive_root
 
 
+# 维护意图：上传文件只依赖原始文件名和分块读取能力
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class UploadedChunkFile(Protocol):
     """上传文件只依赖原始文件名和分块读取能力。"""
 
     name: str
 
+    # 维护意图：返回可迭代的文件分块
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def chunks(self) -> object:
         """返回可迭代的文件分块。"""
 
 
+# 维护意图：搜索公开课程并返回分页响应
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_course_search_payload(query_params: Mapping[str, object]) -> dict[str, object]:
     """搜索公开课程并返回分页响应。"""
     keyword = query_params.get("keyword", "")
@@ -45,6 +54,9 @@ def build_course_search_payload(query_params: Mapping[str, object]) -> dict[str,
     }
 
 
+# 维护意图：解析课程搜索分页参数并兜底非法输入
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def parse_course_pagination(query_params: Mapping[str, object]) -> tuple[int, int]:
     """解析课程搜索分页参数并兜底非法输入。"""
     try:
@@ -55,6 +67,9 @@ def parse_course_pagination(query_params: Mapping[str, object]) -> tuple[int, in
     return page, page_size
 
 
+# 维护意图：序列化公开课程搜索项
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_course_search_item(course: Course) -> dict[str, object]:
     """序列化公开课程搜索项。"""
     return {
@@ -67,6 +82,9 @@ def build_course_search_item(course: Course) -> dict[str, object]:
     }
 
 
+# 维护意图：创建课程，按需导入资源压缩包并发布到指定班级
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def create_teacher_course(
     data: Mapping[str, object],
     files: Mapping[str, object],
@@ -110,6 +128,9 @@ def create_teacher_course(
     }, None, 201
 
 
+# 维护意图：解析创建课程时的可选发布班级，并执行教师权限校验
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def resolve_publish_class(
     publish_class_id: object,
     user: object,
@@ -126,6 +147,9 @@ def resolve_publish_class(
     return target_class, None, 200
 
 
+# 维护意图：解析课程资源包并调用既有 bootstrap 流程导入课程资产
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def bootstrap_course_archive(
     archive_file: object,
     course: Course,
@@ -152,6 +176,9 @@ def bootstrap_course_archive(
     return archive_temp_dir
 
 
+# 维护意图：将新建课程发布到指定班级，并同步班级默认课程
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def publish_course_to_class(course: Course, target_class: Class, user: object) -> None:
     """将新建课程发布到指定班级，并同步班级默认课程。"""
     class_course, _ = ClassCourse.objects.get_or_create(
@@ -168,6 +195,9 @@ def publish_course_to_class(course: Course, target_class: Class, user: object) -
         target_class.save(update_fields=["course", "updated_at"])
 
 
+# 维护意图：清理课程资源包临时目录，兼容 Windows 文件句柄延迟释放
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def cleanup_course_archive(temp_dir: tempfile.TemporaryDirectory | None) -> None:
     """清理课程资源包临时目录，兼容 Windows 文件句柄延迟释放。"""
     if temp_dir is None:
@@ -178,11 +208,17 @@ def cleanup_course_archive(temp_dir: tempfile.TemporaryDirectory | None) -> None
         shutil.rmtree(temp_dir.name, ignore_errors=True)
 
 
+# 维护意图：按主键读取教师端课程对象
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 def get_teacher_course(course_id: int) -> Course | None:
     """按主键读取教师端课程对象。"""
     return Course.objects.filter(id=course_id).first()
 
 
+# 维护意图：序列化教师端课程详情
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_course_detail_payload(course: Course) -> dict[str, object]:
     """序列化教师端课程详情。"""
     return {
@@ -198,6 +234,9 @@ def build_course_detail_payload(course: Course) -> dict[str, object]:
     }
 
 
+# 维护意图：按兼容字段名更新课程基础信息
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def update_teacher_course(course: Course, data: Mapping[str, object]) -> dict[str, object]:
     """按兼容字段名更新课程基础信息。"""
     mapped_fields = apply_legacy_course_fields(course, data)
@@ -208,6 +247,9 @@ def update_teacher_course(course: Course, data: Mapping[str, object]) -> dict[st
     return {"course_id": course.id, "name": course.name}
 
 
+# 维护意图：应用前端旧字段名到模型字段名的映射
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def apply_legacy_course_fields(course: Course, data: Mapping[str, object]) -> set[str]:
     """应用前端旧字段名到模型字段名的映射。"""
     field_mapping = {"course_name": "name", "course_description": "description"}
@@ -219,12 +261,18 @@ def apply_legacy_course_fields(course: Course, data: Mapping[str, object]) -> se
     return mapped_fields
 
 
+# 维护意图：读取当前教师或管理员可管理课程
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_my_created_courses_payload(user: object) -> dict[str, object]:
     """读取当前教师或管理员可管理课程。"""
     courses = Course.get_manageable_courses(user)
     return {"courses": [build_my_course_item(course) for course in courses]}
 
 
+# 维护意图：序列化我的课程列表项
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_my_course_item(course: Course) -> dict[str, object]:
     """序列化我的课程列表项。"""
     return {
@@ -236,16 +284,25 @@ def build_my_course_item(course: Course) -> dict[str, object]:
     }
 
 
+# 维护意图：保持原删除权限：创建者、管理员角色或超级用户
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def can_delete_course(course: Course, user: object) -> bool:
     """保持原删除权限：创建者、管理员角色或超级用户。"""
     return course.created_by == user or getattr(user, "role", None) == "admin" or getattr(user, "is_superuser", False)
 
 
+# 维护意图：保持原封面、统计和配置权限：创建者或管理员角色
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def can_access_owned_course(course: Course, user: object) -> bool:
     """保持原封面、统计和配置权限：创建者或管理员角色。"""
     return course.created_by == user or getattr(user, "role", None) == "admin"
 
 
+# 维护意图：删除教师端课程并返回用户可读结果
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def delete_teacher_course(course_id: int, user: object) -> tuple[str | None, str | None, int]:
     """删除教师端课程并返回用户可读结果。"""
     course = get_teacher_course(course_id)
@@ -260,6 +317,9 @@ def delete_teacher_course(course_id: int, user: object) -> tuple[str | None, str
     return "课程已删除", None, 200
 
 
+# 维护意图：读取需要创建者或管理员权限的课程
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 def get_owned_course(course_id: int, user: object, permission_message: str) -> tuple[Course | None, str | None, int]:
     """读取需要创建者或管理员权限的课程。"""
     course = get_teacher_course(course_id)
@@ -270,6 +330,9 @@ def get_owned_course(course_id: int, user: object, permission_message: str) -> t
     return course, None, 200
 
 
+# 维护意图：校验课程权限后保存封面
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def upload_teacher_course_cover(
     course_id: int,
     files: Mapping[str, object],
@@ -282,6 +345,9 @@ def upload_teacher_course_cover(
     return save_course_cover(course, files, course_id)
 
 
+# 维护意图：保存课程封面文件并返回旧接口使用的 cover_url
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def save_course_cover(course: Course, files: Mapping[str, object], course_id: int) -> tuple[dict[str, object] | None, str | None, int]:
     """保存课程封面文件并返回旧接口使用的 cover_url。"""
     cover = files.get("cover") or files.get("file")
@@ -294,6 +360,9 @@ def save_course_cover(course: Course, files: Mapping[str, object], course_id: in
     return {"cover_url": cover_url}, None, 200
 
 
+# 维护意图：写入课程封面文件到 media/covers
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def write_course_cover_file(course_id: int, cover: UploadedChunkFile) -> str:
     """写入课程封面文件到 media/covers。"""
     cover_dir = os.path.join(django_settings.MEDIA_ROOT, "covers")
@@ -306,6 +375,9 @@ def write_course_cover_file(course_id: int, cover: UploadedChunkFile) -> str:
     return f"/media/covers/{filename}"
 
 
+# 维护意图：统计课程发布班级数量和去重学生数量
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_course_statistics_payload(course: Course) -> dict[str, object]:
     """统计课程发布班级数量和去重学生数量。"""
     class_course_queryset = ClassCourse.objects.filter(course=course)
@@ -318,12 +390,18 @@ def build_course_statistics_payload(course: Course) -> dict[str, object]:
     }
 
 
+# 维护意图：读取课程关联班级内的去重学生 ID
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def course_student_ids(class_course_queryset: QuerySet[ClassCourse]) -> QuerySet[int]:
     """读取课程关联班级内的去重学生 ID。"""
     class_ids = class_course_queryset.values_list("class_obj_id", flat=True)
     return Enrollment.objects.filter(class_obj__in=class_ids).values_list("user_id", flat=True).distinct()
 
 
+# 维护意图：校验课程权限后返回统计数据
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_course_statistics_for_user(course_id: int, user: object) -> tuple[dict[str, object] | None, str | None, int]:
     """校验课程权限后返回统计数据。"""
     course, error_message, status_code = get_owned_course(course_id, user, "无权查看此课程统计")
@@ -332,12 +410,18 @@ def build_course_statistics_for_user(course_id: int, user: object) -> tuple[dict
     return build_course_statistics_payload(course), None, 200
 
 
+# 维护意图：合并默认课程配置与课程自定义配置
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_course_settings_payload(course: Course) -> dict[str, object]:
     """合并默认课程配置与课程自定义配置。"""
     config = merged_course_config(course)
     return {"course_id": course.id, "course_name": course.name, "config": config}
 
 
+# 维护意图：返回课程配置的默认值合并结果
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def merged_course_config(course: Course) -> dict[str, object]:
     """返回课程配置的默认值合并结果。"""
     config = {**COURSE_CONFIG_DEFAULTS}
@@ -347,6 +431,9 @@ def merged_course_config(course: Course) -> dict[str, object]:
     return config
 
 
+# 维护意图：校验并更新课程配置
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def update_course_config(course: Course, new_config: object) -> tuple[dict[str, object] | None, str | None]:
     """校验并更新课程配置。"""
     if not isinstance(new_config, dict):
@@ -364,6 +451,9 @@ def update_course_config(course: Course, new_config: object) -> tuple[dict[str, 
     return {"course_id": course.id, "config": merged_course_config(course)}, None
 
 
+# 维护意图：校验课程权限后返回课程配置
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_course_settings_for_user(course_id: int, user: object) -> tuple[dict[str, object] | None, str | None, int]:
     """校验课程权限后返回课程配置。"""
     course, error_message, status_code = get_owned_course(course_id, user, "无权修改此课程配置")
@@ -372,6 +462,9 @@ def build_course_settings_for_user(course_id: int, user: object) -> tuple[dict[s
     return build_course_settings_payload(course), None, 200
 
 
+# 维护意图：校验课程权限后更新课程配置
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def update_course_settings_for_user(
     course_id: int,
     user: object,

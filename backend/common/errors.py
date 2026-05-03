@@ -14,6 +14,9 @@ from rest_framework.views import exception_handler
 logger = logging.getLogger(__name__)
 
 
+# 维护意图：将 DRF ErrorDetail / 列表 / 字典转为可 JSON 序列化的错误详情。
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def _normalize_error_detail(detail: Any) -> Any:
     """
     将 DRF ErrorDetail / 列表 / 字典转为可 JSON 序列化的错误详情。
@@ -33,6 +36,9 @@ def _normalize_error_detail(detail: Any) -> Any:
     return str(detail)
 
 
+# 维护意图：提取可直接展示给用户的错误消息，优先保留字段名上下文。
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _flatten_error_messages(detail: Any) -> list[str]:
     """
     提取可直接展示给用户的错误消息，优先保留字段名上下文。
@@ -60,6 +66,9 @@ def _flatten_error_messages(detail: Any) -> list[str]:
     return [text] if text else []
 
 
+# 维护意图：自定义异常处理，统一 API 响应格式。
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def custom_exception_handler(exc: Exception, context: dict[str, Any]) -> Response:
     """
     自定义异常处理，统一 API 响应格式。
@@ -104,6 +113,9 @@ def custom_exception_handler(exc: Exception, context: dict[str, Any]) -> Respons
     return response
 
 
+# 维护意图：从 DRF 响应中提取错误信息。
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 def get_error_message(response: Response) -> str:
     """
     从 DRF 响应中提取错误信息。

@@ -31,9 +31,15 @@ from platform_ai.rag.runtime import (
 from tools.kt_synthetic import _build_kp_profiles, _simulate_student_sequence
 from users.models import User
 
+# 维护意图：Cover provider ordering and redirect filtering for resource search
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class WebSearchServiceTests(SimpleTestCase):
     """Cover provider ordering and redirect filtering for resource search."""
 
+    # 维护意图：Baidu redirect links should resolve to the expected destination domain
+    # 边界说明：测试步骤保持显式，便于定位回归阶段和失败上下文。
+    # 风险说明：调整测试断言时，需保留失败上下文和可复现实例。
     @patch("ai_services.services.web_search_service.requests.get")
     def test_search_with_baidu_should_resolve_redirect_and_filter_domain(
         self, mock_get
@@ -75,6 +81,9 @@ class WebSearchServiceTests(SimpleTestCase):
         )
         self.assertIn("菜鸟教程", results[0]["title"])
 
+    # 维护意图：Configured providers should be queried in priority order until one succeeds
+    # 边界说明：测试步骤保持显式，便于定位回归阶段和失败上下文。
+    # 风险说明：调整测试断言时，需保留失败上下文和可复现实例。
     @patch(
         "ai_services.services.web_search_service._is_accessible_url", return_value=True
     )
@@ -88,6 +97,9 @@ class WebSearchServiceTests(SimpleTestCase):
         primary_provider = configured_providers[0]
         fallback_provider = configured_providers[1]
 
+        # 维护意图：Return a single mocked hit only for the configured fallback provider
+        # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+        # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
         def side_effect(provider_name, query, expected_domain, max_results):
             """Return a single mocked hit only for the configured fallback provider."""
             # 显式消费关键字参数，保留真实调用签名并避免未使用形参告警。

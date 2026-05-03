@@ -3,33 +3,40 @@ from __future__ import annotations
 
 import csv
 import json
-from typing import cast
 
+from application.teacher.contracts import first_present, normalize_question_point_ids
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
 
-from application.teacher.contracts import first_present, normalize_question_point_ids
 from assessments.models import Question
 from common.permissions import IsTeacherOrAdmin
 from common.responses import error_response, success_response
 from common.utils import resolve_course_id as _resolve_course_id
 
-from .models import KnowledgePoint
+from .teacher_question_support import (
+    apply_question_update_fields,
+    build_question_detail,
+    build_question_list_item,
+    has_question_point_payload,
+    question_identifier,
+    replace_question_points_from_payload,
+)
 from .teacher_helpers import (
-    KnowledgePointRelationSetter,
     bad_request,
     build_csv_download_response,
     extract_question_answer_text,
     link_knowledge_points,
     parse_pagination,
     refresh_course_rag_index,
-    replace_knowledge_points,
     require_point_ids,
 )
 
 
+# 维护意图：获取题目列表
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["GET"])
 @permission_classes([IsAuthenticated, IsTeacherOrAdmin])
 def question_list(request: Request) -> Response:
@@ -59,17 +66,13 @@ def question_list(request: Request) -> Response:
     page_questions = questions.prefetch_related("knowledge_points")[start : start + size]
     return success_response(data={
         "total": total,
-        "questions": [{
-            "question_id": getattr(question, "id", None) or getattr(question, "pk", None),
-            "content": question.content[:100] + "..." if len(question.content) > 100 else question.content,
-            "type": question.question_type,
-            "difficulty": question.difficulty,
-            "points": list(question.knowledge_points.values_list("id", flat=True)),
-            "created_at": question.created_at.isoformat(),
-        } for question in page_questions],
+        "questions": [build_question_list_item(question) for question in page_questions],
     })
 
 
+# 维护意图：获取或更新题目
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["GET", "PUT"])
 @permission_classes([IsAuthenticated, IsTeacherOrAdmin])
 def question_detail(request: Request, question_id: int) -> Response:
@@ -80,61 +83,21 @@ def question_detail(request: Request, question_id: int) -> Response:
         return error_response(msg="题目不存在", code=404)
 
     if request.method == "PUT":
-        fields = ["content", "options", "analysis", "difficulty", "score"]
-        for field in request.data:
-            if field in fields:
-                setattr(question, field, request.data[field])
-        if "answer" in request.data:
-            answer = request.data["answer"]
-            question.answer = {"answer": answer} if not isinstance(answer, dict) else answer
-        if "type" in request.data or "question_type" in request.data:
-            question.question_type = first_present(request.data, "type", "question_type")
-        if "suggested_score" in request.data:
-            question.suggested_score = request.data["suggested_score"]
-        if "chapter" in request.data:
-            question.chapter = request.data["chapter"]
-        if "is_visible" in request.data:
-            question.is_visible = request.data["is_visible"]
-        if "for_initial_assessment" in request.data:
-            question.for_initial_assessment = request.data["for_initial_assessment"]
-
+        apply_question_update_fields(question, request.data, include_detail_fields=True)
         question.save()
-        if "knowledge_point_ids" in request.data:
-            knowledge_points = KnowledgePoint.objects.filter(id__in=request.data["knowledge_point_ids"], course=question.course)
-            replace_knowledge_points(cast(KnowledgePointRelationSetter, question.knowledge_points), knowledge_points)
-        elif "points" in request.data:
-            replace_knowledge_points(
-                cast(KnowledgePointRelationSetter, question.knowledge_points),
-                normalize_question_point_ids(request.data),
-            )
+        replace_question_points_from_payload(question, request.data)
 
         return success_response(
-            data={"question_id": getattr(question, "id", None) or getattr(question, "pk", None)},
+            data={"question_id": question_identifier(question)},
             msg="题目更新成功",
         )
 
-    question_points = cast(list[KnowledgePoint], list(question.knowledge_points.all()))
-    return success_response(data={
-        "question_id": getattr(question, "id", None) or getattr(question, "pk", None),
-        "content": question.content,
-        "type": question.question_type,
-        "question_type": question.question_type,
-        "options": question.options,
-        "answer": question.answer,
-        "analysis": question.analysis,
-        "difficulty": question.difficulty,
-        "score": float(question.score),
-        "suggested_score": float(question.suggested_score) if question.suggested_score else None,
-        "chapter": question.chapter,
-        "is_visible": question.is_visible,
-        "for_initial_assessment": question.for_initial_assessment,
-        "points": [{"point_id": point.id, "point_name": point.name} for point in question_points],
-        "knowledge_points": [{"id": point.id, "name": point.name} for point in question_points],
-        "creator": question.created_by.username if question.created_by else None,
-        "created_at": question.created_at.isoformat(),
-    })
+    return success_response(data=build_question_detail(question))
 
 
+# 维护意图：创建题目
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["POST"])
 @permission_classes([IsAuthenticated, IsTeacherOrAdmin])
 def question_create(request: Request) -> Response:
@@ -166,12 +129,15 @@ def question_create(request: Request) -> Response:
         created_by=request.user,
     )
     if points:
-        replace_knowledge_points(cast(KnowledgePointRelationSetter, question.knowledge_points), points)
+        replace_question_points_from_payload(question, {"points": points})
 
     refresh_course_rag_index(course_id)
-    return success_response(data={"question_id": getattr(question, "id", None) or getattr(question, "pk", None)}, msg="题目创建成功")
+    return success_response(data={"question_id": question_identifier(question)}, msg="题目创建成功")
 
 
+# 维护意图：更新题目
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["PUT"])
 @permission_classes([IsAuthenticated, IsTeacherOrAdmin])
 def question_update(request: Request, question_id: int) -> Response:
@@ -181,26 +147,23 @@ def question_update(request: Request, question_id: int) -> Response:
     except Question.DoesNotExist:
         return error_response(msg="题目不存在", code=404)
 
-    for field in ["content", "options", "analysis", "difficulty", "score"]:
-        if field in request.data:
-            setattr(question, field, request.data[field])
-    if "answer" in request.data:
-        answer = request.data["answer"]
-        question.answer = {"answer": answer} if not isinstance(answer, dict) else answer
-    if "type" in request.data or "question_type" in request.data:
-        question.question_type = first_present(request.data, "type", "question_type")
+    apply_question_update_fields(question, request.data, include_detail_fields=False)
     question.save()
 
-    if "points" in request.data or "knowledge_point_ids" in request.data:
-        replace_knowledge_points(
-            cast(KnowledgePointRelationSetter, question.knowledge_points),
-            normalize_question_point_ids(request.data),
+    if has_question_point_payload(request.data):
+        replace_question_points_from_payload(
+            question,
+            request.data,
+            filter_course_for_ids=False,
         )
 
     refresh_course_rag_index(question.course_id)
-    return success_response(data={"question_id": getattr(question, "id", None) or getattr(question, "pk", None)}, msg="题目更新成功")
+    return success_response(data={"question_id": question_identifier(question)}, msg="题目更新成功")
 
 
+# 维护意图：删除题目
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["DELETE"])
 @permission_classes([IsAuthenticated, IsTeacherOrAdmin])
 def question_delete(request: Request, question_id: int) -> Response:
@@ -215,6 +178,9 @@ def question_delete(request: Request, question_id: int) -> Response:
         return error_response(msg="题目不存在", code=404)
 
 
+# 维护意图：批量删除题目
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["POST"])
 @permission_classes([IsAuthenticated, IsTeacherOrAdmin])
 def question_batch_delete(request: Request) -> Response:
@@ -232,6 +198,9 @@ def question_batch_delete(request: Request) -> Response:
     return success_response(data={"deleted_count": deleted_count}, msg=f"已删除 {deleted_count} 道题目")
 
 
+# 维护意图：批量导入题目，支持 JSON 和 Excel 文件
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["POST"])
 @permission_classes([IsAuthenticated, IsTeacherOrAdmin])
 def question_import(request: Request) -> Response:
@@ -255,13 +224,16 @@ def question_import(request: Request) -> Response:
             result = import_question_bank(uploaded_file, course_id)
         else:
             return bad_request("仅支持 .json / .xlsx 文件")
-    except Exception as exc:
+    except (ImportError, json.JSONDecodeError, RuntimeError, TypeError, ValueError) as exc:
         return bad_request(f"导入失败: {exc}")
 
     refresh_course_rag_index(course_id)
     return success_response(data=result, msg="题目导入完成")
 
 
+# 维护意图：导出题目 CSV
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["GET"])
 @permission_classes([IsAuthenticated, IsTeacherOrAdmin])
 def question_export(request: Request):
@@ -291,6 +263,9 @@ def question_export(request: Request):
     return response
 
 
+# 维护意图：获取题目导入模板
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["GET"])
 @permission_classes([IsAuthenticated, IsTeacherOrAdmin])
 def question_template(request: Request):
@@ -325,6 +300,9 @@ def question_template(request: Request):
     return response
 
 
+# 维护意图：题目关联知识点
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["POST"])
 @permission_classes([IsAuthenticated, IsTeacherOrAdmin])
 def question_link_knowledge(request: Request, question_id: int) -> Response:

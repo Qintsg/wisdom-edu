@@ -10,6 +10,9 @@ from channels.generic.websocket import AsyncJsonWebsocketConsumer
 from .student_ai_views import build_chat_response
 
 
+# 维护意图：将完整回复拆分为多个小块，便于前端逐步渲染
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _split_reply_chunks(reply_text: str, chunk_size: int = 90) -> list[str]:
     """将完整回复拆分为多个小块，便于前端逐步渲染。"""
     if not reply_text:
@@ -20,9 +23,15 @@ def _split_reply_chunks(reply_text: str, chunk_size: int = 90) -> list[str]:
     ]
 
 
+# 维护意图：通过 WebSocket 向学生端输出 AI 助手回答
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class StudentAIChatConsumer(AsyncJsonWebsocketConsumer):
     """通过 WebSocket 向学生端输出 AI 助手回答。"""
 
+    # 维护意图：校验登录态并建立学生端聊天连接
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     async def connect(self):
         """校验登录态并建立学生端聊天连接。"""
         user = self.scope.get("user")
@@ -32,6 +41,9 @@ class StudentAIChatConsumer(AsyncJsonWebsocketConsumer):
         await self.accept()
         await self.send_json({"type": "ready"})
 
+    # 维护意图：处理学生端发来的问题并按块推送 AI 回复
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     async def receive_json(self, content, **kwargs):
         """处理学生端发来的问题并按块推送 AI 回复。"""
         question = str(content.get("question") or content.get("message") or "").strip()

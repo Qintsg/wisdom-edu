@@ -12,13 +12,22 @@ if TYPE_CHECKING:
     from torch import Tensor
 
 
+# 维护意图：Django 关系管理器在运行时只依赖 values_list 能力
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class KnowledgePointAccessor(Protocol):
     """Django 关系管理器在运行时只依赖 values_list 能力。"""
 
+    # 维护意图：返回题目或资源关联知识点的字段值
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def values_list(self, *fields: str, flat: bool = False) -> Iterable[object]:
         """返回题目或资源关联知识点的字段值。"""
 
 
+# 维护意图：题目特征构建阶段使用的 Question 最小字段集合
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class QuestionLike(Protocol):
     """题目特征构建阶段使用的 Question 最小字段集合。"""
 
@@ -32,6 +41,9 @@ class QuestionLike(Protocol):
     knowledge_points: KnowledgePointAccessor
 
 
+# 维护意图：资源关系构建阶段使用的 Resource 最小字段集合
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class ResourceLike(Protocol):
     """资源关系构建阶段使用的 Resource 最小字段集合。"""
 
@@ -39,6 +51,9 @@ class ResourceLike(Protocol):
     knowledge_points: KnowledgePointAccessor
 
 
+# 维护意图：构建课程运行时 bundle 前收集到的源数据
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @dataclass
 class RuntimeSourceData:
     """构建课程运行时 bundle 前收集到的源数据。"""
@@ -52,6 +67,9 @@ class RuntimeSourceData:
     answer_stats: dict[int, dict[str, float]]
 
 
+# 维护意图：题目特征提取时需要共享的关系与答题统计源
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @dataclass
 class RuntimeFeatureSources:
     """题目特征提取时需要共享的关系与答题统计源。"""
@@ -63,6 +81,9 @@ class RuntimeFeatureSources:
     answer_stats: dict[int, dict[str, float]]
 
 
+# 维护意图：题目特征归一化后的数值集合
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @dataclass
 class QuestionFeatureScales:
     """题目特征归一化后的数值集合。"""
@@ -80,6 +101,9 @@ class QuestionFeatureScales:
     difficulty_values_raw: list[float]
 
 
+# 维护意图：题目级运行时特征准备结果
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @dataclass
 class QuestionFeaturePreparation:
     """题目级运行时特征准备结果。"""
@@ -92,6 +116,9 @@ class QuestionFeaturePreparation:
     scales: QuestionFeatureScales
 
 
+# 维护意图：题目图邻接矩阵与衍生统计
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @dataclass
 class GraphStatisticsBundle:
     """题目图邻接矩阵与衍生统计。"""

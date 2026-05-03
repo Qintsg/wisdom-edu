@@ -12,6 +12,9 @@ from django.conf import settings
 from django.db import models
 
 
+# 维护意图：考试/测验模型 支持多种考试类型： - 章节测验：对应某个章节的小测 - 期中/期末考试：大型阶段性考试 - 练习：日常练习 - 节点测验：学习路径节点的过关测试
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class Exam(models.Model):
     """
     考试/测验模型
@@ -87,6 +90,9 @@ class Exam(models.Model):
     created_at = models.DateTimeField('创建时间', auto_now_add=True)
     updated_at = models.DateTimeField('更新时间', auto_now=True)
 
+    # 维护意图：Meta
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     class Meta:
         db_table = 'exams'
         verbose_name = '考试'
@@ -96,12 +102,18 @@ class Exam(models.Model):
     def __str__(self):
         return self.title
 
+    # 维护意图：获取题目数量
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     @property
     def question_count(self):
         """获取题目数量"""
         return self.questions.count()
 
 
+# 维护意图：考试-题目关联模型 关联考试和题目，支持自定义分值和排序
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class ExamQuestion(models.Model):
     """
     考试-题目关联模型
@@ -114,11 +126,17 @@ class ExamQuestion(models.Model):
     score = models.DecimalField('分值', max_digits=5, decimal_places=2, default=1)
     order = models.IntegerField('排序', default=0)
 
+    # 维护意图：Meta
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     class Meta:
         db_table = 'exam_questions'
         ordering = ['order']
 
 
+# 维护意图：考试提交记录模型 存储学生的考试答案和成绩
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class ExamSubmission(models.Model):
     """
     考试提交记录模型
@@ -144,6 +162,9 @@ class ExamSubmission(models.Model):
     graded_at = models.DateTimeField('评分时间', null=True, blank=True)
     submitted_at = models.DateTimeField('提交时间', auto_now_add=True)
 
+    # 维护意图：Meta
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     class Meta:
         db_table = 'exam_submissions'
         verbose_name = '考试提交'
@@ -153,6 +174,9 @@ class ExamSubmission(models.Model):
     def __str__(self):
         return f"{self.user.username} - {self.exam.title}"
 
+    # 维护意图：获取得分百分比
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     @property
     def score_percent(self):
         """获取得分百分比"""
@@ -161,6 +185,9 @@ class ExamSubmission(models.Model):
         return None
 
 
+# 维护意图：反馈报告模型 存储AI生成的考试反馈报告，包含： - 成绩概览 - 错因分析 - 学习建议 - 下一步任务
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class FeedbackReport(models.Model):
     """
     反馈报告模型
@@ -222,6 +249,9 @@ class FeedbackReport(models.Model):
     conclusion = models.TextField('总结', blank=True, null=True)
     generated_at = models.DateTimeField('生成时间', auto_now=True)
 
+    # 维护意图：Meta
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     class Meta:
         db_table = 'feedback_reports'
         verbose_name = '反馈报告'

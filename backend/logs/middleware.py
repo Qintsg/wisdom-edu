@@ -28,6 +28,9 @@ from .logging_setup import (
     operation_logger,
 )
 
+# 维护意图：操作日志中间件 核心功能： 1. 自动记录POST/PUT/PATCH/DELETE请求（写操作）到数据库 2. 同时将日志写入文件便于运维查看 3. DEBUG模式下记录详细信息： - 完整。
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class OperationLogMiddleware(MiddlewareMixin):
     """
     操作日志中间件
@@ -97,6 +100,9 @@ class OperationLogMiddleware(MiddlewareMixin):
         "GET": "read",
     }
 
+    # 维护意图：判断是否需要记录日志
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def should_log(self, request):
         """
         判断是否需要记录日志
@@ -114,6 +120,9 @@ class OperationLogMiddleware(MiddlewareMixin):
 
         return True
 
+    # 维护意图：判断是否需要记录DEBUG详细日志 DEBUG模式下记录所有API请求的详细信息
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def should_debug_log(self, request):
         """
         判断是否需要记录DEBUG详细日志
@@ -134,6 +143,9 @@ class OperationLogMiddleware(MiddlewareMixin):
 
         return False
 
+    # 维护意图：在处理请求之前保存请求体内容并记录开始时间 这是解决"You cannot access body after reading from request's data stream" 错误的关。
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def process_request(self, request):
         """
         在处理请求之前保存请求体内容并记录开始时间
@@ -156,6 +168,9 @@ class OperationLogMiddleware(MiddlewareMixin):
 
         return None
 
+    # 维护意图：根据路径获取模块名
+    # 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+    # 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
     def get_module(self, path):
         """
         根据路径获取模块名
@@ -172,6 +187,9 @@ class OperationLogMiddleware(MiddlewareMixin):
                 return module
         return "system"
 
+    # 维护意图：获取操作类型 根据请求路径和方法判断具体的操作类型
+    # 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+    # 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
     def get_action_type(self, request):
         """
         获取操作类型
@@ -194,6 +212,9 @@ class OperationLogMiddleware(MiddlewareMixin):
 
         return self.METHOD_ACTION_MAP.get(request.method, "other")
 
+    # 维护意图：获取客户端IP地址 支持代理环境下的真实IP获取
+    # 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+    # 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
     def get_client_ip(self, request):
         """
         获取客户端IP地址
@@ -207,6 +228,9 @@ class OperationLogMiddleware(MiddlewareMixin):
             ip = request.META.get("REMOTE_ADDR", "未知")
         return ip
 
+    # 维护意图：获取请求头信息（DEBUG模式使用）
+    # 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+    # 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
     def get_request_headers(self, request):
         """
         获取请求头信息（DEBUG模式使用）
@@ -230,6 +254,9 @@ class OperationLogMiddleware(MiddlewareMixin):
 
         return headers
 
+    # 维护意图：获取请求参数（脱敏处理） 使用process_request中缓存的body内容，避免重复读取流导致的错误
+    # 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+    # 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
     def get_request_params(self, request):
         """
         获取请求参数（脱敏处理）
@@ -274,6 +301,9 @@ class OperationLogMiddleware(MiddlewareMixin):
 
         return params
 
+    # 维护意图：获取响应内容（DEBUG模式使用）
+    # 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+    # 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
     def get_response_content(self, response):
         """
         获取响应内容（DEBUG模式使用）
@@ -301,6 +331,9 @@ class OperationLogMiddleware(MiddlewareMixin):
             pass
         return "[无法获取响应内容]"
 
+    # 维护意图：获取请求期间执行的数据库查询（DEBUG模式使用）
+    # 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+    # 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
     def get_db_queries(self, request):
         """
         获取请求期间执行的数据库查询（DEBUG模式使用）
@@ -334,6 +367,9 @@ class OperationLogMiddleware(MiddlewareMixin):
 
         return result
 
+    # 维护意图：递归脱敏处理
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def _mask_sensitive_data(self, data, fields):
         """
         递归脱敏处理
@@ -353,6 +389,9 @@ class OperationLogMiddleware(MiddlewareMixin):
                 if isinstance(item, (dict, list)):
                     self._mask_sensitive_data(item, fields)
 
+    # 维护意图：记录DEBUG模式下的详细信息 包含：请求详情、响应详情、数据库操作、耗时统计
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def _log_debug_info(self, request, response):
         """
         记录DEBUG模式下的详细信息
@@ -421,6 +460,9 @@ class OperationLogMiddleware(MiddlewareMixin):
             if db_queries:
                 debug_logger.log(log_level, "db_queries=%s", len(db_queries))
 
+    # 维护意图：处理响应，记录日志到数据库和文件 同时处理普通操作日志和DEBUG详细日志
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def process_response(self, request, response):
         """
         处理响应，记录日志到数据库和文件

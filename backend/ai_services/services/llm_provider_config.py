@@ -3,6 +3,9 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TypedDict
 
+# 维护意图：Describe the provider-level settings used to initialize the LLM client
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class ModelProviderConfig(TypedDict, total=False):
     """Describe the provider-level settings used to initialize the LLM client."""
 
@@ -15,6 +18,9 @@ class ModelProviderConfig(TypedDict, total=False):
     api_format: str
 
 
+# 维护意图：Describe call-specific latency budgets and prompt shaping rules
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @dataclass(frozen=True)
 class LLMExecutionPolicy:
     """Describe call-specific latency budgets and prompt shaping rules."""

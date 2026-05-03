@@ -19,9 +19,15 @@ from platform_ai.rag.runtime_proxies import neo4j_service
 logger = logging.getLogger(__name__)
 
 
+# 维护意图：课程文档向量检索与知识点聚合能力
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class CourseGraphRAGSearchMixin:
     """课程文档向量检索与知识点聚合能力。"""
 
+    # 维护意图：定义官方检索器回查 Neo4j 时的课程级取图语句
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def _retrieval_query(self) -> str:
         """定义官方检索器回查 Neo4j 时的课程级取图语句。"""
         return """
@@ -42,6 +48,9 @@ class CourseGraphRAGSearchMixin:
                collect(DISTINCT CASE WHEN post.id IS NULL THEN NULL ELSE {point_id: post.id, point_name: post.name} END) AS postrequisites
         """
 
+    # 维护意图：把官方检索器返回的 Neo4j 记录收敛为统一元数据
+    # 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+    # 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
     def _format_retriever_record(self, record: object) -> RetrieverResultItem:
         """把官方检索器返回的 Neo4j 记录收敛为统一元数据。"""
         get_value = getattr(record, "get")
@@ -61,6 +70,9 @@ class CourseGraphRAGSearchMixin:
         }
         return RetrieverResultItem(content=metadata["excerpt"] or metadata["title"], metadata=metadata)
 
+    # 维护意图：将 RetrieverResult items 解析成业务层更易处理的 dataclass
+    # 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+    # 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
     def _parse_items(self, items: list[object]) -> list[GraphRAGSearchHit]:
         """将 RetrieverResult items 解析成业务层更易处理的 dataclass。"""
         parsed_hits: list[GraphRAGSearchHit] = []
@@ -86,6 +98,9 @@ class CourseGraphRAGSearchMixin:
             )
         return parsed_hits
 
+    # 维护意图：Neo4j 不可用时，仅凭向量库返回基础证据
+    # 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+    # 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
     def _search_qdrant_only(self, course_id: int, query: str, limit: int) -> list[GraphRAGSearchHit]:
         """Neo4j 不可用时，仅凭向量库返回基础证据。"""
         collection_name = self.collection_name(course_id)
@@ -120,6 +135,9 @@ class CourseGraphRAGSearchMixin:
             )
         return fallback_hits
 
+    # 维护意图：执行课程级混合检索，并对种子知识点做轻量重排
+    # 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+    # 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
     def search_documents(
         self,
         *,
@@ -177,6 +195,9 @@ class CourseGraphRAGSearchMixin:
         )
         return reranked_hits[:limit]
 
+    # 维护意图：将文档级命中聚合成知识点级候选集合
+    # 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+    # 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
     def search_points(self, *, course_id: int, query: str, limit: int = 8) -> list[dict[str, object]]:
         """将文档级命中聚合成知识点级候选集合。"""
         aggregated_scores: defaultdict[int, float] = defaultdict(float)

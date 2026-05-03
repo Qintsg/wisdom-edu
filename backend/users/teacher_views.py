@@ -18,6 +18,9 @@ from .teacher_profile_support import (
 )
 
 
+# 维护意图：获取单个学生的详细画像（教师/管理员） GET /api/teacher/students/{user_id}/profile 查询参数： - course_id: 课程ID（可选，缺省时自动。
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_student_profile_detail(request, user_id):
@@ -51,6 +54,9 @@ def get_student_profile_detail(request, user_id):
     return success_response(data=build_student_profile_payload(student, course_id))
 
 
+# 维护意图：教师主动刷新学生画像（调用KT+LLM服务） POST /api/teacher/students/{user_id}/refresh-profile
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def teacher_refresh_student_profile(request, user_id):

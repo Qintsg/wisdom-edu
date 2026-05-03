@@ -14,6 +14,9 @@ from users.models import HabitPreference, User
 from users.serializers import HabitPreferenceSerializer
 
 
+# 维护意图：画像历史快照的序列化结构
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class ProfileSnapshotPayload(TypedDict):
     """画像历史快照的序列化结构。"""
 
@@ -23,6 +26,9 @@ class ProfileSnapshotPayload(TypedDict):
     generated_at: str | None
 
 
+# 维护意图：组装学生端学习者画像响应
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_student_profile_payload(user: User, course_id: object | None) -> dict[str, object]:
     """组装学生端学习者画像响应。"""
     knowledge_mastery = build_knowledge_mastery_payload(user, course_id)
@@ -46,6 +52,9 @@ def build_student_profile_payload(user: User, course_id: object | None) -> dict[
     }
 
 
+# 维护意图：读取并序列化学生知识点掌握度
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_knowledge_mastery_payload(user: User, course_id: object | None) -> list[dict[str, object]]:
     """读取并序列化学生知识点掌握度。"""
     mastery_records = KnowledgeMastery.objects.filter(user=user)
@@ -62,6 +71,9 @@ def build_knowledge_mastery_payload(user: User, course_id: object | None) -> lis
     ]
 
 
+# 维护意图：课程维度优先读取能力评分，缺失时回退全局能力评估
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_ability_scores(user: User, course_id: object | None) -> dict[str, object]:
     """课程维度优先读取能力评分，缺失时回退全局能力评估。"""
     ability_records = AbilityScore.objects.filter(user=user)
@@ -75,6 +87,9 @@ def build_ability_scores(user: User, course_id: object | None) -> dict[str, obje
     return {}
 
 
+# 维护意图：序列化学习习惯偏好，兼容扩展 preferences 字段
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_habit_preferences(habit_preference: HabitPreference | None) -> dict[str, object]:
     """序列化学习习惯偏好，兼容扩展 preferences 字段。"""
     if habit_preference is None:
@@ -93,6 +108,9 @@ def build_habit_preferences(habit_preference: HabitPreference | None) -> dict[st
     }
 
 
+# 维护意图：根据能力评分和学习偏好生成学习者标签
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_learner_tags(
     ability_scores: dict[str, object],
     habit_preference: HabitPreference | None,
@@ -106,6 +124,9 @@ def build_learner_tags(
     return learner_tags
 
 
+# 维护意图：根据最高能力维度生成学习者标签
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def ability_tags(ability_scores: dict[str, object]) -> list[str]:
     """根据最高能力维度生成学习者标签。"""
     if not ability_scores:
@@ -136,6 +157,9 @@ def ability_tags(ability_scores: dict[str, object]) -> list[str]:
     return [ability_name_map.get(top_key, "全能型") + "学习者"]
 
 
+# 维护意图：根据资源偏好生成标签
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def habit_resource_tags(habit_preference: HabitPreference) -> list[str]:
     """根据资源偏好生成标签。"""
     if habit_preference.preferred_resource == "video":
@@ -147,6 +171,9 @@ def habit_resource_tags(habit_preference: HabitPreference) -> list[str]:
     return []
 
 
+# 维护意图：根据学习时间与节奏生成标签
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def habit_time_and_pace_tags(habit_preference: HabitPreference) -> list[str]:
     """根据学习时间与节奏生成标签。"""
     learner_tags: list[str] = []
@@ -166,6 +193,9 @@ def habit_time_and_pace_tags(habit_preference: HabitPreference) -> list[str]:
     return learner_tags
 
 
+# 维护意图：读取学生画像摘要，并补齐空值
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_profile_summary_payload(user: User, course_id: object | None) -> dict[str, object]:
     """读取学生画像摘要，并补齐空值。"""
     summary_records = ProfileSummary.objects.filter(user=user)
@@ -181,6 +211,9 @@ def build_profile_summary_payload(user: User, course_id: object | None) -> dict[
     }
 
 
+# 维护意图：刷新学生画像，返回成功载荷或错误信息
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_profile_refresh_payload(user: User, course_id: object) -> tuple[dict[str, object] | None, str | None]:
     """刷新学生画像，返回成功载荷或错误信息。"""
     from users.services import get_learner_profile_service
@@ -199,6 +232,9 @@ def build_profile_refresh_payload(user: User, course_id: object) -> tuple[dict[s
     return None, str(result.get("error", "未知错误"))
 
 
+# 维护意图：解析画像历史条数限制
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def parse_profile_history_limit(raw_limit: object) -> int:
     """解析画像历史条数限制。"""
     try:
@@ -207,6 +243,9 @@ def parse_profile_history_limit(raw_limit: object) -> int:
         return 10
 
 
+# 维护意图：读取画像历史列表
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_profile_history_payload(user: User, course_id: object, limit: int) -> list[dict[str, object]]:
     """读取画像历史列表。"""
     history = ProfileHistory.objects.filter(
@@ -225,6 +264,9 @@ def build_profile_history_payload(user: User, course_id: object, limit: int) -> 
     ]
 
 
+# 维护意图：将画像摘要对象转换为可序列化的快照数据
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def snapshot_profile_summary(summary_record: ProfileSummary | None) -> ProfileSnapshotPayload | None:
     """将画像摘要对象转换为可序列化的快照数据。"""
     if summary_record is None:
@@ -237,6 +279,9 @@ def snapshot_profile_summary(summary_record: ProfileSummary | None) -> ProfileSn
     }
 
 
+# 维护意图：导出学习画像 JSON 响应
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_profile_export_response(user: User) -> HttpResponse:
     """导出学习画像 JSON 响应。"""
     profile_data = {
@@ -254,6 +299,9 @@ def build_profile_export_response(user: User) -> HttpResponse:
     return response
 
 
+# 维护意图：构造导出文件中的知识点掌握度列表
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_export_mastery_list(user: User) -> list[dict[str, object]]:
     """构造导出文件中的知识点掌握度列表。"""
     mastery_records = KnowledgeMastery.objects.filter(user=user).select_related("knowledge_point")
@@ -266,12 +314,18 @@ def build_export_mastery_list(user: User) -> list[dict[str, object]]:
     ]
 
 
+# 维护意图：读取导出文件中的能力评分
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_export_ability_scores(user: User) -> dict[str, object]:
     """读取导出文件中的能力评分。"""
     ability = AbilityScore.objects.filter(user=user).first()
     return ability.scores if ability else {}
 
 
+# 维护意图：读取导出文件中的学习偏好
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_export_habit_preferences(user: User) -> dict[str, object]:
     """读取导出文件中的学习偏好。"""
     habit_preference = HabitPreference.objects.filter(user=user).first()

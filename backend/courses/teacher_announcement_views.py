@@ -10,6 +10,9 @@ from common.responses import created_response, error_response, forbidden_respons
 from .models import Announcement, Class
 
 
+# 维护意图：班级公告列表 / 创建公告
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["GET", "POST"])
 @permission_classes([IsAuthenticated, IsTeacherOrAdmin])
 def class_announcements(request, class_id):
@@ -42,6 +45,9 @@ def class_announcements(request, class_id):
     return created_response(data={"id": announcement.id, "title": announcement.title, "content": announcement.content, "created_at": announcement.created_at.strftime("%Y-%m-%d %H:%M")}, msg="公告发布成功")
 
 
+# 维护意图：编辑 / 删除公告
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["PUT", "DELETE"])
 @permission_classes([IsAuthenticated, IsTeacherOrAdmin])
 def announcement_detail(request, announcement_id):

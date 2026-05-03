@@ -13,6 +13,9 @@ from .models import Course, Class, ClassCourse, Enrollment
 from .admin_course_class_stats_views import admin_class_statistics, admin_course_statistics
 
 
+# 维护意图：统一解析分页参数。
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def _parse_pagination_params(query_params):
     """
     统一解析分页参数。
@@ -27,6 +30,9 @@ def _parse_pagination_params(query_params):
     return page, page_size
 
 
+# 维护意图：管理端 - 获取所有课程列表 GET /api/admin/courses
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(['GET'])
 @permission_classes([IsAuthenticated, IsAdmin])
 def admin_course_list(request):
@@ -71,6 +77,9 @@ def admin_course_list(request):
     })
 
 
+# 维护意图：管理端 - 获取所有班级列表 GET /api/admin/classes
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(['GET'])
 @permission_classes([IsAuthenticated, IsAdmin])
 def admin_class_list(request):
@@ -131,6 +140,9 @@ def admin_class_list(request):
     })
 
 
+# 维护意图：管理端 - 创建班级 POST /api/admin/classes/create
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(['POST'])
 @permission_classes([IsAuthenticated, IsAdmin])
 def admin_class_create(request):
@@ -176,6 +188,9 @@ def admin_class_create(request):
     return created_response(data={'id': cls.id, 'name': cls.name}, msg='班级创建成功')
 
 
+# 维护意图：管理端 - 获取/更新/删除班级
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(['GET', 'PUT', 'DELETE'])
 @permission_classes([IsAuthenticated, IsAdmin])
 def admin_class_detail(request, class_id):
@@ -240,6 +255,9 @@ def admin_class_detail(request, class_id):
     return success_response(msg='班级更新成功')
 
 
+# 维护意图：管理端 - 获取班级学生列表 GET /api/admin/classes/{class_id}/students
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(['GET'])
 @permission_classes([IsAuthenticated, IsAdmin])
 def admin_class_students(request, class_id):
@@ -265,6 +283,9 @@ def admin_class_students(request, class_id):
     return success_response(data={'students': students, 'total': len(students)})
 
 
+# 维护意图：管理端 - 批量添加学生到班级 POST /api/admin/classes/{class_id}/students/add
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(['POST'])
 @permission_classes([IsAuthenticated, IsAdmin])
 def admin_class_add_students(request, class_id):
@@ -294,6 +315,9 @@ def admin_class_add_students(request, class_id):
     return success_response(msg=f'成功添加 {added_count} 名学生')
 
 
+# 维护意图：管理端 - 从班级移除学生 DELETE /api/admin/classes/{class_id}/students/{student_id}
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated, IsAdmin])
 def admin_class_remove_student(_request, class_id, student_id):
@@ -309,6 +333,9 @@ def admin_class_remove_student(_request, class_id, student_id):
         return error_response(msg='该学生不在班级中', code=404)
 
 
+# 维护意图：管理端 - 创建课程 POST /api/admin/courses/create
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(['POST'])
 @permission_classes([IsAuthenticated, IsAdmin])
 def admin_course_create(request):
@@ -345,6 +372,9 @@ def admin_course_create(request):
     }, msg='课程创建成功')
 
 
+# 维护意图：管理端 - 获取/更新/删除课程详情 GET /api/admin/courses/{course_id} PUT /api/admin/courses/{course_id} DELETE。
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(['GET', 'PUT', 'DELETE'])
 @permission_classes([IsAuthenticated, IsAdmin])
 def admin_course_detail(request, course_id):
@@ -403,6 +433,9 @@ def admin_course_detail(request, course_id):
     return success_response(msg='课程更新成功')
 
 
+# 维护意图：管理端 - 分配课程教师 POST /api/admin/courses/{course_id}/assign-teacher
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(['POST'])
 @permission_classes([IsAuthenticated, IsAdmin])
 def admin_course_assign_teacher(request, course_id):
@@ -439,6 +472,9 @@ def admin_course_assign_teacher(request, course_id):
     return success_response(msg='教师分配成功')
 
 
+# 维护意图：为班级分配教师 POST /api/admin/classes/{class_id}/assign-teacher
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(['POST'])
 @permission_classes([IsAuthenticated, IsAdmin])
 def admin_class_assign_teacher(request, class_id):

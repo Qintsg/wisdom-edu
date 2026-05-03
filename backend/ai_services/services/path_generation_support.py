@@ -22,6 +22,9 @@ if TYPE_CHECKING:
     from users.models import User
 
 
+# 维护意图：返回课程内所有已发布知识点 ID
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 def load_course_point_ids(course_id: int) -> list[int]:
     """返回课程内所有已发布知识点 ID。"""
     from knowledge.models import KnowledgePoint
@@ -33,6 +36,9 @@ def load_course_point_ids(course_id: int) -> list[int]:
     )
 
 
+# 维护意图：同步课程全量掌握度，保证路径规划覆盖全部知识点
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def sync_course_mastery(
     *,
     user: "User",
@@ -87,6 +93,9 @@ def sync_course_mastery(
     return mastery_dict
 
 
+# 维护意图：调用 KT 服务预测课程知识点掌握度
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def predict_course_mastery(
     *,
     user: "User",
@@ -127,6 +136,9 @@ def predict_course_mastery(
         return {}
 
 
+# 维护意图：持久化本轮课程掌握度预测结果
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def persist_course_mastery(
     *,
     user: "User",

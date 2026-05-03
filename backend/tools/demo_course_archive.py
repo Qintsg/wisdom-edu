@@ -18,6 +18,9 @@ from pathlib import Path
 from tools.common import build_course_asset_bundle, resolve_path
 
 
+# 维护意图：将单个文件复制到目标目录。
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _copy_file_to_dir(source_file: Path, target_dir: Path, target_name: str | None = None) -> None:
     """
     将单个文件复制到目标目录。
@@ -30,6 +33,9 @@ def _copy_file_to_dir(source_file: Path, target_dir: Path, target_name: str | No
     shutil.copy2(source_file, target_dir / (target_name or source_file.name))
 
 
+# 维护意图：解析输出压缩包路径。
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def _resolve_output_path(output_path: str | None) -> Path:
     """
     解析输出压缩包路径。
@@ -45,6 +51,9 @@ def _resolve_output_path(output_path: str | None) -> Path:
     return resolved_output_path
 
 
+# 维护意图：生成教师端演示用课程导入压缩包。
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def generate_demo_course_archive(
     course_name: str = "大数据技术与应用",
     output_path: str | None = None,

@@ -5,6 +5,9 @@ from typing import Any
 from ai_services.services.llm_profile_path_support import resolve_learning_stage
 
 
+# 维护意图：构造外部资源推荐 prompt 与降级模板
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_external_resources_prompt(
     *,
     point_name: str,
@@ -76,6 +79,9 @@ def build_external_resources_prompt(
     return prompt, stage, fallback_resources
 
 
+# 维护意图：规整外部资源返回并补足最少条数
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def normalize_external_resource_result(
     *,
     result: dict[str, Any],
@@ -99,6 +105,9 @@ def normalize_external_resource_result(
     return normalized
 
 
+# 维护意图：构造内部资源推荐 prompt 与降级返回
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_internal_resources_prompt(
     *,
     point_name: str,
@@ -174,6 +183,9 @@ def build_internal_resources_prompt(
     return prompt, stage, {"resources": fallback_resources}
 
 
+# 维护意图：规整内部资源推荐结果
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def normalize_internal_resource_result(
     result: dict[str, Any],
     fallback: dict[str, Any],
@@ -182,6 +194,9 @@ def normalize_internal_resource_result(
     return result if isinstance(result.get("resources"), list) else fallback
 
 
+# 维护意图：构造阶段测试选题 prompt 与默认回退
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_stage_question_prompt(
     *,
     candidates: list[dict[str, Any]],

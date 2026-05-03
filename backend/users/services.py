@@ -13,6 +13,9 @@ from assessments.models import AbilityScore, AnswerHistory, ProfileHistory, Asse
 from .models import User, HabitPreference
 
 
+# 维护意图：学习者画像服务类 提供学习者画像的生成、更新、查询等功能。
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class LearnerProfileService:
     """
     学习者画像服务类
@@ -34,6 +37,9 @@ class LearnerProfileService:
         """
         self.user = user
 
+    # 维护意图：获取用户的知识掌握度数据
+    # 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+    # 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
     def get_knowledge_mastery(self, course_id: int = None) -> List[Dict]:
         """
         获取用户的知识掌握度数据
@@ -64,6 +70,9 @@ class LearnerProfileService:
             for m in queryset.select_related('knowledge_point')
         ]
 
+    # 维护意图：获取用户的能力评分
+    # 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+    # 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
     def get_ability_scores(self, course_id: int = None) -> Dict[str, float]:
         """
         获取用户的能力评分
@@ -86,6 +95,9 @@ class LearnerProfileService:
 
         return scores
 
+    # 维护意图：获取用户的学习习惯偏好
+    # 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+    # 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
     def get_habit_preferences(self) -> Dict[str, Any]:
         """
         获取用户的学习习惯偏好
@@ -114,6 +126,9 @@ class LearnerProfileService:
 
         return result
 
+    # 维护意图：获取用户的画像摘要
+    # 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+    # 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
     def get_profile_summary(self, course_id: int = None) -> Dict[str, Any]:
         """
         获取用户的画像摘要
@@ -146,6 +161,9 @@ class LearnerProfileService:
             'generated_at': summary.generated_at.isoformat() if summary.generated_at else None
         }
 
+    # 维护意图：从掌握度列表中提取适合展示的优势知识点名称
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     @staticmethod
     def _derive_strength_points(mastery_list: List[Dict[str, Any]]) -> List[str]:
         """从掌握度列表中提取适合展示的优势知识点名称。"""
@@ -164,6 +182,9 @@ class LearnerProfileService:
         )
         return [str(item.get('point_name')) for item in ranked_points[:3]]
 
+    # 维护意图：命中已生成画像时直接返回，避免重复触发 KT 与 LLM
+    # 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+    # 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
     def _build_cached_profile_result(self, course_id: int) -> Dict[str, Any] | None:
         """命中已生成画像时直接返回，避免重复触发 KT 与 LLM。"""
         cached_summary = ProfileSummary.objects.filter(
@@ -186,6 +207,9 @@ class LearnerProfileService:
             'generated_at': cached_summary.generated_at.isoformat() if cached_summary.generated_at else None,
         }
 
+    # 维护意图：获取用户的完整学习者画像
+    # 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+    # 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
     def get_full_profile(self, course_id: int = None) -> Dict[str, Any]:
         """
         获取用户的完整学习者画像
@@ -206,6 +230,9 @@ class LearnerProfileService:
             'last_update': timezone.now().isoformat()
         }
 
+    # 维护意图：根据答题历史更新知识掌握度
+    # 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+    # 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
     def update_mastery_from_answers(
         self, 
         course_id: int, 
@@ -275,6 +302,9 @@ class LearnerProfileService:
             'knowledge_mastery': mastery_data
         }
 
+    # 维护意图：获取画像变化历史
+    # 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+    # 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
     def get_profile_history(
         self, 
         course_id: int, 
@@ -306,6 +336,9 @@ class LearnerProfileService:
             for h in histories
         ]
 
+    # 维护意图：检查用户的初始评测完成状态 对于新用户（刚注册）：需要完成能力评测和习惯问卷 对于加入新课程：需要完成该课程的知识评测
+    # 边界说明：校验边界集中在这里，避免非法输入进入业务主流程。
+    # 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
     def check_assessment_status(self, course_id: int = None) -> Dict[str, Any]:
         """
         检查用户的初始评测完成状态
@@ -357,6 +390,9 @@ class LearnerProfileService:
 
         return result
 
+    # 维护意图：为指定课程生成/更新学习者画像 集成KT服务细化掌握度预测 + LLM服务生成深度分析
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def generate_profile_for_course(self, course_id: int, force_refresh: bool = False) -> Dict[str, Any]:
         """
         为指定课程生成/更新学习者画像
@@ -375,6 +411,9 @@ class LearnerProfileService:
         return generate_profile_for_course(self, course_id, force_refresh)
 
 
+# 维护意图：获取学习者画像服务实例
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 def get_learner_profile_service(user: User) -> LearnerProfileService:
     """
     获取学习者画像服务实例

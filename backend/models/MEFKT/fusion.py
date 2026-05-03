@@ -6,6 +6,9 @@ import torch
 from torch import Tensor, nn
 
 
+# 维护意图：将结构视角与属性视角嵌入线性对齐后再拼接
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class LinearAlignmentFusion(nn.Module):
     """将结构视角与属性视角嵌入线性对齐后再拼接。"""
 
@@ -21,6 +24,9 @@ class LinearAlignmentFusion(nn.Module):
         self.struct_projection = nn.Linear(struct_dim, align_dim)
         self.side_projection = nn.Linear(side_dim, align_dim)
 
+    # 维护意图：对齐并输出最终融合嵌入。
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def forward(self, struct_embedding: Tensor, side_embedding: Tensor) -> Tensor:
         """
         对齐并输出最终融合嵌入。

@@ -10,6 +10,9 @@ from django.db import models
 from django.conf import settings
 
 
+# 维护意图：学习路径模型 代表用户的个性化学习路径，包含： - 路径规划理由 - 是否经过动态调整 - 关联的节点列表
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class LearningPath(models.Model):
     """
     学习路径模型
@@ -45,6 +48,9 @@ class LearningPath(models.Model):
     generated_at = models.DateTimeField('生成时间', auto_now_add=True)
     updated_at = models.DateTimeField('更新时间', auto_now=True)
 
+    # 维护意图：Meta
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     class Meta:
         db_table = 'learning_paths'
         verbose_name = '学习路径'
@@ -55,6 +61,9 @@ class LearningPath(models.Model):
     def __str__(self):
         return f"{self.user.username} - {self.course.name} 学习路径"
 
+    # 维护意图：计算路径完成进度百分比
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     @property
     def progress_percent(self):
         """计算路径完成进度百分比"""
@@ -65,6 +74,9 @@ class LearningPath(models.Model):
         return round(completed / total * 100, 1)
 
 
+# 维护意图：路径节点模型 代表学习路径中的一个学习节点，包含： - 节点标题和学习目标 - 达标条件和学习建议 - 节点状态（锁定/进行中/已完成等） - 关联的知识点、资源和测验
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class PathNode(models.Model):
     """
     路径节点模型
@@ -165,6 +177,9 @@ class PathNode(models.Model):
     )
     created_at = models.DateTimeField('创建时间', auto_now_add=True)
 
+    # 维护意图：Meta
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     class Meta:
         db_table = 'path_nodes'
         verbose_name = '路径节点'
@@ -175,6 +190,9 @@ class PathNode(models.Model):
         return f"{self.path.user.username} - {self.title}"
 
 
+# 维护意图：节点进度模型 记录用户在节点上的学习进度，包含： - 已完成的资源和测验 - 学习前后的知识掌握度对比
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class NodeProgress(models.Model):
     """
     节点进度模型
@@ -225,6 +243,9 @@ class NodeProgress(models.Model):
     )
     updated_at = models.DateTimeField('更新时间', auto_now=True)
 
+    # 维护意图：Meta
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     class Meta:
         db_table = 'node_progress'
         verbose_name = '节点进度'
@@ -234,6 +255,9 @@ class NodeProgress(models.Model):
     def __str__(self):
         return f"{self.user.username} - {self.node.title} 进度"
 
+    # 维护意图：计算掌握度提升
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     @property
     def mastery_improvement(self):
         """计算掌握度提升"""

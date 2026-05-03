@@ -4,10 +4,13 @@ from __future__ import annotations
 
 from typing import Dict, List
 
-from tools.api_regression_helpers import _pick_first_id, _record
+from tools.api_regression_helpers import pick_first_id, record_check
 from tools.testing import CheckResult, _request
 
 
+# 维护意图：执行学生基础信息、课程选择与班级相关接口检查
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _run_student_basic_checks(
     checks: List[CheckResult],
     base_url: str,
@@ -15,19 +18,19 @@ def _run_student_basic_checks(
     course_id: int,
 ) -> None:
     """执行学生基础信息、课程选择与班级相关接口检查。"""
-    _record(
+    record_check(
         checks,
         "学生-用户信息",
         *_request("GET", f"{base_url}/api/auth/userinfo", headers=student_headers),
         expected=(200,),
     )
-    _record(
+    record_check(
         checks,
         "学生-课程列表",
         *_request("GET", f"{base_url}/api/courses", headers=student_headers),
         expected=(200,),
     )
-    _record(
+    record_check(
         checks,
         "学生-选择课程",
         *_request(
@@ -38,7 +41,7 @@ def _run_student_basic_checks(
         ),
         expected=(200,),
     )
-    _record(
+    record_check(
         checks,
         "学生-测评状态",
         *_request(
@@ -49,7 +52,7 @@ def _run_student_basic_checks(
         ),
         expected=(200,),
     )
-    _record(
+    record_check(
         checks,
         "学生-画像",
         *_request(
@@ -60,7 +63,7 @@ def _run_student_basic_checks(
         ),
         expected=(200,),
     )
-    _record(
+    record_check(
         checks,
         "学生-更新习惯偏好",
         *_request(
@@ -76,17 +79,17 @@ def _run_student_basic_checks(
         expected=(200,),
     )
 
-    classes_data, _ = _record(
+    classes_data, _ = record_check(
         checks,
         "学生-班级列表",
         *_request("GET", f"{base_url}/api/student/classes", headers=student_headers),
         expected=(200,),
     )
-    class_id = _pick_first_id(classes_data, "classes", "class_id", "id")
+    class_id = pick_first_id(classes_data, "classes", "class_id", "id")
     if not class_id:
         return
 
-    _record(
+    record_check(
         checks,
         "学生-班级详情",
         *_request(
@@ -96,7 +99,7 @@ def _run_student_basic_checks(
         ),
         expected=(200,),
     )
-    _record(
+    record_check(
         checks,
         "学生-班级成员",
         *_request(
@@ -106,7 +109,7 @@ def _run_student_basic_checks(
         ),
         expected=(200,),
     )
-    _record(
+    record_check(
         checks,
         "学生-班级排名",
         *_request(
@@ -116,7 +119,7 @@ def _run_student_basic_checks(
         ),
         expected=(200,),
     )
-    _record(
+    record_check(
         checks,
         "学生-班级通知",
         *_request(
@@ -126,7 +129,7 @@ def _run_student_basic_checks(
         ),
         expected=(200,),
     )
-    _record(
+    record_check(
         checks,
         "学生-班级作业",
         *_request(

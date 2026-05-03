@@ -17,6 +17,9 @@ from platform_ai.kt.datasets import get_public_dataset_info
 from tools.mefkt_paths import BASE_DIR
 
 
+# 维护意图：保存训练所需的静态图特征与序列数据
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @dataclass(frozen=True)
 class MEFKTTrainingBundle:
     """保存训练所需的静态图特征与序列数据。"""
@@ -36,7 +39,10 @@ class MEFKTTrainingBundle:
     training_sources: list[str]
 
 
-def _relative_to_project(path_value: Path | str) -> str:
+# 维护意图：将路径尽量转成相对项目根目录的形式
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
+def relative_to_project(path_value: Path | str) -> str:
     """将路径尽量转成相对项目根目录的形式。"""
     path_obj = Path(path_value).resolve()
     try:
@@ -45,7 +51,10 @@ def _relative_to_project(path_value: Path | str) -> str:
         return str(path_obj).replace("\\", "/")
 
 
-def _normalize_tensor(values: list[float], default_value: float = 0.5) -> Tensor:
+# 维护意图：将浮点数组归一化到 [0,1]
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
+def normalize_tensor(values: list[float], default_value: float = 0.5) -> Tensor:
     """将浮点数组归一化到 [0,1]。"""
     if not values:
         return torch.tensor([default_value], dtype=torch.float32)
@@ -56,7 +65,10 @@ def _normalize_tensor(values: list[float], default_value: float = 0.5) -> Tensor
     return torch.tensor([(value - lower) / (upper - lower) for value in values], dtype=torch.float32)
 
 
-def _load_three_line_sequences(data_path: Path) -> list[tuple[list[int], list[int]]]:
+# 维护意图：读取三行格式数据集
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
+def load_three_line_sequences(data_path: Path) -> list[tuple[list[int], list[int]]]:
     """读取三行格式数据集。"""
     lines = [line.strip() for line in data_path.read_text(encoding="utf-8").splitlines() if line.strip()]
     sequences: list[tuple[list[int], list[int]]] = []
@@ -71,7 +83,10 @@ def _load_three_line_sequences(data_path: Path) -> list[tuple[list[int], list[in
     return sequences
 
 
-def _load_csv_sequences(data_path: Path) -> list[tuple[list[int], list[int]]]:
+# 维护意图：读取带 user / item / correct 字段的 CSV 公开数据
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
+def load_csv_sequences(data_path: Path) -> list[tuple[list[int], list[int]]]:
     """读取带 user / item / correct 字段的 CSV 公开数据。"""
     with data_path.open("r", encoding="utf-8-sig") as handle:
         rows = list(csv.DictReader(handle))
@@ -114,14 +129,20 @@ def _load_csv_sequences(data_path: Path) -> list[tuple[list[int], list[int]]]:
     return sequences
 
 
-def _load_public_sequences(data_path: Path) -> list[tuple[list[int], list[int]]]:
+# 维护意图：根据后缀读取公开数据序列
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
+def load_public_sequences(data_path: Path) -> list[tuple[list[int], list[int]]]:
     """根据后缀读取公开数据序列。"""
     if data_path.suffix.lower() == ".csv":
-        return _load_csv_sequences(data_path)
-    return _load_three_line_sequences(data_path)
+        return load_csv_sequences(data_path)
+    return load_three_line_sequences(data_path)
 
 
-def _chunk_public_sequences(raw_sequences: list[tuple[list[int], list[int]]], sequence_max_step: int) -> list[tuple[list[int], list[int]]]:
+# 维护意图：将公开数据中的超长轨迹切成定长窗口，降低序列训练的显存峰值
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
+def chunk_public_sequences(raw_sequences: list[tuple[list[int], list[int]]], sequence_max_step: int) -> list[tuple[list[int], list[int]]]:
     """将公开数据中的超长轨迹切成定长窗口，降低序列训练的显存峰值。"""
     if sequence_max_step <= 1:
         return [(items, correct) for items, correct in raw_sequences if len(items) >= 2 and len(items) == len(correct)]
@@ -136,7 +157,10 @@ def _chunk_public_sequences(raw_sequences: list[tuple[list[int], list[int]]], se
     return chunked_sequences
 
 
-def _build_transition_matrices(sequence_items: list[list[int]], item_count: int) -> tuple[Tensor, Tensor, Tensor, list[int]]:
+# 维护意图：根据交互转移构建无向图、前驱/后继统计与出现次数
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
+def build_transition_matrices(sequence_items: list[list[int]], item_count: int) -> tuple[Tensor, Tensor, Tensor, list[int]]:
     """根据交互转移构建无向图、前驱/后继统计与出现次数。"""
     adjacency = torch.zeros(item_count, item_count, dtype=torch.float32)
     predecessor_matrix = torch.zeros(item_count, item_count, dtype=torch.float32)
@@ -153,7 +177,10 @@ def _build_transition_matrices(sequence_items: list[list[int]], item_count: int)
     return (adjacency > 0).float(), (predecessor_matrix > 0).float(), (successor_matrix > 0).float(), occurrence_count
 
 
-def _estimate_public_difficulty(sequence_items: list[list[int]], sequence_correct: list[list[int]], item_count: int) -> Tensor:
+# 维护意图：用错误率估计公开数据中的节点难度
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
+def estimate_public_difficulty(sequence_items: list[list[int]], sequence_correct: list[list[int]], item_count: int) -> Tensor:
     """用错误率估计公开数据中的节点难度。"""
     total_counts = [0 for _ in range(item_count)]
     wrong_counts = [0 for _ in range(item_count)]
@@ -164,7 +191,10 @@ def _estimate_public_difficulty(sequence_items: list[list[int]], sequence_correc
     return torch.tensor([wrong_counts[index] / max(total_counts[index], 1) for index in range(item_count)], dtype=torch.float32)
 
 
-def _estimate_public_time_proxy(sequence_items: list[list[int]], item_count: int) -> Tensor:
+# 维护意图：用重访距离近似响应时长特征
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
+def estimate_public_time_proxy(sequence_items: list[list[int]], item_count: int) -> Tensor:
     """用重访距离近似响应时长特征。"""
     revisit_distances: dict[int, list[float]] = {index: [] for index in range(item_count)}
     for item_sequence in sequence_items:
@@ -177,10 +207,13 @@ def _estimate_public_time_proxy(sequence_items: list[list[int]], item_count: int
     for item_index in range(item_count):
         distances = revisit_distances[item_index]
         raw_values.append(sum(distances) / len(distances) if distances else 1.0)
-    return _normalize_tensor(raw_values, default_value=0.35)
+    return normalize_tensor(raw_values, default_value=0.35)
 
 
-def _build_public_features(adjacency: Tensor, predecessor_matrix: Tensor, successor_matrix: Tensor, difficulty_tensor: Tensor, response_time_tensor: Tensor, occurrence_count: list[int]) -> tuple[Tensor, Tensor]:
+# 维护意图：将公开数据转成固定槽位特征，供课程题目级在线重建复用
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
+def build_public_features(adjacency: Tensor, predecessor_matrix: Tensor, successor_matrix: Tensor, difficulty_tensor: Tensor, response_time_tensor: Tensor, occurrence_count: list[int]) -> tuple[Tensor, Tensor]:
     """将公开数据转成固定槽位特征，供课程题目级在线重建复用。"""
     item_count = int(adjacency.size(0))
     degree = adjacency.sum(dim=1)
@@ -193,7 +226,7 @@ def _build_public_features(adjacency: Tensor, predecessor_matrix: Tensor, succes
 
     neighbor_degree = torch.matmul(adjacency, degree_norm.unsqueeze(1)).squeeze(1) / degree.clamp_min(1.0)
     neighbor_difficulty = torch.matmul(adjacency, difficulty_tensor.unsqueeze(1)).squeeze(1) / degree.clamp_min(1.0)
-    occurrence_tensor = _normalize_tensor([float(count) for count in occurrence_count], default_value=0.2)
+    occurrence_tensor = normalize_tensor([float(count) for count in occurrence_count], default_value=0.2)
     predecessor_norm = predecessor_matrix.sum(dim=1) / predecessor_matrix.sum(dim=1).max().clamp_min(1.0)
     successor_norm = successor_matrix.sum(dim=1) / successor_matrix.sum(dim=1).max().clamp_min(1.0)
     position_norm = torch.linspace(0.0, 1.0, max(item_count, 1), dtype=torch.float32)
@@ -221,13 +254,16 @@ def _build_public_features(adjacency: Tensor, predecessor_matrix: Tensor, succes
     return node_feature_matrix, relation_stats_matrix
 
 
-def _build_public_bundle(dataset_name: str, sequence_max_step: int = 64) -> MEFKTTrainingBundle:
+# 维护意图：从公开数据构建固定特征维度的训练包
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
+def build_public_bundle(dataset_name: str, sequence_max_step: int = 64) -> MEFKTTrainingBundle:
     """从公开数据构建固定特征维度的训练包。"""
     dataset_info = get_public_dataset_info(dataset_name)
     if not dataset_info.is_available or dataset_info.train_path is None:
         raise FileNotFoundError(f"公开数据集不可用: {dataset_name}")
 
-    raw_sequences = _chunk_public_sequences(_load_public_sequences(dataset_info.train_path), sequence_max_step=sequence_max_step)
+    raw_sequences = chunk_public_sequences(load_public_sequences(dataset_info.train_path), sequence_max_step=sequence_max_step)
     if not raw_sequences:
         raise ValueError(f"公开数据集没有可用样本: {dataset_name}")
 
@@ -245,10 +281,10 @@ def _build_public_bundle(dataset_name: str, sequence_max_step: int = 64) -> MEFK
     item_count = len(raw_item_ids)
     sequence_items = [item_sequence for item_sequence, _, _ in mapped_sequences]
     sequence_correct = [correct_sequence for _, correct_sequence, _ in mapped_sequences]
-    adjacency, predecessor_matrix, successor_matrix, occurrence_count = _build_transition_matrices(sequence_items, item_count)
-    difficulty_tensor = _estimate_public_difficulty(sequence_items, sequence_correct, item_count)
-    response_time_tensor = _estimate_public_time_proxy(sequence_items, item_count)
-    node_feature_matrix, relation_stats_matrix = _build_public_features(adjacency, predecessor_matrix, successor_matrix, difficulty_tensor, response_time_tensor, occurrence_count)
+    adjacency, predecessor_matrix, successor_matrix, occurrence_count = build_transition_matrices(sequence_items, item_count)
+    difficulty_tensor = estimate_public_difficulty(sequence_items, sequence_correct, item_count)
+    response_time_tensor = estimate_public_time_proxy(sequence_items, item_count)
+    node_feature_matrix, relation_stats_matrix = build_public_features(adjacency, predecessor_matrix, successor_matrix, difficulty_tensor, response_time_tensor, occurrence_count)
     return MEFKTTrainingBundle(
         dataset_name=dataset_name,
         item_ids=raw_item_ids,
@@ -262,11 +298,14 @@ def _build_public_bundle(dataset_name: str, sequence_max_step: int = 64) -> MEFK
         response_time_vector=response_time_tensor,
         exercise_type_vector=torch.zeros(item_count, dtype=torch.long),
         training_mode="public_pretrain_question_online",
-        training_sources=[_relative_to_project(dataset_info.train_path), f"sequence_max_step={sequence_max_step}"],
+        training_sources=[relative_to_project(dataset_info.train_path), f"sequence_max_step={sequence_max_step}"],
     )
 
 
-def _collate_batch(batch_sequences: list[tuple[list[int], list[int], list[float]]]) -> tuple[Tensor, Tensor, Tensor]:
+# 维护意图：将变长序列 padding 为张量批次
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
+def collate_batch(batch_sequences: list[tuple[list[int], list[int], list[float]]]) -> tuple[Tensor, Tensor, Tensor]:
     """将变长序列 padding 为张量批次。"""
     max_length = max(len(item_sequence) for item_sequence, _, _ in batch_sequences)
     batch_size = len(batch_sequences)
@@ -281,7 +320,10 @@ def _collate_batch(batch_sequences: list[tuple[list[int], list[int], list[float]
     return item_tensor, correct_tensor, time_gap_tensor
 
 
-def _split_sequences(sequences: list[tuple[list[int], list[int], list[float]]], validation_ratio: float = 0.2, seed: int = 42) -> tuple[list[tuple[list[int], list[int], list[float]]], list[tuple[list[int], list[int], list[float]]]]:
+# 维护意图：划分训练集与验证集
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
+def split_sequences(sequences: list[tuple[list[int], list[int], list[float]]], validation_ratio: float = 0.2, seed: int = 42) -> tuple[list[tuple[list[int], list[int], list[float]]], list[tuple[list[int], list[int], list[float]]]]:
     """划分训练集与验证集。"""
     shuffled_sequences = list(sequences)
     random.Random(seed).shuffle(shuffled_sequences)
@@ -291,7 +333,10 @@ def _split_sequences(sequences: list[tuple[list[int], list[int], list[float]]], 
     return shuffled_sequences[:split_index], shuffled_sequences[split_index:]
 
 
-def _evaluate_sequence_model(model, sequences: list[tuple[list[int], list[int], list[float]]], batch_size: int, device: torch.device) -> dict[str, float]:
+# 维护意图：评估模型的 AUC 与准确率
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
+def evaluate_sequence_model(model, sequences: list[tuple[list[int], list[int], list[float]]], batch_size: int, device: torch.device) -> dict[str, float]:
     """评估模型的 AUC 与准确率。"""
     from sklearn.metrics import roc_auc_score
 
@@ -301,7 +346,7 @@ def _evaluate_sequence_model(model, sequences: list[tuple[list[int], list[int], 
     with torch.no_grad():
         for start_index in range(0, len(sequences), batch_size):
             batch_sequences = sequences[start_index : start_index + batch_size]
-            item_tensor, correct_tensor, time_gap_tensor = _collate_batch(batch_sequences)
+            item_tensor, correct_tensor, time_gap_tensor = collate_batch(batch_sequences)
             probability_tensor, valid_mask = model(item_tensor.to(device), correct_tensor.to(device), time_gap_tensor.to(device))
             target_tensor = correct_tensor[:, 1:].to(device)
             for probability_value, target_value in zip(probability_tensor[valid_mask].detach().cpu().tolist(), target_tensor[valid_mask].detach().cpu().tolist(), strict=False):
@@ -313,3 +358,20 @@ def _evaluate_sequence_model(model, sequences: list[tuple[list[int], list[int], 
     accuracy = sum(int(pred == gold) for pred, gold in zip(predicted_labels, all_targets, strict=False)) / len(all_targets)
     auc = 0.5 if len(set(all_targets)) <= 1 else float(roc_auc_score(all_targets, all_probabilities))
     return {"auc": auc, "acc": accuracy, "samples": float(len(all_targets))}
+
+
+# 保留旧入口给训练脚本导入，避免一次质量重命名扩大改动面。
+_relative_to_project = relative_to_project
+_normalize_tensor = normalize_tensor
+_load_three_line_sequences = load_three_line_sequences
+_load_csv_sequences = load_csv_sequences
+_load_public_sequences = load_public_sequences
+_chunk_public_sequences = chunk_public_sequences
+_build_transition_matrices = build_transition_matrices
+_estimate_public_difficulty = estimate_public_difficulty
+_estimate_public_time_proxy = estimate_public_time_proxy
+_build_public_features = build_public_features
+_build_public_bundle = build_public_bundle
+_collate_batch = collate_batch
+_split_sequences = split_sequences
+_evaluate_sequence_model = evaluate_sequence_model

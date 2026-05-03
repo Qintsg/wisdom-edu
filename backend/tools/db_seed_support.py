@@ -16,6 +16,9 @@ from tools.testing import _status_flag
 from users.models import ActivationCode, ClassInvitation, UserCourseContext
 
 
+# 维护意图：记录一次测试数据灌库后的关键对象集合
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @dataclass
 class SeededTestDataState:
     """记录一次测试数据灌库后的关键对象集合。"""
@@ -29,6 +32,9 @@ class SeededTestDataState:
     big_data_class: Class | None
 
 
+# 维护意图：为课程创建最小可运行的知识图谱、资源与题目数据
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _seed_course_content(
     target_course: Course,
     course_teacher: User,
@@ -103,6 +109,9 @@ def _seed_course_content(
             cast(Any, question.knowledge_points).set(linked_points)
 
 
+# 维护意图：创建或更新用户，并设置密码
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def _create_user(username: str, password: str, **kwargs: object) -> User:
     """创建或更新用户，并设置密码。"""
     user, _ = User.objects.update_or_create(username=username, defaults=kwargs)
@@ -111,6 +120,9 @@ def _create_user(username: str, password: str, **kwargs: object) -> User:
     return cast(User, user)
 
 
+# 维护意图：写入管理员、教师和学生账号
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _seed_user_accounts(data: dict[str, Any]) -> tuple[User, list[User], list[User]]:
     """写入管理员、教师和学生账号。"""
     admin_cfg = data["users"]["admin"]
@@ -151,6 +163,9 @@ def _seed_user_accounts(data: dict[str, Any]) -> tuple[User, list[User], list[Us
     return admin_user, teachers, students
 
 
+# 维护意图：写入激活码种子数据
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _seed_activation_codes(data: dict[str, Any], admin_user: User) -> None:
     """写入激活码种子数据。"""
     for activation_code in data.get("activation_codes", []):
@@ -164,6 +179,9 @@ def _seed_activation_codes(data: dict[str, Any], admin_user: User) -> None:
         )
 
 
+# 维护意图：写入课程和最小课程内容
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _seed_courses(
     data: dict[str, Any],
     teachers: list[User],
@@ -191,6 +209,9 @@ def _seed_courses(
     return courses
 
 
+# 维护意图：写入班级和班级课程关联
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _seed_classes(
     data: dict[str, Any],
     teachers: list[User],
@@ -221,6 +242,9 @@ def _seed_classes(
     return classes
 
 
+# 维护意图：确定大数据演示课程及其对应班级
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def _resolve_big_data_context(
     courses: list[Course],
     classes: list[Class],
@@ -243,6 +267,9 @@ def _resolve_big_data_context(
     return big_data_course, big_data_class
 
 
+# 维护意图：建立学生的班级和默认课程上下文
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _attach_students_to_classes(
     students: list[User],
     classes: list[Class],
@@ -285,6 +312,9 @@ def _attach_students_to_classes(
             )
 
 
+# 维护意图：为 student1 预置演示用大数据课程状态
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _seed_student_demo_state(students: list[User], big_data_course: Course | None) -> None:
     """为 student1 预置演示用大数据课程状态。"""
     if not big_data_course or not students:
@@ -293,6 +323,9 @@ def _seed_student_demo_state(students: list[User], big_data_course: Course | Non
     _preset_student1_demo_data(demo_student, big_data_course)
 
 
+# 维护意图：写入班级邀请码
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _seed_class_invitations(
     data: dict[str, Any],
     classes: list[Class],
@@ -314,6 +347,9 @@ def _seed_class_invitations(
         )
 
 
+# 维护意图：写入问卷题目种子
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _seed_survey_questions(data: dict[str, Any], courses: list[Course]) -> None:
     """写入问卷题目种子。"""
     survey_data = data.get("survey_questions", {})
@@ -345,6 +381,9 @@ def _seed_survey_questions(data: dict[str, Any], courses: list[Course]) -> None:
         )
 
 
+# 维护意图：按 testdata 结构灌入基础测试数据
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def seed_database_from_testdata(data: dict[str, Any]) -> SeededTestDataState:
     """按 testdata 结构灌入基础测试数据。"""
     admin_user, teachers, students = _seed_user_accounts(data)
@@ -367,6 +406,9 @@ def seed_database_from_testdata(data: dict[str, Any]) -> SeededTestDataState:
     )
 
 
+# 维护意图：同步课程图谱和 GraphRAG 索引
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def sync_seeded_courses(courses: list[Course]) -> None:
     """同步课程图谱和 GraphRAG 索引。"""
     for course in courses:

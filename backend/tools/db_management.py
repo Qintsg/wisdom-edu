@@ -14,6 +14,9 @@ from tools.db_seed_support import seed_database_from_testdata, sync_seeded_cours
 from tools.testing import CheckResult, _load_testdata, _print_checks, _status_flag
 
 
+# 维护意图：执行数据库关键数据存在性检查。
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def db_check(as_json: bool = False):
     """执行数据库关键数据存在性检查。
 
@@ -36,6 +39,9 @@ def db_check(as_json: bool = False):
     _print_checks(checks, as_json=as_json)
 
 
+# 维护意图：执行 Django 系统检查。
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def django_check(as_json: bool = False):
     """执行 Django 系统检查。
 
@@ -53,6 +59,9 @@ def django_check(as_json: bool = False):
     _print_checks(checks, as_json=as_json)
 
 
+# 维护意图：清空数据库中的核心业务数据。
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def clear_database(model_names: Optional[List[str]] = None):
     """清空数据库中的核心业务数据。
 
@@ -132,6 +141,9 @@ def clear_database(model_names: Optional[List[str]] = None):
     print(f"数据库清理完成，共删除 {total} 条记录。")
 
 
+# 维护意图：从 testdata.json5 创建基础测试数据（用户、课程、班级）。
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def create_test_data():
     """从 testdata.json5 创建基础测试数据（用户、课程、班级）。
 
@@ -155,6 +167,9 @@ def create_test_data():
         print("  python tools.py bootstrap-course-assets --course-name 大数据技术与应用")
 
 
+# 维护意图：初始化 PostgreSQL 测试环境。
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def pg_bootstrap(
     run_migrate: bool = True,
     clear_first: bool = True,

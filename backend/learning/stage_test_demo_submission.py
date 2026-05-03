@@ -12,6 +12,9 @@ from learning.stage_test_results import persist_stage_progress, stage_response_p
 from users.models import User
 
 
+# 维护意图：答辩预置阶段测试使用固定掌握度和固定反馈
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def submit_demo_stage_test(
     *,
     node: PathNode,
@@ -48,6 +51,9 @@ def submit_demo_stage_test(
     )
 
 
+# 维护意图：更新答辩预置阶段测试节点状态
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def update_demo_node_status(
     node: PathNode,
     user: User,
@@ -62,6 +68,9 @@ def update_demo_node_status(
     node.save(update_fields=["status"])
 
 
+# 维护意图：按答辩预置 payload 写入固定掌握度
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def apply_demo_mastery(
     user: User,
     node: PathNode,
@@ -80,6 +89,9 @@ def apply_demo_mastery(
         )
 
 
+# 维护意图：写入单个答辩预置知识点掌握度，非法数据直接跳过
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def apply_single_demo_mastery(
     *,
     user: User,
@@ -101,6 +113,9 @@ def apply_single_demo_mastery(
     )
 
 
+# 维护意图：读取答辩预置反馈报告
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def demo_feedback_report(demo_stage_payload: dict[str, object]) -> dict[str, object]:
     """读取答辩预置反馈报告。"""
     feedback_report = demo_stage_payload.get("feedback_report")

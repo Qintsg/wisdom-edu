@@ -26,10 +26,16 @@ from .student_helpers import (
 logger = logging.getLogger(__name__)
 
 
+# 维护意图：表示考试已经完成提交，不应重复写入
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class DuplicateExamSubmissionError(RuntimeError):
     """表示考试已经完成提交，不应重复写入。"""
 
 
+# 维护意图：考试提交前的评分和回显上下文
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @dataclass
 class ExamSubmissionContext:
     """考试提交前的评分和回显上下文。"""
@@ -46,6 +52,9 @@ class ExamSubmissionContext:
     accuracy: float
 
 
+# 维护意图：构建考试提交所需的批改与回显上下文
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_exam_submission_context(exam: Exam, answers: dict[str, Any]) -> ExamSubmissionContext:
     """构建考试提交所需的批改与回显上下文。"""
     exam_questions = list(
@@ -87,6 +96,9 @@ def build_exam_submission_context(exam: Exam, answers: dict[str, Any]) -> ExamSu
     )
 
 
+# 维护意图：创建或更新考试提交记录
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def upsert_exam_submission_record(
     *,
     exam: Exam,
@@ -126,6 +138,9 @@ def upsert_exam_submission_record(
         raise DuplicateExamSubmissionError("already_submitted") from error
 
 
+# 维护意图：构建考试答题历史批量写入对象和 KT 输入记录
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_answer_history_batch(
     *,
     exam: Exam,
@@ -182,6 +197,9 @@ def build_answer_history_batch(
     return history_models, answer_history_records
 
 
+# 维护意图：批量持久化考试答题历史
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def persist_answer_histories(history_models: list[Any]) -> None:
     """批量持久化考试答题历史。"""
     if history_models:
@@ -190,6 +208,9 @@ def persist_answer_histories(history_models: list[Any]) -> None:
         AnswerHistory.objects.bulk_create(history_models, batch_size=100)
 
 
+# 维护意图：基于本次考试涉及的知识点读取掌握度快照
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def capture_mastery_snapshot_from_records(
     *,
     user,
@@ -207,6 +228,9 @@ def capture_mastery_snapshot_from_records(
     return snapshot_mastery_for_points(user, course_id, tracked_point_ids)
 
 
+# 维护意图：刷新考试后的 KT 预测并回写掌握度
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def refresh_exam_kt_analysis(
     *,
     user,
@@ -279,6 +303,9 @@ def refresh_exam_kt_analysis(
     return kt_analysis
 
 
+# 维护意图：生成反馈报告预置状态和掌握度变化明细
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_submission_feedback_state(
     *,
     user,
@@ -326,6 +353,9 @@ def build_submission_feedback_state(
     return report, mastery_changes
 
 
+# 维护意图：确保结果页回显分数与通过状态与当前快照一致
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def sync_result_submission_snapshot(submission: ExamSubmission, snapshot: dict[str, Any]) -> tuple[float, bool]:
     """确保结果页回显分数与通过状态与当前快照一致。"""
     display_score = float(snapshot["grading"]["score"])

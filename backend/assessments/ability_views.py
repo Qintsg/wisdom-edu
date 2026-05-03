@@ -39,6 +39,9 @@ AnswerMap = dict[str, object]
 DimensionScores = dict[str, dict[str, float]]
 
 
+# 维护意图：重新进入能力评测（重做入口）。
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["GET"])
 @permission_classes([IsAuthenticated, IsStudent])
 def retake_ability_assessment(request: Request) -> Response:
@@ -49,6 +52,9 @@ def retake_ability_assessment(request: Request) -> Response:
     return get_ability_assessment(request)
 
 
+# 维护意图：获取学习能力评估测评试题。
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def get_ability_assessment(request: Request) -> Response:
@@ -65,6 +71,9 @@ def get_ability_assessment(request: Request) -> Response:
     return success_response(data=_serialize_survey_payload(survey_questions))
 
 
+# 维护意图：提交学习能力评估测评答案。
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["POST"])
 @permission_classes([IsAuthenticated, IsStudent])
 def submit_ability_assessment(request: Request) -> Response:
@@ -102,6 +111,9 @@ def submit_ability_assessment(request: Request) -> Response:
     )
 
 
+# 维护意图：查找课程级能力测评，未指定课程时返回 None
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 def _get_course_ability_assessment(course_id: object) -> Assessment | None:
     """查找课程级能力测评，未指定课程时返回 None。"""
     if not course_id:
@@ -113,6 +125,9 @@ def _get_course_ability_assessment(course_id: object) -> Assessment | None:
     ).first()
 
 
+# 维护意图：读取全局能力评测题；首次部署无数据时写入默认题
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 def _get_or_create_global_ability_questions() -> list[SurveyQuestion]:
     """读取全局能力评测题；首次部署无数据时写入默认题。"""
     survey_question_qs = SurveyQuestion.objects.filter(
@@ -128,6 +143,9 @@ def _get_or_create_global_ability_questions() -> list[SurveyQuestion]:
     return list(survey_question_qs)
 
 
+# 维护意图：序列化全局能力问卷响应
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def _serialize_survey_payload(
     survey_questions: list[SurveyQuestion],
 ) -> dict[str, object]:
@@ -148,6 +166,9 @@ def _serialize_survey_payload(
     }
 
 
+# 维护意图：序列化课程级 Assessment 能力测评响应
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def _serialize_assessment_payload(assessment: Assessment) -> dict[str, object]:
     """序列化课程级 Assessment 能力测评响应。"""
     questions = list(assessment.questions.all())
@@ -166,6 +187,9 @@ def _serialize_assessment_payload(assessment: Assessment) -> dict[str, object]:
     }
 
 
+# 维护意图：兼容 dict 和列表两种答案提交结构
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def _normalize_answer_map(answer_payload: object) -> AnswerMap:
     """兼容 dict 和列表两种答案提交结构。"""
     if isinstance(answer_payload, Mapping):
@@ -184,6 +208,9 @@ def _normalize_answer_map(answer_payload: object) -> AnswerMap:
     }
 
 
+# 维护意图：根据课程 Assessment 或全局问卷模式计算能力分
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _score_ability_answers(
     assessment: Assessment | None,
     answer_map: AnswerMap,
@@ -205,6 +232,9 @@ def _score_ability_answers(
     }
 
 
+# 维护意图：按标准题目答案计算课程级能力测评分数
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _score_course_assessment(
     assessment: Assessment,
     answer_map: AnswerMap,
@@ -219,6 +249,9 @@ def _score_course_assessment(
     return total_score, total_possible
 
 
+# 维护意图：判断课程级题目答案是否正确
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _is_question_answer_correct(question: Question, student_answer: object) -> bool:
     """判断课程级题目答案是否正确。"""
     correct_answer = (
@@ -236,6 +269,9 @@ def _is_question_answer_correct(question: Question, student_answer: object) -> b
     return False
 
 
+# 维护意图：按全局问卷选项分值计算能力维度得分
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _score_global_survey(answer_map: AnswerMap) -> tuple[float, float, DimensionScores]:
     """按全局问卷选项分值计算能力维度得分。"""
     total_score = 0.0
@@ -262,6 +298,9 @@ def _score_global_survey(answer_map: AnswerMap) -> tuple[float, float, Dimension
     return total_score, total_possible, dimension_scores
 
 
+# 维护意图：提取可用于批量查询的问卷题目 ID
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _answer_question_ids(answer_map: AnswerMap) -> list[int]:
     """提取可用于批量查询的问卷题目 ID。"""
     question_ids: list[int] = []
@@ -273,6 +312,9 @@ def _answer_question_ids(answer_map: AnswerMap) -> list[int]:
     return question_ids
 
 
+# 维护意图：读取全局问卷答案对应的选项分，默认 3 分
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _survey_option_score(
     survey_question: SurveyQuestion,
     answer_value: object,
@@ -287,6 +329,9 @@ def _survey_option_score(
     return 3.0
 
 
+# 维护意图：累计单个能力维度分和满分
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _add_dimension_score(
     dimension_scores: DimensionScores,
     dimension: str,
@@ -300,6 +345,9 @@ def _add_dimension_score(
     dimension_scores[dimension]["max"] += max_score
 
 
+# 维护意图：把维度累计分转换为百分制
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def _build_ability_analysis(dimension_scores: DimensionScores) -> dict[str, float]:
     """把维度累计分转换为百分制。"""
     return {
@@ -310,11 +358,17 @@ def _build_ability_analysis(dimension_scores: DimensionScores) -> dict[str, floa
     }
 
 
+# 维护意图：计算百分制分数，避免除零
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _percentage(total_score: float, total_possible: float) -> float:
     """计算百分制分数，避免除零。"""
     return total_score / total_possible * 100 if total_possible > 0 else 0
 
 
+# 维护意图：保存能力分析和课程级测评结果，并返回实际课程 ID
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def _save_ability_result(
     *,
     user: User,
@@ -347,6 +401,9 @@ def _save_ability_result(
     return resolved_course_id
 
 
+# 维护意图：无 course_id 提交时，沿用旧逻辑取第一个活跃选课课程
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def _resolve_default_course_id(user: User) -> object:
     """无 course_id 提交时，沿用旧逻辑取第一个活跃选课课程。"""
     enrollment = Enrollment.objects.filter(user=user).first()
@@ -357,6 +414,9 @@ def _resolve_default_course_id(user: User) -> object:
     return class_course.course_id if class_course else None
 
 
+# 维护意图：有课程上下文时标记能力评测完成
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _mark_ability_assessment_done(user: User, course_id: object) -> None:
     """有课程上下文时标记能力评测完成。"""
     if not course_id:

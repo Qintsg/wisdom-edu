@@ -10,6 +10,9 @@ from learning.models import LearningPath, NodeProgress, PathNode
 from learning.view_helpers import _coerce_string_list, _get_authenticated_user
 from platform_ai.rag import student_learning_rag
 
+# 维护意图：获取学习进度 GET /api/student/learning-progress
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def get_learning_progress(request):
@@ -64,6 +67,9 @@ def get_learning_progress(request):
     )
 
 
+# 维护意图：开始学习节点 POST /api/path-nodes/{node_id}/start
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def start_learning_node(request, node_id):
@@ -95,6 +101,9 @@ def start_learning_node(request, node_id):
     )
 
 
+# 维护意图：完成学习节点 POST /api/path-nodes/{node_id}/complete
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def complete_path_node(request, node_id):
@@ -135,6 +144,9 @@ def complete_path_node(request, node_id):
     )
 
 
+# 维护意图：跳过学习节点 POST /api/path-nodes/{node_id}/skip
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def skip_path_node(request, node_id):
@@ -169,6 +181,9 @@ def skip_path_node(request, node_id):
     )
 
 
+# 维护意图：获取节点资源列表（兼容端点） GET /api/path-nodes/{node_id}/resources 资源现在通过AI实时推荐，此端点返回空列表，保留向前兼容。
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def get_node_resources(request, node_id):
@@ -187,6 +202,9 @@ def get_node_resources(request, node_id):
     return success_response(data={"resources": []})
 
 
+# 维护意图：获取节点的AI推荐资源（内部+外部） GET /api/student/path-nodes/{node_id}/ai-resources 两次独立LLM调用： 1. recommend_in。
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def get_ai_resources(request, node_id):
@@ -236,6 +254,9 @@ def get_ai_resources(request, node_id):
     )
 
 
+# 维护意图：获取节点测验列表 GET /api/path-nodes/{node_id}/exams
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def get_node_exams(request, node_id):
@@ -266,6 +287,9 @@ def get_node_exams(request, node_id):
     return success_response(data={"exams": exams})
 
 
+# 维护意图：暂停资源学习 POST /api/student/path-nodes/{node_id}/resources/{resource_id}/pause
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def pause_node_resource(request, node_id, resource_id):

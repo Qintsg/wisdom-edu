@@ -10,6 +10,9 @@ from common.responses import error_response, forbidden_response, success_respons
 from .models import Class, Enrollment
 
 
+# 维护意图：获取班级学生列表
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["GET"])
 @permission_classes([IsAuthenticated, IsTeacherOrAdmin])
 def class_students(request, class_id):
@@ -28,6 +31,9 @@ def class_students(request, class_id):
     return success_response(data={"class_id": class_id, "class_name": class_obj.name, "course_name": course_name, "total": len(students), "students": students})
 
 
+# 维护意图：从班级中移除学生
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["DELETE"])
 @permission_classes([IsAuthenticated, IsTeacherOrAdmin])
 def remove_student_from_class(request, class_id, user_id):
@@ -47,6 +53,9 @@ def remove_student_from_class(request, class_id, user_id):
     return success_response(msg="学生已从班级中移除")
 
 
+# 维护意图：获取班级学生画像列表
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 @api_view(["GET"])
 @permission_classes([IsAuthenticated, IsTeacherOrAdmin])
 def get_class_student_profiles(request, class_id):

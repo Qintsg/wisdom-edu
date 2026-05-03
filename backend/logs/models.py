@@ -9,6 +9,9 @@ from django.conf import settings
 from django.db import models
 
 
+# 维护意图：操作日志模型 Operation Log Model 记录用户在系统中的操作行为，包括： - 操作类型（创建、更新、删除、查询等） - 操作模块（用户、课程、考试等） - 操作详情（请求路径、。
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class OperationLog(models.Model):
     """
     操作日志模型
@@ -121,6 +124,9 @@ class OperationLog(models.Model):
         auto_now_add=True
     )
 
+    # 维护意图：Meta
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     class Meta:
         db_table = 'operation_logs'
         verbose_name = '操作日志'

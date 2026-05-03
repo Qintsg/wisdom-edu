@@ -5,6 +5,9 @@ from rest_framework.permissions import IsAuthenticated
 from common.responses import success_response
 
 
+# 维护意图：根据用户角色获取动态菜单 GET /api/common/menu 返回: {menu: [...], role: 'student'|'teacher'|'admin'}
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def get_menu(request):

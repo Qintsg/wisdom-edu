@@ -10,9 +10,15 @@ from knowledge.models import KnowledgeMastery, KnowledgePoint, KnowledgeRelation
 from users.models import User
 
 
+# 维护意图：Verify ability assessments only persist evidence-backed dimensions
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class AbilityAssessmentScoringTests(APITestCase):
     """Verify ability assessments only persist evidence-backed dimensions."""
 
+    # 维护意图：Create a minimal single-question ability assessment
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def setUp(self):
         """Create a minimal single-question ability assessment."""
         self.student = User.objects.create_user(
@@ -55,6 +61,9 @@ class AbilityAssessmentScoringTests(APITestCase):
         )
         self.client.force_authenticate(user=self.student)
 
+    # 维护意图：Submissions without dimension evidence should keep analysis dictionaries empty
+    # 边界说明：测试步骤保持显式，便于定位回归阶段和失败上下文。
+    # 风险说明：调整测试断言时，需保留失败上下文和可复现实例。
     def test_submit_ability_assessment_should_not_fabricate_dimension_scores(self):
         """Submissions without dimension evidence should keep analysis dictionaries empty."""
         response = self.client.post(
@@ -73,9 +82,15 @@ class AbilityAssessmentScoringTests(APITestCase):
         self.assertEqual(ability_score.scores, {})
 
 
+# 维护意图：Check prerequisite-aware mastery updates for knowledge assessments
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class KnowledgeAssessmentMasteryTests(APITestCase):
     """Check prerequisite-aware mastery updates for knowledge assessments."""
 
+    # 维护意图：Build a prerequisite pair so conservative mastery rules are observable
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def setUp(self):
         """Build a prerequisite pair so conservative mastery rules are observable."""
         self.student = User.objects.create_user(
@@ -132,6 +147,9 @@ class KnowledgeAssessmentMasteryTests(APITestCase):
         AssessmentQuestion.objects.create(assessment=self.assessment, question=self.post_question, order=1)
         self.client.force_authenticate(user=self.student)
 
+    # 维护意图：A stronger downstream prediction should still be capped by prerequisite weakness
+    # 边界说明：测试步骤保持显式，便于定位回归阶段和失败上下文。
+    # 风险说明：调整测试断言时，需保留失败上下文和可复现实例。
     @patch('ai_services.services.kt_service.kt_service.predict_mastery')
     def test_knowledge_assessment_should_keep_mastery_conservative_and_respect_prerequisite(self, mock_predict_mastery):
         """A stronger downstream prediction should still be capped by prerequisite weakness."""

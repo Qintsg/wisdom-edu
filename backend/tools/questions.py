@@ -33,7 +33,10 @@ from tools.testing import _status_flag
 _strip_html = strip_import_text
 
 
-def _build_result_payload(
+# 维护意图：构建供 CLI 与教师端接口复用的导入结果载荷
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
+def build_result_payload(
     *,
     course_id: int,
     course_name: str,
@@ -55,7 +58,10 @@ def _build_result_payload(
     }
 
 
-def _print_json_import_summary(course_name: str, summary: QuestionImportSummary) -> None:
+# 维护意图：输出 JSON 导入摘要
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
+def print_json_import_summary(course_name: str, summary: QuestionImportSummary) -> None:
     """输出 JSON 导入摘要。"""
     message = f"题库JSON导入完成: 课程={course_name}, 新增题目={summary.imported_count}"
     if summary.linked_count:
@@ -67,7 +73,10 @@ def _print_json_import_summary(course_name: str, summary: QuestionImportSummary)
     print(message)
 
 
-def _print_excel_import_summary(summary: QuestionImportSummary) -> None:
+# 维护意图：输出 Excel 导入摘要
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
+def print_excel_import_summary(summary: QuestionImportSummary) -> None:
     """输出 Excel 导入摘要。"""
     message = f"题库导入完成：{summary.imported_count} 题"
     if summary.linked_count:
@@ -79,6 +88,9 @@ def _print_excel_import_summary(summary: QuestionImportSummary) -> None:
     print(message)
 
 
+# 维护意图：导入 JSON 格式题库。
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def import_questions_json(
     file: object,
     course_id: int,
@@ -97,7 +109,7 @@ def import_questions_json(
 
     if not questions:
         print("未找到questions，跳过导入。")
-        return _build_result_payload(
+        return build_result_payload(
             course_id=int(course.pk),
             course_name=course.name,
             summary=QuestionImportSummary(),
@@ -111,7 +123,7 @@ def import_questions_json(
             f"题目={len(questions)}, replace={replace}"
         )
         dry_run_summary = QuestionImportSummary(imported_count=len(questions))
-        return _build_result_payload(
+        return build_result_payload(
             course_id=int(course.pk),
             course_name=course.name,
             summary=dry_run_summary,
@@ -123,7 +135,10 @@ def import_questions_json(
     summary = QuestionImportSummary()
     with transaction.atomic():
         if replace:
-            Question.objects.filter(course=course).delete()
+            deleted_count, deleted_by_model = Question.objects.filter(course=course).delete()
+            # replace 模式需要显式接收删除结果，避免清理失败时被脚本静默吞掉。
+            if deleted_count < 0 or not isinstance(deleted_by_model, dict):
+                raise RuntimeError("题库清理结果异常")
 
         for raw_question in questions:
             if not isinstance(raw_question, Mapping):
@@ -143,8 +158,8 @@ def import_questions_json(
             )
             summary.record_import(linked)
 
-    _print_json_import_summary(course.name, summary)
-    return _build_result_payload(
+    print_json_import_summary(course.name, summary)
+    return build_result_payload(
         course_id=int(course.pk),
         course_name=course.name,
         summary=summary,
@@ -152,6 +167,9 @@ def import_questions_json(
     )
 
 
+# 维护意图：导入 Excel 格式题库。
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def import_question_bank(
     file_path: object,
     course_id: int,
@@ -199,9 +217,14 @@ def import_question_bank(
                 linked = True
             summary.record_import(linked)
 
-    _print_excel_import_summary(summary)
-    return _build_result_payload(
+    print_excel_import_summary(summary)
+    return build_result_payload(
         course_id=int(course.pk),
         course_name=course.name,
         summary=summary,
     )
+
+
+_build_result_payload = build_result_payload
+_print_json_import_summary = print_json_import_summary
+_print_excel_import_summary = print_excel_import_summary

@@ -16,6 +16,9 @@ from tools.testing import (
 )
 
 
+# 维护意图：执行 API 烟雾测试
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def api_smoke(
     base_url: str,
     username: str,
@@ -107,6 +110,9 @@ def api_smoke(
     _print_checks(checks, as_json=as_json)
 
 
+# 维护意图：执行学生关键业务流程回归测试
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def student_flow_smoke(
     base_url: str,
     username: str,
@@ -209,6 +215,9 @@ def student_flow_smoke(
     _print_checks(checks, as_json=as_json)
 
 
+# 维护意图：执行完整业务逻辑测试（api-smoke + student-flow-smoke 的快捷方式）
+# 边界说明：测试步骤保持显式，便于定位回归阶段和失败上下文。
+# 风险说明：调整测试断言时，需保留失败上下文和可复现实例。
 def test_business_logic():
     """执行完整业务逻辑测试（api-smoke + student-flow-smoke 的快捷方式）。"""
     print('说明：完整业务逻辑测试建议使用 api-smoke + student-flow-smoke 组合。')

@@ -21,6 +21,9 @@ from tools.rebuild_demo_support import (
 )
 
 
+# 维护意图：重建演示库并校验课程、图谱和学生示例数据是否齐备
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def rebuild_demo_data(
     course_name: str = '大数据技术与应用',
     teacher: str = DEFENSE_DEMO_TEACHER_USERNAME,

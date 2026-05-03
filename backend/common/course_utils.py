@@ -11,6 +11,9 @@ from django.db import DatabaseError
 logger = logging.getLogger(__name__)
 
 
+# 维护意图：验证课程是否存在。
+# 边界说明：校验边界集中在这里，避免非法输入进入业务主流程。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def validate_course_exists(course_id: int | str) -> Any | None:
     """
     验证课程是否存在。
@@ -26,6 +29,9 @@ def validate_course_exists(course_id: int | str) -> Any | None:
         return None
 
 
+# 维护意图：从请求中提取课程 ID，优先请求参数，其次用户课程上下文。
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def resolve_course_id(request: Any) -> tuple[int | None, Any | None]:
     """
     从请求中提取课程 ID，优先请求参数，其次用户课程上下文。

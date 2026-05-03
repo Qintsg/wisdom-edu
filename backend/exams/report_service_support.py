@@ -5,6 +5,9 @@ from dataclasses import dataclass
 from typing import Any
 
 
+# 维护意图：一次反馈报告生成所需的批改与画像上下文
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @dataclass
 class ReportGenerationContext:
     """一次反馈报告生成所需的批改与画像上下文。"""
@@ -24,6 +27,9 @@ class ReportGenerationContext:
     habit_data: dict[str, Any] | None
 
 
+# 维护意图：规范化后的 LLM 报告字段
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 @dataclass
 class NormalizedLLMFeedback:
     """规范化后的 LLM 报告字段。"""
@@ -36,6 +42,9 @@ class NormalizedLLMFeedback:
     conclusion: str
 
 
+# 维护意图：构造反馈报告生成过程中需要的完整上下文
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_report_generation_context(*, report, exam, submission, load_exam_questions, build_exam_score_map, build_exam_question_details, build_answer_history_records, refresh_kt_analysis, build_detailed_mistakes, extract_habit_preferences) -> ReportGenerationContext:
     """构造反馈报告生成过程中需要的完整上下文。"""
     from assessments.models import AbilityScore
@@ -90,6 +99,9 @@ def build_report_generation_context(*, report, exam, submission, load_exam_quest
     )
 
 
+# 维护意图：把 LLM 结构化结果规整为稳定字段
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def normalize_llm_feedback(
     *,
     llm_result: dict[str, Any],
@@ -97,13 +109,13 @@ def normalize_llm_feedback(
     normalize_list,
 ) -> NormalizedLLMFeedback:
     """把 LLM 结构化结果规整为稳定字段。"""
-    summary = clean_text(llm_result.get("summary"))
-    analysis = clean_text(llm_result.get("analysis"))
+    summary = clean_text(mapping_value(llm_result, "summary"))
+    analysis = clean_text(mapping_value(llm_result, "analysis"))
     knowledge_gaps = normalize_list(llm_result, "knowledge_gaps")
     recommendations = normalize_list(llm_result, "recommendations")
     next_tasks = normalize_list(llm_result, "next_tasks")
     conclusion = clean_text(
-        llm_result.get("encouragement") or llm_result.get("conclusion")
+        mapping_value(llm_result, "encouragement") or mapping_value(llm_result, "conclusion")
     )
     if not summary:
         summary = analysis or conclusion or "AI 报告已生成。"
@@ -117,6 +129,9 @@ def normalize_llm_feedback(
     )
 
 
+# 维护意图：构造反馈报告 overview
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_report_overview(
     *,
     report,
@@ -147,10 +162,13 @@ def build_report_overview(
         "habit_preferences": habit_data,
         "summary": summary,
         "knowledge_gaps": knowledge_gaps,
-        "mastery_changes": existing_overview.get("mastery_changes", []),
+        "mastery_changes": mapping_value(existing_overview, "mastery_changes", []),
     }
 
 
+# 维护意图：把成功生成的反馈报告写回模型
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def apply_completed_report(
     *,
     report,
@@ -168,8 +186,8 @@ def apply_completed_report(
         or [
             {
                 "question_id": item["question_id"],
-                "analysis": item.get("analysis") or "暂无解析",
-                "knowledge_point_name": item.get("knowledge_point_name", ""),
+                "analysis": mapping_value(item, "analysis") or "暂无解析",
+                "knowledge_point_name": mapping_value(item, "knowledge_point_name", ""),
             }
             for item in detailed_mistakes
         ]
@@ -179,3 +197,11 @@ def apply_completed_report(
     report.conclusion = normalized_feedback.conclusion or "继续保持，按建议逐步巩固即可。"
     report.save(update_fields=save_fields)
     return overview
+
+
+# 维护意图：读取报告中间结构字段并统一缺省值语义
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
+def mapping_value(record: dict[str, Any], field_name: str, default_value: object = None) -> object:
+    """读取报告中间结构字段并统一缺省值语义。"""
+    return record.get(field_name, default_value)

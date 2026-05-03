@@ -8,6 +8,9 @@ from django.db import models
 from django.conf import settings
 
 
+# 维护意图：大模型调用日志模型 记录每次大模型调用的详细信息，用于： - 调用追踪和调试 - 用量统计 - 性能分析
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class LLMCallLog(models.Model):
     """
     大模型调用日志模型
@@ -80,6 +83,9 @@ class LLMCallLog(models.Model):
     )
     created_at = models.DateTimeField('调用时间', auto_now_add=True)
 
+    # 维护意图：Meta
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     class Meta:
         db_table = 'llm_call_logs'
         verbose_name = 'LLM调用日志'

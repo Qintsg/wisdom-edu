@@ -22,6 +22,9 @@ from .models import ExamQuestion
 logger = logging.getLogger(__name__)
 
 
+# 维护意图：反馈概览所需的评分与画像上下文
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @dataclass(frozen=True)
 class FeedbackOverviewInput:
     """反馈概览所需的评分与画像上下文。"""
@@ -38,6 +41,9 @@ class FeedbackOverviewInput:
     mastery_changes: list[object] | None = None
 
 
+# 维护意图：反馈报告中可展示的文本字段
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 @dataclass(frozen=True)
 class NormalizedFeedbackText:
     """反馈报告中可展示的文本字段。"""
@@ -47,6 +53,9 @@ class NormalizedFeedbackText:
     knowledge_gaps: list[str]
 
 
+# 维护意图：读取考试相关知识点的掌握度快照
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def snapshot_mastery_for_points(user, course_id: int, point_ids: list[int]) -> dict[int, float]:
     """读取考试相关知识点的掌握度快照。"""
     if not point_ids:
@@ -57,6 +66,9 @@ def snapshot_mastery_for_points(user, course_id: int, point_ids: list[int]) -> d
     }
 
 
+# 维护意图：构建报告可直接消费的掌握度变化明细
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_mastery_change_payload(before_snapshot: dict[int, float], after_snapshot: dict[int, float]) -> list[dict[str, object]]:
     """构建报告可直接消费的掌握度变化明细。"""
     point_ids = sorted(set(before_snapshot.keys()) | set(after_snapshot.keys()))
@@ -70,6 +82,9 @@ def build_mastery_change_payload(before_snapshot: dict[int, float], after_snapsh
     } for point_id in point_ids]
 
 
+# 维护意图：解析考试及格线
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def resolve_pass_threshold(exam) -> float:
     """解析考试及格线。"""
     try:
@@ -94,6 +109,9 @@ def resolve_pass_threshold(exam) -> float:
     return fallback
 
 
+# 维护意图：构建考试题目分值映射
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_exam_score_map(exam, exam_questions):
     """构建考试题目分值映射。"""
     return build_normalized_score_map(
@@ -102,6 +120,9 @@ def build_exam_score_map(exam, exam_questions):
     )
 
 
+# 维护意图：构建单题回显详情
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_question_detail(question, student_answer, question_result):
     """构建单题回显详情。"""
     correct_answer = question_result.get("correct_answer", extract_answer_value(question.answer))
@@ -129,6 +150,9 @@ def build_question_detail(question, student_answer, question_result):
     }
 
 
+# 维护意图：构建整张试卷的题目详情列表
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_exam_question_details(exam_questions, answers, question_result_map):
     """构建整张试卷的题目详情列表。"""
     question_details = []
@@ -139,6 +163,9 @@ def build_exam_question_details(exam_questions, answers, question_result_map):
     return question_details
 
 
+# 维护意图：规范化反馈报告载荷
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def normalize_feedback_payload(report, question_details):
     """规范化反馈报告载荷。"""
     overview = _normalized_overview(report.overview)
@@ -171,11 +198,17 @@ def normalize_feedback_payload(report, question_details):
     }
 
 
+# 维护意图：复制报告概览字典，避免直接修改模型 JSONField 原对象
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def _normalized_overview(raw_overview: object) -> dict[str, object]:
     """复制报告概览字典，避免直接修改模型 JSONField 原对象。"""
     return dict(raw_overview) if isinstance(raw_overview, dict) else {}
 
 
+# 维护意图：从报告 analysis/conclusion/overview 中提取稳定展示文本
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def _normalize_feedback_text(report, overview: dict[str, object]) -> NormalizedFeedbackText:
     """从报告 analysis/conclusion/overview 中提取稳定展示文本。"""
     analysis_text, knowledge_gaps = _extract_analysis_text_and_gaps(report.analysis)
@@ -191,6 +224,9 @@ def _normalize_feedback_text(report, overview: dict[str, object]) -> NormalizedF
     )
 
 
+# 维护意图：兼容字符串、列表和字典三种历史 analysis 结构
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def _extract_analysis_text_and_gaps(raw_analysis: object) -> tuple[str, list[str]]:
     """兼容字符串、列表和字典三种历史 analysis 结构。"""
     if isinstance(raw_analysis, str):
@@ -204,6 +240,9 @@ def _extract_analysis_text_and_gaps(raw_analysis: object) -> tuple[str, list[str
     return "", []
 
 
+# 维护意图：从列表型 analysis 中提取知识薄弱点
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def _extract_list_analysis(raw_analysis: list[object]) -> tuple[str, list[str]]:
     """从列表型 analysis 中提取知识薄弱点。"""
     if raw_analysis and all(isinstance(item, str) for item in raw_analysis):
@@ -218,12 +257,18 @@ def _extract_list_analysis(raw_analysis: list[object]) -> tuple[str, list[str]]:
     return "", []
 
 
+# 维护意图：清洗文本列表，过滤空白项
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _clean_text_list(items: list[object]) -> list[str]:
     """清洗文本列表，过滤空白项。"""
     cleaned_items = [clean_display_text(item) for item in items]
     return [item for item in cleaned_items if item]
 
 
+# 维护意图：用真实题目详情覆盖概览中的分数统计
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def _apply_question_detail_stats(
     overview: dict[str, object],
     question_details: list[dict[str, object]],
@@ -241,6 +286,9 @@ def _apply_question_detail_stats(
     )
 
 
+# 维护意图：构建反馈概览字典
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_feedback_overview(input_payload: FeedbackOverviewInput):
     """构建反馈概览字典。"""
     return {
@@ -258,11 +306,17 @@ def build_feedback_overview(input_payload: FeedbackOverviewInput):
     }
 
 
+# 维护意图：构建反馈报告引用信息
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_feedback_report_ref(report):
     """构建反馈报告引用信息。"""
     return {"report_id": report.id, "exam_id": report.exam_id, "status": report.status, "retryable": report.status == "failed", "poll_url": f"/api/student/feedback/{report.exam_id}"}
 
 
+# 维护意图：基于考试提交构建反馈快照
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_submission_feedback_snapshot(submission):
     """基于考试提交构建反馈快照。"""
     exam = submission.exam

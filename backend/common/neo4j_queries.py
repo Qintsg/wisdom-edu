@@ -8,9 +8,15 @@ from typing import Any, Dict, List, Optional
 logger = logging.getLogger(__name__)
 
 
+# 维护意图：知识图谱遍历、详情和列表查询能力
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class Neo4jQueryMixin:
     """知识图谱遍历、详情和列表查询能力。"""
 
+    # 维护意图：获取知识点的前置知识点
+    # 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+    # 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
     def get_prerequisites(self, point_id: int, depth: int = 1) -> List[Dict]:
         """获取知识点的前置知识点。"""
         self._ensure_available()
@@ -32,6 +38,9 @@ class Neo4jQueryMixin:
             )
             return [dict(record) for record in result]
 
+    # 维护意图：获取依赖于该知识点的后续知识点
+    # 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+    # 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
     def get_dependents(self, point_id: int, depth: int = 1) -> List[Dict]:
         """获取依赖于该知识点的后续知识点。"""
         self._ensure_available()
@@ -53,6 +62,9 @@ class Neo4jQueryMixin:
             )
             return [dict(record) for record in result]
 
+    # 维护意图：查找两个知识点之间的最短学习路径
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def find_learning_path(
         self,
         start_point_id: int,
@@ -87,6 +99,9 @@ class Neo4jQueryMixin:
                 return record["path"]
             return None
 
+    # 维护意图：获取课程知识图谱的统计信息
+    # 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+    # 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
     def get_graph_stats(self, course_id: int) -> Dict[str, Any]:
         """获取课程知识图谱的统计信息。"""
         self._ensure_available()
@@ -109,6 +124,9 @@ class Neo4jQueryMixin:
                 "source": "neo4j",
             }
 
+    # 维护意图：从 Neo4j 获取课程的知识图谱
+    # 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+    # 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
     def get_knowledge_map(
         self, course_id: int, published_only: bool = True
     ) -> Optional[Dict]:
@@ -159,6 +177,9 @@ class Neo4jQueryMixin:
             self._warn_fallback("get_knowledge_map")
             return None
 
+    # 维护意图：从 Neo4j 获取知识点详情及其关系
+    # 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+    # 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
     def get_knowledge_point_neo4j(self, point_id: int) -> Optional[Dict]:
         """从 Neo4j 获取知识点详情及其关系。"""
         if not self.is_available:
@@ -210,6 +231,9 @@ class Neo4jQueryMixin:
             self._warn_fallback("get_knowledge_point")
             return None
 
+    # 维护意图：从 Neo4j 获取课程的所有知识点列表
+    # 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+    # 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
     def get_knowledge_points_neo4j(self, course_id: int) -> Optional[List[Dict]]:
         """从 Neo4j 获取课程的所有知识点列表。"""
         if not self.is_available:
@@ -238,6 +262,9 @@ class Neo4jQueryMixin:
             self._warn_fallback("get_knowledge_points")
             return None
 
+    # 维护意图：从 Neo4j 获取课程的所有知识点关系
+    # 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+    # 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
     def get_knowledge_relations_neo4j(self, course_id: int) -> Optional[List[Dict]]:
         """从 Neo4j 获取课程的所有知识点关系。"""
         if not self.is_available:

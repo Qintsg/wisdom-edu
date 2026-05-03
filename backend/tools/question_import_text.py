@@ -17,6 +17,9 @@ from django.utils.html import strip_tags
 WHITESPACE_PATTERN = re.compile(r"\s+")
 
 
+# 维护意图：去除 HTML 标签并清理多余空白
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def strip_import_text(value: object) -> object:
     """去除 HTML 标签并清理多余空白。"""
     if not value:
@@ -27,6 +30,9 @@ def strip_import_text(value: object) -> object:
     return WHITESPACE_PATTERN.sub(" ", text).strip()
 
 
+# 维护意图：清洗答案字段中的 HTML
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def strip_import_answer_payload(answer: object) -> object:
     """清洗答案字段中的 HTML。"""
     if isinstance(answer, str):
@@ -48,6 +54,9 @@ def strip_import_answer_payload(answer: object) -> object:
     return answer
 
 
+# 维护意图：清洗 JSON 题目中的选项内容
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def clean_question_options(raw_options: object) -> list[object]:
     """清洗 JSON 题目中的选项内容。"""
     if not isinstance(raw_options, list):

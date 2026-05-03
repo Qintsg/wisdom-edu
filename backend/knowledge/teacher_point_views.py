@@ -21,6 +21,9 @@ from .teacher_helpers import bad_request, refresh_course_rag_index
 logger = logging.getLogger(__name__)
 
 
+# 维护意图：获取知识点列表，优先 Neo4j，不可用时降级 PostgreSQL
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["GET"])
 @permission_classes([IsAuthenticated, IsTeacherOrAdmin])
 def knowledge_point_list(request: Request) -> Response:
@@ -58,6 +61,9 @@ def knowledge_point_list(request: Request) -> Response:
     })
 
 
+# 维护意图：创建知识点
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["POST"])
 @permission_classes([IsAuthenticated, IsTeacherOrAdmin])
 def knowledge_point_create(request: Request) -> Response:
@@ -110,6 +116,9 @@ def knowledge_point_create(request: Request) -> Response:
     )
 
 
+# 维护意图：获取或更新知识点
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["GET", "PUT"])
 @permission_classes([IsAuthenticated, IsTeacherOrAdmin])
 def knowledge_point_update(request: Request, point_id: int) -> Response:
@@ -152,6 +161,9 @@ def knowledge_point_update(request: Request, point_id: int) -> Response:
     )
 
 
+# 维护意图：删除知识点
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["DELETE"])
 @permission_classes([IsAuthenticated, IsTeacherOrAdmin])
 def knowledge_point_delete(request: Request, point_id: int) -> Response:

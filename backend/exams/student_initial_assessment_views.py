@@ -21,6 +21,9 @@ from .student_initial_assessment_support import (
 )
 
 
+# 维护意图：开始初始评测（随机抽题）
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def initial_assessment_start(request: Request) -> Response:
@@ -44,6 +47,9 @@ def initial_assessment_start(request: Request) -> Response:
     })
 
 
+# 维护意图：提交初始评测
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def initial_assessment_submit(request: Request) -> Response:

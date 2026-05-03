@@ -8,6 +8,9 @@ from common.utils import resolve_course_id as _resolve_course_id
 from .models import KnowledgePoint, Resource
 
 
+# 维护意图：获取课程学习资源列表（学生端）
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def get_student_resources(request):
@@ -73,6 +76,9 @@ def get_student_resources(request):
     })
 
 
+# 维护意图：获取知识点相关资源
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def knowledge_point_resources(request, point_id):
@@ -96,6 +102,9 @@ def knowledge_point_resources(request, point_id):
     ])
 
 
+# 维护意图：搜索知识点
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def knowledge_search(request):

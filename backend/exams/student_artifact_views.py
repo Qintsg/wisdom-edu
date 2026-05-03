@@ -15,6 +15,9 @@ from common.utils import check_answer, extract_answer_value
 from .models import Exam, ExamQuestion, ExamSubmission
 
 
+# 维护意图：查看标准答案
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def exam_answer_sheet(request, exam_id):
@@ -37,6 +40,9 @@ def exam_answer_sheet(request, exam_id):
     } for question in questions])
 
 
+# 维护意图：重新参加考试
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def exam_retake(request, exam_id):
@@ -53,6 +59,9 @@ def exam_retake(request, exam_id):
     return success_response(msg="已重置，可以重新作答")
 
 
+# 维护意图：下载考试答案报告
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def exam_download(request, exam_id):

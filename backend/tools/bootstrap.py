@@ -29,6 +29,9 @@ from tools.bootstrap_support import (
 )
 from tools.testing import _status_flag
 
+# 维护意图：一键导入课程资源包。
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def bootstrap_course_assets(
     course_name: str,
     teacher: str = "teacher1",
@@ -98,6 +101,9 @@ def bootstrap_course_assets(
 # ── 批量导入课程资源 ──
 
 
+# 维护意图：从资料目录批量导入课程资源。
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def import_course_resources(course_name: Optional[str] = None):
     """
     从资料目录批量导入课程资源。

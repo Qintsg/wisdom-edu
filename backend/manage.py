@@ -4,6 +4,9 @@ import os
 import sys
 
 
+# 维护意图：Run administrative tasks
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def main():
     """Run administrative tasks."""
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'wisdom_edu_api.settings')

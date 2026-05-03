@@ -11,9 +11,15 @@ from learning.models import LearningPath, NodeProgress, PathNode
 from users.models import User
 
 
+# 维护意图：Exercise resource-completion routes exposed on learning path nodes
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class LearningResourceRouteTests(APITestCase):
     """Exercise resource-completion routes exposed on learning path nodes."""
 
+    # 维护意图：Create a study node whose external resources are addressed by string IDs
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def setUp(self):
         """Create a study node whose external resources are addressed by string IDs."""
         self.student = User.objects.create_user(
@@ -49,6 +55,9 @@ class LearningResourceRouteTests(APITestCase):
         )
         self.client.force_authenticate(user=self.student)
 
+    # 维护意图：External resource identifiers should round-trip as stored string values
+    # 边界说明：测试步骤保持显式，便于定位回归阶段和失败上下文。
+    # 风险说明：调整测试断言时，需保留失败上下文和可复现实例。
     def test_complete_external_resource_should_accept_string_identifier(self):
         """External resource identifiers should round-trip as stored string values."""
         response = self.client.post(
@@ -62,9 +71,15 @@ class LearningResourceRouteTests(APITestCase):
         self.assertIn(f"ext_{self.node.id}_0", progress.completed_resources)
 
 
+# 维护意图：Verify student-facing stage tests expose stable scoring semantics
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class StageTestScoringTests(APITestCase):
     """Verify student-facing stage tests expose stable scoring semantics."""
 
+    # 维护意图：Prepare one study node and one active stage-test node with eight questions
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def setUp(self):
         """Prepare one study node and one active stage-test node with eight questions."""
         self.student = User.objects.create_user(
@@ -123,6 +138,9 @@ class StageTestScoringTests(APITestCase):
 
         self.client.force_authenticate(user=self.student)
 
+    # 维护意图：Stage-test payloads should use percentage scoring and include per-question detail
+    # 边界说明：测试步骤保持显式，便于定位回归阶段和失败上下文。
+    # 风险说明：调整测试断言时，需保留失败上下文和可复现实例。
     @patch("ai_services.services.llm_service.generate_feedback_report")
     @patch("ai_services.services.kt_service.kt_service.predict_mastery")
     def test_stage_test_should_return_100_point_scale_and_question_details(
@@ -167,9 +185,15 @@ class StageTestScoringTests(APITestCase):
         self.assertIn(first_wrong["correct_answer_display"], {"A. 正确", "正确"})
 
 
+# 维护意图：Validate how refreshed paths preserve current progress context
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class LearningPathRefreshTests(APITestCase):
     """Validate how refreshed paths preserve current progress context."""
 
+    # 维护意图：Seed completed, active, and future nodes so refresh behavior is measurable
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def setUp(self):
         """Seed completed, active, and future nodes so refresh behavior is measurable."""
         self.student = User.objects.create_user(
@@ -251,6 +275,9 @@ class LearningPathRefreshTests(APITestCase):
         )
         self.client.force_authenticate(user=self.student)
 
+    # 维护意图：Refreshing a path should keep the active node while replacing stale future nodes
+    # 边界说明：测试步骤保持显式，便于定位回归阶段和失败上下文。
+    # 风险说明：调整测试断言时，需保留失败上下文和可复现实例。
     @patch("ai_services.services.llm_service.LLMService.plan_learning_path")
     @patch("ai_services.services.kt_service.kt_service.predict_mastery")
     def test_refresh_learning_path_should_preserve_current_context(
@@ -280,6 +307,9 @@ class LearningPathRefreshTests(APITestCase):
         self.assertEqual(payload["change_summary"]["removed_count"], 1)
         self.assertTrue(any(node["title"] == "当前节点" for node in payload["nodes"]))
 
+    # 维护意图：Low-mastery completed points should be reinserted as remedial work
+    # 边界说明：测试步骤保持显式，便于定位回归阶段和失败上下文。
+    # 风险说明：调整测试断言时，需保留失败上下文和可复现实例。
     @patch("ai_services.services.kt_service.kt_service.predict_mastery")
     def test_refresh_learning_path_should_reinsert_low_mastery_completed_point(
         self, mock_predict_mastery

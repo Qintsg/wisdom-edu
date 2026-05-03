@@ -9,9 +9,15 @@ from courses.models import Class, ClassCourse, Course, Enrollment
 from .models import ClassInvitation, User
 
 
+# 维护意图：班级邀请码 API 测试
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class ClassInvitationAPITests(APITestCase):
     """班级邀请码 API 测试。"""
 
+    # 维护意图：创建测试数据
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def setUp(self):
         """创建测试数据。"""
         self.teacher = User.objects.create_user(
@@ -34,6 +40,9 @@ class ClassInvitationAPITests(APITestCase):
             teacher=self.teacher
         )
 
+    # 维护意图：测试教师生成邀请码
+    # 边界说明：测试步骤保持显式，便于定位回归阶段和失败上下文。
+    # 风险说明：调整测试断言时，需保留失败上下文和可复现实例。
     def test_generate_invitation(self):
         """测试教师生成邀请码。"""
         self.client.force_authenticate(user=self.teacher)
@@ -44,6 +53,9 @@ class ClassInvitationAPITests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertIn('code', response.data['data'])
 
+    # 维护意图：测试学生加入班级
+    # 边界说明：测试步骤保持显式，便于定位回归阶段和失败上下文。
+    # 风险说明：调整测试断言时，需保留失败上下文和可复现实例。
     def test_student_join_class(self):
         """测试学生加入班级。"""
         ClassInvitation.objects.create(
@@ -67,6 +79,9 @@ class ClassInvitationAPITests(APITestCase):
             class_obj=self.class_obj
         ).exists())
 
+    # 维护意图：测试不能重复加入班级
+    # 边界说明：测试步骤保持显式，便于定位回归阶段和失败上下文。
+    # 风险说明：调整测试断言时，需保留失败上下文和可复现实例。
     def test_cannot_join_class_twice(self):
         """测试不能重复加入班级。"""
         ClassInvitation.objects.create(
@@ -87,6 +102,9 @@ class ClassInvitationAPITests(APITestCase):
         })
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
+    # 维护意图：测试无默认课程班级仍返回已发布课程摘要
+    # 边界说明：测试步骤保持显式，便于定位回归阶段和失败上下文。
+    # 风险说明：调整测试断言时，需保留失败上下文和可复现实例。
     def test_join_class_returns_published_course_without_default_course(self):
         """测试无默认课程班级仍返回已发布课程摘要。"""
         another_class = Class.objects.create(
@@ -114,6 +132,9 @@ class ClassInvitationAPITests(APITestCase):
         self.assertEqual(response.data['data']['course_id'], self.course.id)
         self.assertEqual(response.data['data']['courses'][0]['course_name'], self.course.name)
 
+    # 维护意图：测试获取我的班级列表
+    # 边界说明：测试步骤保持显式，便于定位回归阶段和失败上下文。
+    # 风险说明：调整测试断言时，需保留失败上下文和可复现实例。
     def test_my_classes(self):
         """测试获取我的班级列表。"""
         Enrollment.objects.create(
@@ -128,6 +149,9 @@ class ClassInvitationAPITests(APITestCase):
         self.assertEqual(len(response.data['data']['classes']), 1)
         self.assertEqual(response.data['data']['classes'][0]['course_id'], self.course.id)
 
+    # 维护意图：测试退出班级
+    # 边界说明：测试步骤保持显式，便于定位回归阶段和失败上下文。
+    # 风险说明：调整测试断言时，需保留失败上下文和可复现实例。
     def test_leave_class(self):
         """测试退出班级。"""
         Enrollment.objects.create(
@@ -146,9 +170,15 @@ class ClassInvitationAPITests(APITestCase):
         ).exists())
 
 
+# 维护意图：班级学生管理 API 测试
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class ClassStudentsAPITests(APITestCase):
     """班级学生管理 API 测试。"""
 
+    # 维护意图：创建测试数据
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def setUp(self):
         """创建测试数据。"""
         self.teacher = User.objects.create_user(
@@ -178,6 +208,9 @@ class ClassStudentsAPITests(APITestCase):
         Enrollment.objects.create(user=self.student1, class_obj=self.class_obj)
         Enrollment.objects.create(user=self.student2, class_obj=self.class_obj)
 
+    # 维护意图：测试获取班级学生列表
+    # 边界说明：测试步骤保持显式，便于定位回归阶段和失败上下文。
+    # 风险说明：调整测试断言时，需保留失败上下文和可复现实例。
     def test_get_class_students(self):
         """测试获取班级学生列表。"""
         self.client.force_authenticate(user=self.teacher)
@@ -186,6 +219,9 @@ class ClassStudentsAPITests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['data']['total'], 2)
 
+    # 维护意图：测试从班级移除学生
+    # 边界说明：测试步骤保持显式，便于定位回归阶段和失败上下文。
+    # 风险说明：调整测试断言时，需保留失败上下文和可复现实例。
     def test_remove_student_from_class(self):
         """测试从班级移除学生。"""
         self.client.force_authenticate(user=self.teacher)

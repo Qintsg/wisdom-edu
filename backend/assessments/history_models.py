@@ -6,6 +6,9 @@ from django.db import models
 from .question_models import Question
 
 
+# 维护意图：学生答题历史记录模型
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class AnswerHistory(models.Model):
     """学生答题历史记录模型。"""
 
@@ -21,6 +24,9 @@ class AnswerHistory(models.Model):
     exam_id = models.IntegerField('考试ID', null=True, blank=True)
     answered_at = models.DateTimeField('答题时间', auto_now_add=True)
 
+    # 维护意图：Meta
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     class Meta:
         db_table = 'answer_histories'
         verbose_name = '答题历史'
@@ -32,6 +38,9 @@ class AnswerHistory(models.Model):
         return f"{self.user.username} - {self.question.id} - {status}"
 
 
+# 维护意图：学生画像历史记录模型
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class ProfileHistory(models.Model):
     """学生画像历史记录模型。"""
 
@@ -45,6 +54,9 @@ class ProfileHistory(models.Model):
     external_mastery = models.JSONField('外部掌握情况', default=dict, null=True, blank=True, help_text='预留字段：外部接口返回的掌握情况分析')
     created_at = models.DateTimeField('创建时间', auto_now_add=True)
 
+    # 维护意图：Meta
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     class Meta:
         db_table = 'profile_histories'
         verbose_name = '画像历史'
@@ -55,6 +67,9 @@ class ProfileHistory(models.Model):
         return f"{self.user.username} - {self.course.name} - {self.created_at}"
 
 
+# 维护意图：问卷结果模型
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class SurveyResult(models.Model):
     """问卷结果模型。"""
 
@@ -68,6 +83,9 @@ class SurveyResult(models.Model):
     is_current = models.BooleanField('是否当前版本', default=True)
     completed_at = models.DateTimeField('完成时间', auto_now_add=True)
 
+    # 维护意图：Meta
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     class Meta:
         db_table = 'survey_results'
         verbose_name = '问卷结果'

@@ -14,6 +14,9 @@ from .admin_helpers import UTF8_BOM, _parse_pagination
 from .models import ActivationCode
 
 
+# 维护意图：生成激活码（仅管理员）
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(['POST'])
 @permission_classes([IsAuthenticated, IsAdmin])
 def generate_activation_code(request):
@@ -57,6 +60,9 @@ def generate_activation_code(request):
     return created_response(data={'codes': codes}, msg=f'成功生成 {count} 个激活码')
 
 
+# 维护意图：获取激活码列表（仅管理员）
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 @api_view(['GET'])
 @permission_classes([IsAuthenticated, IsAdmin])
 def list_activation_codes(request):
@@ -97,6 +103,9 @@ def list_activation_codes(request):
     })
 
 
+# 维护意图：获取激活码详情 / 删除激活码（仅管理员）
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 @api_view(['GET', 'DELETE'])
 @permission_classes([IsAuthenticated, IsAdmin])
 def delete_activation_code(request, code_id):
@@ -125,6 +134,9 @@ def delete_activation_code(request, code_id):
     return success_response(msg='激活码已删除')
 
 
+# 维护意图：获取激活码详情（管理员）
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(['GET'])
 @permission_classes([IsAuthenticated, IsAdmin])
 def activation_code_detail(request, code_id):
@@ -148,6 +160,9 @@ def activation_code_detail(request, code_id):
     })
 
 
+# 维护意图：批量删除激活码（管理员）
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(['POST'])
 @permission_classes([IsAuthenticated, IsAdmin])
 def activation_code_batch_delete(request):
@@ -160,6 +175,9 @@ def activation_code_batch_delete(request):
     return success_response(data={'deleted_count': deleted_count}, msg=f'已删除 {deleted_count} 个激活码')
 
 
+# 维护意图：验证激活码有效性
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(['POST'])
 @permission_classes([])
 def activation_code_validate(request):
@@ -182,6 +200,9 @@ def activation_code_validate(request):
     })
 
 
+# 维护意图：导出激活码列表为 CSV
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(['GET'])
 @permission_classes([IsAuthenticated, IsAdmin])
 def activation_code_export(request):

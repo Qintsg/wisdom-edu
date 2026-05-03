@@ -8,9 +8,15 @@ from typing import Any, Dict, List
 logger = logging.getLogger(__name__)
 
 
+# 维护意图：课程图谱批量同步、清理、导入和统计能力
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class Neo4jSyncMixin:
     """课程图谱批量同步、清理、导入和统计能力。"""
 
+    # 维护意图：同步课程的知识图谱到 Neo4j
+    # 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+    # 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
     def sync_knowledge_graph(self, course_id: int) -> Dict[str, int | str]:
         """同步课程的知识图谱到 Neo4j。"""
         self._ensure_available()
@@ -49,6 +55,9 @@ class Neo4jSyncMixin:
 
         with driver.session() as session:
 
+            # 维护意图：sync tx
+            # 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+            # 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
             def _sync_tx(tx):
                 tx.run(
                     "MATCH (n:KnowledgePoint {course_id: $course_id}) DETACH DELETE n",
@@ -109,6 +118,9 @@ class Neo4jSyncMixin:
         )
         return {"nodes": node_count, "relations": rel_count, "status": "success"}
 
+    # 维护意图：清除 Neo4j 中的所有数据
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def clear_all(self) -> Dict[str, int]:
         """清除 Neo4j 中的所有数据。"""
         self._ensure_available()
@@ -134,6 +146,9 @@ class Neo4jSyncMixin:
         )
         return stats
 
+    # 维护意图：导入测试数据到 Neo4j
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def import_test_data(self, knowledge_data: Dict) -> Dict[str, int | str]:
         """导入测试数据到 Neo4j。"""
         self._ensure_available()
@@ -203,6 +218,9 @@ class Neo4jSyncMixin:
             "status": "success",
         }
 
+    # 维护意图：获取 Neo4j 中所有课程的知识图谱统计
+    # 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+    # 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
     def get_all_courses(self) -> List[Dict]:
         """获取 Neo4j 中所有课程的知识图谱统计。"""
         self._ensure_available()

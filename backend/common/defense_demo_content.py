@@ -11,6 +11,9 @@ from users.models import User
 
 from common.defense_demo_progress import _set_related_knowledge_points
 
+# 维护意图：创建演示专用知识点。
+# 边界说明：校验边界集中在这里，避免非法输入进入业务主流程。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def _ensure_demo_points(course: Course) -> list[KnowledgePoint]:
     """
     创建演示专用知识点。
@@ -66,6 +69,9 @@ def _ensure_demo_points(course: Course) -> list[KnowledgePoint]:
     return points
 
 
+# 维护意图：创建学习节点固定展示用资源。
+# 边界说明：校验边界集中在这里，避免非法输入进入业务主流程。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def _ensure_demo_resources(course: Course, teacher: User, points: list[KnowledgePoint]) -> dict[str, list[dict[str, object]]]:
     """
     创建学习节点固定展示用资源。
@@ -162,6 +168,9 @@ def _ensure_demo_resources(course: Course, teacher: User, points: list[Knowledge
     return payload_map
 
 
+# 维护意图：创建阶段测试题与试卷。
+# 边界说明：校验边界集中在这里，避免非法输入进入业务主流程。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def _ensure_demo_stage_test(course: Course, teacher: User, points: list[KnowledgePoint]) -> Exam:
     """
     创建阶段测试题与试卷。
@@ -259,6 +268,9 @@ def _ensure_demo_stage_test(course: Course, teacher: User, points: list[Knowledg
     return exam
 
 
+# 维护意图：为知识点创建固定介绍内容。
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def _build_point_intro_payloads(points: list[KnowledgePoint]) -> dict[str, dict[str, object]]:
     """
     为知识点创建固定介绍内容。
@@ -297,6 +309,9 @@ def _build_point_intro_payloads(points: list[KnowledgePoint]) -> dict[str, dict[
     return intro_map
 
 
+# 维护意图：为答辩演示准备可直接复用的 AI 助手提问脚本。
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def _build_ai_demo_query_payloads(points: list[KnowledgePoint]) -> list[dict[str, object]]:
     """
     为答辩演示准备可直接复用的 AI 助手提问脚本。

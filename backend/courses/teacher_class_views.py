@@ -12,6 +12,9 @@ from common.responses import created_response, error_response, forbidden_respons
 from .models import Class, ClassCourse, Course, Enrollment
 
 
+# 维护意图：创建班级
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["POST"])
 @permission_classes([IsAuthenticated, IsTeacherOrAdmin])
 def class_create(request):
@@ -36,6 +39,9 @@ def class_create(request):
         return error_response(msg=f"创建失败: {str(error)}", code=500)
 
 
+# 维护意图：删除班级
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["DELETE"])
 @permission_classes([IsAuthenticated, IsTeacherOrAdmin])
 def class_delete(request, class_id):
@@ -50,6 +56,9 @@ def class_delete(request, class_id):
     return success_response(msg="班级已删除")
 
 
+# 维护意图：获取或更新班级信息
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["GET", "PUT"])
 @permission_classes([IsAuthenticated, IsTeacherOrAdmin])
 def class_update(request, class_id):
@@ -85,6 +94,9 @@ def class_update(request, class_id):
     return success_response(data={"class_id": class_obj.id, "name": class_obj.name}, msg="班级更新成功")
 
 
+# 维护意图：获取我的班级列表
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["GET"])
 @permission_classes([IsAuthenticated, IsTeacherOrAdmin])
 def my_classes(request):
@@ -96,6 +108,9 @@ def my_classes(request):
     return success_response(data={"classes": [{"class_id": class_obj.id, "name": class_obj.name, "description": class_obj.description, "semester": class_obj.semester, "student_count": class_obj.get_student_count(), "is_active": class_obj.is_active, "created_at": class_obj.created_at.isoformat()} for class_obj in classes]})
 
 
+# 维护意图：向班级发布课程
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["POST"])
 @permission_classes([IsAuthenticated, IsTeacherOrAdmin])
 def class_publish_course(request, class_id):
@@ -122,6 +137,9 @@ def class_publish_course(request, class_id):
     return success_response(data={"class_id": class_obj.id, "course_id": course.id}, msg="课程发布成功")
 
 
+# 维护意图：取消班级中的课程发布
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["DELETE"])
 @permission_classes([IsAuthenticated, IsTeacherOrAdmin])
 def class_unpublish_course(request, class_id, course_id):
@@ -141,6 +159,9 @@ def class_unpublish_course(request, class_id, course_id):
     return success_response(msg="课程已取消发布")
 
 
+# 维护意图：获取班级发布的课程列表
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["GET"])
 @permission_classes([IsAuthenticated, IsTeacherOrAdmin])
 def class_courses(request, class_id):
@@ -157,6 +178,9 @@ def class_courses(request, class_id):
     })
 
 
+# 维护意图：获取班级学习进度统计
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["GET"])
 @permission_classes([IsAuthenticated, IsTeacherOrAdmin])
 def teacher_class_progress(request, class_id):

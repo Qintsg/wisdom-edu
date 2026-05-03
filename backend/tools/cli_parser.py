@@ -40,6 +40,9 @@ from tools.resources import delete_link_resources, import_resources_json
 from tools.survey import import_ability_scale, import_survey_questions
 
 
+# 维护意图：为 JSON 导入类子命令追加通用参数
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _add_json_import_args(parser: argparse.ArgumentParser) -> None:
     """为 JSON 导入类子命令追加通用参数。"""
     parser.add_argument("--file", required=True)
@@ -48,6 +51,9 @@ def _add_json_import_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--dry-run", action="store_true")
 
 
+# 维护意图：构建 CLI 参数解析器
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_parser() -> argparse.ArgumentParser:
     """构建 CLI 参数解析器。"""
     parser = argparse.ArgumentParser(
@@ -208,6 +214,9 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
+# 维护意图：将逗号分隔的模型过滤参数转换为列表
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def _parse_model_filters(raw_models: str) -> list[str] | None:
     """将逗号分隔的模型过滤参数转换为列表。"""
     if not raw_models:
@@ -215,6 +224,9 @@ def _parse_model_filters(raw_models: str) -> list[str] | None:
     return [model_name.strip() for model_name in raw_models.split(",") if model_name.strip()]
 
 
+# 维护意图：处理导入、导出和模板相关命令
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _dispatch_import_commands(args: argparse.Namespace) -> bool:
     """处理导入、导出和模板相关命令。"""
     if args.cmd == "import-knowledge-map":
@@ -250,6 +262,9 @@ def _dispatch_import_commands(args: argparse.Namespace) -> bool:
     return True
 
 
+# 维护意图：处理课程列表、删除、数据库和 Neo4j 管理命令
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _dispatch_data_admin_commands(args: argparse.Namespace) -> bool:
     """处理课程列表、删除、数据库和 Neo4j 管理命令。"""
     if args.cmd == "list-courses":
@@ -281,6 +296,9 @@ def _dispatch_data_admin_commands(args: argparse.Namespace) -> bool:
     return True
 
 
+# 维护意图：处理测试、巡检和演示重建命令
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _dispatch_test_commands(args: argparse.Namespace) -> bool:
     """处理测试、巡检和演示重建命令。"""
     if args.cmd == "api-smoke":
@@ -306,6 +324,9 @@ def _dispatch_test_commands(args: argparse.Namespace) -> bool:
     return True
 
 
+# 维护意图：处理 MEFKT 训练与 RAG 索引命令
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _dispatch_training_commands(args: argparse.Namespace) -> bool:
     """处理 MEFKT 训练与 RAG 索引命令。"""
     if args.cmd == "mefkt-status":
@@ -343,6 +364,9 @@ DISPATCH_HANDLERS = (
 )
 
 
+# 维护意图：按命令名分发 argparse 子命令
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def dispatch_command(args: argparse.Namespace) -> None:
     """按命令名分发 argparse 子命令。"""
     for handler in DISPATCH_HANDLERS:

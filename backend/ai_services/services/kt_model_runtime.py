@@ -14,9 +14,15 @@ from common.logging_utils import build_log_message
 logger = logging.getLogger("ai_services.services.kt_service")
 
 
+# 维护意图：提供本地模型推理、自动加载与可恢复异常降级
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class KTModelRuntimeMixin:
     """提供本地模型推理、自动加载与可恢复异常降级。"""
 
+    # 维护意图：加载课程知识点列表，供无历史记录时生成默认预测
+    # 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+    # 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
     def _load_course_knowledge_point_ids(self, course_id: int) -> List[int]:
         """加载课程知识点列表，供无历史记录时生成默认预测。"""
         if not course_id:
@@ -41,6 +47,9 @@ class KTModelRuntimeMixin:
             )
             return []
 
+    # 维护意图：执行单个模型预测，并在可恢复的模型异常下返回空结果
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def _run_model_prediction(
         self,
         model_type: str,
@@ -76,6 +85,9 @@ class KTModelRuntimeMixin:
             )
             return None
 
+    # 维护意图：优先使用 MEFKT 本地模型预测，失败时退回统计算法
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def _predict_with_mefkt(
         self,
         course_id: int,

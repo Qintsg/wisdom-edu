@@ -18,22 +18,37 @@ from courses.models import Course
 from tools.common import clean_nan, resolve_path
 
 
+# 维护意图：问卷导入只依赖 DataFrame 的列名和按行迭代能力
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class DataFrameLike(Protocol):
     """问卷导入只依赖 DataFrame 的列名和按行迭代能力。"""
 
     columns: Iterable[object]
 
+    # 维护意图：逐行返回索引和值映射
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def iterrows(self) -> Iterable[tuple[object, Mapping[object, object]]]:
         """逐行返回索引和值映射。"""
 
 
+# 维护意图：延迟导入 pandas 时使用的最小接口
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class PandasLike(Protocol):
     """延迟导入 pandas 时使用的最小接口。"""
 
+    # 维护意图：读取 Excel 文件并返回 DataFrame
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def read_excel(self, path: Path) -> DataFrameLike:
         """读取 Excel 文件并返回 DataFrame。"""
 
 
+# 维护意图：单个选项标签列和可选分值列
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @dataclass(frozen=True)
 class OptionColumnPair:
     """单个选项标签列和可选分值列。"""
@@ -42,6 +57,9 @@ class OptionColumnPair:
     score_col: object | None
 
 
+# 维护意图：问卷 Excel 列映射
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @dataclass(frozen=True)
 class SurveyColumnMap:
     """问卷 Excel 列映射。"""
@@ -51,6 +69,9 @@ class SurveyColumnMap:
     option_columns: dict[str, OptionColumnPair]
 
 
+# 维护意图：导入问卷题目（Excel格式）
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def import_survey_questions(
     file_path: str,
     survey_type: str,
@@ -78,6 +99,9 @@ def import_survey_questions(
     print(f'导入问卷完成：{count} 题')
 
 
+# 维护意图：延迟导入 pandas，避免普通工具命令强制依赖 Excel 栈
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def import_pandas() -> PandasLike | None:
     """延迟导入 pandas，避免普通工具命令强制依赖 Excel 栈。"""
     try:
@@ -88,6 +112,9 @@ def import_pandas() -> PandasLike | None:
     return pd
 
 
+# 维护意图：识别题干、维度、选项和分值列
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def resolve_survey_columns(columns: list[object]) -> SurveyColumnMap:
     """识别题干、维度、选项和分值列。"""
     return SurveyColumnMap(
@@ -101,6 +128,9 @@ def resolve_survey_columns(columns: list[object]) -> SurveyColumnMap:
     )
 
 
+# 维护意图：按关键字查找第一个匹配列
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def find_first_matching_column(columns: Iterable[object], keywords: Iterable[str]) -> object | None:
     """按关键字查找第一个匹配列。"""
     normalized_keywords = [keyword.lower() for keyword in keywords]
@@ -111,6 +141,9 @@ def find_first_matching_column(columns: Iterable[object], keywords: Iterable[str
     return None
 
 
+# 维护意图：解析单个选项标签和分值列
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def resolve_option_columns(columns: Iterable[object], label: str) -> OptionColumnPair | None:
     """解析单个选项标签和分值列。"""
     option_col = find_named_column(columns, [label, f'选项{label}'])
@@ -120,6 +153,9 @@ def resolve_option_columns(columns: Iterable[object], label: str) -> OptionColum
     return OptionColumnPair(option_col=option_col, score_col=score_col)
 
 
+# 维护意图：按列名精确匹配 Excel 列
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def find_named_column(columns: Iterable[object], names: Iterable[str]) -> object | None:
     """按列名精确匹配 Excel 列。"""
     expected_names = set(names)
@@ -129,6 +165,9 @@ def find_named_column(columns: Iterable[object], names: Iterable[str]) -> object
     return None
 
 
+# 维护意图：遍历 Excel 行并写入问卷题目
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def persist_survey_questions(
     *,
     dataframe: DataFrameLike,
@@ -151,6 +190,9 @@ def persist_survey_questions(
     return count
 
 
+# 维护意图：从单行 Excel 数据创建问卷题目，空题干或空选项会跳过
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def create_question_from_row(
     *,
     row: Mapping[object, object],
@@ -181,6 +223,9 @@ def create_question_from_row(
     return True
 
 
+# 维护意图：从行数据中构造有效选项列表
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_survey_options(
     row: Mapping[object, object],
     option_columns: Mapping[str, OptionColumnPair],
@@ -199,6 +244,9 @@ def build_survey_options(
     return options
 
 
+# 维护意图：解析选项分值，缺失时沿用原有倒序默认分
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def resolve_option_score(
     row: Mapping[object, object],
     score_col: object | None,
@@ -214,12 +262,18 @@ def resolve_option_score(
         return 1
 
 
+# 维护意图：解析维度列，空值返回 None
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def resolve_dimension(row: Mapping[object, object], dimension_col: object | None) -> str | None:
     """解析维度列，空值返回 None。"""
     dimension_value = clean_nan(row.get(dimension_col, '')) if dimension_col else None
     return dimension_value or None
 
 
+# 维护意图：导入能力量表（便捷方法）
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def import_ability_scale(file_path: str, course_id: Optional[int] = None) -> None:
     """导入能力量表（便捷方法）"""
     import_survey_questions(file_path, 'ability', course_id=course_id)

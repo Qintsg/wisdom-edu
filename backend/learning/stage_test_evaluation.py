@@ -23,6 +23,9 @@ from users.models import User
 logger = logging.getLogger(__name__)
 
 
+# 维护意图：读取题目、评分并记录每题作答历史
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def evaluate_stage_test(
     *,
     node: PathNode,
@@ -65,6 +68,9 @@ def evaluate_stage_test(
     )
 
 
+# 维护意图：将前端答案 key 转成题目 ID，忽略无法解析的异常 key
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def question_ids_from_answers(answers: dict[str, object]) -> list[int]:
     """将前端答案 key 转成题目 ID，忽略无法解析的异常 key。"""
     question_ids: list[int] = []
@@ -76,6 +82,9 @@ def question_ids_from_answers(answers: dict[str, object]) -> list[int]:
     return question_ids
 
 
+# 维护意图：按课程约束读取可评分题目
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def question_map_for_node(node: PathNode, question_ids: list[int]) -> dict[int, Question]:
     """按课程约束读取可评分题目。"""
     return {
@@ -87,6 +96,9 @@ def question_map_for_node(node: PathNode, question_ids: list[int]) -> dict[int, 
     }
 
 
+# 维护意图：使用统一评分工具按 100 分制计算阶段测试成绩
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def grade_stage_questions(
     answers: dict[str, object],
     questions: list[Question],
@@ -100,6 +112,9 @@ def grade_stage_questions(
     return score_questions(answers, questions, score_map=stage_score_map)
 
 
+# 维护意图：生成每题详情并写入 AnswerHistory
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_question_details(
     *,
     node: PathNode,
@@ -123,6 +138,9 @@ def build_question_details(
     return question_details
 
 
+# 维护意图：构造单题反馈详情并记录作答历史
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_single_question_detail(
     *,
     node: PathNode,
@@ -184,6 +202,9 @@ def build_single_question_detail(
     }
 
 
+# 维护意图：从题目详情中提取错题报告输入
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_detailed_mistakes(
     question_details: list[dict[str, object]],
     question_map: dict[int, Question],
@@ -196,6 +217,9 @@ def build_detailed_mistakes(
     ]
 
 
+# 维护意图：构造单道错题详情
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def mistake_detail(
     item: dict[str, object],
     question: Question | None,

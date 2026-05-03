@@ -14,9 +14,15 @@ from ai_services.services.llm_profile_path_support import (
 )
 
 
+# 维护意图：学习画像、路径规划与资源理由生成能力
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class LLMProfilePathMixin:
     """学习画像、路径规划与资源理由生成能力。"""
 
+    # 维护意图：分析学习者画像
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def analyze_profile(
         self,
         mastery_data: List[Dict],
@@ -51,6 +57,9 @@ class LLMProfilePathMixin:
         fallback = build_profile_fallback(mastery_data)
         return self._call_with_fallback(prompt, "profile_analysis", fallback)
 
+    # 维护意图：规划学习路径
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def plan_learning_path(
         self,
         mastery_data: List[Dict],
@@ -87,6 +96,9 @@ class LLMProfilePathMixin:
         fallback = build_path_fallback(mastery_data)
         return self._call_with_fallback(prompt, "path_planning", fallback)
 
+    # 维护意图：生成资源推荐理由
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def generate_resource_reason(
         self,
         resource_info: Dict,
@@ -121,11 +133,17 @@ class LLMProfilePathMixin:
             prompt, "resource_reason", fallback, temperature=0.5
         )
 
+    # 维护意图：识别薄弱知识点
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     @staticmethod
     def _identify_weakness(mastery_data: List[Dict]) -> List[str]:
         """识别薄弱知识点"""
         return identify_weaknesses(mastery_data)
 
+    # 维护意图：识别优势知识点
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     @staticmethod
     def _identify_strength(mastery_data: List[Dict]) -> List[str]:
         """识别优势知识点"""

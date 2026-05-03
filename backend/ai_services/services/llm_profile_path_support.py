@@ -4,6 +4,9 @@ import json
 from typing import Any
 
 
+# 维护意图：构造画像分析的课程上下文段落
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_profile_course_context(
     course_name: str | None,
     grade_level: str | None,
@@ -20,6 +23,9 @@ def build_profile_course_context(
     return "\n## 课程信息\n" + "\n".join(f"- {part}" for part in parts) + "\n"
 
 
+# 维护意图：将知识点掌握度列表压缩成适合 prompt 的行文本
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def format_mastery_lines(mastery_data: list[dict[str, Any]]) -> str:
     """将知识点掌握度列表压缩成适合 prompt 的行文本。"""
     return ", ".join(
@@ -30,6 +36,9 @@ def format_mastery_lines(mastery_data: list[dict[str, Any]]) -> str:
     )
 
 
+# 维护意图：汇总掌握度统计信息
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def summarize_mastery_distribution(mastery_data: list[dict[str, Any]]) -> tuple[int, float, int, int]:
     """汇总掌握度统计信息。"""
     total_points = len(mastery_data)
@@ -46,6 +55,9 @@ def summarize_mastery_distribution(mastery_data: list[dict[str, Any]]) -> tuple[
     return total_points, avg_mastery, weak_count, strong_count
 
 
+# 维护意图：识别薄弱知识点
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def identify_weaknesses(mastery_data: list[dict[str, Any]]) -> list[str]:
     """识别薄弱知识点。"""
     return [
@@ -55,6 +67,9 @@ def identify_weaknesses(mastery_data: list[dict[str, Any]]) -> list[str]:
     ][:3]
 
 
+# 维护意图：识别优势知识点
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def identify_strengths(mastery_data: list[dict[str, Any]]) -> list[str]:
     """识别优势知识点。"""
     return [
@@ -64,6 +79,9 @@ def identify_strengths(mastery_data: list[dict[str, Any]]) -> list[str]:
     ][:3]
 
 
+# 维护意图：构造学习画像分析 prompt
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_profile_prompt(
     *,
     mastery_data: list[dict[str, Any]],
@@ -117,6 +135,9 @@ def build_profile_prompt(
 4. 薄弱点和优势点要精准对应具体知识点"""
 
 
+# 维护意图：构造学习画像分析降级返回
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_profile_fallback(mastery_data: list[dict[str, Any]]) -> dict[str, Any]:
     """构造学习画像分析降级返回。"""
     return {
@@ -127,6 +148,9 @@ def build_profile_fallback(mastery_data: list[dict[str, Any]]) -> dict[str, Any]
     }
 
 
+# 维护意图：生成路径规划所需的掌握度摘要
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def summarize_path_strengths_and_weaknesses(
     mastery_data: list[dict[str, Any]],
 ) -> tuple[str, list[str], list[str]]:
@@ -150,6 +174,9 @@ def summarize_path_strengths_and_weaknesses(
     return mastery_text, weak_points, strong_points
 
 
+# 维护意图：格式化路径规划约束说明
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_path_constraints_text(constraints: dict[str, Any] | None) -> str:
     """格式化路径规划约束说明。"""
     if not constraints:
@@ -191,6 +218,9 @@ def build_path_constraints_text(constraints: dict[str, Any] | None) -> str:
     return "\n".join(f"- {part}" for part in parts)
 
 
+# 维护意图：构造学习路径规划 prompt
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_path_prompt(
     *,
     mastery_data: list[dict[str, Any]],
@@ -241,6 +271,9 @@ def build_path_prompt(
 }}"""
 
 
+# 维护意图：构造学习路径规划降级返回
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_path_fallback(mastery_data: list[dict[str, Any]]) -> dict[str, Any]:
     """构造学习路径规划降级返回。"""
     weak_point_list = [
@@ -272,6 +305,9 @@ def build_path_fallback(mastery_data: list[dict[str, Any]]) -> dict[str, Any]:
     }
 
 
+# 维护意图：根据掌握度返回阶段标签和描述
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def resolve_learning_stage(student_mastery: float | None) -> tuple[str, str]:
     """根据掌握度返回阶段标签和描述。"""
     if student_mastery is None:
@@ -285,6 +321,9 @@ def resolve_learning_stage(student_mastery: float | None) -> tuple[str, str]:
     return "精通", "可以挑战高级内容和拓展知识"
 
 
+# 维护意图：构造资源推荐理由 prompt
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_resource_reason_prompt(
     *,
     resource_info: dict[str, Any],
@@ -316,6 +355,9 @@ def build_resource_reason_prompt(
 }}"""
 
 
+# 维护意图：构造资源推荐理由降级返回
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_resource_reason_fallback(
     *,
     resource_info: dict[str, Any],

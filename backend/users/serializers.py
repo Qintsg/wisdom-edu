@@ -9,9 +9,15 @@ from django.contrib.auth.password_validation import validate_password
 from .models import User, HabitPreference, ActivationCode, ClassInvitation
 
 
+# 维护意图：用户序列化器
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class UserSerializer(serializers.ModelSerializer):
     """用户序列化器"""
 
+    # 维护意图：声明用户基础信息的输出字段
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     class Meta:
         """声明用户基础信息的输出字段。"""
         model = User
@@ -20,17 +26,26 @@ class UserSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'date_joined']
 
 
+# 维护意图：用户注册序列化器
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class UserRegisterSerializer(serializers.ModelSerializer):
     """用户注册序列化器"""
     password = serializers.CharField(write_only=True, validators=[validate_password])
     real_name = serializers.CharField(required=False, allow_blank=True)
     student_id = serializers.CharField(required=False, allow_blank=True)
 
+    # 维护意图：声明注册接口允许写入的用户字段
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     class Meta:
         """声明注册接口允许写入的用户字段。"""
         model = User
         fields = ['username', 'password', 'email', 'role', 'real_name', 'student_id']
 
+    # 维护意图：根据注册载荷创建用户账号
+    # 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+    # 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
     @staticmethod
     def create(validated_data):
         """根据注册载荷创建用户账号。"""
@@ -45,9 +60,15 @@ class UserRegisterSerializer(serializers.ModelSerializer):
         return user
 
 
+# 维护意图：自定义JWT Token序列化器
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     """自定义JWT Token序列化器"""
 
+    # 维护意图：在 JWT 中补充角色和用户名声明
+    # 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+    # 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
     @classmethod
     def get_token(cls, user):
         """在 JWT 中补充角色和用户名声明。"""
@@ -57,9 +78,15 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         return token
 
 
+# 维护意图：学习习惯偏好序列化器
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class HabitPreferenceSerializer(serializers.ModelSerializer):
     """学习习惯偏好序列化器"""
 
+    # 维护意图：声明学习习惯偏好可读写字段
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     class Meta:
         """声明学习习惯偏好可读写字段。"""
         model = HabitPreference
@@ -70,6 +97,9 @@ class HabitPreferenceSerializer(serializers.ModelSerializer):
         read_only_fields = ['updated_at']
 
 
+# 维护意图：学习者画像序列化器
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class ProfileSerializer(serializers.Serializer):
     """学习者画像序列化器"""
     knowledge_mastery = serializers.ListField()
@@ -79,6 +109,9 @@ class ProfileSerializer(serializers.Serializer):
     last_update = serializers.DateTimeField()
 
 
+# 维护意图：激活码序列化器
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class ActivationCodeSerializer(serializers.ModelSerializer):
     """激活码序列化器"""
     created_by_username = serializers.CharField(
@@ -88,6 +121,9 @@ class ActivationCodeSerializer(serializers.ModelSerializer):
         source='used_by.username', read_only=True, default=None, allow_null=True
     )
 
+    # 维护意图：声明激活码列表展示所需字段
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     class Meta:
         """声明激活码列表展示所需字段。"""
         model = ActivationCode
@@ -96,6 +132,9 @@ class ActivationCodeSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'code', 'is_used', 'used_at', 'created_at']
 
 
+# 维护意图：班级邀请码序列化器
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class ClassInvitationSerializer(serializers.ModelSerializer):
     """班级邀请码序列化器"""
     class_name = serializers.CharField(source='class_obj.name', read_only=True)
@@ -107,6 +146,9 @@ class ClassInvitationSerializer(serializers.ModelSerializer):
     )
     is_valid = serializers.SerializerMethodField()
 
+    # 维护意图：声明班级邀请码的管理端输出字段
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     class Meta:
         """声明班级邀请码的管理端输出字段。"""
         model = ClassInvitation
@@ -115,6 +157,9 @@ class ClassInvitationSerializer(serializers.ModelSerializer):
                   'is_valid', 'created_by_username', 'created_at']
         read_only_fields = ['id', 'code', 'use_count', 'created_at']
 
+    # 维护意图：返回当前邀请码是否仍可使用
+    # 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+    # 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
     @staticmethod
     def get_is_valid(obj):
         """返回当前邀请码是否仍可使用。"""

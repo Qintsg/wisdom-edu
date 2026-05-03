@@ -8,9 +8,15 @@ from rest_framework import serializers
 from .models import KnowledgePoint, KnowledgeRelation, Resource, KnowledgeMastery
 
 
+# 维护意图：知识点序列化器
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class KnowledgePointSerializer(serializers.ModelSerializer):
     """知识点序列化器"""
 
+    # 维护意图：声明知识点基础信息的读写字段
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     class Meta:
         """声明知识点基础信息的读写字段。"""
         model = KnowledgePoint
@@ -21,6 +27,9 @@ class KnowledgePointSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'created_at', 'updated_at']
 
 
+# 维护意图：知识点详情序列化器（含关联资源）
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class KnowledgePointDetailSerializer(serializers.ModelSerializer):
     """知识点详情序列化器（含关联资源）"""
 
@@ -29,6 +38,9 @@ class KnowledgePointDetailSerializer(serializers.ModelSerializer):
     postrequisites = serializers.SerializerMethodField()
     resources = serializers.SerializerMethodField()
 
+    # 维护意图：声明知识点详情页需要输出的聚合字段
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     class Meta:
         """声明知识点详情页需要输出的聚合字段。"""
         model = KnowledgePoint
@@ -36,6 +48,9 @@ class KnowledgePointDetailSerializer(serializers.ModelSerializer):
                   'level', 'tags', 'cognitive_dimension', 'category', 'teaching_goal',
                   'mastery_rate', 'prerequisites', 'postrequisites', 'resources']
 
+    # 维护意图：读取当前请求用户对该知识点的掌握度
+    # 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+    # 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
     def get_mastery_rate(self, obj):
         """读取当前请求用户对该知识点的掌握度。"""
         request = self.context.get('request')
@@ -47,6 +62,9 @@ class KnowledgePointDetailSerializer(serializers.ModelSerializer):
             return float(mastery.mastery_rate) if mastery else 0
         return 0
 
+    # 维护意图：返回该知识点的前置知识点列表
+    # 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+    # 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
     @staticmethod
     def get_prerequisites(obj):
         """返回该知识点的前置知识点列表。"""
@@ -59,6 +77,9 @@ class KnowledgePointDetailSerializer(serializers.ModelSerializer):
             for relation in relations
         ]
 
+    # 维护意图：返回该知识点的后续知识点列表
+    # 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+    # 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
     @staticmethod
     def get_postrequisites(obj):
         """返回该知识点的后续知识点列表。"""
@@ -71,6 +92,9 @@ class KnowledgePointDetailSerializer(serializers.ModelSerializer):
             for relation in relations
         ]
 
+    # 维护意图：获取关联资源列表（包含视频时长等信息）
+    # 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+    # 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
     @staticmethod
     def get_resources(obj):
         """获取关联资源列表（包含视频时长等信息）"""
@@ -103,15 +127,24 @@ class KnowledgePointDetailSerializer(serializers.ModelSerializer):
         return result
 
 
+# 维护意图：知识点关系序列化器
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class KnowledgeRelationSerializer(serializers.ModelSerializer):
     """知识点关系序列化器"""
 
+    # 维护意图：声明知识点关系记录的基础输出字段
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     class Meta:
         """声明知识点关系记录的基础输出字段。"""
         model = KnowledgeRelation
         fields = ['id', 'course', 'pre_point', 'post_point', 'relation_type']
 
 
+# 维护意图：知识图谱序列化器
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class KnowledgeMapSerializer(serializers.Serializer):
     """知识图谱序列化器"""
 
@@ -119,6 +152,9 @@ class KnowledgeMapSerializer(serializers.Serializer):
     edges = serializers.ListField()
 
 
+# 维护意图：资源序列化器
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class ResourceSerializer(serializers.ModelSerializer):
     """资源序列化器"""
 
@@ -130,6 +166,9 @@ class ResourceSerializer(serializers.ModelSerializer):
     format = serializers.SerializerMethodField()
     duration_display = serializers.SerializerMethodField()
 
+    # 维护意图：声明资源管理接口需要暴露的字段
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     class Meta:
         """声明资源管理接口需要暴露的字段。"""
         model = Resource
@@ -140,6 +179,9 @@ class ResourceSerializer(serializers.ModelSerializer):
                   'uploaded_by', 'created_at', 'updated_at']
         read_only_fields = ['id', 'uploaded_by', 'created_at', 'updated_at']
 
+    # 维护意图：获取资源文件格式
+    # 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+    # 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
     @staticmethod
     def get_format(obj):
         """获取资源文件格式"""
@@ -149,6 +191,9 @@ class ResourceSerializer(serializers.ModelSerializer):
             return 'url'
         return ''
 
+    # 维护意图：获取格式化的时长显示（如 "05:30"）
+    # 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+    # 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
     @staticmethod
     def get_duration_display(obj):
         """获取格式化的时长显示（如 "05:30"）"""
@@ -162,12 +207,18 @@ class ResourceSerializer(serializers.ModelSerializer):
             return None
 
 
+# 维护意图：知识图谱导入序列化器
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class KnowledgeMapImportSerializer(serializers.Serializer):
     """知识图谱导入序列化器"""
 
     file = serializers.FileField()
 
 
+# 维护意图：知识图谱发布序列化器
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class KnowledgeMapPublishSerializer(serializers.Serializer):
     """知识图谱发布序列化器"""
 
@@ -176,6 +227,9 @@ class KnowledgeMapPublishSerializer(serializers.Serializer):
 
 
 # KnowledgePointCreateSerializer 序列化器：数据验证与转换
+# 维护意图：知识点创建序列化器
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class KnowledgePointCreateSerializer(serializers.Serializer):
     """知识点创建序列化器"""
     course_id = serializers.IntegerField()

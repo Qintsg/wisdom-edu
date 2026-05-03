@@ -6,6 +6,9 @@ import re
 from typing import Any, Iterable
 
 
+# 维护意图：计算知识点掌握度。
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def calculate_mastery(correct_count: int | float, total_count: int | float) -> float:
     """
     计算知识点掌握度。
@@ -19,6 +22,9 @@ def calculate_mastery(correct_count: int | float, total_count: int | float) -> f
     return round(correct_count / total_count, 3)
 
 
+# 维护意图：解析 JSONField 中的真实答案值。
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def extract_answer_value(answer: Any) -> Any:
     """
     解析 JSONField 中的真实答案值。
@@ -34,6 +40,9 @@ def extract_answer_value(answer: Any) -> Any:
     return answer
 
 
+# 维护意图：将文本答案规整为用于比较的大小写无关形式
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def _normalize_text_answer(value: Any) -> str:
     """将文本答案规整为用于比较的大小写无关形式。"""
     if value is None:
@@ -43,6 +52,9 @@ def _normalize_text_answer(value: Any) -> str:
     return re.sub(r"\s+", " ", str(value)).strip().upper()
 
 
+# 维护意图：将单选/多选答案规整为去重后的选项值列表
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def _normalize_option_values(answer: Any) -> list[str]:
     """将单选/多选答案规整为去重后的选项值列表。"""
     value = extract_answer_value(answer)
@@ -64,6 +76,9 @@ def _normalize_option_values(answer: Any) -> list[str]:
     return sorted(set(normalized))
 
 
+# 维护意图：将中英文真假值规整为布尔值
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def _normalize_boolean_answer(answer: Any) -> bool | None:
     """将中英文真假值规整为布尔值。"""
     value = _normalize_text_answer(extract_answer_value(answer))
@@ -74,6 +89,9 @@ def _normalize_boolean_answer(answer: Any) -> bool | None:
     return None
 
 
+# 维护意图：判断单道题目的答案正误。
+# 边界说明：校验边界集中在这里，避免非法输入进入业务主流程。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def check_answer(question_type: str, student_answer: Any, correct_answer: Any) -> bool:
     """
     判断单道题目的答案正误。
@@ -109,6 +127,9 @@ def check_answer(question_type: str, student_answer: Any, correct_answer: Any) -
     return False
 
 
+# 维护意图：根据原始权重构建归一化后的题目分值。
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_normalized_score_map(
     score_items: Iterable[tuple[Any, Any]],
     target_total_score: float | None = None,
@@ -153,6 +174,9 @@ def build_normalized_score_map(
     return score_map
 
 
+# 维护意图：统一评分入口，支持显式题目权重。
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def score_questions(
     answers: dict[str, Any], questions: Iterable[Any], score_map: dict[str, float] | None = None
 ) -> dict[str, Any]:
@@ -234,6 +258,9 @@ def score_questions(
     }
 
 
+# 维护意图：兼容旧调用的自动评分入口。
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def grade_exam(
     answers: dict[str, Any], questions: Iterable[Any], score_map: dict[str, float] | None = None
 ) -> tuple[float, list[dict[str, Any]], dict[int, dict[str, Any]]]:

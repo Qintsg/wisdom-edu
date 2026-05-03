@@ -18,9 +18,15 @@ from learning.models import LearningPath, NodeProgress, PathNode
 from users.models import HabitPreference, User, UserCourseContext
 
 
+# 维护意图：Guard the completeness and idempotency of defense-demo preset data
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class DefenseDemoPresetTests(TestCase):
 	"""Guard the completeness and idempotency of defense-demo preset data."""
 
+	# 维护意图：Create the primary course and seed the deterministic defense-demo environment
+	# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+	# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 	def setUp(self):
 		"""Create the primary course and seed the deterministic defense-demo environment."""
 		ensure_defense_demo_accounts()
@@ -34,6 +40,9 @@ class DefenseDemoPresetTests(TestCase):
 		self.warmup_student = User.objects.get(username=DEFENSE_DEMO_WARMUP_STUDENT_USERNAME)
 		self.primary_student = User.objects.get(username=DEFENSE_DEMO_PRIMARY_STUDENT_USERNAME)
 
+	# 维护意图：The warmup account should expose assessment, profile, path and completed stage-test artifacts
+	# 边界说明：测试步骤保持显式，便于定位回归阶段和失败上下文。
+	# 风险说明：调整测试断言时，需保留失败上下文和可复现实例。
 	def test_warmup_student_should_receive_full_preset_journey(self):
 		"""The warmup account should expose assessment, profile, path and completed stage-test artifacts."""
 		assessment_status = AssessmentStatus.objects.get(
@@ -67,6 +76,9 @@ class DefenseDemoPresetTests(TestCase):
 		self.assertEqual(len(stage_progress.extra_data["stage_test_result"]["question_details"]), 3)
 		self.assertEqual(context.current_course_id, self.course.id)
 
+	# 维护意图：Running the preset seeding repeatedly should stay idempotent for demo accounts
+	# 边界说明：测试步骤保持显式，便于定位回归阶段和失败上下文。
+	# 风险说明：调整测试断言时，需保留失败上下文和可复现实例。
 	def test_reseeding_should_not_duplicate_demo_histories_or_paths(self):
 		"""Running the preset seeding repeatedly should stay idempotent for demo accounts."""
 		ensure_defense_demo_environment(self.course.name)
@@ -113,6 +125,9 @@ class DefenseDemoPresetTests(TestCase):
 			3,
 		)
 
+	# 维护意图：Primary defense-demo course config should expose ready-to-run AI assistant prompts
+	# 边界说明：测试步骤保持显式，便于定位回归阶段和失败上下文。
+	# 风险说明：调整测试断言时，需保留失败上下文和可复现实例。
 	def test_primary_course_should_include_ai_demo_queries(self):
 		"""Primary defense-demo course config should expose ready-to-run AI assistant prompts."""
 		defense_demo_config = self.course.config.get("defense_demo", {})
@@ -128,6 +143,9 @@ class DefenseDemoPresetTests(TestCase):
 			)
 		)
 
+	# 维护意图：student2~5 should be in the demo class but keep a pristine first-entry state
+	# 边界说明：测试步骤保持显式，便于定位回归阶段和失败上下文。
+	# 风险说明：调整测试断言时，需保留失败上下文和可复现实例。
 	def test_course_only_students_should_stay_enrolled_without_primary_course_traces(self):
 		"""student2~5 should be in the demo class but keep a pristine first-entry state."""
 		for student_spec in DEFENSE_DEMO_COURSE_ONLY_STUDENT_SPECS:

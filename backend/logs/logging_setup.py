@@ -47,6 +47,9 @@ MODULE_DISPLAY = {
 }
 
 
+# 维护意图：带 ANSI 颜色的控制台日志格式化器
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class ColorFormatter(logging.Formatter):
     """带 ANSI 颜色的控制台日志格式化器。"""
 
@@ -60,6 +63,9 @@ class ColorFormatter(logging.Formatter):
     RESET = "\033[0m"
     DIM = "\033[2m"
 
+    # 维护意图：Render colored console output for debug log records
+    # 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+    # 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
     def format(self, record: logging.LogRecord) -> str:
         """Render colored console output for debug log records."""
         color = self.COLORS.get(record.levelname, self.RESET)
@@ -68,6 +74,9 @@ class ColorFormatter(logging.Formatter):
         return f"{self.DIM}{timestamp}{self.RESET} {tag} {record.name} | {record.getMessage()}"
 
 
+# 维护意图：创建或复用操作日志文件 logger
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def _build_operation_logger() -> logging.Logger:
     """创建或复用操作日志文件 logger。"""
     logger = logging.getLogger("operation_logs")
@@ -85,6 +94,9 @@ def _build_operation_logger() -> logging.Logger:
     return logger
 
 
+# 维护意图：创建或复用 DEBUG 请求日志 logger
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def _build_debug_logger() -> logging.Logger:
     """创建或复用 DEBUG 请求日志 logger。"""
     logger = logging.getLogger("debug_logs")

@@ -22,6 +22,9 @@ from .models import Assessment, AssessmentResult, AssessmentStatus
 logger = logging.getLogger(__name__)
 
 
+# 维护意图：在知识测评提交后异步完成耗时操作。
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def async_generate_after_assessment(
     user_id: int,
     course_id: int | str,

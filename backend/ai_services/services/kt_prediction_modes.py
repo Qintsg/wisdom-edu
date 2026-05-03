@@ -16,9 +16,15 @@ from ai_services.services.kt_prediction_stats import KTPredictionStatsMixin
 logger = logging.getLogger("ai_services.services.kt_service")
 
 
+# 维护意图：提供 KT 公开预测入口、融合策略与学习建议生成
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class KTPredictionModeMixin(KTPredictionStatsMixin):
     """提供 KT 公开预测入口、融合策略与学习建议生成。"""
 
+    # 维护意图：根据配置模式预测学生对知识点的掌握程度
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def predict_mastery(
         self,
         user_id: int,
@@ -68,6 +74,9 @@ class KTPredictionModeMixin(KTPredictionStatsMixin):
             )
             return self._attach_prediction_metadata(result, answer_history)
 
+    # 维护意图：仅使用一个启用模型预测，模型不可用时降级到内置算法
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def _single_model_predict(
         self,
         _user_id: int,
@@ -101,6 +110,9 @@ class KTPredictionModeMixin(KTPredictionStatsMixin):
             _user_id, course_id, answer_history, knowledge_points
         )
 
+    # 维护意图：调用所有启用模型并返回各模型独立结果，不做融合
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def _ensemble_predict(
         self,
         _user_id: int,
@@ -155,6 +167,9 @@ class KTPredictionModeMixin(KTPredictionStatsMixin):
             "analysis": f"集成{len(active_models)}个模型（{model_names}）分析了{num_questions}次答题记录（各模型独立预测）",
         }
 
+    # 维护意图：调用所有启用模型，并按配置权重融合预测结果
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def _fusion_predict(
         self,
         _user_id: int,
@@ -203,6 +218,9 @@ class KTPredictionModeMixin(KTPredictionStatsMixin):
             "analysis": f"融合{len(active_models)}个模型（{model_names}）分析了{num_questions}次答题记录",
         }
 
+    # 维护意图：使用加权平均融合各模型的知识点预测结果
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def _fuse_predictions(
         self, model_results: Dict[str, Optional[Dict[str, Any]]]
     ) -> Dict[int, float]:
@@ -230,6 +248,9 @@ class KTPredictionModeMixin(KTPredictionStatsMixin):
 
         return fused
 
+    # 维护意图：使用内置统计算法进行掌握度预测
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def _builtin_prediction(
         self,
         _user_id: int,
@@ -248,6 +269,9 @@ class KTPredictionModeMixin(KTPredictionStatsMixin):
             "analysis": "使用内置统计算法进行掌握度分析",
         }
 
+    # 维护意图：批量预测多个用户的掌握度
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def batch_predict(
         self, user_histories: List[Dict[str, Any]]
     ) -> List[Dict[str, Any]]:
@@ -269,6 +293,9 @@ class KTPredictionModeMixin(KTPredictionStatsMixin):
 
         return results
 
+    # 维护意图：基于掌握度预测生成学习建议列表
+    # 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+    # 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
     def get_learning_recommendations(
         self,
         _user_id: int,

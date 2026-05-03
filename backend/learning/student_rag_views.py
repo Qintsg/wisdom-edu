@@ -11,6 +11,9 @@ from common.responses import error_response, success_response
 from .student_rag_support import build_ai_resource_payload, get_student_path_node
 
 
+# 维护意图：Return resource recommendations for a learning-path node
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def get_ai_resources(request: Request, node_id: int) -> Response:

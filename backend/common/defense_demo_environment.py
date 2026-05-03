@@ -31,6 +31,9 @@ from common.defense_demo_progress import _capture_mastery_snapshot
 from common.defense_demo_stage import ensure_warmup_stage_submission_and_feedback
 from common.defense_demo_stage_result import build_demo_stage_test_result
 
+# 维护意图：创建演示账号、班级与固定学习链路。
+# 边界说明：校验边界集中在这里，避免非法输入进入业务主流程。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def ensure_defense_demo_environment(primary_course_name: str) -> dict[str, int]:
     """
     创建演示账号、班级与固定学习链路。

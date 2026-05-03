@@ -11,6 +11,9 @@ from ai_services.services import llm_service
 from .models import KnowledgePoint
 
 
+# 维护意图：知识点简介载荷
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class KnowledgePointIntro(TypedDict):
     """知识点简介载荷。"""
 
@@ -21,6 +24,9 @@ class KnowledgePointIntro(TypedDict):
     sources: list[str]
 
 
+# 维护意图：为知识点生成稳定兜底简介
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_intro_fallback(point: KnowledgePoint) -> KnowledgePointIntro:
     """为知识点生成稳定兜底简介。"""
 
@@ -35,6 +41,9 @@ def build_intro_fallback(point: KnowledgePoint) -> KnowledgePointIntro:
     }
 
 
+# 维护意图：获取知识点简介，缺失时再调用模型生成并写回数据库
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 def get_or_generate_point_intro(point: KnowledgePoint) -> KnowledgePointIntro:
     """获取知识点简介，缺失时再调用模型生成并写回数据库。"""
 

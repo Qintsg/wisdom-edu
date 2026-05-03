@@ -99,6 +99,9 @@ FIELD_LABEL_MAP = {
 }
 
 
+# 维护意图：Convert structured field values into compact single-line log fragments
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def _normalize_log_value(value: Any, max_len: int = 240) -> str:
     """Convert structured field values into compact single-line log fragments."""
     if isinstance(value, (dict, list, tuple, set)):
@@ -111,6 +114,9 @@ def _normalize_log_value(value: Any, max_len: int = 240) -> str:
     return text
 
 
+# 维护意图：Translate machine-friendly event codes into readable Chinese labels
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _humanize_event(event: str) -> str:
     """Translate machine-friendly event codes into readable Chinese labels."""
     parts = [part for part in re.split(r'[._-]+', event or '') if part]
@@ -119,6 +125,9 @@ def _humanize_event(event: str) -> str:
     return ''.join(EVENT_TOKEN_MAP.get(part.lower(), part) for part in parts)
 
 
+# 维护意图：Build a consistent key-value log line for service and infra events
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_log_message(event: str, **fields: Any) -> str:
     """Build a consistent key-value log line for service and infra events."""
     parts = [f"事件={_humanize_event(event)}", f"事件码={event}"]
@@ -131,6 +140,9 @@ def build_log_message(event: str, **fields: Any) -> str:
     return " | ".join(parts)
 
 
+# 维护意图：Emit a formatted event line through the provided logger instance
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def log_event(logger: logging.Logger, level: int, event: str, **fields: Any) -> None:
     """Emit a formatted event line through the provided logger instance."""
     logger.log(level, build_log_message(event, **fields))

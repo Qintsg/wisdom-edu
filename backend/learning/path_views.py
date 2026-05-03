@@ -17,6 +17,9 @@ from learning.path_adjustment import (
 )
 from learning.view_helpers import _get_authenticated_user, _serialize_path_nodes
 
+# 维护意图：获取个性化学习路径 GET /api/learning-path
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def get_learning_path(request):
@@ -86,6 +89,9 @@ def get_learning_path(request):
     )
 
 
+# 维护意图：刷新/调整学习路径 POST /api/learning-path/adjust
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def adjust_learning_path(request):
@@ -124,6 +130,9 @@ def adjust_learning_path(request):
     )
 
 
+# 维护意图：生成初始学习路径
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def generate_initial_path(user, course_id):
     """生成初始学习路径"""
     from courses.models import Course

@@ -15,6 +15,9 @@ from platform_ai.kt import knowledge_tracing_facade
 logger = logging.getLogger(__name__)
 
 
+# 维护意图：Run single-student mastery prediction from the compatibility endpoint
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def kt_predict(request):
@@ -43,6 +46,9 @@ def kt_predict(request):
     return success_response(data=result)
 
 
+# 维护意图：Expose active KT model metadata for frontend capability checks
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def kt_model_info(request):
@@ -50,6 +56,9 @@ def kt_model_info(request):
     return success_response(data=knowledge_tracing_facade.get_model_info())
 
 
+# 维护意图：Run batch mastery prediction for teacher-side cohort analysis
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["POST"])
 @permission_classes([IsAuthenticated, IsTeacherOrAdmin])
 def kt_batch_predict(request):
@@ -69,6 +78,9 @@ def kt_batch_predict(request):
     return success_response(data={"results": results})
 
 
+# 维护意图：Translate KT prediction output into learner-facing study recommendations
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def kt_recommendations(request):

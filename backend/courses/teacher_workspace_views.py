@@ -13,6 +13,9 @@ from common.responses import created_response, error_response, forbidden_respons
 from .models import Class, ClassCourse, Course
 
 
+# 维护意图：返回教师课程工作台聚合数据
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["GET"])
 @permission_classes([IsAuthenticated, IsTeacherOrAdmin])
 def course_workspace(request, course_id: int):
@@ -28,6 +31,9 @@ def course_workspace(request, course_id: int):
     return success_response(data=build_course_workspace(course, request.user))
 
 
+# 维护意图：标准化班级创建，兼容 `name` 和 `class_name`
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["POST"])
 @permission_classes([IsAuthenticated, IsTeacherOrAdmin])
 def class_create(request):
@@ -70,6 +76,9 @@ def class_create(request):
         return error_response(msg=f"创建失败: {exc}", code=500)
 
 
+# 维护意图：标准化班级列表，支持按课程上下文筛选
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["GET"])
 @permission_classes([IsAuthenticated, IsTeacherOrAdmin])
 def my_classes(request):

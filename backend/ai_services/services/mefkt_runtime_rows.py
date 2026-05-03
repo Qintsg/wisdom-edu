@@ -21,6 +21,9 @@ NormalizeValues = Callable[[list[float], float], list[float]]
 ClampValue = Callable[[float], float]
 
 
+# 维护意图：根据邻接矩阵估计每道题的邻域平均难度
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_neighbor_difficulty_tensor(
     adjacency_matrix: Tensor,
     difficulty_values_raw: list[float],
@@ -37,6 +40,9 @@ def build_neighbor_difficulty_tensor(
     )
 
 
+# 维护意图：构造关系统计张量
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_relation_stats_matrix(
     graph_stats: GraphStatisticsBundle,
     normalize_values: NormalizeValues,
@@ -63,6 +69,9 @@ def build_relation_stats_matrix(
     )
 
 
+# 维护意图：构造单题运行时特征行
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_single_feature_row(
     *,
     question: QuestionLike,
@@ -98,6 +107,9 @@ def build_single_feature_row(
     return feature_row, response_time_proxy, type_index
 
 
+# 维护意图：按 MEFKT 节点特征 schema 生成可索引的特征字典
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_feature_value_map(
     *,
     question: QuestionLike,
@@ -130,6 +142,9 @@ def build_feature_value_map(
     }
 
 
+# 维护意图：把题目元特征整理成模型输入张量所需的列表
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_runtime_feature_rows(
     *,
     questions: list[QuestionLike],
@@ -162,6 +177,9 @@ def build_runtime_feature_rows(
     return row_builder.to_tuple(preparation.scales.difficulty_values_raw)
 
 
+# 维护意图：保存模型输入行、题型索引与响应时间代理值
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class RuntimeFeatureRowCollector:
     """保存模型输入行、题型索引与响应时间代理值。"""
 
@@ -171,6 +189,9 @@ class RuntimeFeatureRowCollector:
         self.feature_rows: list[list[float]] = []
         self.type_indices: list[int] = []
 
+    # 维护意图：追加一道题的模型输入行
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def add_row(
         self,
         *,
@@ -200,6 +221,9 @@ class RuntimeFeatureRowCollector:
         self.feature_rows.append(feature_row)
         self.type_indices.append(type_index)
 
+    # 维护意图：按运行时调用方既有顺序返回特征元组
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def to_tuple(
         self,
         difficulty_values_raw: list[float],

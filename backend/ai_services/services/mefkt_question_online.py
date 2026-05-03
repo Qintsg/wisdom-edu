@@ -19,6 +19,9 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
+# 维护意图：题目级在线预测所需的运行时状态
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @dataclass(frozen=True)
 class QuestionOnlinePredictionInput:
     """题目级在线预测所需的运行时状态。"""
@@ -38,6 +41,9 @@ class QuestionOnlinePredictionInput:
     device: TorchDevice | str
 
 
+# 维护意图：题目级在线推理临时模型
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @dataclass(frozen=True)
 class QuestionOnlineModelBundle:
     """题目级在线推理临时模型。"""
@@ -46,6 +52,9 @@ class QuestionOnlineModelBundle:
     sequence_embedding_dim: int
 
 
+# 维护意图：执行题目级在线部署预测，并聚合回知识点掌握度
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def predict_question_online(input_payload: QuestionOnlinePredictionInput) -> dict[str, object]:
     """执行题目级在线部署预测，并聚合回知识点掌握度。"""
     import torch
@@ -83,6 +92,9 @@ def predict_question_online(input_payload: QuestionOnlinePredictionInput) -> dic
     )
 
 
+# 维护意图：构造图编码器、属性编码器、融合层和序列模型
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def _build_online_model_bundle(
     input_payload: QuestionOnlinePredictionInput,
 ) -> QuestionOnlineModelBundle:
@@ -114,6 +126,9 @@ def _build_online_model_bundle(
     )
 
 
+# 维护意图：根据课程题图静态特征生成题目融合 embedding
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def _build_fused_question_embedding(input_payload: QuestionOnlinePredictionInput):
     """根据课程题图静态特征生成题目融合 embedding。"""
     import torch
@@ -157,6 +172,9 @@ def _build_fused_question_embedding(input_payload: QuestionOnlinePredictionInput
     )
 
 
+# 维护意图：运行图编码、属性编码和线性融合
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _encode_fused_embedding(
     *,
     torch_module,
@@ -188,11 +206,17 @@ def _encode_fused_embedding(
         return fusion_layer(struct_embedding, attribute_result.embedding)
 
 
+# 维护意图：读取元数据整数配置
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _metadata_int(metadata: dict[str, object], key: str, default: int) -> int:
     """读取元数据整数配置。"""
     return _coerce_int(metadata.get(key), default)
 
 
+# 维护意图：解析本次预测需要输出的知识点集合
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def _resolve_target_point_ids(input_payload: QuestionOnlinePredictionInput) -> set[int]:
     """解析本次预测需要输出的知识点集合。"""
     target_point_ids = set(int(point_id) for point_id in (input_payload.knowledge_point_ids or []))
@@ -203,6 +227,9 @@ def _resolve_target_point_ids(input_payload: QuestionOnlinePredictionInput) -> s
     return target_point_ids
 
 
+# 维护意图：从历史作答记录中推导目标知识点
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _points_from_answer_history(input_payload: QuestionOnlinePredictionInput) -> set[int]:
     """从历史作答记录中推导目标知识点。"""
     target_point_ids: set[int] = set()
@@ -218,6 +245,9 @@ def _points_from_answer_history(input_payload: QuestionOnlinePredictionInput) ->
     return target_point_ids
 
 
+# 维护意图：将目标知识点映射到候选题节点索引
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def _resolve_candidate_question_indices(
     target_point_ids: set[int],
     bundle: CourseQuestionRuntimeBundle,
@@ -232,6 +262,9 @@ def _resolve_candidate_question_indices(
     )
 
 
+# 维护意图：课程题图无法关联目标知识点时的稳定响应
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _empty_question_online_response() -> dict[str, object]:
     """课程题图无法关联目标知识点时的稳定响应。"""
     return {
@@ -242,6 +275,9 @@ def _empty_question_online_response() -> dict[str, object]:
     }
 
 
+# 维护意图：用序列模型预测候选题正确概率
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _predict_candidate_questions(
     *,
     input_payload: QuestionOnlinePredictionInput,
@@ -282,6 +318,9 @@ def _predict_candidate_questions(
     )
 
 
+# 维护意图：将题节点索引概率映射回题目 ID
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def _build_per_question_predictions(
     bundle: CourseQuestionRuntimeBundle,
     candidate_question_indices: list[int],
@@ -298,6 +337,9 @@ def _build_per_question_predictions(
     }
 
 
+# 维护意图：将题目概率聚合为知识点掌握度
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _aggregate_point_predictions(
     *,
     bundle: CourseQuestionRuntimeBundle,
@@ -318,6 +360,9 @@ def _aggregate_point_predictions(
     return predictions
 
 
+# 维护意图：读取知识点关联题目的预测概率，必要时使用代表题兜底
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _point_probabilities(
     *,
     bundle: CourseQuestionRuntimeBundle,
@@ -340,6 +385,9 @@ def _point_probabilities(
     return [per_question_predictions.get(representative_question_id, 0.35)]
 
 
+# 维护意图：构造题目级在线部署预测响应
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _question_online_response(
     *,
     input_payload: QuestionOnlinePredictionInput,

@@ -31,9 +31,15 @@ from platform_ai.rag.runtime import (
 from tools.kt_synthetic import _build_kp_profiles, _simulate_student_sequence
 from users.models import User
 
+# 维护意图：Cover MEFKT model registration, metadata and runtime loading
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class MEFKTServiceTests(SimpleTestCase):
     """Cover MEFKT model registration, metadata and runtime loading."""
 
+    # 维护意图：KT model-info payload should list MEFKT as an optional model
+    # 边界说明：测试步骤保持显式，便于定位回归阶段和失败上下文。
+    # 风险说明：调整测试断言时，需保留失败上下文和可复现实例。
     def test_kt_service_model_info_should_expose_mefkt_config(self):
         """KT model-info payload should list MEFKT as an optional model."""
         from ai_services.services.kt_service import KnowledgeTracingService
@@ -52,6 +58,9 @@ class MEFKTServiceTests(SimpleTestCase):
         )
         self.assertTrue(info["models"]["mefkt"]["is_enabled"])
 
+    # 维护意图：A minimal MEFKT checkpoint should be loadable for KT prediction
+    # 边界说明：测试步骤保持显式，便于定位回归阶段和失败上下文。
+    # 风险说明：调整测试断言时，需保留失败上下文和可复现实例。
     def test_mefkt_predictor_should_load_checkpoint_and_return_predictions(self):
         """A minimal MEFKT checkpoint should be loadable for KT prediction."""
         import json
@@ -113,6 +122,9 @@ class MEFKTServiceTests(SimpleTestCase):
             self.assertIn(102, predictions)
             self.assertGreater(result["confidence"], 0)
 
+    # 维护意图：Question-online runtime metadata should load and predict through the rebuilt course graph path
+    # 边界说明：测试步骤保持显式，便于定位回归阶段和失败上下文。
+    # 风险说明：调整测试断言时，需保留失败上下文和可复现实例。
     def test_mefkt_predictor_should_support_question_online_runtime(self):
         """Question-online runtime metadata should load and predict through the rebuilt course graph path."""
         import json
@@ -243,6 +255,9 @@ class MEFKTServiceTests(SimpleTestCase):
             self.assertTrue(result["question_predictions"])
             self.assertGreater(result["confidence"], 0)
 
+    # 维护意图：Longer time gaps should lead to larger forgetting-aware perceived distance
+    # 边界说明：测试步骤保持显式，便于定位回归阶段和失败上下文。
+    # 风险说明：调整测试断言时，需保留失败上下文和可复现实例。
     def test_mefkt_perceived_distance_should_increase_with_longer_gap(self):
         """Longer time gaps should lead to larger forgetting-aware perceived distance."""
         import torch
@@ -266,9 +281,15 @@ class MEFKTServiceTests(SimpleTestCase):
         self.assertGreater(float(long_distance[0, 0]), float(short_distance[0, 0]))
 
 
+# 维护意图：Cover KT fallback and empty-history regression scenarios
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class KTServiceRegressionTests(SimpleTestCase):
     """Cover KT fallback and empty-history regression scenarios."""
 
+    # 维护意图：Recoverable NameError exceptions from model runtimes should fall back to builtin stats
+    # 边界说明：测试步骤保持显式，便于定位回归阶段和失败上下文。
+    # 风险说明：调整测试断言时，需保留失败上下文和可复现实例。
     def test_predict_mastery_should_degrade_gracefully_on_model_name_error(self):
         """Recoverable NameError exceptions from model runtimes should fall back to builtin stats."""
         from ai_services.services.kt_service import KnowledgeTracingService
@@ -300,6 +321,9 @@ class KTServiceRegressionTests(SimpleTestCase):
         self.assertIn(101, predictions)
         self.assertEqual(result["answer_count"], 1)
 
+    # 维护意图：Empty-history predictions should expand to course knowledge points instead of returning an empty。
+    # 边界说明：测试步骤保持显式，便于定位回归阶段和失败上下文。
+    # 风险说明：调整测试断言时，需保留失败上下文和可复现实例。
     def test_predict_mastery_should_return_course_defaults_without_history(self):
         """Empty-history predictions should expand to course knowledge points instead of returning an empty map."""
         from ai_services.services.kt_service import KnowledgeTracingService
@@ -327,9 +351,15 @@ class KTServiceRegressionTests(SimpleTestCase):
         self.assertIn("默认预测", result["analysis"])
 
 
+# 维护意图：Validate that synthetic KT trajectories preserve expected structure
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class KTSyntheticDataRealismTests(SimpleTestCase):
     """Validate that synthetic KT trajectories preserve expected structure."""
 
+    # 维护意图：Build a small prerequisite graph that is easy to reason about in tests
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def setUp(self):
         """Build a small prerequisite graph that is easy to reason about in tests."""
         self.kp_to_idx = {101: 0, 102: 1, 103: 2, 104: 3}
@@ -381,6 +411,9 @@ class KTSyntheticDataRealismTests(SimpleTestCase):
             },
         }
 
+    # 维护意图：Return a deterministic learner profile for sequence simulation checks
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def _profile(self, *, base_ability, archetype="steady"):
         """Return a deterministic learner profile for sequence simulation checks."""
         return {
@@ -397,6 +430,9 @@ class KTSyntheticDataRealismTests(SimpleTestCase):
             "session_span": 8,
         }
 
+    # 维护意图：Harder downstream points should receive higher synthesized difficulty
+    # 边界说明：测试步骤保持显式，便于定位回归阶段和失败上下文。
+    # 风险说明：调整测试断言时，需保留失败上下文和可复现实例。
     def test_kp_profile_should_reflect_prerequisite_depth_and_item_difficulty(self):
         """Harder downstream points should receive higher synthesized difficulty."""
         profiles, _ = _build_kp_profiles(self.kp_to_idx, self.prereqs, self.metadata)
@@ -405,6 +441,9 @@ class KTSyntheticDataRealismTests(SimpleTestCase):
         self.assertLess(profiles[102]["difficulty"], profiles[103]["difficulty"])
         self.assertGreater(profiles[103]["difficulty"], profiles[104]["difficulty"])
 
+    # 维护意图：Lower-ability learners should revisit more and score worse overall
+    # 边界说明：测试步骤保持显式，便于定位回归阶段和失败上下文。
+    # 风险说明：调整测试断言时，需保留失败上下文和可复现实例。
     def test_simulated_sequences_should_show_ability_gap_and_revisits(self):
         """Lower-ability learners should revisit more and score worse overall."""
         profiles, children_map = _build_kp_profiles(

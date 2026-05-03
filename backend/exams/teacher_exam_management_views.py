@@ -23,6 +23,9 @@ from .teacher_helpers import (
 )
 
 
+# 维护意图：教师获取考试列表
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(['GET'])
 @permission_classes([IsAuthenticated, IsTeacherOrAdmin])
 def exam_manage_list(request):
@@ -61,6 +64,9 @@ def exam_manage_list(request):
     })
 
 
+# 维护意图：创建考试
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(['POST'])
 @permission_classes([IsAuthenticated, IsTeacherOrAdmin])
 def exam_create(request):
@@ -120,6 +126,9 @@ def exam_create(request):
     }, msg='作业创建成功')
 
 
+# 维护意图：发布考试
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(['POST'])
 @permission_classes([IsAuthenticated, IsTeacherOrAdmin])
 def exam_publish(request, exam_id):
@@ -152,6 +161,9 @@ def exam_publish(request, exam_id):
     }, msg='作业已发布')
 
 
+# 维护意图：获取考试详情（教师端）
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(['GET'])
 @permission_classes([IsAuthenticated, IsTeacherOrAdmin])
 def exam_teacher_detail(request, exam_id):
@@ -209,6 +221,9 @@ def exam_teacher_detail(request, exam_id):
     })
 
 
+# 维护意图：更新考试信息（教师端）
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated, IsTeacherOrAdmin])
 def exam_update(request, exam_id):
@@ -278,6 +293,9 @@ def exam_update(request, exam_id):
     }, msg='作业信息已更新')
 
 
+# 维护意图：删除考试（教师端）
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated, IsTeacherOrAdmin])
 def exam_delete(request, exam_id):
@@ -307,6 +325,9 @@ def exam_delete(request, exam_id):
     return success_response(msg=f'作业 "{exam_title}" 已删除')
 
 
+# 维护意图：取消发布考试（教师端）
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(['POST'])
 @permission_classes([IsAuthenticated, IsTeacherOrAdmin])
 def exam_unpublish(request, exam_id):
@@ -336,6 +357,9 @@ def exam_unpublish(request, exam_id):
     return success_response(msg='作业已取消发布')
 
 
+# 维护意图：向考试添加题目
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(['POST'])
 @permission_classes([IsAuthenticated, IsTeacherOrAdmin])
 def teacher_exam_add_questions(request, exam_id):
@@ -370,6 +394,9 @@ def teacher_exam_add_questions(request, exam_id):
     return success_response(data={'added_count': len(added)}, msg=f'已添加 {len(added)} 道题目')
 
 
+# 维护意图：从考试移除题目
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(['POST'])
 @permission_classes([IsAuthenticated, IsTeacherOrAdmin])
 def teacher_exam_remove_questions(request, exam_id):

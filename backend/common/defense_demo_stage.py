@@ -19,6 +19,9 @@ from knowledge.models import KnowledgeMastery, KnowledgePoint
 from users.models import User
 
 
+# 维护意图：构建阶段测试固定反馈结果。
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_stage_feedback_payload(points: list[KnowledgePoint]) -> dict[str, object]:
     """
     构建阶段测试固定反馈结果。
@@ -49,6 +52,9 @@ def build_stage_feedback_payload(points: list[KnowledgePoint]) -> dict[str, obje
     }
 
 
+# 维护意图：加载阶段测试题目及其知识点。
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 def load_stage_exam_questions(stage_exam: Exam) -> list[ExamQuestion]:
     """
     加载阶段测试题目及其知识点。
@@ -63,6 +69,9 @@ def load_stage_exam_questions(stage_exam: Exam) -> list[ExamQuestion]:
     )
 
 
+# 维护意图：从 ExamQuestion 列表中提取 Question。
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def collect_exam_questions(stage_exam_questions: list[ExamQuestion]) -> list[Question]:
     """
     从 ExamQuestion 列表中提取 Question。
@@ -72,6 +81,9 @@ def collect_exam_questions(stage_exam_questions: list[ExamQuestion]) -> list[Que
     return [exam_question.question for exam_question in stage_exam_questions]
 
 
+# 维护意图：生成演示阶段测试的全正确提交答案。
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_submission_answers(questions: list[Question]) -> dict[str, object]:
     """
     生成演示阶段测试的全正确提交答案。
@@ -84,6 +96,9 @@ def build_submission_answers(questions: list[Question]) -> dict[str, object]:
     }
 
 
+# 维护意图：构建阶段测试每题标准化得分映射。
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_stage_score_map(stage_exam: Exam, stage_exam_questions: list[ExamQuestion]) -> dict[int, float]:
     """
     构建阶段测试每题标准化得分映射。
@@ -101,6 +116,9 @@ def build_stage_score_map(stage_exam: Exam, stage_exam_questions: list[ExamQuest
     )
 
 
+# 维护意图：按真实评分工具计算演示阶段测试成绩。
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def grade_stage_exam(
     stage_exam: Exam,
     stage_exam_questions: list[ExamQuestion],
@@ -119,6 +137,9 @@ def grade_stage_exam(
     return score_questions(submission_answers, questions, score_map=score_map)
 
 
+# 维护意图：解析阶段测试通过线，缺失时按总分 60% 兜底。
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def resolve_pass_score(stage_exam: Exam, grading: dict[str, Any]) -> float:
     """
     解析阶段测试通过线，缺失时按总分 60% 兜底。
@@ -132,6 +153,9 @@ def resolve_pass_score(stage_exam: Exam, grading: dict[str, Any]) -> float:
     return max(round(float(grading["total_score"]) * 0.6, 2), 1.0)
 
 
+# 维护意图：创建或更新预热账号的阶段测试提交。
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def upsert_stage_submission(
     stage_exam: Exam,
     warmup_student: User,
@@ -166,6 +190,9 @@ def upsert_stage_submission(
     return submission
 
 
+# 维护意图：更新预热账号阶段测试后的掌握度，并返回掌握度变化摘要。
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_mastery_changes(
     course: Course,
     warmup_student: User,
@@ -199,6 +226,9 @@ def build_mastery_changes(
     return mastery_changes
 
 
+# 维护意图：推导阶段测试前掌握度，优先使用已有记录，不合理时使用固定回退值。
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def resolve_mastery_before(
     course: Course,
     warmup_student: User,
@@ -225,6 +255,9 @@ def resolve_mastery_before(
     return fallback_before
 
 
+# 维护意图：构造单个知识点掌握度变化项。
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_mastery_change_item(
     point: KnowledgePoint,
     mastery_before: float,
@@ -246,6 +279,9 @@ def build_mastery_change_item(
     }
 
 
+# 维护意图：创建或更新预热账号阶段测试反馈报告。
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def upsert_stage_feedback_report(
     warmup_student: User,
     stage_exam: Exam,
@@ -291,6 +327,9 @@ def upsert_stage_feedback_report(
     )
 
 
+# 维护意图：构建反馈报告 overview 字段。
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_feedback_overview(
     grading: dict[str, Any],
     passed: bool,
@@ -321,6 +360,9 @@ def build_feedback_overview(
     }
 
 
+# 维护意图：为预热账号补齐真实阶段测试提交与反馈报告。
+# 边界说明：校验边界集中在这里，避免非法输入进入业务主流程。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def ensure_warmup_stage_submission_and_feedback(
     course: Course,
     warmup_student: User,

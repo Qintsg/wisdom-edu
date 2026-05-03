@@ -10,14 +10,17 @@ from typing import List
 from tools.api_regression_admin import _run_admin_regression
 from tools.api_regression_helpers import (
     DEFAULT_BASE_URL,
-    _build_auth_headers,
-    _run_document_checks,
+    build_auth_headers,
+    run_document_checks,
 )
 from tools.api_regression_student import _run_student_regression
 from tools.api_regression_teacher import _run_teacher_regression
 from tools.testing import CheckResult, _login, _print_checks, _resolve_course_id
 
 
+# 维护意图：执行公开 API 回归测试
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def api_regression(
     base_url: str = DEFAULT_BASE_URL,
     include_all: bool = False,
@@ -27,7 +30,7 @@ def api_regression(
     checks: List[CheckResult] = []
     temp_suffix = str(int(time.time()))
 
-    _run_document_checks(checks, base_url)
+    run_document_checks(checks, base_url)
     if not checks or not checks[1].ok:
         _print_checks(checks, as_json=as_json)
         return
@@ -36,9 +39,9 @@ def api_regression(
     teacher_token, _ = _login(base_url, "teacher1", "Test123456")
     admin_token, _ = _login(base_url, "admin", "Admin123456")
 
-    student_headers = _build_auth_headers(student_token)
-    teacher_headers = _build_auth_headers(teacher_token)
-    admin_headers = _build_auth_headers(admin_token)
+    student_headers = build_auth_headers(student_token)
+    teacher_headers = build_auth_headers(teacher_token)
+    admin_headers = build_auth_headers(admin_token)
 
     checks.append(CheckResult("学生登录", bool(student_token), "student1"))
     checks.append(CheckResult("教师登录", bool(teacher_token), "teacher1"))

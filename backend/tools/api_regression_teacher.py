@@ -4,13 +4,16 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from tools.api_regression_helpers import TEMP_PREFIX, _record
+from tools.api_regression_helpers import TEMP_PREFIX, record_check
 from tools.testing import CheckResult, _request
 
 
 TempIdMap = dict[str, int | None]
 
 
+# 维护意图：教师端回归执行上下文
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @dataclass
 class TeacherRegressionContext:
     """教师端回归执行上下文。"""
@@ -31,6 +34,9 @@ class TeacherRegressionContext:
     )
 
 
+# 维护意图：执行教师端课程、题目、班级与考试相关回归。
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _run_teacher_regression(
     checks: list[CheckResult],
     base_url: str,
@@ -66,12 +72,18 @@ def _run_teacher_regression(
     return context.temp_ids
 
 
+# 维护意图：执行教师端只读快速检查
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _run_teacher_read_checks(context: TeacherRegressionContext) -> None:
     """执行教师端只读快速检查。"""
-    _record_get(context, "教师-我的课程", "/api/teacher/courses/my")
-    _record_get(context, "教师-我的班级", "/api/teacher/classes/my")
+    record_check_get(context, "教师-我的课程", "/api/teacher/courses/my")
+    record_check_get(context, "教师-我的班级", "/api/teacher/classes/my")
 
 
+# 维护意图：执行教师端创建、更新、发布和撤销链路
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _run_teacher_mutation_checks(context: TeacherRegressionContext) -> None:
     """执行教师端创建、更新、发布和撤销链路。"""
     _create_course(context)
@@ -82,10 +94,13 @@ def _run_teacher_mutation_checks(context: TeacherRegressionContext) -> None:
         _create_exam(context)
 
 
+# 维护意图：创建临时课程并执行课程统计、更新检查
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def _create_course(context: TeacherRegressionContext) -> None:
     """创建临时课程并执行课程统计、更新检查。"""
     temp_course_name = f"{TEMP_PREFIX}课程{context.temp_suffix}"
-    response, ok = _record_request(
+    response, ok = record_check_request(
         context,
         "教师-创建课程",
         "POST",
@@ -98,8 +113,8 @@ def _create_course(context: TeacherRegressionContext) -> None:
         return
 
     course_path = f"/api/teacher/courses/{context.temp_ids['course_id']}"
-    _record_get(context, "教师-课程统计", f"{course_path}/statistics")
-    _record_request(
+    record_check_get(context, "教师-课程统计", f"{course_path}/statistics")
+    record_check_request(
         context,
         "教师-更新课程",
         "PUT",
@@ -109,9 +124,12 @@ def _create_course(context: TeacherRegressionContext) -> None:
     )
 
 
+# 维护意图：在临时课程下创建知识点
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def _create_knowledge_point(context: TeacherRegressionContext) -> int | None:
     """在临时课程下创建知识点。"""
-    response, ok = _record_request(
+    response, ok = record_check_request(
         context,
         "教师-创建知识点",
         "POST",
@@ -126,9 +144,12 @@ def _create_knowledge_point(context: TeacherRegressionContext) -> int | None:
     return _response_id(response, ok, "point_id", "id")
 
 
+# 维护意图：创建临时单选题并验证详情与更新接口
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def _create_question(context: TeacherRegressionContext, point_id: int | None) -> None:
     """创建临时单选题并验证详情与更新接口。"""
-    response, ok = _record_request(
+    response, ok = record_check_request(
         context,
         "教师-创建题目",
         "POST",
@@ -153,8 +174,8 @@ def _create_question(context: TeacherRegressionContext, point_id: int | None) ->
         return
 
     question_path = f"/api/teacher/questions/{context.temp_ids['question_id']}"
-    _record_get(context, "教师-题目详情", question_path)
-    _record_request(
+    record_check_get(context, "教师-题目详情", question_path)
+    record_check_request(
         context,
         "教师-更新题目",
         "PUT",
@@ -164,9 +185,12 @@ def _create_question(context: TeacherRegressionContext, point_id: int | None) ->
     )
 
 
+# 维护意图：创建临时班级，并验证详情、学生、进度和邀请码接口
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def _create_class(context: TeacherRegressionContext) -> None:
     """创建临时班级，并验证详情、学生、进度和邀请码接口。"""
-    response, ok = _record_request(
+    response, ok = record_check_request(
         context,
         "教师-创建班级",
         "POST",
@@ -183,16 +207,19 @@ def _create_class(context: TeacherRegressionContext) -> None:
         return
 
     class_path = f"/api/teacher/classes/{context.temp_ids['class_id']}"
-    _record_get(context, "教师-班级详情", class_path)
-    _record_get(context, "教师-班级学生", f"{class_path}/students")
-    _record_get(context, "教师-班级进度", f"{class_path}/progress")
+    record_check_get(context, "教师-班级详情", class_path)
+    record_check_get(context, "教师-班级学生", f"{class_path}/students")
+    record_check_get(context, "教师-班级进度", f"{class_path}/progress")
     _create_invitation(context)
-    _record_get(context, "教师-邀请码列表", f"{class_path}/invitations")
+    record_check_get(context, "教师-邀请码列表", f"{class_path}/invitations")
 
 
+# 维护意图：为临时班级生成邀请码
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def _create_invitation(context: TeacherRegressionContext) -> None:
     """为临时班级生成邀请码。"""
-    response, ok = _record_request(
+    response, ok = record_check_request(
         context,
         "教师-生成邀请码",
         "POST",
@@ -203,12 +230,15 @@ def _create_invitation(context: TeacherRegressionContext) -> None:
     context.temp_ids["invitation_id"] = _response_id(response, ok, "invitation_id", "id")
 
 
+# 维护意图：创建临时考试并验证详情、更新、发布、撤销和统计接口
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def _create_exam(context: TeacherRegressionContext) -> None:
     """创建临时考试并验证详情、更新、发布、撤销和统计接口。"""
     if not context.temp_ids["question_id"]:
         return
 
-    response, ok = _record_request(
+    response, ok = record_check_request(
         context,
         "教师-创建考试",
         "POST",
@@ -229,8 +259,8 @@ def _create_exam(context: TeacherRegressionContext) -> None:
         return
 
     exam_path = f"/api/teacher/exams/{context.temp_ids['exam_id']}"
-    _record_get(context, "教师-考试详情", exam_path)
-    _record_request(
+    record_check_get(context, "教师-考试详情", exam_path)
+    record_check_request(
         context,
         "教师-更新考试",
         "PUT",
@@ -239,10 +269,13 @@ def _create_exam(context: TeacherRegressionContext) -> None:
         json={"description": "接口回归考试"},
     )
     _publish_and_unpublish_exam(context, exam_path)
-    _record_get(context, "教师-考试结果列表", f"{exam_path}/results")
-    _record_get(context, "教师-考试分析", f"{exam_path}/analysis")
+    record_check_get(context, "教师-考试结果列表", f"{exam_path}/results")
+    record_check_get(context, "教师-考试分析", f"{exam_path}/analysis")
 
 
+# 维护意图：有临时班级时验证考试发布和取消发布
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _publish_and_unpublish_exam(
     context: TeacherRegressionContext,
     exam_path: str,
@@ -250,7 +283,7 @@ def _publish_and_unpublish_exam(
     """有临时班级时验证考试发布和取消发布。"""
     if not context.temp_ids["class_id"]:
         return
-    _record_request(
+    record_check_request(
         context,
         "教师-发布考试",
         "POST",
@@ -258,7 +291,7 @@ def _publish_and_unpublish_exam(
         expected=(200,),
         json={"class_id": context.temp_ids["class_id"]},
     )
-    _record_request(
+    record_check_request(
         context,
         "教师-取消发布",
         "POST",
@@ -267,20 +300,26 @@ def _publish_and_unpublish_exam(
     )
 
 
+# 维护意图：全量模式收尾时验证教师端列表接口
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _run_teacher_list_checks(context: TeacherRegressionContext) -> None:
     """全量模式收尾时验证教师端列表接口。"""
     target_course_id = context.temp_ids["course_id"] or context.course_id
-    _record_get(context, "教师-课程列表", "/api/teacher/courses/my")
+    record_check_get(context, "教师-课程列表", "/api/teacher/courses/my")
     for label, path in (
         ("教师-题目列表", "/api/teacher/questions"),
         ("教师-知识点列表", "/api/teacher/knowledge-points"),
         ("教师-资源列表", "/api/teacher/resources"),
         ("教师-考试列表", "/api/teacher/exams"),
     ):
-        _record_get(context, label, path, params={"course_id": target_course_id})
+        record_check_get(context, label, path, params={"course_id": target_course_id})
 
 
-def _record_get(
+# 维护意图：记录教师端 GET 请求检查
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
+def record_check_get(
     context: TeacherRegressionContext,
     label: str,
     path: str,
@@ -288,7 +327,7 @@ def _record_get(
     params: dict[str, object] | None = None,
 ) -> tuple[object, bool]:
     """记录教师端 GET 请求检查。"""
-    return _record_request(
+    return record_check_request(
         context,
         label,
         "GET",
@@ -298,7 +337,10 @@ def _record_get(
     )
 
 
-def _record_request(
+# 维护意图：封装教师端回归请求和结果记录
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
+def record_check_request(
     context: TeacherRegressionContext,
     label: str,
     method: str,
@@ -310,7 +352,7 @@ def _record_request(
     params: dict[str, object] | None = None,
 ) -> tuple[object, bool]:
     """封装教师端回归请求和结果记录。"""
-    return _record(
+    return record_check(
         context.checks,
         label,
         *_request(
@@ -325,6 +367,9 @@ def _record_request(
     )
 
 
+# 维护意图：从成功响应中提取临时资源 ID
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _response_id(
     response: object,
     ok: bool,

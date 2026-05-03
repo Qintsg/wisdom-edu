@@ -41,6 +41,9 @@ DIFFICULTY_MAP: dict[str, str] = {
 }
 
 
+# 维护意图：安全读取 pandas Series 风格对象的字段
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def row_get(row: object, key: str) -> object:
     """安全读取 pandas Series 风格对象的字段。"""
     getter = getattr(row, "get", None)
@@ -49,6 +52,9 @@ def row_get(row: object, key: str) -> object:
     return None
 
 
+# 维护意图：从 Excel 行数据中提取题干文本
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def extract_question_content(row: object, columns: list[str]) -> str:
     """从 Excel 行数据中提取题干文本。"""
     if "大题题干" in columns:
@@ -61,6 +67,9 @@ def extract_question_content(row: object, columns: list[str]) -> str:
     return ""
 
 
+# 维护意图：从 Excel 行中提取选项列表
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_excel_options(row: object, columns: list[str]) -> list[dict[str, str]]:
     """从 Excel 行中提取选项列表。"""
     options: list[dict[str, str]] = []
@@ -76,6 +85,64 @@ def build_excel_options(row: object, columns: list[str]) -> list[dict[str, str]]
     return options
 
 
+# 维护意图：解析题型文本并映射为系统内部题型
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
+def resolve_excel_question_type(row: object) -> str:
+    """解析题型文本并映射为系统内部题型。"""
+    question_type_text = (
+        clean_nan(row_get(row, "小题题型"))
+        or clean_nan(row_get(row, "题型"))
+        or clean_nan(row_get(row, "题目类型"))
+        or ""
+    )
+    return TYPE_MAP.get(question_type_text, "single_choice")
+
+
+# 维护意图：解析 Excel 难度文本并映射为系统难度枚举
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
+def resolve_excel_difficulty(row: object) -> str:
+    """解析 Excel 难度文本并映射为系统难度枚举。"""
+    difficulty_text = clean_nan(row_get(row, "难易度")) or clean_nan(row_get(row, "难度")) or ""
+    return DIFFICULTY_MAP.get(difficulty_text, "medium")
+
+
+# 维护意图：提取 Excel 中的标准答案文本
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
+def resolve_excel_answer_text(row: object) -> str:
+    """提取 Excel 中的标准答案文本。"""
+    raw_answer = clean_nan(row_get(row, "正确答案")) or clean_nan(row_get(row, "答案")) or ""
+    return str(strip_import_text(raw_answer) or "")
+
+
+# 维护意图：提取 Excel 中的答案解析文本
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
+def resolve_excel_analysis(row: object) -> str:
+    """提取 Excel 中的答案解析文本。"""
+    raw_analysis = clean_nan(row_get(row, "答案解析")) or clean_nan(row_get(row, "解析")) or ""
+    return str(strip_import_text(raw_analysis) or "")
+
+
+# 维护意图：按常见列名解析题目分值
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
+def resolve_excel_score(row: object) -> float:
+    """按常见列名解析题目分值。"""
+    raw_score = (
+        clean_nan(row_get(row, "分值"))
+        or clean_nan(row_get(row, "建议分数"))
+        or clean_nan(row_get(row, "得分"))
+        or clean_nan(row_get(row, "分数"))
+    )
+    return safe_float(raw_score, default=1.0)
+
+
+# 维护意图：将 Excel 行数据转换为统一题目载荷
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_excel_question_payload(
     row: object,
     columns: list[str],
@@ -87,41 +154,26 @@ def build_excel_question_payload(
     if not content:
         return None
 
-    question_type_text = (
-        clean_nan(row_get(row, "小题题型"))
-        or clean_nan(row_get(row, "题型"))
-        or clean_nan(row_get(row, "题目类型"))
-        or ""
-    )
-    question_type = TYPE_MAP.get(question_type_text, "single_choice")
-    difficulty_text = clean_nan(row_get(row, "难易度")) or clean_nan(row_get(row, "难度")) or ""
-    difficulty = DIFFICULTY_MAP.get(difficulty_text, "medium")
+    question_type = resolve_excel_question_type(row)
     raw_options = build_excel_options(row, columns)
-    answer_text = str(
-        strip_import_text(clean_nan(row_get(row, "正确答案")) or clean_nan(row_get(row, "答案")) or "") or ""
-    )
+    answer_text = resolve_excel_answer_text(row)
     return QuestionPayload(
         content=content,
         question_type=question_type,
         options=normalize_true_false_options(question_type, raw_options),
         answer=build_excel_answer(question_type, answer_text),
-        analysis=str(
-            strip_import_text(clean_nan(row_get(row, "答案解析")) or clean_nan(row_get(row, "解析")) or "") or ""
-        ),
-        difficulty=difficulty,
-        score=safe_float(
-            clean_nan(row_get(row, "分值"))
-            or clean_nan(row_get(row, "建议分数"))
-            or clean_nan(row_get(row, "得分"))
-            or clean_nan(row_get(row, "分数")),
-            default=1.0,
-        ),
+        analysis=resolve_excel_analysis(row),
+        difficulty=resolve_excel_difficulty(row),
+        score=resolve_excel_score(row),
         chapter=clean_nan(row_get(row, "目录")) or clean_nan(row_get(row, "章节")) or None,
         knowledge_point_names=normalize_knowledge_point_names(clean_nan(row_get(row, "知识点") or "")),
         for_initial_assessment=for_initial_assessment,
     )
 
 
+# 维护意图：打开 Excel 题库数据源，兼容路径与上传文件对象
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def open_question_bank_workbook(file_source: object, pandas_module: object) -> QuestionBankWorkbook:
     """打开 Excel 题库数据源，兼容路径与上传文件对象。"""
     excel_file_factory = getattr(pandas_module, "ExcelFile", None)
@@ -152,6 +204,31 @@ def open_question_bank_workbook(file_source: object, pandas_module: object) -> Q
     raise TypeError("Excel 题库仅支持文件路径、Path 对象或上传文件对象")
 
 
+# 维护意图：遍历工作簿中的非空 sheet 行，并携带列名上下文
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
+def iter_workbook_rows(workbook: QuestionBankWorkbook, pandas_module: object) -> Iterator[tuple[list[str], object]]:
+    """遍历工作簿中的非空 sheet 行，并携带列名上下文。"""
+    read_excel = getattr(pandas_module, "read_excel", None)
+    if not callable(read_excel):
+        raise TypeError("pandas 模块缺少 read_excel")
+
+    for sheet_name in list(getattr(workbook.excel_file, "sheet_names", [])):
+        dataframe = read_excel(workbook.excel_file, sheet_name=sheet_name)
+        if bool(getattr(dataframe, "empty", False)):
+            continue
+        iterrows = getattr(dataframe, "iterrows", None)
+        if not callable(iterrows):
+            continue
+
+        columns = [str(column) for column in getattr(dataframe, "columns", [])]
+        for _, row in iterrows():
+            yield columns, row
+
+
+# 维护意图：迭代 Excel 工作簿中的标准化题目载荷
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def iter_excel_question_payloads(
     workbook: QuestionBankWorkbook,
     pandas_module: object,
@@ -159,25 +236,11 @@ def iter_excel_question_payloads(
     for_initial_assessment: bool,
 ) -> Iterator[QuestionPayload]:
     """迭代 Excel 工作簿中的标准化题目载荷。"""
-    read_excel = getattr(pandas_module, "read_excel", None)
-    if not callable(read_excel):
-        raise TypeError("pandas 模块缺少 read_excel")
-
-    sheet_names = list(getattr(workbook.excel_file, "sheet_names", []))
-    for sheet_name in sheet_names:
-        dataframe = read_excel(workbook.excel_file, sheet_name=sheet_name)
-        if bool(getattr(dataframe, "empty", False)):
-            continue
-
-        columns = [str(column) for column in getattr(dataframe, "columns", [])]
-        iterrows = getattr(dataframe, "iterrows", None)
-        if not callable(iterrows):
-            continue
-        for _, row in iterrows():
-            payload = build_excel_question_payload(
-                row,
-                columns,
-                for_initial_assessment=for_initial_assessment,
-            )
-            if payload is not None:
-                yield payload
+    for columns, row in iter_workbook_rows(workbook, pandas_module):
+        payload = build_excel_question_payload(
+            row,
+            columns,
+            for_initial_assessment=for_initial_assessment,
+        )
+        if payload is not None:
+            yield payload

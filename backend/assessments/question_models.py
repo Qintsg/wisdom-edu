@@ -4,6 +4,9 @@ from django.conf import settings
 from django.db import models
 
 
+# 维护意图：题库题目模型
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class Question(models.Model):
     """题库题目模型。"""
 
@@ -34,6 +37,9 @@ class Question(models.Model):
     created_at = models.DateTimeField('创建时间', auto_now_add=True)
     updated_at = models.DateTimeField('更新时间', auto_now=True)
 
+    # 维护意图：Meta
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     class Meta:
         db_table = 'questions'
         verbose_name = '题目'
@@ -43,6 +49,9 @@ class Question(models.Model):
         return f"{self.get_question_type_display()}: {self.content[:50]}..."
 
 
+# 维护意图：问卷题目模型
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class SurveyQuestion(models.Model):
     """问卷题目模型。"""
 
@@ -59,6 +68,9 @@ class SurveyQuestion(models.Model):
     is_global = models.BooleanField('全局通用', default=True, help_text='全局通用的题目适用于所有课程')
     is_required = models.BooleanField('是否必答', default=True)
 
+    # 维护意图：Meta
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     class Meta:
         db_table = 'survey_questions'
         verbose_name = '问卷题目'

@@ -10,6 +10,9 @@ from typing import Optional
 from tools.common import BASE_DIR
 
 
+# 维护意图：生成Excel导入模板文件。
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def generate_template(
     template_type: str,
     output_dir: Optional[str] = None

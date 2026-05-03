@@ -23,9 +23,15 @@ from .student_answer_support import (
 from .student_utils import model_pk
 
 
+# 维护意图：提供知识点级和课程级 GraphRAG 问答
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class StudentAnswerMixin:
     """提供知识点级和课程级 GraphRAG 问答。"""
 
+    # 维护意图：使用三种 GraphRAG 查询模式回答学生问题
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def answer_graph_question(self, *, course_id: int, point: KnowledgePoint, question: str) -> dict[str, object]:
         """使用三种 GraphRAG 查询模式回答学生问题。"""
         point_pk = model_pk(point)
@@ -63,6 +69,9 @@ class StudentAnswerMixin:
         )
         return graph_answer_with_llm(llm_result=result, evidence=evidence)
 
+    # 维护意图：在未指定知识点时，使用课程级 GraphRAG 证据回答学生问题
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def answer_course_question(self, *, course_id: int, question: str, seed_point_ids: Sequence[int] = ()) -> dict[str, object]:
         """在未指定知识点时，使用课程级 GraphRAG 证据回答学生问题。"""
         payload = self._ensure_index(course_id)

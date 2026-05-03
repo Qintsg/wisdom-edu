@@ -11,6 +11,9 @@ from knowledge.models import KnowledgePoint, Resource
 WHITESPACE_PATTERN = re.compile(r"\s+")
 
 
+# 维护意图：将资源字段规整为单行文本。
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def coerce_resource_text(value: object) -> str:
     """
     将资源字段规整为单行文本。
@@ -21,6 +24,9 @@ def coerce_resource_text(value: object) -> str:
     return WHITESPACE_PATTERN.sub(" ", str(value or "")).strip()
 
 
+# 维护意图：返回课程内资源的稳定可访问 URL。
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def safe_resource_url(resource: Resource) -> str:
     """
     返回课程内资源的稳定可访问 URL。
@@ -40,6 +46,9 @@ def safe_resource_url(resource: Resource) -> str:
         return ""
 
 
+# 维护意图：归一化中英文匹配文本，减少空格导致的漏召回。
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def normalize_resource_match_text(value: object) -> str:
     """
     归一化中英文匹配文本，减少空格导致的漏召回。
@@ -50,6 +59,9 @@ def normalize_resource_match_text(value: object) -> str:
     return coerce_resource_text(value).lower().replace(" ", "")
 
 
+# 维护意图：保留顺序去重非空资源匹配词。
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def dedupe_resource_terms(items: Iterable[str]) -> list[str]:
     """
     保留顺序去重非空资源匹配词。
@@ -68,6 +80,9 @@ def dedupe_resource_terms(items: Iterable[str]) -> list[str]:
     return results
 
 
+# 维护意图：提取 Spark SQL、HDFS 等英文/数字术语。
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def ascii_resource_terms(value: str) -> list[str]:
     """
     提取 Spark SQL、HDFS 等英文/数字术语。
@@ -91,6 +106,9 @@ def ascii_resource_terms(value: str) -> list[str]:
     return terms
 
 
+# 维护意图：从知识点名称、章节和常见后缀中提取资源匹配词。
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def point_resource_match_terms(point: KnowledgePoint) -> list[str]:
     """
     从知识点名称、章节和常见后缀中提取资源匹配词。
@@ -115,6 +133,9 @@ def point_resource_match_terms(point: KnowledgePoint) -> list[str]:
     return dedupe_resource_terms(terms)
 
 
+# 维护意图：计算未绑定课程资源与知识点上下文的文本匹配分。
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def score_resource_point_match(resource: Resource, point: KnowledgePoint) -> int:
     """
     计算未绑定课程资源与知识点上下文的文本匹配分。
@@ -143,6 +164,9 @@ def score_resource_point_match(resource: Resource, point: KnowledgePoint) -> int
     return score
 
 
+# 维护意图：根据学生掌握度排序课程内资源。
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def resource_rank_key(
     resource: Resource, mastery_value: float | None
 ) -> tuple[int, int, int, str]:

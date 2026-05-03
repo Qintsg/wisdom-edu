@@ -19,6 +19,9 @@ COURSE_CONFIG_DEFAULTS = {
 }
 
 
+# 维护意图：解压课程资源压缩包并返回临时目录句柄
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def extract_course_archive(archive_file) -> tempfile.TemporaryDirectory | None:
     """解压课程资源压缩包并返回临时目录句柄。"""
     if not archive_file:
@@ -33,6 +36,9 @@ def extract_course_archive(archive_file) -> tempfile.TemporaryDirectory | None:
     return temp_dir
 
 
+# 维护意图：定位压缩包导入根目录
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def resolve_archive_root(temp_dir: tempfile.TemporaryDirectory) -> str:
     """定位压缩包导入根目录。"""
     root = Path(temp_dir.name)

@@ -25,6 +25,9 @@ from exams.models import Exam
 from knowledge.models import KnowledgePoint
 
 
+# 维护意图：把评分明细按题目 ID 建索引。
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_question_result_map(grading: dict[str, Any]) -> dict[str, dict[str, object]]:
     """
     把评分明细按题目 ID 建索引。
@@ -37,6 +40,9 @@ def build_question_result_map(grading: dict[str, Any]) -> dict[str, dict[str, ob
     }
 
 
+# 维护意图：构造阶段测试单题展示明细。
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_question_detail(
     question: Question,
     submission_answers: dict[str, object],
@@ -90,6 +96,9 @@ def build_question_detail(
     }
 
 
+# 维护意图：构造阶段测试全部题目展示明细。
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_question_details(
     questions: list[Question],
     submission_answers: dict[str, object],
@@ -108,6 +117,9 @@ def build_question_details(
     ]
 
 
+# 维护意图：生成已完成阶段测试的固定结果快照，供预热账号直接展示完整报告页。
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_demo_stage_test_result(
     stage_exam: Exam,
     points: list[KnowledgePoint],

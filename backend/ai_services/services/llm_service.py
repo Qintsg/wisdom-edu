@@ -44,6 +44,9 @@ from common.logging_utils import build_log_message
 logger = logging.getLogger(__name__)
 
 
+# 维护意图：Read a string setting from Django settings first, then environment variables
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _read_runtime_setting(name: str) -> str:
     """Read a string setting from Django settings first, then environment variables."""
     raw_value = getattr(settings, name, "")
@@ -52,6 +55,9 @@ def _read_runtime_setting(name: str) -> str:
     return os.getenv(name, "").strip()
 
 
+# 维护意图：Resolve the most suitable proxy for the current LLM gateway URL
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def resolve_llm_proxy_for_base_url(base_url: str) -> str:
     """Resolve the most suitable proxy for the current LLM gateway URL."""
     normalized_base_url = (base_url or "").strip()
@@ -63,6 +69,9 @@ def resolve_llm_proxy_for_base_url(base_url: str) -> str:
     return https_proxy or http_proxy
 
 
+# 维护意图：大语言模型服务类。
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class LLMService(LLMProfilePathMixin, LLMResourceMixin, LLMFeedbackKTMixin, LLMResponseMixin):
     """
     大语言模型服务类。
@@ -116,41 +125,65 @@ class LLMService(LLMProfilePathMixin, LLMResourceMixin, LLMFeedbackKTMixin, LLMR
         self._detect_provider()
         self._extra_body = self._resolve_extra_body()
 
+    # 维护意图：返回解析后的提供方标识
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     @property
     def provider_name(self) -> str:
         """返回解析后的提供方标识。"""
         return self._provider or "deepseek"
 
+    # 维护意图：返回当前实例解析后的 API Key
+    # 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+    # 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
     @property
     def resolved_api_key(self) -> str:
         """返回当前实例解析后的 API Key。"""
         return self._api_key or ""
 
+    # 维护意图：返回当前实例解析后的 Base URL
+    # 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+    # 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
     @property
     def resolved_base_url(self) -> str:
         """返回当前实例解析后的 Base URL。"""
         return self._base_url or ""
 
+    # 维护意图：返回当前实例使用的接口格式描述
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     @property
     def api_format(self) -> str:
         """返回当前实例使用的接口格式描述。"""
         return self._api_format or "openai-compatible"
 
+    # 维护意图：优先读取 Django settings，再回退到环境变量
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     @staticmethod
     def _read_setting(name: str) -> str:
         """优先读取 Django settings，再回退到环境变量。"""
         return _read_runtime_setting(name)
 
+    # 维护意图：返回当前网关将使用的代理地址
+    # 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+    # 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
     @property
     def resolved_proxy_url(self) -> str:
         """返回当前网关将使用的代理地址。"""
         return self._proxy_url or ""
 
+    # 维护意图：返回透传给 OpenAI 兼容网关的额外请求体
+    # 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+    # 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
     @property
     def resolved_extra_body(self) -> dict[str, Any]:
         """返回透传给 OpenAI 兼容网关的额外请求体。"""
         return dict(self._extra_body)
 
+    # 维护意图：标准化提供方名称，兼容常见别名
+    # 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+    # 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
     @classmethod
     def _normalize_provider_name(cls, provider_name: str) -> str:
         """标准化提供方名称，兼容常见别名。"""
@@ -169,6 +202,9 @@ class LLMService(LLMProfilePathMixin, LLMResourceMixin, LLMFeedbackKTMixin, LLMR
         }
         return alias_map.get(normalized_name, normalized_name)
 
+    # 维护意图：根据模型名前缀反推提供方
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     @classmethod
     def _provider_from_model_name(cls, model_name: str) -> str | None:
         """根据模型名前缀反推提供方。"""
@@ -179,6 +215,9 @@ class LLMService(LLMProfilePathMixin, LLMResourceMixin, LLMFeedbackKTMixin, LLMR
                 return provider_name
         return None
 
+    # 维护意图：从候选设置键中返回第一个非空值
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     @classmethod
     def _first_non_empty_setting(cls, keys: list[str]) -> str:
         """从候选设置键中返回第一个非空值。"""
@@ -188,6 +227,9 @@ class LLMService(LLMProfilePathMixin, LLMResourceMixin, LLMFeedbackKTMixin, LLMR
                 return resolved_value
         return ""
 
+    # 维护意图：检测模型提供商并设置API配置 优先尊重显式的 LLM_PROVIDER，再回退到模型名前缀匹配。
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def _detect_provider(self):
         """
         检测模型提供商并设置API配置
@@ -236,6 +278,9 @@ class LLMService(LLMProfilePathMixin, LLMResourceMixin, LLMFeedbackKTMixin, LLMR
             )
         )
 
+    # 维护意图：构造 OpenAI 兼容请求额外参数，默认明确关闭思考模式
+    # 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+    # 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
     def _resolve_extra_body(self) -> dict[str, Any]:
         """构造 OpenAI 兼容请求额外参数，默认明确关闭思考模式。"""
         configured_extra_body = getattr(settings, "LLM_EXTRA_BODY", {}) or {}
@@ -256,11 +301,17 @@ class LLMService(LLMProfilePathMixin, LLMResourceMixin, LLMFeedbackKTMixin, LLMR
                 extra_body.setdefault("enable_thinking", False)
         return extra_body
 
+    # 维护意图：Clamp integer settings to a positive lower bound
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     @staticmethod
     def _clamp_positive_int(value: int, minimum: int = 1) -> int:
         """Clamp integer settings to a positive lower bound."""
         return max(minimum, int(value))
 
+    # 维护意图：Trim oversized prompts while preserving both instructions and output schema
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     @classmethod
     def _truncate_prompt(cls, prompt: str, max_prompt_chars: int) -> str:
         """Trim oversized prompts while preserving both instructions and output schema."""
@@ -281,6 +332,9 @@ class LLMService(LLMProfilePathMixin, LLMResourceMixin, LLMFeedbackKTMixin, LLMR
             f"{normalized_prompt[-tail_chars:].lstrip()}"
         )
 
+    # 维护意图：Resolve a call-specific timeout and prompt budget policy
+    # 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+    # 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
     def _resolve_execution_policy(self, call_type: str) -> LLMExecutionPolicy:
         """Resolve a call-specific timeout and prompt budget policy."""
         normalized_call_type = (call_type or "").strip().lower()
@@ -315,11 +369,17 @@ class LLMService(LLMProfilePathMixin, LLMResourceMixin, LLMFeedbackKTMixin, LLMR
             max_prompt_chars=self.DEFAULT_MAX_PROMPT_CHARS,
         )
 
+    # 维护意图：检查LLM服务是否可用
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     @property
     def is_available(self) -> bool:
         """检查LLM服务是否可用"""
         return bool(self._api_key)
 
+    # 维护意图：Instantiate a ChatOpenAI client with the supplied latency budget
+    # 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+    # 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
     def _create_llm_client(
         self,
         request_timeout: int,
@@ -359,6 +419,9 @@ class LLMService(LLMProfilePathMixin, LLMResourceMixin, LLMFeedbackKTMixin, LLMR
             client_kwargs["reasoning_effort"] = self._reasoning_effort
         return chat_openai_class(**client_kwargs)
 
+    # 维护意图：延迟初始化LLM实例 使用 langchain_openai.ChatOpenAI 作为兼容协议客户端， 仅承载通义千问与 DeepSeek 的聊天调用
+    # 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+    # 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
     def _get_llm(self):
         """
         延迟初始化LLM实例
@@ -398,6 +461,9 @@ class LLMService(LLMProfilePathMixin, LLMResourceMixin, LLMFeedbackKTMixin, LLMR
 
         return self._llm
 
+    # 维护意图：Return a cached or one-off chat client that matches the execution policy
+    # 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+    # 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
     def _get_llm_for_policy(
         self,
         policy: LLMExecutionPolicy,
@@ -440,6 +506,9 @@ class LLMService(LLMProfilePathMixin, LLMResourceMixin, LLMFeedbackKTMixin, LLMR
             )
             return None
 
+    # 维护意图：Lazily build the LangChain agent orchestration layer
+    # 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+    # 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
     def _get_agent_service(self):
         """Lazily build the LangChain agent orchestration layer."""
         if self._agent_service is None and self.is_available:
@@ -464,6 +533,9 @@ class LLMService(LLMProfilePathMixin, LLMResourceMixin, LLMFeedbackKTMixin, LLMR
             )
         return self._agent_service
 
+    # 维护意图：仅对显式 agent 任务启用编排层，避免常规调用产生递归开销
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     @classmethod
     def _should_use_agent_service(cls, call_type: str) -> bool:
         """仅对显式 agent 任务启用编排层，避免常规调用产生递归开销。"""

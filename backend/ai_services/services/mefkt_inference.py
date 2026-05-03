@@ -26,6 +26,9 @@ if TYPE_CHECKING:
     from torch import Tensor
 
 
+# 维护意图：运行时加载并执行 MEFKT 序列预测
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class MEFKTPredictor:
     """运行时加载并执行 MEFKT 序列预测。"""
 
@@ -45,11 +48,17 @@ class MEFKTPredictor:
         self._fusion_state_dict: dict[str, Tensor] = {}
         self._course_bundle_cache: dict[int, CourseQuestionRuntimeBundle] = {}
 
+    # 维护意图：当前模型是否已加载
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     @property
     def is_loaded(self) -> bool:
         """当前模型是否已加载。"""
         return self._model is not None or bool(self._sequence_state_dict)
 
+    # 维护意图：加载保存好的 MEFKT 模型
+    # 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+    # 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
     def load_model(self, model_path: str, metadata_path: str | None = None) -> bool:
         """加载保存好的 MEFKT 模型。"""
         loaded_state = load_mefkt_state(
@@ -62,6 +71,9 @@ class MEFKTPredictor:
         self._apply_loaded_state(loaded_state)
         return True
 
+    # 维护意图：将 checkpoint 状态写入 predictor
+    # 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+    # 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
     def _apply_loaded_state(self, loaded_state: LoadedMEFKTState) -> None:
         """将 checkpoint 状态写入 predictor。"""
         self._metadata = loaded_state.metadata
@@ -79,6 +91,9 @@ class MEFKTPredictor:
         self._attribute_state_dict = loaded_state.attribute_state_dict
         self._fusion_state_dict = loaded_state.fusion_state_dict
 
+    # 维护意图：基于课程题目、知识图谱与资源关系构建题目级在线特征
+    # 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+    # 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
     def _build_course_runtime_bundle(self, course_id: int) -> CourseQuestionRuntimeBundle:
         """基于课程题目、知识图谱与资源关系构建题目级在线特征。"""
         if course_id in self._course_bundle_cache:
@@ -87,6 +102,9 @@ class MEFKTPredictor:
         self._course_bundle_cache[course_id] = bundle
         return bundle
 
+    # 维护意图：将题目级或知识点级历史记录映射到课程题图节点
+    # 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+    # 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
     def _resolve_runtime_history_index(
         self,
         bundle: CourseQuestionRuntimeBundle,
@@ -104,6 +122,9 @@ class MEFKTPredictor:
             return bundle.representative_question_index.get(point_id)
         return None
 
+    # 维护意图：将题目级在线部署历史转成模型输入格式
+    # 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+    # 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
     def _build_history_tensors_runtime(
         self,
         answer_history: list[dict[str, object]],
@@ -132,6 +153,9 @@ class MEFKTPredictor:
             )
         return history_indices, history_correct, history_gap_hours, recognized_count
 
+    # 维护意图：执行旧版知识点级 checkpoint 推理
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def _predict_legacy(
         self,
         answer_history: list[dict[str, object]],
@@ -147,6 +171,9 @@ class MEFKTPredictor:
             torch_device=self._torch_device,
         )
 
+    # 维护意图：执行题目级在线部署预测，并聚合回知识点掌握度
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def _predict_question_online(
         self,
         *,
@@ -178,6 +205,9 @@ class MEFKTPredictor:
             )
         )
 
+    # 维护意图：根据答题历史预测知识点掌握度
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def predict(
         self,
         answer_history: list[dict[str, object]],
@@ -198,6 +228,9 @@ class MEFKTPredictor:
         assert self._model is not None
         return self._predict_legacy(answer_history, knowledge_point_ids)
 
+    # 维护意图：输出当前加载状态与元数据摘要
+    # 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+    # 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
     def get_info(self) -> dict[str, object]:
         """输出当前加载状态与元数据摘要。"""
         return {
@@ -219,6 +252,9 @@ class MEFKTPredictor:
 mefkt_predictor = MEFKTPredictor()
 
 
+# 维护意图：从环境变量或默认路径自动加载 MEFKT 模型
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def auto_load_model() -> bool:
     """从环境变量或默认路径自动加载 MEFKT 模型。"""
     from .mefkt_loader import auto_load_mefkt_model

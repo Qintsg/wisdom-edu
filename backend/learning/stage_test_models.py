@@ -11,6 +11,9 @@ PASS_THRESHOLD = 60.0
 TOTAL_SCORE = 100.0
 
 
+# 维护意图：阶段测试评分结果和后续持久化所需上下文
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @dataclass(frozen=True)
 class StageTestEvaluation:
     """阶段测试评分结果和后续持久化所需上下文。"""

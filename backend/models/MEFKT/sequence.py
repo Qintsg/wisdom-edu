@@ -9,6 +9,9 @@ import torch.nn.functional as functional
 from torch import Tensor, nn
 
 
+# 维护意图：融合遗忘机制的行为序列预测模型
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class MEFKTSequenceModel(nn.Module):
     """融合遗忘机制的行为序列预测模型。"""
 
@@ -48,6 +51,9 @@ class MEFKTSequenceModel(nn.Module):
         self.head_dim = head_dim
         self.theta_raw = nn.Parameter(torch.zeros(num_heads))
 
+    # 维护意图：估计从历史位置到当前预测位置的可感知距离。
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def _perceived_distance(
         self,
         history_time_gap: Tensor,
@@ -77,6 +83,9 @@ class MEFKTSequenceModel(nn.Module):
             * cumulative_relevance
         )
 
+    # 维护意图：基于历史序列为候选节点计算正确概率。
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def predict_candidate(
         self,
         history_item_indices: Tensor,
@@ -144,6 +153,9 @@ class MEFKTSequenceModel(nn.Module):
             predicted_probabilities.append(torch.sigmoid(logit))
         return torch.stack(predicted_probabilities, dim=0)
 
+    # 维护意图：对一批序列执行下一题预测。
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def forward(
         self,
         sequence_item_indices: Tensor,

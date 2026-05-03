@@ -14,9 +14,15 @@ from .models import HabitPreference, User
 from .services import LearnerProfileService
 
 
+# 维护意图：学习习惯偏好测试
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class HabitPreferenceTests(APITestCase):
     """学习习惯偏好测试。"""
 
+    # 维护意图：创建测试用户
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def setUp(self):
         """创建测试用户。"""
         self.user = User.objects.create_user(
@@ -25,6 +31,9 @@ class HabitPreferenceTests(APITestCase):
             role='student'
         )
 
+    # 维护意图：测试更新学习偏好
+    # 边界说明：测试步骤保持显式，便于定位回归阶段和失败上下文。
+    # 风险说明：调整测试断言时，需保留失败上下文和可复现实例。
     def test_update_habit_preference(self):
         """测试更新学习偏好。"""
         self.client.force_authenticate(user=self.user)
@@ -39,6 +48,9 @@ class HabitPreferenceTests(APITestCase):
         self.assertEqual(pref.preferred_resource, 'video')
         self.assertEqual(pref.preferred_study_time, 'evening')
 
+    # 维护意图：测试获取画像
+    # 边界说明：测试步骤保持显式，便于定位回归阶段和失败上下文。
+    # 风险说明：调整测试断言时，需保留失败上下文和可复现实例。
     def test_get_profile(self):
         """测试获取画像。"""
         self.client.force_authenticate(user=self.user)
@@ -50,9 +62,15 @@ class HabitPreferenceTests(APITestCase):
         self.assertIn('habit_preferences', response.data['data'])
 
 
+# 维护意图：学习者画像服务缓存回归测试
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class LearnerProfileServiceCacheTests(TestCase):
     """学习者画像服务缓存回归测试。"""
 
+    # 维护意图：创建带缓存画像的最小课程上下文
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def setUp(self):
         """创建带缓存画像的最小课程上下文。"""
         self.teacher = User.objects.create_user(
@@ -90,6 +108,9 @@ class LearnerProfileServiceCacheTests(TestCase):
         )
         self.service = LearnerProfileService(self.student)
 
+    # 维护意图：未强刷时应直接返回已有画像摘要，避免高成本重算
+    # 边界说明：测试步骤保持显式，便于定位回归阶段和失败上下文。
+    # 风险说明：调整测试断言时，需保留失败上下文和可复现实例。
     @patch('ai_services.services.kt_service')
     @patch('ai_services.services.llm_service')
     def test_generate_profile_for_course_should_reuse_cached_summary(

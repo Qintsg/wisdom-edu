@@ -5,6 +5,9 @@ from __future__ import annotations
 from typing import Any
 
 
+# 维护意图：Return the first non-empty value from a request-like mapping
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def first_present(data: Any, *keys: str, default: Any = None) -> Any:
     """Return the first non-empty value from a request-like mapping."""
     for key in keys:
@@ -19,6 +22,9 @@ def first_present(data: Any, *keys: str, default: Any = None) -> Any:
     return default
 
 
+# 维护意图：Accept legacy and canonical teacher course payload keys
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def normalize_course_payload(data: Any) -> dict[str, Any]:
     """Accept legacy and canonical teacher course payload keys."""
     payload = {
@@ -37,6 +43,9 @@ def normalize_course_payload(data: Any) -> dict[str, Any]:
     return payload
 
 
+# 维护意图：Accept legacy and canonical teacher class payload keys
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def normalize_class_payload(data: Any) -> dict[str, Any]:
     """Accept legacy and canonical teacher class payload keys."""
     return {
@@ -47,6 +56,9 @@ def normalize_class_payload(data: Any) -> dict[str, Any]:
     }
 
 
+# 维护意图：Accept legacy and canonical teacher exam payload keys
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def normalize_exam_payload(data: Any) -> dict[str, Any]:
     """Accept legacy and canonical teacher exam payload keys."""
     question_ids = first_present(data, "questions", "question_ids", default=[])
@@ -65,6 +77,9 @@ def normalize_exam_payload(data: Any) -> dict[str, Any]:
     }
 
 
+# 维护意图：Accept both `points` and `knowledge_point_ids` request fields
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def normalize_question_point_ids(data: Any) -> list[int]:
     """Accept both `points` and `knowledge_point_ids` request fields."""
     raw = first_present(data, "knowledge_point_ids", "points", default=[])

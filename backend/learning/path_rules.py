@@ -18,12 +18,18 @@ AUTO_COMPLETE_THRESHOLD = 0.85
 PREREQUISITE_MASTERY_THRESHOLD = 0.6
 
 
+# 维护意图：load course points
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 def load_course_points(course_id: int):
     return list(
         KnowledgePoint.objects.filter(course_id=course_id, is_published=True).order_by('order', 'id')
     )
 
 
+# 维护意图：build prerequisite maps
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_prerequisite_maps(course_id: int):
     prereq_map = defaultdict(list)
     dependents_map = defaultdict(list)
@@ -33,6 +39,9 @@ def build_prerequisite_maps(course_id: int):
     return prereq_map, dependents_map
 
 
+# 维护意图：对掌握度施加前置约束。
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def apply_prerequisite_caps(mastery_dict: dict[int, float], course_id: int, buffer: float = 0.0) -> dict[int, float]:
     """
     对掌握度施加前置约束。
@@ -54,6 +63,9 @@ def apply_prerequisite_caps(mastery_dict: dict[int, float], course_id: int, buff
     return adjusted
 
 
+# 维护意图：is auto completable
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def is_auto_completable(point_id: int, mastery_dict: dict[int, float], prereq_map: dict[int, list[int]]) -> bool:
     mastery = float(mastery_dict.get(point_id, 0))
     if mastery < AUTO_COMPLETE_THRESHOLD:
@@ -64,6 +76,9 @@ def is_auto_completable(point_id: int, mastery_dict: dict[int, float], prereq_ma
     return all(float(mastery_dict.get(pre_id, 0)) >= PREREQUISITE_MASTERY_THRESHOLD for pre_id in prereqs)
 
 
+# 维护意图：在满足前置约束的前提下，优先返回掌握度更低的知识点
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def topological_mastery_order(points, mastery_dict: dict[int, float], prereq_map: dict[int, list[int]], completed_point_ids: set[int] | None = None):
     """
     在满足前置约束的前提下，优先返回掌握度更低的知识点。
@@ -101,6 +116,9 @@ def topological_mastery_order(points, mastery_dict: dict[int, float], prereq_map
     return ordered
 
 
+# 维护意图：返回自动完成与待学习知识点集合。
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def partition_points_for_path(course_id: int, mastery_dict: dict[int, float], excluded_point_ids: set[int] | None = None):
     """
     返回自动完成与待学习知识点集合。

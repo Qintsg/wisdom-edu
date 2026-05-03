@@ -15,24 +15,36 @@ from .models import User
 logger = logging.getLogger(__name__)
 
 
+# 维护意图：画像生成依赖的服务方法集合，避免与主服务类形成导入环
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class LearnerProfileServiceProtocol(Protocol):
     """画像生成依赖的服务方法集合，避免与主服务类形成导入环。"""
 
     user: User
 
+    # 维护意图：获取知识掌握度
+    # 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+    # 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
     def get_knowledge_mastery(self, course_id: int | None = None) -> List[Dict[str, Any]]:
         """获取知识掌握度。"""
 
+    # 维护意图：获取能力分
+    # 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+    # 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
     def get_ability_scores(self, course_id: int | None = None) -> Dict[str, float]:
         """获取能力分。"""
 
+    # 维护意图：获取学习习惯偏好
+    # 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+    # 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
     def get_habit_preferences(self) -> Dict[str, Any]:
         """获取学习习惯偏好。"""
 
-    def _build_cached_profile_result(self, course_id: int) -> Dict[str, Any] | None:
-        """获取可复用的缓存画像结果。"""
 
-
+# 维护意图：为指定课程生成或刷新学习者画像
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def generate_profile_for_course(
     profile_service: LearnerProfileServiceProtocol,
     course_id: int,
@@ -42,7 +54,7 @@ def generate_profile_for_course(
     user = profile_service.user
     try:
         if not force_refresh:
-            cached_result = profile_service._build_cached_profile_result(course_id)
+            cached_result = load_cached_profile_result(profile_service, course_id)
             if cached_result:
                 logger.info(
                     build_log_message(
@@ -56,12 +68,12 @@ def generate_profile_for_course(
         mastery_list = profile_service.get_knowledge_mastery(course_id)
         ability_scores = profile_service.get_ability_scores(course_id)
         habit_prefs = profile_service.get_habit_preferences()
-        course_name = _resolve_course_name(course_id)
+        course_name = resolve_course_name(course_id)
         kt_predictions: Dict[str, Any] = {}
         kt_enhanced = False
 
         try:
-            kt_predictions = _refresh_mastery_with_kt(
+            kt_predictions = refresh_mastery_with_kt(
                 user=user,
                 course_id=course_id,
             )
@@ -86,7 +98,7 @@ def generate_profile_for_course(
                 )
             )
 
-        summary, weakness, suggestion, strength_list = _build_profile_text(
+        summary, weakness, suggestion, strength_list = build_profile_text(
             user=user,
             course_id=course_id,
             mastery_list=mastery_list,
@@ -96,7 +108,7 @@ def generate_profile_for_course(
             kt_predictions=kt_predictions,
         )
 
-        ProfileSummary.objects.update_or_create(
+        profile_summary, profile_summary_created = ProfileSummary.objects.update_or_create(
             user=user,
             course_id=course_id,
             defaults={
@@ -105,7 +117,7 @@ def generate_profile_for_course(
                 'suggestion': suggestion
             }
         )
-        ProfileHistory.objects.create(
+        profile_history = ProfileHistory.objects.create(
             user=user,
             course_id=course_id,
             knowledge_mastery={str(m['point_id']): m['mastery_rate'] for m in mastery_list},
@@ -113,7 +125,14 @@ def generate_profile_for_course(
             habit_preferences=habit_prefs,
             update_reason='ai_refresh' if force_refresh else 'auto'
         )
-        _record_profile_llm_log(
+        # 显式持有写入结果，便于日志定位画像主记录与历史记录。
+        logger.debug(
+            "画像记录已保存: summary=%s created=%s history=%s",
+            profile_summary.id,
+            profile_summary_created,
+            profile_history.id,
+        )
+        record_profile_llm_log(
             user=user,
             course_id=course_id,
             mastery_count=len(mastery_list),
@@ -151,7 +170,24 @@ def generate_profile_for_course(
         return {'success': False, 'error': str(exc)}
 
 
-def _resolve_course_name(course_id: int) -> str | None:
+# 维护意图：读取现有服务上的缓存画像结果，兼容旧私有方法名
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
+def load_cached_profile_result(
+    profile_service: LearnerProfileServiceProtocol,
+    course_id: int,
+) -> Dict[str, Any] | None:
+    """读取现有服务上的缓存画像结果，兼容旧私有方法名。"""
+    cache_loader = getattr(profile_service, "_build_cached_profile_result", None)
+    if not callable(cache_loader):
+        return None
+    return cache_loader(course_id)
+
+
+# 维护意图：查询课程名；失败时返回 None，避免画像刷新中断
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
+def resolve_course_name(course_id: int) -> str | None:
     """查询课程名；失败时返回 None，避免画像刷新中断。"""
     try:
         from courses.models import Course
@@ -161,7 +197,10 @@ def _resolve_course_name(course_id: int) -> str | None:
         return None
 
 
-def _refresh_mastery_with_kt(user: User, course_id: int) -> Dict[str, Any]:
+# 维护意图：调用 KT 服务预测掌握度，并将预测结果回写到知识掌握度表
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
+def refresh_mastery_with_kt(user: User, course_id: int) -> Dict[str, Any]:
     """调用 KT 服务预测掌握度，并将预测结果回写到知识掌握度表。"""
     from ai_services.services import kt_service
 
@@ -192,16 +231,20 @@ def _refresh_mastery_with_kt(user: User, course_id: int) -> Dict[str, Any]:
             rate_float = float(rate)
         except (TypeError, ValueError):
             continue
-        KnowledgeMastery.objects.update_or_create(
+        mastery_record, mastery_created = KnowledgeMastery.objects.update_or_create(
             user=user,
             course_id=course_id,
             knowledge_point_id=kp_id_str,
             defaults={'mastery_rate': rate_float}
         )
+        logger.debug("KT画像掌握度写入: mastery=%s created=%s", mastery_record.id, mastery_created)
     return kt_predictions
 
 
-def _build_profile_text(
+# 维护意图：优先使用 LLM 生成画像文案，失败时降级为规则摘要
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
+def build_profile_text(
     user: User,
     course_id: int,
     mastery_list: List[Dict[str, Any]],
@@ -255,7 +298,10 @@ def _build_profile_text(
         return summary, weakness, suggestion, []
 
 
-def _record_profile_llm_log(
+# 维护意图：写入画像 LLM 调用日志；日志失败不影响主流程
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
+def record_profile_llm_log(
     user: User,
     course_id: int,
     mastery_count: int,
@@ -266,12 +312,19 @@ def _record_profile_llm_log(
     try:
         from ai_services.models import LLMCallLog
 
-        LLMCallLog.objects.create(
+        llm_log = LLMCallLog.objects.create(
             user=user,
             call_type='profile_analysis',
             input_summary=f"course:{course_id}, mastery:{mastery_count}, kt:{kt_enhanced}",
             output_summary=summary[:500],
             is_success=True
         )
+        logger.debug("画像 LLM 日志已写入: log=%s", llm_log.id)
     except DatabaseError:
         return
+
+
+_resolve_course_name = resolve_course_name
+_refresh_mastery_with_kt = refresh_mastery_with_kt
+_build_profile_text = build_profile_text
+_record_profile_llm_log = record_profile_llm_log

@@ -12,6 +12,9 @@ from courses.models import Course
 from tools.question_import_types import QuestionPayload
 
 
+# 维护意图：根据标准化载荷创建题目
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def create_question_from_payload(course: Course, payload: QuestionPayload) -> Question:
     """根据标准化载荷创建题目。"""
     return Question.objects.create(

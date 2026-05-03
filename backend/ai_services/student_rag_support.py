@@ -20,6 +20,9 @@ from .models import LLMCallLog
 logger = logging.getLogger(__name__)
 
 
+# 维护意图：按 ID 读取课程
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def resolve_course(course_id: object) -> Course | None:
     """按 ID 读取课程。"""
     try:
@@ -28,6 +31,9 @@ def resolve_course(course_id: object) -> Course | None:
         return None
 
 
+# 维护意图：读取路径规划所需的知识点掌握度
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_mastery_data(user, course_id: object) -> list[dict[str, object]]:
     """读取路径规划所需的知识点掌握度。"""
     mastery_records = KnowledgeMastery.objects.filter(
@@ -45,6 +51,9 @@ def build_mastery_data(user, course_id: object) -> list[dict[str, object]]:
     ]
 
 
+# 维护意图：合并前端约束和课程能力评分
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_path_constraints(user, course_id: object, raw_constraints: object) -> dict[str, object]:
     """合并前端约束和课程能力评分。"""
     constraints = dict(raw_constraints or {}) if isinstance(raw_constraints, dict) else {}
@@ -54,6 +63,9 @@ def build_path_constraints(user, course_id: object, raw_constraints: object) -> 
     return constraints
 
 
+# 维护意图：调用学生 GraphRAG 路径规划，失败时返回错误信息
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def plan_student_path(
     *,
     user,
@@ -96,6 +108,9 @@ def plan_student_path(
     }, None
 
 
+# 维护意图：记录路径规划 LLM 调用摘要
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def log_path_planning_call(
     *,
     user,
@@ -114,6 +129,9 @@ def log_path_planning_call(
     )
 
 
+# 维护意图：按 point_id 或名称解析课程知识点
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def resolve_intro_point(*, course_id: object, point_id: object, point_name: str) -> KnowledgePoint | None:
     """按 point_id 或名称解析课程知识点。"""
     point_queryset = KnowledgePoint.objects.select_related("course").filter(course_id=course_id)
@@ -122,6 +140,9 @@ def resolve_intro_point(*, course_id: object, point_id: object, point_name: str)
     return point_queryset.filter(name=point_name).order_by("order", "id").first()
 
 
+# 维护意图：读取答辩演示固定知识点介绍
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def demo_intro_payload(user, point: KnowledgePoint) -> dict[str, object] | None:
     """读取答辩演示固定知识点介绍。"""
     preset_payload = get_defense_demo_intro_payload(point.course, point.id)
@@ -130,17 +151,26 @@ def demo_intro_payload(user, point: KnowledgePoint) -> dict[str, object] | None:
     return None
 
 
+# 维护意图：构造学生级知识点介绍缓存键
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def node_intro_cache_key(*, user_id: int, course_id: object, point_id: object, point_name: str) -> str:
     """构造学生级知识点介绍缓存键。"""
     return f"rag_node_intro:{user_id}:{course_id}:{point_id or point_name}"
 
 
+# 维护意图：读取缓存中的知识点介绍
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def cached_node_intro(cache_key: str) -> dict[str, object] | None:
     """读取缓存中的知识点介绍。"""
     cached = cache.get(cache_key)
     return cached if isinstance(cached, dict) else None
 
 
+# 维护意图：生成知识点介绍，RAG 失败时回退本地介绍
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_node_intro_payload(
     *,
     user,
@@ -172,6 +202,9 @@ def build_node_intro_payload(
         return get_or_generate_point_intro(point), False
 
 
+# 维护意图：用本地介绍补齐 GraphRAG 结果缺失字段
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def merge_intro_payload(
     result: dict[str, object],
     intro_payload: dict[str, object],
@@ -182,6 +215,9 @@ def merge_intro_payload(
     return result
 
 
+# 维护意图：缓存知识点介绍一小时
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def cache_node_intro(cache_key: str, payload: dict[str, object]) -> None:
     """缓存知识点介绍一小时。"""
     cache.set(cache_key, payload, 3600)

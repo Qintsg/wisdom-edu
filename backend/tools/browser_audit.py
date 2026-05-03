@@ -6,6 +6,9 @@ import subprocess
 from pathlib import Path
 
 
+# 维护意图：Run the frontend Playwright audit script from the backend tooling entrypoint
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def browser_audit(
     frontend_url: str = 'http://127.0.0.1:3000',
     api_base_url: str = 'http://127.0.0.1:8000',

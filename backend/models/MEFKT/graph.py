@@ -7,6 +7,9 @@ import torch.nn.functional as functional
 from torch import Tensor, nn
 
 
+# 维护意图：归一化稠密邻接矩阵，避免图卷积时节点度差异过大。
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def normalize_dense_adjacency(adjacency_matrix: Tensor) -> Tensor:
     """
     归一化稠密邻接矩阵，避免图卷积时节点度差异过大。
@@ -27,6 +30,9 @@ def normalize_dense_adjacency(adjacency_matrix: Tensor) -> Tensor:
     return normalized
 
 
+# 维护意图：仅加载键名与形状同时匹配的权重。
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 def load_compatible_state(
     module: nn.Module,
     state_dict: dict[str, Tensor],
@@ -56,6 +62,9 @@ def load_compatible_state(
     }
 
 
+# 维护意图：课程级稠密题图使用的简化版 GCN 层
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class GraphConvolutionLayer(nn.Module):
     """课程级稠密题图使用的简化版 GCN 层。"""
 
@@ -69,6 +78,9 @@ class GraphConvolutionLayer(nn.Module):
         super().__init__()
         self.linear = nn.Linear(input_dim, output_dim)
 
+    # 维护意图：执行一层图卷积。
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def forward(self, normalized_adjacency: Tensor, node_features: Tensor) -> Tensor:
         """
         执行一层图卷积。
@@ -81,6 +93,9 @@ class GraphConvolutionLayer(nn.Module):
         return self.linear(propagated)
 
 
+# 维护意图：基于 DGI 风格目标的结构视角编码器
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class GraphContrastiveEncoder(nn.Module):
     """基于 DGI 风格目标的结构视角编码器。"""
 
@@ -97,6 +112,9 @@ class GraphContrastiveEncoder(nn.Module):
         self.gcn_second = GraphConvolutionLayer(hidden_dim, output_dim)
         self.readout_gate = nn.Linear(output_dim, output_dim, bias=False)
 
+    # 维护意图：根据图结构编码节点表示。
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def encode(self, node_features: Tensor, adjacency_matrix: Tensor) -> Tensor:
         """
         根据图结构编码节点表示。
@@ -110,6 +128,9 @@ class GraphContrastiveEncoder(nn.Module):
         output = self.gcn_second(normalized, hidden)
         return output
 
+    # 维护意图：计算结构视角嵌入与 DGI 风格对比损失。
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def contrastive_loss(
         self,
         node_features: Tensor,

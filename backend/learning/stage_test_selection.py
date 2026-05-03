@@ -16,6 +16,9 @@ from learning.view_helpers import _clean_text_for_llm
 logger = logging.getLogger(__name__)
 
 
+# 维护意图：为阶段测试节点构造题目响应数据和可选提示消息
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_stage_test_payload(node: PathNode, node_id: int) -> tuple[dict[str, object], str | None]:
     """为阶段测试节点构造题目响应数据和可选提示消息。"""
     knowledge_point_ids = _stage_knowledge_point_ids(node)
@@ -37,6 +40,9 @@ def build_stage_test_payload(node: PathNode, node_id: int) -> tuple[dict[str, ob
     )
 
 
+# 维护意图：收集当前测试覆盖的上一段学习节点知识点
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _stage_knowledge_point_ids(node: PathNode) -> set[int]:
     """收集当前测试覆盖的上一段学习节点知识点。"""
     prev_test = (
@@ -63,6 +69,9 @@ def _stage_knowledge_point_ids(node: PathNode) -> set[int]:
     return point_ids
 
 
+# 维护意图：优先使用绑定套题，否则从题库候选中取题
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _select_stage_questions(
     node: PathNode,
     node_id: int,
@@ -75,6 +84,9 @@ def _select_stage_questions(
     return _questions_from_bank(node, node_id, knowledge_point_ids)
 
 
+# 维护意图：获取节点显式绑定或课程内已发布的阶段测试套题
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def _resolve_stage_exam(node: PathNode, knowledge_point_ids: set[int]) -> Exam | None:
     """获取节点显式绑定或课程内已发布的阶段测试套题。"""
     if node.exam_id:
@@ -91,6 +103,9 @@ def _resolve_stage_exam(node: PathNode, knowledge_point_ids: set[int]) -> Exam |
     )
 
 
+# 维护意图：按试卷题序读取阶段测试题目
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _questions_from_exam(exam_set: Exam) -> list[Question]:
     """按试卷题序读取阶段测试题目。"""
     exam_questions = (
@@ -101,6 +116,9 @@ def _questions_from_exam(exam_set: Exam) -> list[Question]:
     return [exam_question.question for exam_question in exam_questions]
 
 
+# 维护意图：从课程题库候选题中选择阶段测试题目
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _questions_from_bank(
     node: PathNode,
     node_id: int,
@@ -120,6 +138,9 @@ def _questions_from_bank(
     return _pick_stage_questions_with_llm(node, candidates, knowledge_point_ids)
 
 
+# 维护意图：读取知识点关联候选题
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _candidate_questions(node: PathNode, knowledge_point_ids: set[int]) -> list[Question]:
     """读取知识点关联候选题。"""
     return list(
@@ -133,6 +154,9 @@ def _candidate_questions(node: PathNode, knowledge_point_ids: set[int]) -> list[
     )
 
 
+# 维护意图：知识点无题时回退到课程可见题库
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _course_questions(node: PathNode) -> list[Question]:
     """知识点无题时回退到课程可见题库。"""
     return list(
@@ -142,6 +166,9 @@ def _course_questions(node: PathNode) -> list[Question]:
     )
 
 
+# 维护意图：使用 LLM 从候选题中选择阶段测试题，失败时随机回退
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _pick_stage_questions_with_llm(
     node: PathNode,
     candidates: list[Question],
@@ -167,6 +194,9 @@ def _pick_stage_questions_with_llm(
         return candidates[:10]
 
 
+# 维护意图：限制 LLM 输入体积，只传递候选题摘要
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _candidate_info(candidates: list[Question]) -> list[dict[str, object]]:
     """限制 LLM 输入体积，只传递候选题摘要。"""
     return [
@@ -180,6 +210,9 @@ def _candidate_info(candidates: list[Question]) -> list[dict[str, object]]:
     ]
 
 
+# 维护意图：读取阶段测试覆盖知识点名称
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _knowledge_point_names(knowledge_point_ids: set[int]) -> list[str]:
     """读取阶段测试覆盖知识点名称。"""
     return [
@@ -191,6 +224,9 @@ def _knowledge_point_names(knowledge_point_ids: set[int]) -> list[str]:
     ]
 
 
+# 维护意图：读取节点已有阶段测试结果，供前端回显
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _stage_test_result(node: PathNode) -> object:
     """读取节点已有阶段测试结果，供前端回显。"""
     progress = NodeProgress.objects.filter(node=node, user=node.path.user).first()
@@ -199,6 +235,9 @@ def _stage_test_result(node: PathNode) -> object:
     return None
 
 
+# 维护意图：构造暂无题目时的兼容响应
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _empty_stage_test_payload(node: PathNode, stage_test_result: object) -> dict[str, object]:
     """构造暂无题目时的兼容响应。"""
     return {
@@ -211,6 +250,9 @@ def _empty_stage_test_payload(node: PathNode, stage_test_result: object) -> dict
     }
 
 
+# 维护意图：序列化阶段测试题目列表
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def _serialize_stage_questions(
     questions: list[Question],
     knowledge_point_ids: set[int],
@@ -227,6 +269,9 @@ def _serialize_stage_questions(
     ]
 
 
+# 维护意图：序列化单道阶段测试题
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def _serialize_stage_question(
     question: Question,
     knowledge_point_ids: set[int],
@@ -249,6 +294,9 @@ def _serialize_stage_question(
     return item
 
 
+# 维护意图：将题目选项规整为前端阶段测试需要的字段
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def _serialize_stage_options(question: Question) -> list[dict[str, object]]:
     """将题目选项规整为前端阶段测试需要的字段。"""
     return [

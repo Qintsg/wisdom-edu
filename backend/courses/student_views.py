@@ -14,6 +14,9 @@ from .models import Course, Class, ClassCourse, Enrollment, Announcement
 from .serializers import CourseSerializer, CourseSelectSerializer
 
 
+# 维护意图：把班级发布课程收敛为学生端稳定可用的摘要
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def _serialize_course_summary(course: Course) -> dict[str, object | None]:
     """把班级发布课程收敛为学生端稳定可用的摘要。"""
     return {
@@ -23,6 +26,9 @@ def _serialize_course_summary(course: Course) -> dict[str, object | None]:
     }
 
 
+# 维护意图：返回班级默认课程与已发布课程，避免旧班级只走默认课程时前端无课可选
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 def _get_class_course_summaries(class_obj: Class) -> list[dict[str, object | None]]:
     """返回班级默认课程与已发布课程，避免旧班级只走默认课程时前端无课可选。"""
     summaries: list[dict[str, object | None]] = []
@@ -45,6 +51,9 @@ def _get_class_course_summaries(class_obj: Class) -> list[dict[str, object | Non
     return summaries
 
 
+# 维护意图：统一学生班级列表与加入班级后的响应结构
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def _serialize_student_class(enrollment: Enrollment) -> dict[str, object | None]:
     """统一学生班级列表与加入班级后的响应结构。"""
     class_obj = enrollment.class_obj
@@ -68,6 +77,9 @@ def _serialize_student_class(enrollment: Enrollment) -> dict[str, object | None]
     }
 
 
+# 维护意图：获取用户课程列表 GET /api/courses 学生返回已选课程，教师返回教授的课程
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def course_list(request):
@@ -124,6 +136,9 @@ def course_list(request):
     })
 
 
+# 维护意图：切换当前课程 POST /api/courses/select
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def course_select(request):
@@ -186,6 +201,9 @@ def course_select(request):
 # ========== 课程管理（教师/管理员） ==========
 
 
+# 维护意图：学生通过邀请码加入班级 POST /api/student/classes/join 请求参数： - code: 邀请码（必填） 返回： - class_id: 班级ID - class_na。
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def student_join_class(request):
@@ -253,6 +271,9 @@ def student_join_class(request):
     )
 
 
+# 维护意图：学生退出班级 DELETE /api/student/classes/{class_id}/leave
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
 def student_leave_class(request, class_id):
@@ -275,6 +296,9 @@ def student_leave_class(request, class_id):
     return success_response(msg='已退出班级')
 
 
+# 维护意图：获取学生班级列表 GET /api/student/classes 返回学生已加入的所有班级及其关联的课程
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def student_class_list(request):
@@ -298,6 +322,9 @@ def student_class_list(request):
     return success_response(data={'classes': classes})
 
 
+# 维护意图：获取班级详情（学生视角） GET /api/student/classes/{class_id} 返回班级的详细信息、课程列表和成员概况
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def student_class_detail(request, class_id):

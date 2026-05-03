@@ -35,6 +35,9 @@ GRAPH_TOOL_QUERY_MODE = "graph_tools"
 GRAPH_QUERY_RETRIEVAL_MODE = "neo4j_graphrag_tools"
 
 
+# 维护意图：描述一次课程级 GraphRAG 物化的主要产物
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @dataclass(frozen=True)
 class GraphRAGArtifactReport:
     """描述一次课程级 GraphRAG 物化的主要产物。"""
@@ -47,6 +50,9 @@ class GraphRAGArtifactReport:
     projected_documents: int
     projected_relations: int
 
+    # 维护意图：转换为适合持久化到课程索引的 JSON 结构
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def as_dict(self) -> dict[str, object]:
         """转换为适合持久化到课程索引的 JSON 结构。"""
         return {
@@ -60,6 +66,9 @@ class GraphRAGArtifactReport:
         }
 
 
+# 维护意图：承载一次混合检索返回的单条证据
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @dataclass(frozen=True)
 class GraphRAGSearchHit:
     """承载一次混合检索返回的单条证据。"""
@@ -77,6 +86,9 @@ class GraphRAGSearchHit:
     postrequisites: list[SourcePayload]
     source_label: str = COURSE_RETRIEVAL_MODE
 
+    # 维护意图：转换为前端可直接消费的证据 source
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def as_source(self, query_mode: str) -> dict[str, object]:
         """转换为前端可直接消费的证据 source。"""
         return {
@@ -91,6 +103,9 @@ class GraphRAGSearchHit:
         }
 
 
+# 维护意图：承载官方 ToolsRetriever / Text2Cypher 生成的结构化图查询上下文
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @dataclass(frozen=True)
 class GraphQueryContext:
     """承载官方 ToolsRetriever / Text2Cypher 生成的结构化图查询上下文。"""
@@ -103,6 +118,9 @@ class GraphQueryContext:
     matched_point_ids: list[int]
     mode: str = GRAPH_QUERY_RETRIEVAL_MODE
 
+    # 维护意图：转换为稳定的业务层载荷
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def as_dict(self) -> dict[str, object]:
         """转换为稳定的业务层载荷。"""
         return {
@@ -116,11 +134,17 @@ class GraphQueryContext:
         }
 
 
+# 维护意图：把任意输入收敛为稳定字符串，避免外部数据结构污染
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def _coerce_string(value: object) -> str:
     """把任意输入收敛为稳定字符串，避免外部数据结构污染。"""
     return str(value).strip() if value is not None else ""
 
 
+# 维护意图：把弱类型输入稳定转换为整数
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def _coerce_int(value: object, default: int = 0) -> int:
     """把弱类型输入稳定转换为整数。"""
     normalized_text = _coerce_string(value)
@@ -129,6 +153,9 @@ def _coerce_int(value: object, default: int = 0) -> int:
     return default
 
 
+# 维护意图：提取 payload 中的整型列表，过滤空值与非法值
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def _coerce_int_list(value: object) -> list[int]:
     """提取 payload 中的整型列表，过滤空值与非法值。"""
     normalized_ids: list[int] = []
@@ -145,11 +172,17 @@ def _coerce_int_list(value: object) -> list[int]:
     return normalized_ids
 
 
+# 维护意图：转义 Cypher 单引号字符串，避免模板化查询被截断
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _escape_cypher_string(value: str) -> str:
     """转义 Cypher 单引号字符串，避免模板化查询被截断。"""
     return value.replace("\\", "\\\\").replace("'", "\\'")
 
 
+# 维护意图：将消息历史压缩为可读文本，供路由与提示生成复用
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _message_history_text(
     message_history: list[LLMMessage] | MessageHistory | None,
 ) -> str:
@@ -174,6 +207,9 @@ def _message_history_text(
     return "\n".join(normalized_lines)
 
 
+# 维护意图：为 ToolsRetriever 生成极简参数模式，降低工具路由复杂度
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 def _query_tool_parameters(description: str) -> ObjectParameter:
     """为 ToolsRetriever 生成极简参数模式，降低工具路由复杂度。"""
     return ObjectParameter(
@@ -189,6 +225,9 @@ def _query_tool_parameters(description: str) -> ObjectParameter:
     )
 
 
+# 维护意图：保持原顺序去重字符串列表
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _dedupe_strings(items: Sequence[str]) -> list[str]:
     """保持原顺序去重字符串列表。"""
     seen_items: set[str] = set()
@@ -201,12 +240,18 @@ def _dedupe_strings(items: Sequence[str]) -> list[str]:
         ordered_items.append(normalized_item)
     return ordered_items
 
+# 维护意图：压缩文本片段，便于进入聊天窗口与知识点详情
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _compact_excerpt(text: str, limit: int = 220) -> str:
     """压缩文本片段，便于进入聊天窗口与知识点详情。"""
     normalized = " ".join(segment.strip() for segment in text.splitlines() if segment.strip())
     return normalized[:limit]
 
 
+# 维护意图：从课程文档 payload 中提取关联知识点 ID 列表
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _vector_point_ids(document: DocumentPayload) -> list[int]:
     """从课程文档 payload 中提取关联知识点 ID 列表。"""
     metadata = document.get("metadata")
@@ -226,6 +271,9 @@ def _vector_point_ids(document: DocumentPayload) -> list[int]:
     return sorted(set(point_ids))
 
 
+# 维护意图：为 Qdrant 本地模式生成稳定 UUID
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _qdrant_point_id(external_id: str) -> str:
     """为 Qdrant 本地模式生成稳定 UUID。"""
     normalized_external_id = _coerce_string(external_id)
@@ -234,6 +282,9 @@ def _qdrant_point_id(external_id: str) -> str:
     return str(uuid5(NAMESPACE_URL, f"wisdom-edu:{normalized_external_id}"))
 
 
+# 维护意图：离线可用的哈希向量器。
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class TokenHashEmbedder(Embedder):
     """离线可用的哈希向量器。
 
@@ -245,6 +296,9 @@ class TokenHashEmbedder(Embedder):
         super().__init__()
         self.dimensions = max(64, int(dimensions))
 
+    # 维护意图：把查询文本编码为稠密向量。
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def embed_query(self, text: str) -> list[float]:
         """把查询文本编码为稠密向量。
 
@@ -271,6 +325,9 @@ class TokenHashEmbedder(Embedder):
         return [component / norm for component in vector]
 
 
+# 维护意图：对官方 SentenceTransformer 向量器做安全包装。
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class SafeSentenceTransformerEmbedder(Embedder):
     """对官方 SentenceTransformer 向量器做安全包装。
 
@@ -285,6 +342,9 @@ class SafeSentenceTransformerEmbedder(Embedder):
         self._delegate: SentenceTransformerEmbeddings | None = None
         self._delegate_unavailable = False
 
+    # 维护意图：延迟初始化真实 embedding 模型，避免模块导入即触发下载
+    # 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+    # 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
     def _resolve_delegate(self) -> SentenceTransformerEmbeddings | None:
         """延迟初始化真实 embedding 模型，避免模块导入即触发下载。"""
         if self._delegate_unavailable:
@@ -299,6 +359,9 @@ class SafeSentenceTransformerEmbedder(Embedder):
             self._delegate_unavailable = True
             return None
 
+    # 维护意图：优先使用 SentenceTransformer，失败时自动回退
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def embed_query(self, text: str) -> list[float]:
         """优先使用 SentenceTransformer，失败时自动回退。"""
         delegate = self._resolve_delegate()
@@ -312,6 +375,9 @@ class SafeSentenceTransformerEmbedder(Embedder):
             return self.fallback_embedder.embed_query(text)
 
 
+# 维护意图：把课程已有结构化文档投影成 GraphRAG 图对象。
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class StructuredCourseGraphExtractor(EntityRelationExtractor):
     """把课程已有结构化文档投影成 GraphRAG 图对象。
 
@@ -325,6 +391,9 @@ class StructuredCourseGraphExtractor(EntityRelationExtractor):
         super().__init__()
         self.course_id = int(course_id)
 
+    # 维护意图：run
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     async def run(
         self,
         chunks: TextChunks,

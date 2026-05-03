@@ -26,6 +26,9 @@ from .student_profile_support import (
 )
 
 
+# 维护意图：获取学习者画像 GET /api/profile
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_profile(request: Request) -> Response:
@@ -41,6 +44,9 @@ def get_profile(request: Request) -> Response:
     )
 
 
+# 维护意图：更新学习习惯偏好 PUT /api/profile/habit
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
 def update_habit_preference(request: Request) -> Response:
@@ -59,6 +65,9 @@ def update_habit_preference(request: Request) -> Response:
     return error_response(msg=str(serializer.errors), code=400)
 
 
+# 维护意图：手动更新学生画像（主动刷新） PUT /api/student/profile/update 调用KT服务细化掌握度 + LLM服务生成AI画像分析 请求参数： - course_id: 课程。
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def update_student_profile(request: Request) -> Response:
@@ -84,6 +93,9 @@ def update_student_profile(request: Request) -> Response:
     return success_response(data=payload, msg='画像刷新成功（已调用AI分析）')
 
 
+# 维护意图：获取画像历史（趋势对比） GET /api/profile/history 查询参数： - course_id: 课程ID（必填） - limit: 返回记录数（默认10）
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_profile_history(request: Request) -> Response:
@@ -109,6 +121,9 @@ def get_profile_history(request: Request) -> Response:
     })
 
 
+# 维护意图：对比不同时间的学习画像 GET /api/student/profile/compare 查询参数： - date1: 第一个时间点 (YYYY-MM-DD) - date2: 第二个时间点。
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def profile_compare(request: Request) -> Response:
@@ -138,6 +153,9 @@ def profile_compare(request: Request) -> Response:
     )
 
 
+# 维护意图：导出学习画像为 JSON（简版，PDF 需集成额外库） POST /api/student/profile/export
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def profile_export(request: Request) -> HttpResponse:

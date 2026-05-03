@@ -19,6 +19,9 @@ from users.models import User
 logger = logging.getLogger(__name__)
 
 
+# 维护意图：处理常规阶段测试提交
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def submit_standard_stage_test(
     *,
     node: PathNode,
@@ -57,6 +60,9 @@ def submit_standard_stage_test(
     )
 
 
+# 维护意图：更新常规阶段测试状态并在通过后解锁下一个节点
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def update_standard_node_status(node: PathNode, passed: bool) -> None:
     """更新常规阶段测试状态并在通过后解锁下一个节点。"""
     node.status = "completed" if passed else "failed"
@@ -73,6 +79,9 @@ def update_standard_node_status(node: PathNode, passed: bool) -> None:
         next_node.save()
 
 
+# 维护意图：优先用 KT 预测更新掌握度，失败时使用原简单算法兜底
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def update_mastery_from_kt_or_fallback(
     user: User,
     node: PathNode,
@@ -94,6 +103,9 @@ def update_mastery_from_kt_or_fallback(
         fallback_mastery_update(user, node, point_stats)
 
 
+# 维护意图：汇总课程作答历史并调用 KT 服务
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def predict_stage_mastery(
     user: User,
     node: PathNode,
@@ -131,6 +143,9 @@ def predict_stage_mastery(
     return kt_predictions
 
 
+# 维护意图：写入 KT 预测掌握度
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def apply_stage_kt_predictions(
     user: User,
     node: PathNode,
@@ -158,6 +173,9 @@ def apply_stage_kt_predictions(
             )
 
 
+# 维护意图：KT 不可用时按当前阶段测试正确率微调掌握度
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def fallback_mastery_update(
     user: User,
     node: PathNode,
@@ -188,6 +206,9 @@ def fallback_mastery_update(
             )
 
 
+# 维护意图：阶段测试通过后触发路径刷新
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def refresh_learning_path(user: User, node: PathNode) -> None:
     """阶段测试通过后触发路径刷新。"""
     from ai_services.services.path_service import PathService

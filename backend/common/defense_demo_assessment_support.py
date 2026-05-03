@@ -22,6 +22,9 @@ from common.defense_demo_progress import _question_knowledge_points
 from common.utils import extract_answer_value, serialize_answer_payload
 
 
+# 维护意图：答辩演示账号的评测默认值集合
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @dataclass(frozen=True)
 class DemoAssessmentDefaults:
     """答辩演示账号的评测默认值集合。"""
@@ -33,6 +36,9 @@ class DemoAssessmentDefaults:
     planned_answers: list[object]
 
 
+# 维护意图：从演示预置配置中解析学生测评默认值
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 def _load_demo_assessment_defaults(student_username: str) -> DemoAssessmentDefaults:
     """从演示预置配置中解析学生测评默认值。"""
     preset = _get_demo_assessment_preset(student_username)
@@ -116,6 +122,9 @@ def _load_demo_assessment_defaults(student_username: str) -> DemoAssessmentDefau
     )
 
 
+# 维护意图：补齐习惯、能力、评测状态和画像摘要
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _seed_demo_profile_state(
     course: Course,
     student: User,
@@ -149,6 +158,9 @@ def _seed_demo_profile_state(
     )
 
 
+# 维护意图：创建或复用初始知识评测及 through 关联
+# 边界说明：校验边界集中在这里，避免非法输入进入业务主流程。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def _ensure_demo_knowledge_assessment(
     course: Course,
     questions: list[Question],
@@ -180,6 +192,9 @@ def _ensure_demo_knowledge_assessment(
     return knowledge_assessment
 
 
+# 维护意图：按真实提交流程刷新初始评测答题历史
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def _refresh_demo_answer_histories(
     course: Course,
     student: User,
@@ -208,6 +223,9 @@ def _refresh_demo_answer_histories(
         )
 
 
+# 维护意图：根据初始评测正误生成贝叶斯掌握度基线
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def _build_demo_mastery_map(
     questions: list[Question],
     is_correct_flags: list[bool],
@@ -229,6 +247,9 @@ def _build_demo_mastery_map(
     return mastery_map
 
 
+# 维护意图：写回演示账号的知识掌握度记录
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def _persist_demo_mastery_records(
     course: Course,
     student: User,
@@ -245,6 +266,9 @@ def _persist_demo_mastery_records(
         )
 
 
+# 维护意图：更新初始评测结果快照
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def _upsert_demo_assessment_result(
     course: Course,
     student: User,
@@ -289,6 +313,9 @@ def _upsert_demo_assessment_result(
     )[0]
 
 
+# 维护意图：回填与异步生成一致的初始评测反馈报告
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def _upsert_demo_assessment_feedback(
     student: User,
     assessment_result: AssessmentResult,

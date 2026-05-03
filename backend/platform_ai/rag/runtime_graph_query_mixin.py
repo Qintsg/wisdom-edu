@@ -28,9 +28,15 @@ from platform_ai.rag.runtime_proxies import FacadeGraphRAGLLM, neo4j_service
 logger = logging.getLogger(__name__)
 
 
+# 维护意图：ToolsRetriever 与 Text2Cypher 图查询能力
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class CourseGraphRAGQueryMixin:
     """ToolsRetriever 与 Text2Cypher 图查询能力。"""
 
+    # 维护意图：定义面向课程知识图谱的受控 Neo4j schema 文本
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def _graph_query_schema(self) -> str:
         """定义面向课程知识图谱的受控 Neo4j schema 文本。"""
         return """
@@ -47,6 +53,9 @@ The relationships:
 (:CourseDocument)-[:ABOUT]->(:KnowledgePoint)
 """
 
+    # 维护意图：为 Text2Cypher 生成贴合课程图谱的 few-shot 样例
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def _graph_query_examples(
         self,
         *,
@@ -90,6 +99,9 @@ The relationships:
             ),
         ]
 
+    # 维护意图：自定义 Text2Cypher prompt，强制课程内查询和固定返回列
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def _text2cypher_prompt(self) -> str:
         """自定义 Text2Cypher prompt，强制课程内查询和固定返回列。"""
         return """
@@ -121,10 +133,16 @@ Rules:
 Cypher query:
 """
 
+    # 维护意图：把结构化 Cypher 结果转换为统一的检索条目
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def _graph_record_formatter(self, record: object) -> RetrieverResultItem:
         """把结构化 Cypher 结果转换为统一的检索条目。"""
         return build_graph_record_item(record)
 
+    # 维护意图：将现有混合检索包装成可供 ToolsRetriever 调用的 Tool 结果
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def _semantic_tool_result(
         self,
         *,
@@ -165,6 +183,9 @@ Cypher query:
             metadata={"retrieval_mode": COURSE_RETRIEVAL_MODE},
         )
 
+    # 维护意图：执行官方 Text2CypherRetriever，并把生成的 Cypher 注入 item metadata
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def _text2cypher_tool_result(
         self,
         *,
@@ -223,6 +244,9 @@ Cypher query:
             },
         )
 
+    # 维护意图：定义 ToolsRetriever 的系统路由指令
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def _graph_tools_system_instruction(self) -> str:
         """定义 ToolsRetriever 的系统路由指令。"""
         return (
@@ -232,14 +256,23 @@ Cypher query:
             "如果问题同时包含结构关系与解释需求，可以同时选择两个工具。"
         )
 
+    # 维护意图：把工具检索条目转换为简洁的上下文短句
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def _tool_line(self, item: RetrieverResultItem) -> str:
         """把工具检索条目转换为简洁的上下文短句。"""
         return build_tool_line(item)
 
+    # 维护意图：将 ToolsRetriever item 收敛为统一证据结构
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def _tool_source(self, item: RetrieverResultItem) -> dict[str, object]:
         """将 ToolsRetriever item 收敛为统一证据结构。"""
         return build_tool_source(item)
 
+    # 维护意图：构造图查询所需工具集合，并尽量获取可用图驱动
+    # 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+    # 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
     def _build_available_tools(
         self,
         *,
@@ -286,6 +319,9 @@ Cypher query:
             )
         return available_tools, graph_driver
 
+    # 维护意图：在图驱动不可用时，仅用语义检索返回图查询上下文
+    # 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+    # 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
     def _query_graph_semantic_only(
         self,
         *,
@@ -303,6 +339,9 @@ Cypher query:
         )
         return build_semantic_only_query_context(semantic_only, seed_point_ids)
 
+    # 维护意图：在图驱动可用时，执行 ToolsRetriever 并聚合结果
+    # 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+    # 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
     def _query_graph_with_tools(
         self,
         *,
@@ -320,6 +359,9 @@ Cypher query:
         tool_result = tools_retriever.search(query_text=normalized_query)
         return build_tools_query_context(tool_result)
 
+    # 维护意图：通过官方 ToolsRetriever 组合语义检索与 Text2Cypher 图查询
+    # 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+    # 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
     def query_graph(
         self,
         *,

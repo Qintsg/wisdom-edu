@@ -85,6 +85,9 @@ MENU_SECTIONS = (
 )
 
 
+# 维护意图：集中输出交互菜单文本
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def _render_menu() -> None:
     """集中输出交互菜单文本。"""
     print("\n" + "=" * 60)
@@ -95,12 +98,18 @@ def _render_menu() -> None:
         print(line)
 
 
+# 维护意图：解析可留空的课程 ID 输入
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def _parse_optional_course_id(prompt: str) -> int | None:
     """解析可留空的课程 ID 输入。"""
     course_id = input(prompt).strip()
     return int(course_id) if course_id else None
 
 
+# 维护意图：解析交互式 yes/no 输入
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _prompt_yes_no(prompt: str, default: bool = False) -> bool:
     """解析交互式 yes/no 输入。"""
     raw_value = input(prompt).strip().lower()
@@ -109,6 +118,9 @@ def _prompt_yes_no(prompt: str, default: bool = False) -> bool:
     return raw_value in {"y", "yes", "1", "true"}
 
 
+# 维护意图：处理数据导入导出相关菜单选项
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _handle_data_menu_choice(choice: str) -> bool | None:
     """处理数据导入导出相关菜单选项。"""
     if choice == "1":
@@ -156,6 +168,9 @@ def _handle_data_menu_choice(choice: str) -> bool | None:
     return None
 
 
+# 维护意图：处理数据库管理菜单选项
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _handle_database_menu_choice(choice: str) -> bool | None:
     """处理数据库管理菜单选项。"""
     if choice == "9":
@@ -176,6 +191,9 @@ def _handle_database_menu_choice(choice: str) -> bool | None:
     return None
 
 
+# 维护意图：处理 Neo4j 菜单选项
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _handle_neo4j_menu_choice(choice: str) -> bool | None:
     """处理 Neo4j 菜单选项。"""
     if choice == "14":
@@ -199,6 +217,9 @@ def _handle_neo4j_menu_choice(choice: str) -> bool | None:
     return None
 
 
+# 维护意图：处理 API 与 AI 服务测试菜单选项
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _handle_api_and_service_menu_choice(choice: str) -> bool | None:
     """处理 API 与 AI 服务测试菜单选项。"""
     if choice == "20":
@@ -219,6 +240,9 @@ def _handle_api_and_service_menu_choice(choice: str) -> bool | None:
     return None
 
 
+# 维护意图：处理 KT 模型管理菜单选项
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _handle_kt_menu_choice(choice: str) -> bool | None:
     """处理 KT 模型管理菜单选项。"""
     if choice == "25":
@@ -252,6 +276,9 @@ def _handle_kt_menu_choice(choice: str) -> bool | None:
     return None
 
 
+# 维护意图：处理 GraphRAG 与演示验证菜单选项
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _handle_graphrag_and_demo_menu_choice(choice: str) -> bool | None:
     """处理 GraphRAG 与演示验证菜单选项。"""
     if choice == "27":
@@ -294,6 +321,9 @@ MENU_GROUP_HANDLERS = (
 )
 
 
+# 维护意图：执行单个菜单选项，返回 False 表示退出
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _handle_menu_choice(choice: str) -> bool:
     """执行单个菜单选项，返回 False 表示退出。"""
     if choice == "0":
@@ -308,6 +338,9 @@ def _handle_menu_choice(choice: str) -> bool:
     return True
 
 
+# 维护意图：循环展示交互式菜单并分发对应工具命令
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def show_menu() -> None:
     """循环展示交互式菜单并分发对应工具命令。"""
     while True:

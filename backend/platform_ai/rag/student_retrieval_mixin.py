@@ -8,9 +8,15 @@ from .corpus import tokenize
 from .student_utils import humanize_document_title, sanitize_answer_text, to_float, to_int
 
 
+# 维护意图：实现实体、文档、社区报告的本地排序与 source 标准化
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class StudentRetrievalMixin:
     """实现实体、文档、社区报告的本地排序与 source 标准化。"""
 
+    # 维护意图：提取适合进入上下文窗口的证据片段
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def _document_excerpt(self, document: dict[str, object], limit: int = 180) -> str:
         """提取适合进入上下文窗口的证据片段。"""
         content = str(document.get("content", "")).strip()
@@ -20,6 +26,9 @@ class StudentRetrievalMixin:
             content = content.split("解析：", 1)[0].strip()
         return sanitize_answer_text(content)[:limit]
 
+    # 维护意图：从实体 ID 集合中提取知识点数字 ID
+    # 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+    # 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
     def _extract_point_ids(self, entity_ids: Iterable[str]) -> set[int]:
         """从实体 ID 集合中提取知识点数字 ID。"""
         point_ids: set[int] = set()
@@ -31,6 +40,9 @@ class StudentRetrievalMixin:
                 point_ids.add(int(raw_id))
         return point_ids
 
+    # 维护意图：将索引文档转成统一 source 结构
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def _source_from_document(self, document: dict[str, object], query_mode: str, limit: int = 140) -> dict[str, object]:
         """将索引文档转成统一 source 结构。"""
         return {
@@ -42,6 +54,9 @@ class StudentRetrievalMixin:
             "query_mode": query_mode,
         }
 
+    # 维护意图：将社区报告转成统一 source 结构
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def _source_from_report(self, report: dict[str, object], query_mode: str) -> dict[str, object]:
         """将社区报告转成统一 source 结构。"""
         community_id = str(report.get("community_id", "")).strip()
@@ -55,10 +70,16 @@ class StudentRetrievalMixin:
             "query_mode": query_mode,
         }
 
+    # 维护意图：把官方 GraphRAG 检索命中转换为统一 source 结构
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def _source_from_graphrag_hit(self, hit, query_mode: str) -> dict[str, object]:
         """把官方 GraphRAG 检索命中转换为统一 source 结构。"""
         return hit.as_source(query_mode)
 
+    # 维护意图：按来源 ID 去重，保留最先出现的证据
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def _merge_sources(self, *source_groups: list[dict[str, object]]) -> list[dict[str, object]]:
         """按来源 ID 去重，保留最先出现的证据。"""
         merged: list[dict[str, object]] = []
@@ -72,6 +93,9 @@ class StudentRetrievalMixin:
                 merged.append(source)
         return merged
 
+    # 维护意图：计算实体与查询的相关性分数
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def _entity_score(self, entity: dict[str, object], query_tokens: set[str], seed_entity_ids: set[str]) -> float:
         """计算实体与查询的相关性分数。"""
         entity_id = str(entity.get("id", "")).strip()
@@ -95,6 +119,9 @@ class StudentRetrievalMixin:
         seed_bonus = 12.0 if entity_id in seed_entity_ids else 0.0
         return token_overlap * 3.0 + substring_bonus + type_bonus + seed_bonus
 
+    # 维护意图：对实体进行局部查询排序
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def _rank_entities(self, payload: dict[str, object], query: str, seed_entity_ids: Iterable[str] = (), limit: int = 6) -> list[dict[str, object]]:
         """对实体进行局部查询排序。"""
         seed_ids = {entity_id for entity_id in seed_entity_ids if entity_id}
@@ -108,6 +135,9 @@ class StudentRetrievalMixin:
         ranked.sort(key=lambda item: (-item[0], item[1]))
         return [entity for _, _, entity in ranked[:limit]]
 
+    # 维护意图：从关系表中收集一跳邻居实体
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def _collect_neighbor_ids(self, payload: dict[str, object], focus_entity_ids: Iterable[str], limit: int = 8) -> list[str]:
         """从关系表中收集一跳邻居实体。"""
         focus_ids = {entity_id for entity_id in focus_entity_ids if entity_id}
@@ -123,6 +153,9 @@ class StudentRetrievalMixin:
         ordered_ids = sorted(scores.items(), key=lambda item: (-item[1], item[0]))
         return [entity_id for entity_id, _ in ordered_ids[:limit]]
 
+    # 维护意图：将关系边转换为适合 prompt 的短句
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def _relationship_lines(self, payload: dict[str, object], focus_entity_ids: Iterable[str], limit: int = 8) -> list[str]:
         """将关系边转换为适合 prompt 的短句。"""
         focus_ids = {entity_id for entity_id in focus_entity_ids if entity_id}
@@ -142,6 +175,9 @@ class StudentRetrievalMixin:
         from .student_utils import dedupe_strings
         return dedupe_strings(relation_lines)
 
+    # 维护意图：按 query 与焦点实体综合排序证据文档
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def _rank_documents(self, payload: dict[str, object], query: str, focus_entity_ids: Iterable[str] = (), limit: int = 6, include_questions: bool = False) -> list[dict[str, object]]:
         """按 query 与焦点实体综合排序证据文档。"""
         query_tokens = tokenize(query)
@@ -171,6 +207,9 @@ class StudentRetrievalMixin:
         ranked_documents.sort(key=lambda item: (-item[0], item[1]))
         return [document for _, _, document in ranked_documents[:limit]]
 
+    # 维护意图：按查询与实体焦点排序社区报告
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def _rank_community_reports(self, payload: dict[str, object], query: str, focus_entity_ids: Iterable[str] = (), limit: int = 4) -> list[dict[str, object]]:
         """按查询与实体焦点排序社区报告。"""
         query_tokens = tokenize(query)

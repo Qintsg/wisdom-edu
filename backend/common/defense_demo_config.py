@@ -135,6 +135,9 @@ DEMO_ASSESSMENT_PRESETS: dict[str, dict[str, object]] = {
 }
 
 
+# 维护意图：获取演示账号的评测与画像预置。
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 def _get_demo_assessment_preset(username: str) -> dict[str, object]:
     """
     获取演示账号的评测与画像预置。

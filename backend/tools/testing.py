@@ -18,12 +18,18 @@ from tools.common import BASE_DIR
 TESTDATA_FILE = BASE_DIR / 'tools' / 'testdata.json5'
 
 
+# 维护意图：判断当前终端是否支持直接输出 Unicode 状态符号
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _supports_unicode_output() -> bool:
     """判断当前终端是否支持直接输出 Unicode 状态符号。"""
     encoding = (sys.stdout.encoding or '').lower()
     return 'utf' in encoding
 
 
+# 维护意图：根据检查结果返回终端友好的状态标记
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _status_flag(ok: bool) -> str:
     """根据检查结果返回终端友好的状态标记。"""
     if _supports_unicode_output():
@@ -32,6 +38,9 @@ def _status_flag(ok: bool) -> str:
 
 
 # ── 数据类 ────────────────────────────────────────────────
+# 维护意图：CheckResult
+# 边界说明：校验边界集中在这里，避免非法输入进入业务主流程。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 @dataclass
 class CheckResult:
     name: str
@@ -41,6 +50,9 @@ class CheckResult:
 
 
 # ── 输出 ──────────────────────────────────────────────────
+# 维护意图：打印测试检查结果。
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _print_checks(checks: List[CheckResult], as_json: bool = False):
     """打印测试检查结果。
 
@@ -72,6 +84,9 @@ def _print_checks(checks: List[CheckResult], as_json: bool = False):
 
 
 # ── HTTP 请求封装 ─────────────────────────────────────────
+# 维护意图：执行HTTP请求并捕获异常。
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _request(
     method: str,
     url: str,
@@ -96,6 +111,9 @@ def _request(
         return None, str(exc)
 
 
+# 维护意图：从响应中提取data字段。
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def _extract_data(resp: requests.Response) -> Any:
     """从响应中提取data字段。
 
@@ -118,6 +136,9 @@ def _extract_data(resp: requests.Response) -> Any:
 
 
 # ── 登录认证 ──────────────────────────────────────────────
+# 维护意图：执行用户登录并获取认证令牌。
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _login(
     base_url: str,
     username: str,
@@ -155,6 +176,9 @@ def _login(
 
 
 # ── 课程 ID 解析 ─────────────────────────────────────────
+# 维护意图：解析获取课程ID。
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def _resolve_course_id(
     base_url: str,
     headers: Dict[str, str],
@@ -206,6 +230,9 @@ def _resolve_course_id(
 
 
 # ── 测试数据加载 ─────────────────────────────────────────
+# 维护意图：加载并解析testdata.json5测试数据文件。
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 def _load_testdata() -> Optional[dict]:
     """加载并解析testdata.json5测试数据文件。
 

@@ -14,6 +14,9 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
 
+# 维护意图：知识点模型 代表知识图谱中的一个节点，包含： - 所属课程 - 知识点名称和描述 - 所属章节 - 层级信息 - 标签（重点、难点、考点等） - 认知维度（记忆、理解、应用、分析、评价、创造）。
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class KnowledgePoint(models.Model):
     """
     知识点模型
@@ -108,6 +111,9 @@ class KnowledgePoint(models.Model):
     created_at = models.DateTimeField("创建时间", auto_now_add=True)
     updated_at = models.DateTimeField("更新时间", auto_now=True)
 
+    # 维护意图：Meta
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     class Meta:
         db_table = "knowledge_points"
         verbose_name = "知识点"
@@ -117,14 +123,23 @@ class KnowledgePoint(models.Model):
     def __str__(self):
         return self.name
 
+    # 维护意图：获取前置知识点列表
+    # 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+    # 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
     def get_prerequisites(self):
         """获取前置知识点列表"""
         return [relation.pre_point for relation in self.pre_relations.all()]
 
+    # 维护意图：获取后续知识点列表
+    # 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+    # 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
     def get_dependents(self):
         """获取后续知识点列表"""
         return [relation.post_point for relation in self.post_relations.all()]
 
+    # 维护意图：获取标签列表
+    # 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+    # 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
     def get_tags_list(self):
         """获取标签列表"""
         if self.tags:
@@ -132,6 +147,9 @@ class KnowledgePoint(models.Model):
         return []
 
 
+# 维护意图：知识点关系模型 表示知识图谱中节点之间的关系（边），支持： - prerequisite: 先修关系（A是B的前置知识） - part_of: 包含关系（A包含于B） - related: 相。
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class KnowledgeRelation(models.Model):
     """
     知识点关系模型
@@ -174,6 +192,9 @@ class KnowledgeRelation(models.Model):
         default="prerequisite",
     )
 
+    # 维护意图：Meta
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     class Meta:
         db_table = "knowledge_relations"
         verbose_name = "知识点关系"
@@ -184,6 +205,9 @@ class KnowledgeRelation(models.Model):
         return f"{self.pre_point.name} -> {self.post_point.name}"
 
 
+# 维护意图：学习资源模型 代表课程中的学习资源，支持： - 视频资源 - 文档资源 - 外部链接 - 练习题
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class Resource(models.Model):
     """
     学习资源模型
@@ -239,6 +263,9 @@ class Resource(models.Model):
     created_at = models.DateTimeField("创建时间", auto_now_add=True)
     updated_at = models.DateTimeField("更新时间", auto_now=True)
 
+    # 维护意图：Meta
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     class Meta:
         db_table = "resources"
         verbose_name = "学习资源"
@@ -248,6 +275,9 @@ class Resource(models.Model):
         return self.title
 
 
+# 维护意图：知识点掌握度模型 记录用户对每个知识点的掌握程度， 掌握度范围为0-1，通过测评和练习动态更新
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class KnowledgeMastery(models.Model):
     """
     知识点掌握度模型
@@ -284,6 +314,9 @@ class KnowledgeMastery(models.Model):
     )
     updated_at = models.DateTimeField("更新时间", auto_now=True)
 
+    # 维护意图：Meta
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     class Meta:
         db_table = "knowledge_mastery"
         verbose_name = "知识掌握度"
@@ -295,6 +328,9 @@ class KnowledgeMastery(models.Model):
         return f"{self.user.username} - {self.knowledge_point.name}: {self.mastery_rate:.0%}"
 
 
+# 维护意图：画像摘要模型 存储AI生成的学习者画像总结，包含： - 总体摘要 - 薄弱点分析 - 学习建议
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class ProfileSummary(models.Model):
     """
     画像摘要模型
@@ -322,6 +358,9 @@ class ProfileSummary(models.Model):
     suggestion = models.TextField("学习建议", blank=True, null=True)
     generated_at = models.DateTimeField("生成时间", auto_now=True)
 
+    # 维护意图：Meta
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     class Meta:
         db_table = "profile_summaries"
         verbose_name = "画像摘要"

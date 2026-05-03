@@ -10,6 +10,9 @@ from knowledge.models import KnowledgeMastery
 from .models import HabitPreference, User
 
 
+# 维护意图：读取学生用户，未命中时返回标准错误响应
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def resolve_student_for_teacher_profile(user_id: int):
     """读取学生用户，未命中时返回标准错误响应。"""
     try:
@@ -18,6 +21,9 @@ def resolve_student_for_teacher_profile(user_id: int):
         return None, error_response(msg="学生不存在", code=404)
 
 
+# 维护意图：解析画像课程 ID，缺省时使用学生首个入班课程
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def resolve_profile_course_id(student: User, requested_course_id: object):
     """解析画像课程 ID，缺省时使用学生首个入班课程。"""
     if requested_course_id:
@@ -39,6 +45,9 @@ def resolve_profile_course_id(student: User, requested_course_id: object):
     return first_class_course.course_id, None
 
 
+# 维护意图：教师只能查看自己班级中对应课程的学生画像
+# 边界说明：校验边界集中在这里，避免非法输入进入业务主流程。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def ensure_teacher_can_view_student(request_user: User, student: User, course_id: object):
     """教师只能查看自己班级中对应课程的学生画像。"""
     if request_user.role != "teacher":
@@ -54,6 +63,9 @@ def ensure_teacher_can_view_student(request_user: User, student: User, course_id
     return forbidden_response(msg="该学生不在您的班级中")
 
 
+# 维护意图：组装教师端学生画像详情响应
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_student_profile_payload(student: User, course_id: object) -> dict[str, object]:
     """组装教师端学生画像详情响应。"""
     return {
@@ -70,6 +82,9 @@ def build_student_profile_payload(student: User, course_id: object) -> dict[str,
     }
 
 
+# 维护意图：读取知识点掌握度列表
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def _build_mastery_list(student: User, course_id: object) -> list[dict[str, object]]:
     """读取知识点掌握度列表。"""
     mastery_records = KnowledgeMastery.objects.filter(
@@ -87,6 +102,9 @@ def _build_mastery_list(student: User, course_id: object) -> list[dict[str, obje
     ]
 
 
+# 维护意图：读取能力评分字典，异常结构按空字典处理
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def _build_ability_scores(student: User, course_id: object) -> dict[str, object]:
     """读取能力评分字典，异常结构按空字典处理。"""
     ability_score = AbilityScore.objects.filter(user=student, course_id=course_id).first()
@@ -95,6 +113,9 @@ def _build_ability_scores(student: User, course_id: object) -> dict[str, object]
     return {}
 
 
+# 维护意图：读取学生学习偏好
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def _build_habit_preferences(student: User) -> dict[str, object]:
     """读取学生学习偏好。"""
     habit_preference = HabitPreference.objects.filter(user=student).first()
@@ -110,6 +131,9 @@ def _build_habit_preferences(student: User) -> dict[str, object]:
     }
 
 
+# 维护意图：读取最近画像历史
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def _build_profile_history(student: User, course_id: object) -> list[dict[str, object]]:
     """读取最近画像历史。"""
     profile_history = ProfileHistory.objects.filter(
@@ -127,6 +151,9 @@ def _build_profile_history(student: User, course_id: object) -> list[dict[str, o
     ]
 
 
+# 维护意图：计算画像历史中的平均掌握度
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _average_history_mastery(knowledge_mastery: object) -> float:
     """计算画像历史中的平均掌握度。"""
     if not isinstance(knowledge_mastery, dict) or not knowledge_mastery:
@@ -134,6 +161,9 @@ def _average_history_mastery(knowledge_mastery: object) -> float:
     return sum(knowledge_mastery.values()) / len(knowledge_mastery)
 
 
+# 维护意图：统计学生在课程内的答题正确率
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def _build_answer_stats(student: User, course_id: object) -> dict[str, object]:
     """统计学生在课程内的答题正确率。"""
     answer_records = AnswerHistory.objects.filter(user=student, course_id=course_id)
@@ -148,6 +178,9 @@ def _build_answer_stats(student: User, course_id: object) -> dict[str, object]:
     }
 
 
+# 维护意图：刷新学生画像并返回标准响应数据或错误响应
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_profile_refresh_payload(student: User, course_id: object):
     """刷新学生画像并返回标准响应数据或错误响应。"""
     from users.services import get_learner_profile_service

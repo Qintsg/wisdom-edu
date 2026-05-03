@@ -31,16 +31,25 @@ KnowledgePointProfile = dict[str, object]
 SyntheticSequence = dict[str, object]
 
 
+# 维护意图：限制概率、掌握度等连续特征，避免合成轨迹出现越界值
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _clamp(value: float, lower: float = 0.0, upper: float = 1.0) -> float:
     """限制概率、掌握度等连续特征，避免合成轨迹出现越界值。"""
     return clamp_value(value, lower, upper)
 
 
+# 维护意图：兼容历史测试入口的均值包装
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _mean(values: object, default: float = 0.0) -> float:
     """兼容历史测试入口的均值包装。"""
     return mean_or_default(values, default)
 
 
+# 维护意图：构建知识点画像：难度、章节、邻接关系与学习稳定度
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def _build_kp_profiles(
     kp_to_idx: dict[int, int],
     prereqs: dict[int, list[int]],
@@ -66,6 +75,9 @@ def _build_kp_profiles(
     }
 
 
+# 维护意图：采样学生画像，让合成学生不再只有一个统一模板
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _sample_student_profile(rng: Random) -> StudentProfile:
     """采样学生画像，让合成学生不再只有一个统一模板。"""
     archetype = rng.choices(
@@ -113,6 +125,9 @@ def _sample_student_profile(rng: Random) -> StudentProfile:
     }
 
 
+# 维护意图：根据先修掌握、复习队列和学生画像选择当前学习焦点
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _choose_focus_kp(
     kp_profiles: dict[int, KnowledgePointProfile],
     state: SyntheticState,
@@ -127,6 +142,9 @@ def _choose_focus_kp(
     )
 
 
+# 维护意图：模拟单个学生的答题轨迹，供 KT 相关回归测试构造稳定样本
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _simulate_student_sequence(
     kp_to_idx: dict[int, int],
     kp_profiles: dict[int, KnowledgePointProfile],

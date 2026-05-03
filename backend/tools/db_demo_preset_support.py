@@ -8,6 +8,9 @@ from decimal import Decimal
 from knowledge.models import Resource
 
 
+# 维护意图：student1 演示预置使用的固定默认值
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @dataclass(frozen=True)
 class Student1DemoDefaults:
     """student1 演示预置使用的固定默认值。"""
@@ -18,6 +21,9 @@ class Student1DemoDefaults:
     path_node_configs: list[dict[str, object]]
 
 
+# 维护意图：student1 演示预置需要的课程数据
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @dataclass(frozen=True)
 class Student1DemoCourseData:
     """student1 演示预置需要的课程数据。"""
@@ -28,6 +34,9 @@ class Student1DemoCourseData:
     selected_questions: list[object]
 
 
+# 维护意图：构造 student1 演示用固定默认值
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_student1_demo_defaults() -> Student1DemoDefaults:
     """构造 student1 演示用固定默认值。"""
     return Student1DemoDefaults(
@@ -88,6 +97,9 @@ def build_student1_demo_defaults() -> Student1DemoDefaults:
     )
 
 
+# 维护意图：加载 student1 预置所需的知识点、题目和资源
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 def load_student1_demo_course_data(course) -> Student1DemoCourseData:
     """加载 student1 预置所需的知识点、题目和资源。"""
     from assessments.models import Question
@@ -109,6 +121,9 @@ def load_student1_demo_course_data(course) -> Student1DemoCourseData:
     )
 
 
+# 维护意图：清理指定学生在课程下的预置轨迹，便于幂等重建
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def reset_course_demo_state(student, course) -> None:
     """清理指定学生在课程下的预置轨迹，便于幂等重建。"""
     from assessments.models import AbilityScore, AssessmentResult, AssessmentStatus, AnswerHistory
@@ -128,6 +143,9 @@ def reset_course_demo_state(student, course) -> None:
     ProfileSummary.objects.filter(user=student, course=course).delete()
 
 
+# 维护意图：同步 student1 初始评测定义与题目顺序
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def sync_student1_initial_assessment(course, selected_questions: list[object]):
     """同步 student1 初始评测定义与题目顺序。"""
     from assessments.models import Assessment, AssessmentQuestion
@@ -153,6 +171,9 @@ def sync_student1_initial_assessment(course, selected_questions: list[object]):
     return assessment
 
 
+# 维护意图：按题型生成可用于预置答题历史的原始答案值
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_student1_answer_value(question, force_correct: bool) -> object:
     """按题型生成可用于预置答题历史的原始答案值。"""
     from common.utils import extract_answer_value
@@ -179,6 +200,9 @@ def build_student1_answer_value(question, force_correct: bool) -> object:
     )
 
 
+# 维护意图：写入 student1 的习惯、能力与评测完成状态
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def apply_student1_static_state(student, course, defaults: Student1DemoDefaults) -> None:
     """写入 student1 的习惯、能力与评测完成状态。"""
     from assessments.models import AbilityScore, AssessmentStatus
@@ -201,6 +225,9 @@ def apply_student1_static_state(student, course, defaults: Student1DemoDefaults)
     )
 
 
+# 维护意图：构造初始评测结果中的 mastery 列表
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_mastery_payload(points, mastery_map: dict[int, float], prior_mean: float) -> list[dict[str, object]]:
     """构造初始评测结果中的 mastery 列表。"""
     return [
@@ -213,6 +240,9 @@ def build_mastery_payload(points, mastery_map: dict[int, float], prior_mean: flo
     ]
 
 
+# 维护意图：构造 student1 预置反馈报告默认值
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_student1_feedback_defaults(
     *,
     total_questions: int,
@@ -246,6 +276,9 @@ def build_student1_feedback_defaults(
     }
 
 
+# 维护意图：重建 student1 的初始学习路径节点
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def rebuild_student1_path(
     *,
     student,

@@ -27,6 +27,9 @@ from .teacher_helpers import (
 UTF8_BOM = codecs.BOM_UTF8.decode('utf-8')
 
 
+# 维护意图：获取考试成绩列表（教师端）
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(['GET'])
 @permission_classes([IsAuthenticated, IsTeacherOrAdmin])
 def exam_results(request, exam_id):
@@ -65,6 +68,9 @@ def exam_results(request, exam_id):
     })
 
 
+# 维护意图：获取学生考试详情（教师端）
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(['GET'])
 @permission_classes([IsAuthenticated, IsTeacherOrAdmin])
 def exam_student_detail(request, exam_id, student_id):
@@ -110,6 +116,9 @@ def exam_student_detail(request, exam_id, student_id):
     })
 
 
+# 维护意图：获取考试统计分析（教师端）
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(['GET'])
 @permission_classes([IsAuthenticated, IsTeacherOrAdmin])
 def exam_analysis(request, exam_id):
@@ -165,6 +174,9 @@ def exam_analysis(request, exam_id):
     })
 
 
+# 维护意图：导出考试成绩
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(['GET'])
 @permission_classes([IsAuthenticated, IsTeacherOrAdmin])
 def teacher_exam_export(request, exam_id):

@@ -11,6 +11,9 @@ from torch import Tensor, nn
 from .constants import RELATION_STAT_SCHEMA
 
 
+# 维护意图：保存属性视角编码及其损失分量
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @dataclass(frozen=True)
 class AttributeEncodingResult:
     """保存属性视角编码及其损失分量。"""
@@ -20,6 +23,9 @@ class AttributeEncodingResult:
     similarity_loss: Tensor
 
 
+# 维护意图：构建包含难度、类型、时距和关系统计的属性视角表示
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class MultiAttributeEncoder(nn.Module):
     """构建包含难度、类型、时距和关系统计的属性视角表示。"""
 
@@ -70,6 +76,9 @@ class MultiAttributeEncoder(nn.Module):
         self.type_head = nn.Linear(embed_dim, safe_type_count)
         self.relation_head = nn.Linear(embed_dim, safe_relation_dim)
 
+    # 维护意图：在旧调用方式下自动构造关系统计。
+    # 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+    # 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
     def _build_default_relation_stats(
         self,
         node_feature_matrix: Tensor,
@@ -100,6 +109,9 @@ class MultiAttributeEncoder(nn.Module):
             dim=1,
         )
 
+    # 维护意图：编码属性视角并返回难度/相似性损失。
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def forward(
         self,
         node_feature_matrix: Tensor | None = None,

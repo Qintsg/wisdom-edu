@@ -21,6 +21,9 @@ from .student_rag_support import (
 )
 
 
+# 维护意图：Generate a personalized path proposal using mastery and RAG evidence
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def ai_path_planning(request: Request) -> Response:
@@ -49,6 +52,9 @@ def ai_path_planning(request: Request) -> Response:
     return success_response(data=payload, msg="路径规划完成")
 
 
+# 维护意图：Explain a knowledge point with cached graph-backed and corpus-backed content
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def ai_node_intro(request: Request) -> Response:

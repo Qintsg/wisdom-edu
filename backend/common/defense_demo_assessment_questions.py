@@ -15,6 +15,9 @@ from common.defense_demo_progress import (
 )
 from common.utils import build_answer_display, decorate_question_options, extract_answer_value
 
+# 维护意图：优先使用课程资源导入的初始评测题，缺失时才创建固定兜底题目。
+# 边界说明：校验边界集中在这里，避免非法输入进入业务主流程。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def _ensure_demo_assessment_questions(
     course: Course, teacher: User, points: list[KnowledgePoint],
 ) -> list[Question]:
@@ -153,6 +156,9 @@ def _ensure_demo_assessment_questions(
     return ordered
 
 
+# 维护意图：根据题目结构生成可提交的演示答案。
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def _build_planned_answer_value(question: Question, force_correct: bool) -> object:
     """
     根据题目结构生成可提交的演示答案。
@@ -195,6 +201,9 @@ def _build_planned_answer_value(question: Question, force_correct: bool) -> obje
     )
 
 
+# 维护意图：构建初始评测答题明细（含故意错题），匹配真实提交流程的数据结构。
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def _build_assessment_report_payload(
     questions: list[Question],
     planned_raw: list[object],

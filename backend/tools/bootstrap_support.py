@@ -23,6 +23,9 @@ from tools.testing import _status_flag
 from users.models import User
 
 
+# 维护意图：校验教师账号是否存在
+# 边界说明：校验边界集中在这里，避免非法输入进入业务主流程。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def ensure_teacher(username: str) -> User:
     """校验教师账号是否存在。"""
     teacher = User.objects.filter(username=username).first()
@@ -31,6 +34,9 @@ def ensure_teacher(username: str) -> User:
     return teacher
 
 
+# 维护意图：确保课程记录存在
+# 边界说明：校验边界集中在这里，避免非法输入进入业务主流程。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def ensure_course_record(course_name: str, teacher_obj: User) -> Course:
     """确保课程记录存在。"""
     course = Course.objects.filter(name=course_name).first()
@@ -44,6 +50,9 @@ def ensure_course_record(course_name: str, teacher_obj: User) -> Course:
     )
 
 
+# 维护意图：将文件复制到 MEDIA_ROOT 下并返回相对路径
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def copy_to_media(source_path: Path, sub_dir: str = "resources") -> str:
     """将文件复制到 MEDIA_ROOT 下并返回相对路径。"""
     media_root = Path(settings.MEDIA_ROOT)
@@ -63,6 +72,9 @@ def copy_to_media(source_path: Path, sub_dir: str = "resources") -> str:
     return str(dest_path.relative_to(media_root)).replace("\\", "/")
 
 
+# 维护意图：判断课程资源包是否包含可导入资源
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def bundle_has_importable_assets(bundle: CourseAssetBundle) -> bool:
     """判断课程资源包是否包含可导入资源。"""
     return any(
@@ -78,6 +90,9 @@ def bundle_has_importable_assets(bundle: CourseAssetBundle) -> bool:
     )
 
 
+# 维护意图：导入文件型课程资源并返回实际新增条数
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def import_media_resources(
     *,
     course: Course,
@@ -127,6 +142,9 @@ def import_media_resources(
     return created_count
 
 
+# 维护意图：导入课程知识图谱资源
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def import_bundle_knowledge_assets(
     *,
     bundle: CourseAssetBundle,
@@ -155,6 +173,9 @@ def import_bundle_knowledge_assets(
             import_knowledge_map(str(bundle.knowledge_file), course_id=int(course.pk))
 
 
+# 维护意图：导入初始评测、作业题库与套题
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def import_bundle_question_assets(
     *,
     bundle: CourseAssetBundle,
@@ -206,6 +227,9 @@ def import_bundle_question_assets(
     import_exam_sets(int(course.pk), str(homework_dir), replace=replace)
 
 
+# 维护意图：导入资源 JSON
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def import_bundle_resource_assets(
     *,
     bundle: CourseAssetBundle,
@@ -225,6 +249,9 @@ def import_bundle_resource_assets(
         )
 
 
+# 维护意图：导入课程媒体资源
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def import_bundle_media_assets(
     *,
     bundle: CourseAssetBundle,
@@ -256,6 +283,9 @@ def import_bundle_media_assets(
         print(f"  {label}资源导入: {imported_count} 个文件")
 
 
+# 维护意图：执行图谱同步与 RAG 刷新收尾动作
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def finalize_bootstrap_course(
     *,
     course: Course,
@@ -275,6 +305,9 @@ def finalize_bootstrap_course(
         refresh_rag_corpus(course_id=int(course.pk))
 
 
+# 维护意图：解析课程资源导入根目录
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def resolve_resources_root(resources_root: Optional[str]) -> Path:
     """解析课程资源导入根目录。"""
     if not resources_root:
@@ -282,6 +315,9 @@ def resolve_resources_root(resources_root: Optional[str]) -> Path:
     return resolve_path(resources_root)
 
 
+# 维护意图：读取批量导入时的资源目录，并处理环境变量回退
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def resolve_batch_resource_root() -> Path:
     """读取批量导入时的资源目录，并处理环境变量回退。"""
     try:
@@ -304,6 +340,9 @@ def resolve_batch_resource_root() -> Path:
     return resource_path
 
 
+# 维护意图：构造批量课程导入候选列表
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def collect_batch_candidates(
     *,
     resource_path: Path,
@@ -317,6 +356,9 @@ def collect_batch_candidates(
     candidates: list[tuple[str, Path]] = []
     seen: set[str] = set()
 
+    # 维护意图：enqueue
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def enqueue(name: str, base_dir: Path) -> None:
         normalized_name = name.strip()
         if not normalized_name or normalized_name in seen:

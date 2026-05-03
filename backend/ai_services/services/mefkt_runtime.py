@@ -22,6 +22,9 @@ if TYPE_CHECKING:
 HistorySortRecord = tuple[int, datetime | None, dict[str, object]]
 
 
+# 维护意图：课程题目级在线部署所需的静态特征与映射
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @dataclass(frozen=True)
 class CourseQuestionRuntimeBundle:
     """课程题目级在线部署所需的静态特征与映射。"""
@@ -39,6 +42,9 @@ class CourseQuestionRuntimeBundle:
     exercise_type_vector: Tensor
 
 
+# 维护意图：将元数据或动态字典中的值安全转换为浮点数
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def _coerce_float(value: object, default: float = 0.0) -> float:
     """将元数据或动态字典中的值安全转换为浮点数。"""
     try:
@@ -47,6 +53,9 @@ def _coerce_float(value: object, default: float = 0.0) -> float:
         return default
 
 
+# 维护意图：将元数据中的值安全转换为整数
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def _coerce_int(value: object, default: int) -> int:
     """将元数据中的值安全转换为整数。"""
     try:
@@ -55,6 +64,9 @@ def _coerce_int(value: object, default: int) -> int:
         return default
 
 
+# 维护意图：尝试解析接口层传入的时间文本
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def _parse_timestamp(timestamp_text: str | None) -> datetime | None:
     """尝试解析接口层传入的时间文本。"""
     if not timestamp_text:
@@ -68,6 +80,9 @@ def _parse_timestamp(timestamp_text: str | None) -> datetime | None:
         return None
 
 
+# 维护意图：按时间优先、原顺序兜底的方式整理历史作答记录
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def _build_sorted_history_records(answer_history: list[dict[str, object]]) -> list[HistorySortRecord]:
     """按时间优先、原顺序兜底的方式整理历史作答记录。"""
     sortable_records: list[HistorySortRecord] = []
@@ -79,6 +94,9 @@ def _build_sorted_history_records(answer_history: list[dict[str, object]]) -> li
     return sortable_records
 
 
+# 维护意图：追加答题正确性与相邻时间间隔特征
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _append_history_outcome(
     history_correct: list[int],
     history_gap_hours: list[float],
@@ -96,6 +114,9 @@ def _append_history_outcome(
     return current_time or previous_time
 
 
+# 维护意图：将课程运行时张量批量迁移到指定设备
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _move_bundle_tensors_to_device(
     bundle: CourseQuestionRuntimeBundle,
     device: TorchDevice | str,
@@ -111,6 +132,9 @@ def _move_bundle_tensors_to_device(
     )
 
 
+# 维护意图：将一维数值归一化到 [0,1]
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def _normalize_values(values: list[float], default_value: float = 0.5) -> list[float]:
     """将一维数值归一化到 [0,1]。"""
     if not values:
@@ -122,11 +146,17 @@ def _normalize_values(values: list[float], default_value: float = 0.5) -> list[f
     return [(value - lower) / (upper - lower) for value in values]
 
 
+# 维护意图：将运行时特征值裁剪到闭区间内，避免异常值放大
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _clamp(value: float, lower: float = 0.0, upper: float = 1.0) -> float:
     """将运行时特征值裁剪到闭区间内，避免异常值放大。"""
     return max(lower, min(upper, value))
 
 
+# 维护意图：将题目难度枚举转换成数值特征
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _difficulty_to_score(difficulty: str | None) -> float:
     """将题目难度枚举转换成数值特征。"""
     return {
@@ -136,6 +166,9 @@ def _difficulty_to_score(difficulty: str | None) -> float:
     }.get(str(difficulty or "").strip(), 0.5)
 
 
+# 维护意图：基于课程题目、知识图谱与资源关系构建题目级在线特征
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_course_runtime_bundle(course_id: int) -> CourseQuestionRuntimeBundle:
     """基于课程题目、知识图谱与资源关系构建题目级在线特征。"""
     import torch

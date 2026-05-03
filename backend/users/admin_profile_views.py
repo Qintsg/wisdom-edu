@@ -14,6 +14,9 @@ from .models import HabitPreference, User
 from .serializers import HabitPreferenceSerializer
 
 
+# 维护意图：管理员查看所有学生画像
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(['GET'])
 @permission_classes([IsAuthenticated, IsAdmin])
 def admin_get_all_student_profiles(request):
@@ -68,6 +71,9 @@ def admin_get_all_student_profiles(request):
     return success_response(data={'total': total, 'page': page, 'page_size': page_size, 'profiles': profiles})
 
 
+# 维护意图：获取指定学生画像详情（管理员）
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(['GET'])
 @permission_classes([IsAuthenticated, IsAdmin])
 def admin_student_profile_detail(request, student_id):

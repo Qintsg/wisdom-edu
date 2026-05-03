@@ -14,6 +14,9 @@ from learning.view_helpers import (
 from users.models import User
 
 
+# 维护意图：写入阶段测试结果和掌握度变化快照
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def persist_stage_progress(
     *,
     user: User,
@@ -54,6 +57,9 @@ def persist_stage_progress(
     return mastery_changes
 
 
+# 维护意图：构造阶段测试提交 API 响应
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def stage_response_payload(
     *,
     evaluation: StageTestEvaluation,
@@ -83,6 +89,9 @@ def stage_response_payload(
     }
 
 
+# 维护意图：构造写入 NodeProgress.extra_data 的阶段测试结果
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _stored_stage_result(
     *,
     evaluation: StageTestEvaluation,

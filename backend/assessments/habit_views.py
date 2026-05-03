@@ -27,6 +27,9 @@ from .models import AssessmentStatus, SurveyQuestion
 logger = logging.getLogger(__name__)
 
 
+# 维护意图：获取学习习惯问卷题目。
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def get_habit_survey(request: Request) -> Response:
@@ -50,6 +53,9 @@ def get_habit_survey(request: Request) -> Response:
     )
 
 
+# 维护意图：提交学习习惯问卷答案。
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["POST"])
 @permission_classes([IsAuthenticated, IsStudent])
 def submit_habit_survey(request: Request) -> Response:
@@ -79,6 +85,9 @@ def submit_habit_survey(request: Request) -> Response:
         return error_response(msg=f"问卷提交失败: {str(exc)}", code=500)
 
 
+# 维护意图：读取习惯问卷题目；首次部署无数据时写入全局默认题
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 def _get_or_create_habit_questions(course_id: str | None) -> list[SurveyQuestion]:
     """读取习惯问卷题目；首次部署无数据时写入全局默认题。"""
     habit_question_qs = _habit_question_queryset(course_id)
@@ -90,6 +99,9 @@ def _get_or_create_habit_questions(course_id: str | None) -> list[SurveyQuestion
     return list(habit_question_qs)
 
 
+# 维护意图：幂等写入内置全局问卷题，避免并发初始化产生异常
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _seed_default_habit_questions() -> None:
     """幂等写入内置全局问卷题，避免并发初始化产生异常。"""
     with transaction.atomic():
@@ -106,6 +118,9 @@ def _seed_default_habit_questions() -> None:
             )
 
 
+# 维护意图：构造全局题和课程级题的联合查询
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _habit_question_queryset(course_id: str | None):
     """构造全局题和课程级题的联合查询。"""
     return (
@@ -114,6 +129,9 @@ def _habit_question_queryset(course_id: str | None):
     ).order_by("order")
 
 
+# 维护意图：序列化前端问卷渲染需要的最小字段
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def _serialize_habit_questions(
     questions: Iterable[SurveyQuestion],
 ) -> list[dict[str, object]]:
@@ -129,6 +147,9 @@ def _serialize_habit_questions(
     ]
 
 
+# 维护意图：把问卷答案映射到 HabitPreference 字段和扩展偏好
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _map_habit_responses(
     response_payload: object,
 ) -> tuple[dict[str, object], dict[str, object]]:
@@ -154,6 +175,9 @@ def _map_habit_responses(
     return field_map, extra_preferences
 
 
+# 维护意图：兼容历史 dict 与新列表两种提交结构
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def _normalize_response_items(
     response_payload: object,
 ) -> list[Mapping[str, object]]:
@@ -168,6 +192,9 @@ def _normalize_response_items(
     return [item for item in response_payload if isinstance(item, Mapping)]
 
 
+# 维护意图：根据题干语义定位偏好字段
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def _resolve_habit_field(question_text: object) -> str:
     """根据题干语义定位偏好字段。"""
     text = str(question_text or "")
@@ -192,6 +219,9 @@ def _resolve_habit_field(question_text: object) -> str:
     return ""
 
 
+# 维护意图：把问卷原始答案转成模型字段需要的类型
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def _normalize_habit_answer(field_name: str, answer: object) -> object:
     """把问卷原始答案转成模型字段需要的类型。"""
     answer_text = str(answer or "")
@@ -204,6 +234,9 @@ def _normalize_habit_answer(field_name: str, answer: object) -> object:
     return answer
 
 
+# 维护意图：保存用户学习偏好，同时保持历史默认值兼容
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def _save_habit_preference(
     user: User,
     field_map: Mapping[str, object],
@@ -228,11 +261,17 @@ def _save_habit_preference(
     )
 
 
+# 维护意图：把分钟目标映射到旧版枚举字段
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _study_duration_bucket(daily_goal_minutes: object) -> str:
     """把分钟目标映射到旧版枚举字段。"""
     return {"30": "short", "60": "medium"}.get(str(daily_goal_minutes), "long")
 
 
+# 维护意图：按课程或已选课程批量标记习惯问卷完成
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _mark_habit_assessment_done(user: User, course_id: object) -> None:
     """按课程或已选课程批量标记习惯问卷完成。"""
     if course_id:
@@ -245,6 +284,9 @@ def _mark_habit_assessment_done(user: User, course_id: object) -> None:
     _create_missing_course_assessment_statuses(user)
 
 
+# 维护意图：为已有选课但尚无状态记录的课程补齐完成状态
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def _create_missing_course_assessment_statuses(user: User) -> None:
     """为已有选课但尚无状态记录的课程补齐完成状态。"""
     enrolled_course_ids = set(

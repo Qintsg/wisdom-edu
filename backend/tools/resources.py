@@ -12,6 +12,9 @@ from tools.knowledge import validate_json
 from django.db import transaction
 
 
+# 维护意图：资源 JSON 中单条可入库记录的规范化结果
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @dataclass(frozen=True)
 class ResourceImportRow:
     """资源 JSON 中单条可入库记录的规范化结果。"""
@@ -26,6 +29,9 @@ class ResourceImportRow:
     knowledge_points: Sequence[str]
 
 
+# 维护意图：导入资源库（JSON格式）
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def import_resources_json(
     file: str,
     course_id: int,
@@ -55,6 +61,9 @@ def import_resources_json(
     print(f'资源JSON导入完成: 课程={course.name}, 新增资源={created}')
 
 
+# 维护意图：清洗资源 JSON 列表，过滤缺少标题的记录
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def parse_resource_rows(raw_resources: object) -> list[ResourceImportRow]:
     """清洗资源 JSON 列表，过滤缺少标题的记录。"""
     if not isinstance(raw_resources, list):
@@ -69,6 +78,9 @@ def parse_resource_rows(raw_resources: object) -> list[ResourceImportRow]:
     return rows
 
 
+# 维护意图：将资源原始字典转换为明确字段，避免入库逻辑反复解析 JSON
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_resource_row(item: Mapping[object, object], sort_order: int) -> ResourceImportRow | None:
     """将资源原始字典转换为明确字段，避免入库逻辑反复解析 JSON。"""
     title = clean_nan(item.get('title', ''))
@@ -87,6 +99,9 @@ def build_resource_row(item: Mapping[object, object], sort_order: int) -> Resour
     )
 
 
+# 维护意图：批量创建资源并绑定知识点，保留 replace=false 时的去重语义
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def create_resource_rows(course, resource_rows: Sequence[ResourceImportRow], *, replace: bool) -> int:
     """批量创建资源并绑定知识点，保留 replace=false 时的去重语义。"""
     kp_map = {point.name: point for point in KnowledgePoint.objects.filter(course=course)}
@@ -100,6 +115,9 @@ def create_resource_rows(course, resource_rows: Sequence[ResourceImportRow], *, 
     return created
 
 
+# 维护意图：判断当前资源是否应因同课同标题已存在而跳过
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def should_skip_existing_resource(course, row: ResourceImportRow, *, replace: bool) -> bool:
     """判断当前资源是否应因同课同标题已存在而跳过。"""
     if replace:
@@ -107,6 +125,9 @@ def should_skip_existing_resource(course, row: ResourceImportRow, *, replace: bo
     return Resource.objects.filter(course=course, title=row.title).exists()
 
 
+# 维护意图：创建单条学习资源记录
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def create_resource(course, row: ResourceImportRow) -> Resource:
     """创建单条学习资源记录。"""
     return Resource.objects.create(
@@ -121,6 +142,9 @@ def create_resource(course, row: ResourceImportRow) -> Resource:
     )
 
 
+# 维护意图：将资源关联到同课程下存在的知识点
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def bind_resource_points(
     resource: Resource,
     point_names: Sequence[str],
@@ -133,6 +157,9 @@ def bind_resource_points(
             resource.knowledge_points.add(knowledge_point)
 
 
+# 维护意图：删除数据库中 resource_type='link' 的外部链接资源记录
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def delete_link_resources(course_id: int | None = None, dry_run: bool = True) -> None:
     """
     删除数据库中 resource_type='link' 的外部链接资源记录
@@ -166,6 +193,9 @@ def delete_link_resources(course_id: int | None = None, dry_run: bool = True) ->
     print(f'\n已删除 {deleted} 条外部链接资源（{scope}）')
 
 
+# 维护意图：输出最多 20 条即将删除的外部链接资源
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def preview_link_resources(queryset, count: int) -> None:
     """输出最多 20 条即将删除的外部链接资源。"""
     for resource in queryset[:20]:

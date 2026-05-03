@@ -16,6 +16,9 @@ from .assessment_helpers import get_authenticated_user
 from .models import AbilityScore, AssessmentStatus
 
 
+# 维护意图：获取用户的初始评测完成状态。
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_assessment_status(request: Request) -> Response:
@@ -86,6 +89,9 @@ def get_assessment_status(request: Request) -> Response:
     return success_response(data=result)
 
 
+# 维护意图：为指定课程生成学习者画像。
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def generate_course_profile(request: Request) -> Response:

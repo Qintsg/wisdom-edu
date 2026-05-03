@@ -33,7 +33,13 @@ from users.models import User
 from .test_student_rag_base import StudentLearningRAGFixture
 
 
+# 维护意图：StudentLearningRAGContextTests
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class StudentLearningRAGContextTests(StudentLearningRAGFixture):
+    # 维护意图：Path context should include GraphRAG sections and course-owned evidence sources
+    # 边界说明：测试步骤保持显式，便于定位回归阶段和失败上下文。
+    # 风险说明：调整测试断言时，需保留失败上下文和可复现实例。
     @patch.object(student_learning_rag, "_ensure_index")
     def test_build_path_context_should_expose_multi_mode_sources(self, mock_ensure_index):
         """Path context should include GraphRAG sections and course-owned evidence sources."""
@@ -52,6 +58,9 @@ class StudentLearningRAGContextTests(StudentLearningRAGFixture):
             any(item["query_mode"] in {"local", "global", "drift"} for item in result["retrieved_sources"])
         )
 
+    # 维护意图：Question answering should still return graph-grounded content without LLM
+    # 边界说明：测试步骤保持显式，便于定位回归阶段和失败上下文。
+    # 风险说明：调整测试断言时，需保留失败上下文和可复现实例。
     @patch("platform_ai.rag.student.llm_facade")
     @patch.object(student_learning_rag, "_ensure_index")
     def test_answer_graph_question_should_fallback_to_graph_context_when_llm_unavailable(
@@ -72,6 +81,9 @@ class StudentLearningRAGContextTests(StudentLearningRAGFixture):
         self.assertIn("数组基础", result["answer"])
         self.assertTrue(result["sources"])
 
+    # 维护意图：Local context should merge Neo4j GraphRAG vector hits before native graph evidence
+    # 边界说明：测试步骤保持显式，便于定位回归阶段和失败上下文。
+    # 风险说明：调整测试断言时，需保留失败上下文和可复现实例。
     @patch("platform_ai.rag.student.student_graphrag_runtime.search_documents")
     @patch.object(student_learning_rag, "_ensure_index")
     def test_local_context_should_merge_vector_hits_into_sources(self, mock_ensure_index, mock_search_documents):
@@ -104,6 +116,9 @@ class StudentLearningRAGContextTests(StudentLearningRAGFixture):
             any(source.get("retrieval_source") == COURSE_RETRIEVAL_MODE for source in local_context.sources)
         )
 
+    # 维护意图：Question answering should merge Text2Cypher graph-query evidence into the final payload
+    # 边界说明：测试步骤保持显式，便于定位回归阶段和失败上下文。
+    # 风险说明：调整测试断言时，需保留失败上下文和可复现实例。
     @patch("platform_ai.rag.student.student_graphrag_runtime.query_graph")
     @patch("platform_ai.rag.student.llm_facade")
     @patch.object(student_learning_rag, "_ensure_index")
@@ -148,6 +163,9 @@ class StudentLearningRAGContextTests(StudentLearningRAGFixture):
             any(source.get("retrieval_source") == "text2cypher" for source in result["sources"])
         )
 
+    # 维护意图：Knowledge-point support payload should surface graph-query summaries for the detail drawer
+    # 边界说明：测试步骤保持显式，便于定位回归阶段和失败上下文。
+    # 风险说明：调整测试断言时，需保留失败上下文和可复现实例。
     @patch("platform_ai.rag.student.student_graphrag_runtime.query_graph")
     @patch.object(student_learning_rag, "_ensure_index")
     def test_build_point_support_payload_should_include_graph_query_summary(
@@ -188,6 +206,9 @@ class StudentLearningRAGContextTests(StudentLearningRAGFixture):
             any(source.get("query_mode") == "graph_tools" for source in result["sources"])
         )
 
+    # 维护意图：Course-level GraphRAG answers should keep graph-query evidence even without a focused point
+    # 边界说明：测试步骤保持显式，便于定位回归阶段和失败上下文。
+    # 风险说明：调整测试断言时，需保留失败上下文和可复现实例。
     @patch("platform_ai.rag.student.student_graphrag_runtime.query_graph")
     @patch("platform_ai.rag.student.llm_facade")
     @patch.object(student_learning_rag, "_ensure_index")

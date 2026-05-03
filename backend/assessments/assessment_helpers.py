@@ -27,6 +27,9 @@ HABIT_SURVEY_FIXED_ID = 5001
 ABILITY_ASSESSMENT_FIXED_ID = 5002
 
 
+# 维护意图：将请求中的用户对象收窄为项目内 User 类型。
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 def get_authenticated_user(request: Request) -> User:
     """
     将请求中的用户对象收窄为项目内 User 类型。
@@ -36,6 +39,9 @@ def get_authenticated_user(request: Request) -> User:
     return cast(User, request.user)
 
 
+# 维护意图：初始评测掌握度基线。
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def calculate_initial_mastery_baseline(correct_count: int, total_count: int) -> float:
     """
     初始评测掌握度基线。
@@ -50,6 +56,9 @@ def calculate_initial_mastery_baseline(correct_count: int, total_count: int) -> 
     return round(max(0.0, min(0.85, mastery)), 4)
 
 
+# 维护意图：提取题目答案载荷中的统一答案值
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def extract_answer_payload(answer: object) -> object:
     """提取题目答案载荷中的统一答案值。"""
     if isinstance(answer, Mapping):
@@ -59,16 +68,25 @@ def extract_answer_payload(answer: object) -> object:
     return answer
 
 
+# 维护意图：将作答内容规整为可比较的 token 集合
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def answer_tokens_for(answer: object, question_type: str) -> set[str]:
     """将作答内容规整为可比较的 token 集合。"""
     return answer_tokens(answer, question_type)
 
 
+# 维护意图：将选项对象规整为 token 集合
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def option_tokens_for(option: object) -> set[str]:
     """将选项对象规整为 token 集合。"""
     return option_tokens(option)
 
 
+# 维护意图：生成选项展示文本
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def format_option_display(option: Mapping[str, object]) -> str:
     """生成选项展示文本。"""
     prefix = option.get('letter') or option.get('value') or ''
@@ -76,6 +94,9 @@ def format_option_display(option: Mapping[str, object]) -> str:
     return f"{prefix}. {content}" if prefix else str(content)
 
 
+# 维护意图：构建学生答案或正确答案的展示文本
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_answer_display_value(
     answer: object,
     question_type: str,
@@ -85,11 +106,17 @@ def build_answer_display_value(
     return build_answer_display(answer, question_type, options)
 
 
+# 维护意图：清洗文本，避免 nan、空白和脏字符直接进入响应
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def clean_text(value: object) -> str:
     """清洗文本，避免 nan、空白和脏字符直接进入响应。"""
     return clean_display_text(value)
 
 
+# 维护意图：为题干提供稳健的显示文本，避免出现 'nan'
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 def get_question_title(question: Question) -> str:
     """为题干提供稳健的显示文本，避免出现 'nan'。"""
     content = clean_text(getattr(question, 'content', ''))
@@ -102,11 +129,17 @@ def get_question_title(question: Question) -> str:
     return content
 
 
+# 维护意图：统一规整题目选项结构
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def normalize_options(raw_options: object, question_type: str) -> list[dict[str, object]]:
     """统一规整题目选项结构。"""
     return normalize_question_options(raw_options, question_type)
 
 
+# 维护意图：回写知识点掌握度并生成接口响应所需的掌握度列表。
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def persist_mastery_snapshot(
     user: User,
     course_id: int | str,
@@ -139,6 +172,9 @@ def persist_mastery_snapshot(
     return mastery_list
 
 
+# 维护意图：统一写入知识测评结果，避免重复组装结果载荷。
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def upsert_knowledge_assessment_result(
     user: User,
     assessment: Assessment,

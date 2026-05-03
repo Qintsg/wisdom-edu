@@ -7,6 +7,9 @@ from assessments.models import Assessment, AssessmentResult, AssessmentStatus
 from users.models import User
 
 
+# 维护意图：加载异步生成所需的用户与评测上下文
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def resolve_async_generation_context(
     *,
     user_id: int,
@@ -21,6 +24,9 @@ def resolve_async_generation_context(
         return None, None, str(exc)
 
 
+# 维护意图：统一更新知识测评异步生成状态
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def update_generation_status(
     *,
     user_id: int,
@@ -35,6 +41,9 @@ def update_generation_status(
     )
 
 
+# 维护意图：从知识测评题目详情中抽取错题输入
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_assessment_mistake_payload(question_details: list[dict[str, object]]) -> list[dict[str, object]]:
     """从知识测评题目详情中抽取错题输入。"""
     mistakes = [detail for detail in question_details if not detail["is_correct"]]
@@ -50,6 +59,9 @@ def build_assessment_mistake_payload(question_details: list[dict[str, object]]) 
     ]
 
 
+# 维护意图：加载知识测评结果及其分数快照
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 def load_assessment_result_snapshot(*, user_id: int, assessment) -> tuple[AssessmentResult | None, float, float]:
     """加载知识测评结果及其分数快照。"""
     assessment_result = AssessmentResult.objects.filter(
@@ -66,6 +78,9 @@ def load_assessment_result_snapshot(*, user_id: int, assessment) -> tuple[Assess
     )
 
 
+# 维护意图：生成或刷新学习路径
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def refresh_learning_path_for_assessment(*, user, course_id: int | str) -> None:
     """生成或刷新学习路径。"""
     from ai_services.services import PathService
@@ -75,6 +90,9 @@ def refresh_learning_path_for_assessment(*, user, course_id: int | str) -> None:
     PathService().generate_path(user, course)
 
 
+# 维护意图：刷新课程学习者画像
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def refresh_learner_profile_for_assessment(*, user, course_id: int | str) -> None:
     """刷新课程学习者画像。"""
     from users.services import get_learner_profile_service
@@ -82,6 +100,9 @@ def refresh_learner_profile_for_assessment(*, user, course_id: int | str) -> Non
     get_learner_profile_service(user).generate_profile_for_course(course_id)
 
 
+# 维护意图：写回知识测评反馈报告，并返回报告 ID
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def upsert_assessment_feedback_report(
     *,
     user_id: int,

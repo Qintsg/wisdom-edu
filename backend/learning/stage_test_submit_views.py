@@ -9,6 +9,9 @@ from learning.stage_test_submission import submit_stage_test_answers
 from learning.view_helpers import _get_authenticated_user
 
 
+# 维护意图：提交阶段测试答案（内嵌做题）。
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def submit_stage_test(request, node_id):

@@ -17,9 +17,15 @@ from .llm_feedback_kt_support import (
 logger = logging.getLogger(__name__)
 
 
+# 维护意图：作业反馈报告与知识追踪结果解释能力
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class LLMFeedbackKTMixin:
     """作业反馈报告与知识追踪结果解释能力。"""
 
+    # 维护意图：生成考试反馈报告
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def generate_feedback_report(
         self,
         exam_info: Mapping[str, object],
@@ -68,6 +74,9 @@ class LLMFeedbackKTMixin:
             fallback,
         )
 
+    # 维护意图：分析知识追踪结果，生成学习洞察报告 基于 MEFKT 知识追踪模型的预测结果，生成深度学习分析报告。
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def analyze_knowledge_tracing_result(
         self,
         kt_result: Mapping[str, object],

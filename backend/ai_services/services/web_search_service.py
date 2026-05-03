@@ -48,6 +48,9 @@ WHITESPACE_PATTERN = re.compile(r"\s+")
 SEARCH_ENGINE_HOST_KEYWORDS = ("baidu.com", "bing.com")
 
 
+# 维护意图：clean html text
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _clean_html_text(value: str) -> str:
     if not value:
         return ""
@@ -56,6 +59,9 @@ def _clean_html_text(value: str) -> str:
     return WHITESPACE_PATTERN.sub(" ", text).strip()
 
 
+# 维护意图：normalize candidate url
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def _normalize_candidate_url(raw_url: str) -> str:
     if not raw_url:
         return ""
@@ -64,6 +70,9 @@ def _normalize_candidate_url(raw_url: str) -> str:
     return html.unescape(unquote(raw_url)).strip()
 
 
+# 维护意图：guess resource type
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _guess_resource_type(url: str, fallback: str = "link") -> str:
     host = urlparse(url).netloc.lower()
     if "bilibili.com" in host or "icourse163.org" in host:
@@ -76,6 +85,9 @@ def _guess_resource_type(url: str, fallback: str = "link") -> str:
     return fallback
 
 
+# 维护意图：is accessible url
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _is_accessible_url(url: str, timeout: int = 5) -> bool:
     try:
         response = requests.get(
@@ -93,17 +105,26 @@ def _is_accessible_url(url: str, timeout: int = 5) -> bool:
         return False
 
 
+# 维护意图：is search engine url
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _is_search_engine_url(url: str) -> bool:
     host = urlparse(url).netloc.lower()
     return any(keyword in host for keyword in SEARCH_ENGINE_HOST_KEYWORDS)
 
 
+# 维护意图：matches expected domain
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _matches_expected_domain(url: str, expected_domain: str) -> bool:
     host = urlparse(url).netloc.lower()
     normalized = expected_domain.lower()
     return host == normalized or host.endswith(f".{normalized}")
 
 
+# 维护意图：resolve result url
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def _resolve_result_url(raw_url: str, timeout: int = 8) -> str:
     normalized = _normalize_candidate_url(raw_url)
     if not normalized:
@@ -138,6 +159,9 @@ def _resolve_result_url(raw_url: str, timeout: int = 8) -> str:
     return normalized
 
 
+# 维护意图：search with provider
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 def _search_with_provider(
     provider_name: str,
     query: str,
@@ -189,6 +213,9 @@ def _search_with_provider(
     return results
 
 
+# 维护意图：搜索与知识点相关的真实外部学习资源。
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 def search_learning_resources(
     point_name: str, course_name: Optional[str] = None, count: int = 8
 ) -> List[Dict[str, str]]:

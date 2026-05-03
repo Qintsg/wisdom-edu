@@ -19,6 +19,9 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
+# 维护意图：MEFKT checkpoint 加载后的 predictor 状态
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 @dataclass(frozen=True)
 class LoadedMEFKTState:
     """MEFKT checkpoint 加载后的 predictor 状态。"""
@@ -38,6 +41,9 @@ class LoadedMEFKTState:
     fusion_state_dict: dict[str, "Tensor"]
 
 
+# 维护意图：将环境变量中的模型路径统一解析为后端根目录下的绝对路径
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def resolve_backend_path(path_value: str | None, backend_root: Path) -> Path | None:
     """将环境变量中的模型路径统一解析为后端根目录下的绝对路径。"""
     if path_value is None:
@@ -51,6 +57,9 @@ def resolve_backend_path(path_value: str | None, backend_root: Path) -> Path | N
     return (backend_root / candidate).resolve()
 
 
+# 维护意图：加载 MEFKT checkpoint 并构造运行时状态
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 def load_mefkt_state(
     *,
     model_path: str,
@@ -90,6 +99,9 @@ def load_mefkt_state(
     )
 
 
+# 维护意图：解析 MEFKT 元数据文件路径
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def resolve_metadata_path(model_file: Path, metadata_path: str | None, backend_root: Path) -> Path:
     """解析 MEFKT 元数据文件路径。"""
     return (
@@ -97,6 +109,9 @@ def resolve_metadata_path(model_file: Path, metadata_path: str | None, backend_r
     ) or model_file.with_suffix(".meta.json")
 
 
+# 维护意图：优先读取外部元数据，失败时回退 checkpoint 内嵌元数据
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 def load_metadata_payload(checkpoint: dict[str, object], metadata_file: Path) -> dict[str, object]:
     """优先读取外部元数据，失败时回退 checkpoint 内嵌元数据。"""
     metadata_payload = dict(checkpoint.get("metadata") or {})
@@ -109,6 +124,9 @@ def load_metadata_payload(checkpoint: dict[str, object], metadata_file: Path) ->
         return metadata_payload
 
 
+# 维护意图：判断 checkpoint 是否为题目级在线运行时格式
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def is_question_online_checkpoint(
     metadata_payload: dict[str, object],
     checkpoint: dict[str, object],
@@ -118,6 +136,9 @@ def is_question_online_checkpoint(
     return runtime_schema == "question_online_v1" and bool(checkpoint.get("graph_state_dict"))
 
 
+# 维护意图：构造题目级在线 MEFKT 状态
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_question_online_state(
     *,
     checkpoint: dict[str, object],
@@ -153,6 +174,9 @@ def build_question_online_state(
     return state
 
 
+# 维护意图：构造旧版知识点级 MEFKT 状态
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_legacy_state(
     *,
     checkpoint: dict[str, object],
@@ -203,11 +227,17 @@ def build_legacy_state(
     )
 
 
+# 维护意图：将 checkpoint state 字段收窄为 Tensor 字典
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def cast_tensor_state(raw_state: object) -> dict[str, "Tensor"]:
     """将 checkpoint state 字段收窄为 Tensor 字典。"""
     return cast(dict[str, "Tensor"], dict(raw_state or {}))
 
 
+# 维护意图：执行旧版知识点级 checkpoint 推理
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def predict_legacy_mastery(
     *,
     model: "MEFKTSequenceModel",
@@ -258,6 +288,9 @@ def predict_legacy_mastery(
     }
 
 
+# 维护意图：将旧版知识点历史转成模型输入格式
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_history_tensors_legacy(
     answer_history: list[dict[str, object]],
     item_id_to_index: dict[int, int],
@@ -287,6 +320,9 @@ def build_history_tensors_legacy(
     return history_indices, history_correct, history_gap_hours, recognized_count
 
 
+# 维护意图：解析旧版预测目标知识点
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def resolve_legacy_target_ids(
     *,
     answer_history: list[dict[str, object]],
@@ -304,6 +340,9 @@ def resolve_legacy_target_ids(
     return [item_id for item_id in sorted(target_ids) if item_id in item_id_to_index]
 
 
+# 维护意图：旧版模型无法识别知识点时的稳定响应
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def empty_legacy_prediction() -> dict[str, object]:
     """旧版模型无法识别知识点时的稳定响应。"""
     return {
@@ -314,6 +353,9 @@ def empty_legacy_prediction() -> dict[str, object]:
     }
 
 
+# 维护意图：预测旧版候选知识点掌握概率
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def predict_legacy_candidates(
     *,
     model: "MEFKTSequenceModel",
@@ -346,6 +388,9 @@ def predict_legacy_candidates(
     )
 
 
+# 维护意图：计算旧版 MEFKT 预测置信度
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def legacy_confidence(*, recognized_count: int, history_count: int, answer_count: int) -> float:
     """计算旧版 MEFKT 预测置信度。"""
     history_coverage = recognized_count / max(answer_count, 1)

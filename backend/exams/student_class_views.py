@@ -15,6 +15,9 @@ from .models import Exam, ExamSubmission
 logger = logging.getLogger(__name__)
 
 
+# 维护意图：获取班级成员列表
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def student_class_members(request, class_id):
@@ -33,6 +36,9 @@ def student_class_members(request, class_id):
     return success_response(data=[{"user_id": member.id, "username": member.username, "real_name": member.real_name} for member in members])
 
 
+# 维护意图：获取班级学习排行榜
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def student_class_ranking(request, class_id):
@@ -63,6 +69,9 @@ def student_class_ranking(request, class_id):
     return success_response(data=ranking)
 
 
+# 维护意图：获取班级通知公告（简版）
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def student_class_notifications(request, class_id):
@@ -85,6 +94,9 @@ def student_class_notifications(request, class_id):
     } for exam in exams])
 
 
+# 维护意图：获取班级作业列表（映射到考试列表）
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def student_class_assignments(request, class_id):

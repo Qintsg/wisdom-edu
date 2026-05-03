@@ -9,6 +9,9 @@ from decimal import Decimal
 from tools.db_demo_preset_support import build_mastery_payload, build_student1_answer_value
 
 
+# 维护意图：student1 初始评测预置结果
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @dataclass(frozen=True)
 class Student1AssessmentAttempt:
     """student1 初始评测预置结果。"""
@@ -23,6 +26,9 @@ class Student1AssessmentAttempt:
     mastery_payload: list[dict[str, object]]
 
 
+# 维护意图：使用与初始评测接口一致的保守基线计算掌握度
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def calculate_initial_mastery_baseline(
     *,
     correct_count: int,
@@ -38,6 +44,9 @@ def calculate_initial_mastery_baseline(
     return round(max(0.0, min(0.85, mastery_rate)), 4)
 
 
+# 维护意图：构造 student1 初始评测答题历史与掌握度预置数据
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_student1_assessment_attempt(
     *,
     student,
@@ -93,6 +102,9 @@ def build_student1_assessment_attempt(
     )
 
 
+# 维护意图：写入单题预置答题历史并返回题目详情
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def persist_student1_question_answer(
     *,
     student,
@@ -148,6 +160,9 @@ def persist_student1_question_answer(
     }
 
 
+# 维护意图：累计预置评测关联知识点统计
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def update_student1_point_stats(
     point_stats: dict[int, dict[str, int | str]],
     linked_points: list[object],
@@ -161,6 +176,9 @@ def update_student1_point_stats(
             point_stats[point.id]["correct"] += 1
 
 
+# 维护意图：根据答题统计和先修约束构造演示掌握度
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_student1_mastery_map(
     *,
     points: list[object],
@@ -183,6 +201,9 @@ def build_student1_mastery_map(
     return apply_prerequisite_caps(mastery_map, course_id)
 
 
+# 维护意图：写入 student1 初始评测结果
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def persist_student1_assessment_result(
     *,
     student,
@@ -212,6 +233,9 @@ def persist_student1_assessment_result(
     return assessment_result
 
 
+# 维护意图：写入 student1 课程知识点掌握度
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def persist_student1_mastery(
     *,
     student,
@@ -236,6 +260,9 @@ def persist_student1_mastery(
         )
 
 
+# 维护意图：提取最多 3 个低掌握度知识点名称
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def weakest_point_names(mastery_payload: list[dict[str, object]]) -> list[str]:
     """提取最多 3 个低掌握度知识点名称。"""
     return [

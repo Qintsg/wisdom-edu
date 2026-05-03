@@ -21,6 +21,9 @@ from tools.mefkt_training_support import (
 logger = logging.getLogger(__name__)
 
 
+# 维护意图：兼容旧私有入口，实际训练委托给 support 模块
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _train_mefkt_bundle(
     bundle: MEFKTTrainingBundle,
     output_path: Path,
@@ -57,6 +60,9 @@ def _train_mefkt_bundle(
     )
 
 
+# 维护意图：训练 MEFKT 模型，保持旧参数签名兼容
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def train_mefkt_v2(
     course_id: int | None = None,
     epochs: int = 16,
@@ -102,6 +108,9 @@ def train_mefkt_v2(
     return result
 
 
+# 维护意图：构建并按需裁剪公开训练包
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_training_bundle(
     dataset_name: str,
     sequence_max_step: int,
@@ -128,6 +137,9 @@ def build_training_bundle(
     )
 
 
+# 维护意图：解析 MEFKT 模型输出路径
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def resolve_mefkt_output_path(dataset_name: str, output_path: str | None) -> Path:
     """解析 MEFKT 模型输出路径。"""
     if output_path:
@@ -137,6 +149,9 @@ def resolve_mefkt_output_path(dataset_name: str, output_path: str | None) -> Pat
     return MEFKT_PUBLIC_BASELINE_DIR / f"mefkt_{dataset_name}.pt"
 
 
+# 维护意图：输出 MEFKT 训练摘要
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def print_training_result(result: dict[str, object]) -> None:
     """输出 MEFKT 训练摘要。"""
     metrics_payload = cast(dict[str, float], result["metrics"])
@@ -147,6 +162,9 @@ def print_training_result(result: dict[str, object]) -> None:
     )
 
 
+# 维护意图：查看当前运行时 MEFKT 模型状态
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def mefkt_status() -> dict[str, object]:
     """查看当前运行时 MEFKT 模型状态。"""
     if not MEFKT_META_PATH.exists():
@@ -171,6 +189,9 @@ def mefkt_status() -> dict[str, object]:
     })
 
 
+# 维护意图：打印并返回 MEFKT 状态
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def print_mefkt_status(status: dict[str, object]) -> dict[str, object]:
     """打印并返回 MEFKT 状态。"""
     print(json.dumps(status, ensure_ascii=False, indent=2))

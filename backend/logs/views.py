@@ -32,6 +32,9 @@ from common.responses import success_response, error_response, forbidden_respons
 UTF8_BOM = codecs.BOM_UTF8.decode('utf-8')
 
 
+# 维护意图：描述日志管理接口所需的最小用户能力集
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class _AdminCapableUser(Protocol):
     """描述日志管理接口所需的最小用户能力集。"""
 
@@ -39,6 +42,9 @@ class _AdminCapableUser(Protocol):
     is_superuser: bool
 
 
+# 维护意图：统一应用日志列表与导出的筛选条件
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def _apply_log_filters(request: Request, queryset: QuerySet[OperationLog]) -> QuerySet[OperationLog]:
     """统一应用日志列表与导出的筛选条件。"""
     action_type = request.query_params.get('action_type')
@@ -79,11 +85,17 @@ def _apply_log_filters(request: Request, queryset: QuerySet[OperationLog]) -> Qu
     return queryset
 
 
+# 维护意图：检查用户是否为管理员
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def is_admin(user: AbstractBaseUser | AnonymousUser) -> TypeGuard[_AdminCapableUser]:
     """检查用户是否为管理员"""
     return bool(getattr(user, 'role', None) == 'admin' or getattr(user, 'is_superuser', False))
 
 
+# 维护意图：获取操作日志列表（仅管理员可访问） GET /api/logs/ 查询参数： - page: 页码（默认1） - page_size: 每页数量（默认20，最大100） - action_ty。
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def list_operation_logs(request):
@@ -146,6 +158,9 @@ def list_operation_logs(request):
     )
 
 
+# 维护意图：获取操作日志详情（仅管理员可访问） GET /api/logs/{log_id}/
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_operation_log_detail(request, log_id):
@@ -166,6 +181,9 @@ def get_operation_log_detail(request, log_id):
     return success_response(data=serializer.data)
 
 
+# 维护意图：获取操作日志统计信息（仅管理员可访问） GET /api/logs/statistics/ 返回： - 按操作类型统计 - 按模块统计 - 按日期统计（最近7天）
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_log_statistics(request):
@@ -211,6 +229,9 @@ def get_log_statistics(request):
     )
 
 
+# 维护意图：获取日志筛选选项 GET /api/logs/options/
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_log_filter_options(request):
@@ -228,6 +249,9 @@ def get_log_filter_options(request):
     })
 
 
+# 维护意图：获取日志模块列表 GET /api/admin/logs/modules/
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_log_modules(request):
@@ -242,6 +266,9 @@ def get_log_modules(request):
     return success_response(data=modules)
 
 
+# 维护意图：获取日志操作类型列表 GET /api/admin/logs/actions/
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_log_actions(request):
@@ -256,6 +283,9 @@ def get_log_actions(request):
     return success_response(data=actions)
 
 
+# 维护意图：导出操作日志为 CSV GET /api/admin/logs/export/ 支持与 list_operation_logs 相同的筛选参数
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def export_logs(request):
@@ -302,6 +332,9 @@ def export_logs(request):
     return response
 
 
+# 维护意图：清理过期日志 DELETE /api/admin/logs/clean/ 查询参数： - days: 保留最近N天的日志（默认90）
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
 def clean_expired_logs(request):

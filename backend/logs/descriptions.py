@@ -12,11 +12,17 @@ from .logging_setup import ACTION_TYPE_DISPLAY, MODULE_DISPLAY
 PathRule = tuple[Callable[[str, str], bool], str]
 
 
+# 维护意图：构造仅判断路径片段的日志描述规则
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _contains(keyword: str) -> Callable[[str, str], bool]:
     """构造仅判断路径片段的日志描述规则。"""
     return lambda path, method: keyword in path
 
 
+# 维护意图：构造同时匹配路径片段和请求方法的日志描述规则
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _contains_with_method(keyword: str, expected_method: str) -> Callable[[str, str], bool]:
     """构造同时匹配路径片段和请求方法的日志描述规则。"""
     return lambda path, method: keyword in path and method == expected_method
@@ -54,6 +60,9 @@ FIXED_DESCRIPTION_RULES: tuple[PathRule, ...] = (
 )
 
 
+# 维护意图：根据请求路径和操作类型生成易读的中文描述。
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def generate_operation_description(
     request: HttpRequest,
     action_type: str,
@@ -92,6 +101,9 @@ def generate_operation_description(
     return f"{module_display} - {action_display}操作"
 
 
+# 维护意图：按声明顺序匹配固定路径描述，避免入口函数堆叠长 if 链
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _match_fixed_description(path: str, method: str) -> str:
     """按声明顺序匹配固定路径描述，避免入口函数堆叠长 if 链。"""
     for predicate, description in FIXED_DESCRIPTION_RULES:

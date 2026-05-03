@@ -23,6 +23,9 @@ STOP_TOKENS = {
 }
 
 
+# 维护意图：Extract normalized Chinese and alphanumeric search tokens from text
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def tokenize(text: str) -> set[str]:
     """Extract normalized Chinese and alphanumeric search tokens from text."""
     if not text:
@@ -30,6 +33,9 @@ def tokenize(text: str) -> set[str]:
     return {token.lower() for token in TOKEN_PATTERN.findall(str(text)) if token.strip()}
 
 
+# 维护意图：Return a stable URL for a resource entity
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _safe_resource_url(resource: Resource) -> str:
     """Return a stable URL for a resource entity."""
     if resource.url:
@@ -42,6 +48,9 @@ def _safe_resource_url(resource: Resource) -> str:
     return ""
 
 
+# 维护意图：Extract a compact list of community themes from entity texts
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _top_themes(texts: list[str], limit: int = 6) -> list[str]:
     """Extract a compact list of community themes from entity texts."""
     counter: Counter[str] = Counter()
@@ -50,6 +59,9 @@ def _top_themes(texts: list[str], limit: int = 6) -> list[str]:
     return [token for token, _ in counter.most_common(limit)]
 
 
+# 维护意图：Build a deterministic chapter entity id
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _chapter_entity_id(chapter_name: str) -> str:
     """Build a deterministic chapter entity id."""
     normalized = chapter_name.strip() or "未分章"

@@ -9,6 +9,9 @@ from typing import TypeVar
 Item = TypeVar("Item")
 
 
+# 维护意图：安全地将值转换为整数，失败时返回默认值。
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def safe_int(value: object, default: int | None = None) -> int | None:
     """
     安全地将值转换为整数，失败时返回默认值。
@@ -23,6 +26,9 @@ def safe_int(value: object, default: int | None = None) -> int | None:
         return default
 
 
+# 维护意图：从 QueryDict 或 dict 中解析分页参数。
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def parse_pagination(
     query_params: object,
     size_key: str = "page_size",
@@ -46,6 +52,9 @@ def parse_pagination(
     return page, min(max(1, page_size), max_size)
 
 
+# 维护意图：对列表进行分页。
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def paginate_list(
     items: Sequence[Item], page: int | str = 1, page_size: int | str = 20
 ) -> tuple[Sequence[Item], int]:

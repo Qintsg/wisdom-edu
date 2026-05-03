@@ -31,9 +31,15 @@ from platform_ai.rag.runtime import (
 from tools.kt_synthetic import _build_kp_profiles, _simulate_student_sequence
 from users.models import User
 
+# 维护意图：Cover the rebuilt student GraphRAG service with course-scoped fixtures
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class StudentLearningRAGFixture(SimpleTestCase):
     """Cover the rebuilt student GraphRAG service with course-scoped fixtures."""
 
+    # 维护意图：Prepare a synthetic GraphRAG payload and lightweight node/resource doubles
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def setUp(self):
         """Prepare a synthetic GraphRAG payload and lightweight node/resource doubles."""
         self.course = SimpleNamespace(id=101, name="GraphRAG 测试课程")

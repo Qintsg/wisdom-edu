@@ -18,6 +18,9 @@ from tools.question_import_text import clean_question_options, strip_import_text
 from tools.question_import_types import QuestionPayload
 
 
+# 维护意图：验证题库 JSON 结构
+# 边界说明：校验边界集中在这里，避免非法输入进入业务主流程。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def validate_question_json_payload(payload: Mapping[str, object]) -> None:
     """验证题库 JSON 结构。"""
     questions = payload.get("questions")
@@ -25,6 +28,9 @@ def validate_question_json_payload(payload: Mapping[str, object]) -> None:
         raise ValueError("题库JSON缺少 questions(list)")
 
 
+# 维护意图：加载题库 JSON 数据源，兼容路径与已解析对象
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 def load_question_json_source(source: object) -> dict[str, object]:
     """加载题库 JSON 数据源，兼容路径与已解析对象。"""
     if isinstance(source, Mapping):
@@ -42,6 +48,9 @@ def load_question_json_source(source: object) -> dict[str, object]:
     raise TypeError("题库 JSON 仅支持文件路径、Path 对象或已解析的 dict")
 
 
+# 维护意图：将 JSON 题目对象规整为统一载荷
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_json_question_payload(raw_question: Mapping[str, object]) -> QuestionPayload | None:
     """将 JSON 题目对象规整为统一载荷。"""
     content = str(strip_import_text(clean_nan(raw_question.get("content", ""))) or "")

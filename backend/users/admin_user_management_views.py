@@ -33,6 +33,9 @@ from .admin_user_management_support import (
 logger = logging.getLogger(__name__)
 
 
+# 维护意图：获取用户列表（管理员）
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["GET"])
 @permission_classes([IsAuthenticated, IsAdmin])
 def admin_user_list(request: Request) -> Response:
@@ -41,6 +44,9 @@ def admin_user_list(request: Request) -> Response:
     return success_response(data=build_admin_user_list_payload(request.query_params, page, size))
 
 
+# 维护意图：获取用户详情（管理员）
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["GET"])
 @permission_classes([IsAuthenticated, IsAdmin])
 def admin_user_detail(request: Request, user_id: int) -> Response:
@@ -51,6 +57,9 @@ def admin_user_detail(request: Request, user_id: int) -> Response:
     return success_response(data=build_admin_user_detail_payload(target_user))
 
 
+# 维护意图：创建用户（管理员）
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["POST"])
 @permission_classes([IsAuthenticated, IsAdmin])
 def admin_user_create(request: Request) -> Response:
@@ -61,6 +70,9 @@ def admin_user_create(request: Request) -> Response:
     return created_response(data=payload, msg="用户创建成功")
 
 
+# 维护意图：更新用户信息（管理员）
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["PUT"])
 @permission_classes([IsAuthenticated, IsAdmin])
 def admin_user_update(request: Request, user_id: int) -> Response:
@@ -80,6 +92,9 @@ def admin_user_update(request: Request, user_id: int) -> Response:
     )
 
 
+# 维护意图：删除用户（管理员）
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["DELETE"])
 @permission_classes([IsAuthenticated, IsAdmin])
 def admin_user_delete(request: Request, user_id: int) -> Response:
@@ -94,6 +109,9 @@ def admin_user_delete(request: Request, user_id: int) -> Response:
     return success_response(msg=f"用户 {username} 已删除")
 
 
+# 维护意图：重置用户密码（管理员）
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["POST"])
 @permission_classes([IsAuthenticated, IsAdmin])
 def admin_user_reset_password(request: Request, user_id: int) -> Response:
@@ -106,6 +124,9 @@ def admin_user_reset_password(request: Request, user_id: int) -> Response:
     return success_response(data=response_data, msg="密码已重置")
 
 
+# 维护意图：禁用用户（管理员）
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["POST"])
 @permission_classes([IsAuthenticated, IsAdmin])
 def admin_user_disable(request: Request, user_id: int) -> Response:
@@ -119,6 +140,9 @@ def admin_user_disable(request: Request, user_id: int) -> Response:
     return success_response(msg=set_admin_user_active(target_user, False))
 
 
+# 维护意图：启用用户（管理员）
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["POST"])
 @permission_classes([IsAuthenticated, IsAdmin])
 def admin_user_enable(request: Request, user_id: int) -> Response:
@@ -129,6 +153,9 @@ def admin_user_enable(request: Request, user_id: int) -> Response:
     return success_response(msg=set_admin_user_active(target_user, True))
 
 
+# 维护意图：批量删除用户（管理员）
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["POST"])
 @permission_classes([IsAuthenticated, IsAdmin])
 def admin_user_batch_delete(request: Request) -> Response:
@@ -141,6 +168,9 @@ def admin_user_batch_delete(request: Request) -> Response:
     return success_response(data={"deleted_count": deleted_count}, msg=f"已删除 {deleted_count} 个用户")
 
 
+# 维护意图：从 Excel/CSV 批量导入用户（管理员）
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["POST"])
 @permission_classes([IsAuthenticated, IsAdmin])
 def admin_user_import(request: Request) -> Response:
@@ -159,6 +189,9 @@ def admin_user_import(request: Request) -> Response:
     )
 
 
+# 维护意图：导出用户列表为 CSV
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["GET"])
 @permission_classes([IsAuthenticated, IsAdmin])
 def admin_user_export(request: Request) -> HttpResponse:
@@ -166,6 +199,9 @@ def admin_user_export(request: Request) -> HttpResponse:
     return build_user_export_response(request.query_params)
 
 
+# 维护意图：获取用户导入模板
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["GET"])
 @permission_classes([IsAuthenticated, IsAdmin])
 def admin_user_template(request: Request) -> HttpResponse:

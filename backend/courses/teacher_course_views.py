@@ -24,6 +24,9 @@ from .teacher_course_support import (
 )
 
 
+# 维护意图：搜索公开课程
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def course_search(request: Request) -> Response:
@@ -31,6 +34,9 @@ def course_search(request: Request) -> Response:
     return success_response(data=build_course_search_payload(request.query_params))
 
 
+# 维护意图：统一教师课程接口错误响应，避免各端点重复权限分支
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def teacher_course_error_response(error_message: str, status_code: int) -> Response:
     """统一教师课程接口错误响应，避免各端点重复权限分支。"""
     if status_code == 403:
@@ -38,6 +44,9 @@ def teacher_course_error_response(error_message: str, status_code: int) -> Respo
     return error_response(msg=error_message, code=status_code)
 
 
+# 维护意图：创建课程
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["POST"])
 @permission_classes([IsAuthenticated, IsTeacherOrAdmin])
 def course_create(request: Request) -> Response:
@@ -48,6 +57,9 @@ def course_create(request: Request) -> Response:
     return created_response(data=payload, msg="课程创建成功")
 
 
+# 维护意图：获取或更新课程
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["GET", "PUT"])
 @permission_classes([IsAuthenticated, IsTeacherOrAdmin])
 def course_update(request: Request, course_id: int) -> Response:
@@ -64,6 +76,9 @@ def course_update(request: Request, course_id: int) -> Response:
     return success_response(data=payload, msg="课程更新成功")
 
 
+# 维护意图：获取我创建的课程
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["GET"])
 @permission_classes([IsAuthenticated, IsTeacherOrAdmin])
 def my_created_courses(request: Request) -> Response:
@@ -71,6 +86,9 @@ def my_created_courses(request: Request) -> Response:
     return success_response(data=build_my_created_courses_payload(request.user))
 
 
+# 维护意图：教师端删除课程
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["DELETE"])
 @permission_classes([IsAuthenticated, IsTeacherOrAdmin])
 def course_delete(request: Request, course_id: int) -> Response:
@@ -81,6 +99,9 @@ def course_delete(request: Request, course_id: int) -> Response:
     return success_response(msg=success_message)
 
 
+# 维护意图：上传课程封面图
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["POST"])
 @permission_classes([IsAuthenticated, IsTeacherOrAdmin])
 def teacher_course_cover_upload(request: Request, course_id: int) -> Response:
@@ -91,6 +112,9 @@ def teacher_course_cover_upload(request: Request, course_id: int) -> Response:
     return success_response(data=payload, msg="封面上传成功")
 
 
+# 维护意图：获取课程统计数据
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["GET"])
 @permission_classes([IsAuthenticated, IsTeacherOrAdmin])
 def teacher_course_statistics(request: Request, course_id: int) -> Response:
@@ -101,6 +125,9 @@ def teacher_course_statistics(request: Request, course_id: int) -> Response:
     return success_response(data=payload)
 
 
+# 维护意图：获取课程配置
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 @api_view(["GET"])
 @permission_classes([IsAuthenticated, IsTeacherOrAdmin])
 def get_course_settings(request: Request, course_id: int) -> Response:
@@ -111,6 +138,9 @@ def get_course_settings(request: Request, course_id: int) -> Response:
     return success_response(data=payload)
 
 
+# 维护意图：更新课程配置
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 @api_view(["PUT"])
 @permission_classes([IsAuthenticated, IsTeacherOrAdmin])
 def update_course_settings(request: Request, course_id: int) -> Response:

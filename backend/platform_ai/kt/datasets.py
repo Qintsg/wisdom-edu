@@ -16,6 +16,9 @@ DATASET_ROOT = BASE_DIR / "models" / "MEFKT" / "public_datasets"
 DEFAULT_PUBLIC_DATASET = "assist2017"
 
 
+# 维护意图：描述公开 KT 数据集的路径与格式信息
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @dataclass(frozen=True)
 class PublicDatasetInfo:
     """描述公开 KT 数据集的路径与格式信息。"""
@@ -25,6 +28,9 @@ class PublicDatasetInfo:
     test_path: Path | None
     format: str
 
+    # 维护意图：判断训练文件是否已在本地就绪
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     @property
     def is_available(self) -> bool:
         """判断训练文件是否已在本地就绪。"""
@@ -60,6 +66,9 @@ PUBLIC_DATASETS: dict[str, dict[str, str]] = {
 }
 
 
+# 维护意图：返回指定公开数据集的标准路径描述
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 def get_public_dataset_info(dataset_name: str) -> PublicDatasetInfo:
     """返回指定公开数据集的标准路径描述。"""
 
@@ -78,6 +87,9 @@ def get_public_dataset_info(dataset_name: str) -> PublicDatasetInfo:
     )
 
 
+# 维护意图：列出当前支持的公开数据集及其可用状态
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 def list_public_datasets() -> list[dict[str, str | bool | None]]:
     """列出当前支持的公开数据集及其可用状态。"""
 

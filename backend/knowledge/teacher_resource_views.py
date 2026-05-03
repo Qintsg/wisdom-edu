@@ -28,6 +28,9 @@ from .teacher_resource_support import (
 )
 
 
+# 维护意图：获取资源列表
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["GET"])
 @permission_classes([IsAuthenticated, IsTeacherOrAdmin])
 def resource_list(request: Request) -> Response:
@@ -48,6 +51,9 @@ def resource_list(request: Request) -> Response:
     })
 
 
+# 维护意图：上传或创建资源
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["POST"])
 @permission_classes([IsAuthenticated, IsTeacherOrAdmin])
 def resource_create(request: Request) -> Response:
@@ -73,6 +79,9 @@ def resource_create(request: Request) -> Response:
     )
 
 
+# 维护意图：获取或更新资源
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["GET", "PUT"])
 @permission_classes([IsAuthenticated, IsTeacherOrAdmin])
 def resource_update(request: Request, resource_id: int) -> Response:
@@ -96,6 +105,9 @@ def resource_update(request: Request, resource_id: int) -> Response:
     )
 
 
+# 维护意图：删除资源
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["DELETE"])
 @permission_classes([IsAuthenticated, IsTeacherOrAdmin])
 def resource_delete(request: Request, resource_id: int) -> Response:
@@ -110,6 +122,9 @@ def resource_delete(request: Request, resource_id: int) -> Response:
         return error_response(msg="资源不存在", code=404)
 
 
+# 维护意图：上传资源文件
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["POST"])
 @permission_classes([IsAuthenticated, IsTeacherOrAdmin])
 def resource_upload(request: Request) -> Response:
@@ -136,6 +151,9 @@ def resource_upload(request: Request) -> Response:
     )
 
 
+# 维护意图：资源关联知识点
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["POST"])
 @permission_classes([IsAuthenticated, IsTeacherOrAdmin])
 def resource_link_knowledge(request: Request, resource_id: int) -> Response:

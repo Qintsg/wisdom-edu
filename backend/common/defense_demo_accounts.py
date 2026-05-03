@@ -15,6 +15,9 @@ from common.defense_demo_config import (
     DEFENSE_DEMO_WARMUP_STUDENT_USERNAME,
 )
 
+# 维护意图：创建或更新演示账号。
+# 边界说明：校验边界集中在这里，避免非法输入进入业务主流程。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def _ensure_user(
     *,
     username: str,
@@ -49,6 +52,9 @@ def _ensure_user(
     return user
 
 
+# 维护意图：创建或更新支撑课程。
+# 边界说明：校验边界集中在这里，避免非法输入进入业务主流程。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def _ensure_course(course_name: str, teacher: User) -> Course:
     """
     创建或更新支撑课程。
@@ -68,6 +74,9 @@ def _ensure_course(course_name: str, teacher: User) -> Course:
     return course
 
 
+# 维护意图：仅创建演示专用账号，供数据重建前置使用。
+# 边界说明：校验边界集中在这里，避免非法输入进入业务主流程。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def ensure_defense_demo_accounts() -> dict[str, int]:
     """
     仅创建演示专用账号，供数据重建前置使用。
@@ -112,6 +121,9 @@ def ensure_defense_demo_accounts() -> dict[str, int]:
     }
 
 
+# 维护意图：创建或更新演示班级。
+# 边界说明：校验边界集中在这里，避免非法输入进入业务主流程。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def _ensure_class(teacher: User, primary_course: Course, support_course: Course) -> Class:
     """
     创建或更新演示班级。
@@ -144,6 +156,9 @@ def _ensure_class(teacher: User, primary_course: Course, support_course: Course)
     return class_obj
 
 
+# 维护意图：清空仅入班演示账号在主演示课程中的学习轨迹。
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _reset_course_only_student_state(primary_course: Course, student: User) -> None:
     """
     清空仅入班演示账号在主演示课程中的学习轨迹。
@@ -166,6 +181,9 @@ def _reset_course_only_student_state(primary_course: Course, student: User) -> N
     HabitPreference.objects.filter(user=student).delete()
 
 
+# 维护意图：确保 student2~5 已加入答辩班级且无主演示课程轨迹。
+# 边界说明：校验边界集中在这里，避免非法输入进入业务主流程。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def _ensure_course_only_demo_students(primary_course: Course, defense_class: Class) -> list[User]:
     """
     确保 student2~5 已加入答辩班级且无主演示课程轨迹。

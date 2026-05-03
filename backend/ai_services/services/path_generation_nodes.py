@@ -12,6 +12,9 @@ if TYPE_CHECKING:
     from learning.models import LearningPath, PathNode
 
 
+# 维护意图：批量创建学习路径节点所需的计划结果
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @dataclass
 class PathGenerationPlan:
     """批量创建学习路径节点所需的计划结果。"""
@@ -21,6 +24,9 @@ class PathGenerationPlan:
     linked_points: list["KnowledgePoint"]
 
 
+# 维护意图：从待学习知识点中选取最低掌握度且尽量互相关联的小批次
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_linked_pending_batch(
     *,
     pending_points: list["KnowledgePoint"],
@@ -49,6 +55,9 @@ def build_linked_pending_batch(
     return [pending_by_id[point_id] for point_id in selected_ids if point_id in pending_by_id]
 
 
+# 维护意图：按掌握度、课程顺序和 ID 生成稳定候选顺序
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def order_pending_points(
     pending_points: list["KnowledgePoint"],
     mastery_dict: dict[int, float],
@@ -64,6 +73,9 @@ def order_pending_points(
     )
 
 
+# 维护意图：从最低掌握度知识点出发，沿先修和后继关系扩展学习批次
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def expand_linked_point_ids(
     *,
     seed_point_id: int,
@@ -90,6 +102,9 @@ def expand_linked_point_ids(
     return selected_ids
 
 
+# 维护意图：关系邻居不足时，用剩余低掌握度知识点补足批次
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def fill_unlinked_point_ids(
     *,
     ordered_points: list["KnowledgePoint"],
@@ -108,6 +123,9 @@ def fill_unlinked_point_ids(
     return selected_ids
 
 
+# 维护意图：构造可直接标记为完成的学习节点
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_completed_nodes(
     *,
     learning_path: "LearningPath",
@@ -142,6 +160,9 @@ def build_completed_nodes(
     return nodes_to_create, completed_points, order_index
 
 
+# 维护意图：构造当前一轮需要学习的节点
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_pending_nodes(
     *,
     learning_path: "LearningPath",
@@ -185,6 +206,9 @@ def build_pending_nodes(
     return nodes_to_create, resource_points, linked_points, order_index
 
 
+# 维护意图：构造单个学习节点，集中维护补强与基础学习文案
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_study_node(
     *,
     learning_path: "LearningPath",
@@ -211,6 +235,9 @@ def build_study_node(
     )
 
 
+# 维护意图：生成学习节点标题
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_study_title(point_name: str, mastery_rate: float, remedial_reinsertion: bool) -> str:
     """生成学习节点标题。"""
     if remedial_reinsertion:
@@ -218,6 +245,9 @@ def build_study_title(point_name: str, mastery_rate: float, remedial_reinsertion
     return f"{point_name}" + ("提升" if mastery_rate > 0.5 else "基础")
 
 
+# 维护意图：生成学习节点建议
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_study_suggestion(point_name: str, mastery_rate: float, remedial_reinsertion: bool) -> str:
     """生成学习节点建议。"""
     if remedial_reinsertion:
@@ -225,6 +255,9 @@ def build_study_suggestion(point_name: str, mastery_rate: float, remedial_reinse
     return f"{'巩固' if mastery_rate > 0.5 else '重点学习'}{point_name}相关内容。"
 
 
+# 维护意图：基于当前学习批次补一个阶段测试节点
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_test_node(
     *,
     learning_path: "LearningPath",
@@ -252,6 +285,9 @@ def build_test_node(
     )
 
 
+# 维护意图：生成阶段测试节点标题
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_test_title(knowledge_point_names: list[str]) -> str:
     """生成阶段测试节点标题。"""
     if len(knowledge_point_names) > 3:
@@ -259,6 +295,9 @@ def build_test_title(knowledge_point_names: list[str]) -> str:
     return f"阶段测试：{'、'.join(knowledge_point_names)}"
 
 
+# 维护意图：根据保留节点和掌握度生成新一轮路径节点计划
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_generation_plan(
     *,
     learning_path: "LearningPath",
@@ -300,6 +339,9 @@ def build_generation_plan(
     )
 
 
+# 维护意图：合并学习节点、资源映射和阶段测试节点
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def assemble_generation_plan(
     *,
     learning_path: "LearningPath",
@@ -328,6 +370,9 @@ def assemble_generation_plan(
     )
 
 
+# 维护意图：为新建学习节点回填最多 5 个可见资源
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def attach_resources_to_created_nodes(
     created_nodes: list["PathNode"],
     node_resource_points: list["KnowledgePoint | None"],

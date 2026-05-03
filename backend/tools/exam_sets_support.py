@@ -23,6 +23,9 @@ from tools.questions import _strip_html
 from tools.testing import _status_flag
 
 
+# 维护意图：套题导入过程中可复用的课程、题库和依赖模块
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @dataclass(frozen=True)
 class ExamSetImportContext:
     """套题导入过程中可复用的课程、题库和依赖模块。"""
@@ -34,6 +37,9 @@ class ExamSetImportContext:
     pandas_module: ModuleType
 
 
+# 维护意图：单个 Excel 文件的导入结果
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @dataclass(frozen=True)
 class ExamSetImportResult:
     """单个 Excel 文件的导入结果。"""
@@ -42,6 +48,9 @@ class ExamSetImportResult:
     question_count: int
 
 
+# 维护意图：加载 pandas 依赖。
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 def load_pandas_module() -> ModuleType | None:
     """
     加载 pandas 依赖。
@@ -55,6 +64,9 @@ def load_pandas_module() -> ModuleType | None:
     return pandas_module
 
 
+# 维护意图：归一化题干文本，消除 Excel 与题库中的空白差异。
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def normalize_question_content(content: str) -> str:
     """
     归一化题干文本，消除 Excel 与题库中的空白差异。
@@ -64,6 +76,9 @@ def normalize_question_content(content: str) -> str:
     return re.sub(r"\s+", "", content)
 
 
+# 维护意图：解析当前 sheet 中可能承载题干的列名。
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def resolve_content_columns(columns: list[str]) -> list[str]:
     """
     解析当前 sheet 中可能承载题干的列名。
@@ -83,6 +98,9 @@ def resolve_content_columns(columns: list[str]) -> list[str]:
     ]
 
 
+# 维护意图：从单行 Excel 数据中提取题干。
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def extract_row_content(row: Any, columns: list[str]) -> str:
     """
     从单行 Excel 数据中提取题干。
@@ -97,6 +115,9 @@ def extract_row_content(row: Any, columns: list[str]) -> str:
     return ""
 
 
+# 维护意图：解析知识点名称对应的知识点对象。
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def resolve_knowledge_point(
     knowledge_point_name: str,
     course: Course,
@@ -119,6 +140,9 @@ def resolve_knowledge_point(
     ).first()
 
 
+# 维护意图：根据 Excel 知识点列补齐题目知识点关联。
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def bind_question_knowledge_points(
     question: Question,
     knowledge_point_cell: str,
@@ -146,6 +170,9 @@ def bind_question_knowledge_points(
             question.knowledge_points.add(matched_point)
 
 
+# 维护意图：读取单个 sheet，并把无法解析的 sheet 当作可跳过输入。
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def read_excel_sheet(file_path: Path, sheet_name: str, pandas_module: ModuleType) -> Any | None:
     """
     读取单个 sheet，并把无法解析的 sheet 当作可跳过输入。
@@ -160,6 +187,9 @@ def read_excel_sheet(file_path: Path, sheet_name: str, pandas_module: ModuleType
         return None
 
 
+# 维护意图：逐行遍历 Excel 中非空 sheet 的数据行。
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def iter_excel_rows(
     file_path: Path,
     excel_file: Any,
@@ -182,6 +212,9 @@ def iter_excel_rows(
             yield row, columns
 
 
+# 维护意图：预加载课程题库，避免每行 Excel 匹配时重复扫描数据库。
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_question_lookup(course: Course) -> tuple[dict[str, Question], dict[str, Question]]:
     """
     预加载课程题库，避免每行 Excel 匹配时重复扫描数据库。
@@ -204,6 +237,9 @@ def build_question_lookup(course: Course) -> tuple[dict[str, Question], dict[str
     return question_by_content, question_by_normalized_content
 
 
+# 维护意图：构建导入上下文，集中预加载后续流程共享的数据。
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_import_context(course: Course, pandas_module: ModuleType) -> ExamSetImportContext:
     """
     构建导入上下文，集中预加载后续流程共享的数据。
@@ -224,6 +260,9 @@ def build_import_context(course: Course, pandas_module: ModuleType) -> ExamSetIm
     )
 
 
+# 维护意图：通过内容匹配已导入的题目。
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def match_question(content: str, context: ExamSetImportContext) -> Question | None:
     """
     通过内容匹配已导入的题目。
@@ -241,6 +280,9 @@ def match_question(content: str, context: ExamSetImportContext) -> Question | No
     return context.question_by_normalized_content.get(normalize_question_content(content))
 
 
+# 维护意图：从 Excel 行中提取题干并匹配题库题目。
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def match_row_question(row: Any, columns: list[str], context: ExamSetImportContext) -> Question | None:
     """
     从 Excel 行中提取题干并匹配题库题目。
@@ -266,6 +308,9 @@ def match_row_question(row: Any, columns: list[str], context: ExamSetImportConte
     return matched_question
 
 
+# 维护意图：读取单个 Excel 套题文件并匹配题目。
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 def load_matched_questions(
     file_path: Path,
     excel_file: Any,
@@ -286,6 +331,9 @@ def load_matched_questions(
     return matched_questions
 
 
+# 维护意图：收集套题关联的知识点名称。
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def collect_question_knowledge_point_names(questions: list[Question]) -> list[str]:
     """
     收集套题关联的知识点名称。
@@ -299,6 +347,9 @@ def collect_question_knowledge_point_names(questions: list[Question]) -> list[st
     return sorted(knowledge_point_names)
 
 
+# 维护意图：打开 Excel 文件。
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def open_excel_file(file_path: Path, pandas_module: ModuleType) -> Any | None:
     """
     打开 Excel 文件。
@@ -313,6 +364,9 @@ def open_excel_file(file_path: Path, pandas_module: ModuleType) -> Any | None:
         return None
 
 
+# 维护意图：判断同名套题是否已存在。
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def question_set_exists(course: Course, exam_title: str) -> bool:
     """
     判断同名套题是否已存在。
@@ -327,6 +381,9 @@ def question_set_exists(course: Course, exam_title: str) -> bool:
     ).exists()
 
 
+# 维护意图：根据匹配到的题目创建套题。
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def create_exam_set(
     course: Course,
     exam_title: str,

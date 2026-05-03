@@ -10,6 +10,9 @@ from knowledge.models import KnowledgePoint, Resource
 from assessments.models import Question
 
 
+# 维护意图：聚合教师课程工作台首页所需的数据。
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_course_workspace(course: Course, teacher) -> dict:
     """
     聚合教师课程工作台首页所需的数据。

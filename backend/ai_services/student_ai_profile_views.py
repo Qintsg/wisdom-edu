@@ -23,6 +23,9 @@ from .services.path_service import PathService
 logger = logging.getLogger(__name__)
 
 
+# 维护意图：build habit data
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def _build_habit_data(user) -> dict[str, Any] | None:
     try:
         habit = user.habit_preference
@@ -31,6 +34,9 @@ def _build_habit_data(user) -> dict[str, Any] | None:
     return {"preferred_resource": habit.preferred_resource, "preferred_study_time": habit.preferred_study_time}
 
 
+# 维护意图：build mastery data
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def _build_mastery_data(user, course_id: int) -> list[dict[str, Any]]:
     mastery_records = KnowledgeMastery.objects.filter(user=user, course_id=course_id).select_related("knowledge_point")
     return [
@@ -44,6 +50,9 @@ def _build_mastery_data(user, course_id: int) -> list[dict[str, Any]]:
     ]
 
 
+# 维护意图：Generate a student profile summary for the current course
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def ai_profile_analysis(request):
@@ -71,6 +80,9 @@ def ai_profile_analysis(request):
     return success_response(data=result)
 
 
+# 维护意图：Generate a brief reason explaining why a resource is recommended
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def ai_resource_reason(request):
@@ -118,6 +130,9 @@ def ai_resource_reason(request):
     return success_response(data=result)
 
 
+# 维护意图：Return an AI feedback report or a generated fallback summary
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def ai_feedback_report(request):
@@ -174,6 +189,9 @@ def ai_feedback_report(request):
     return success_response(data=fallback)
 
 
+# 维护意图：Return current-course advice grounded in profile and mastery data
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def ai_learning_advice(request):
@@ -197,6 +215,9 @@ def ai_learning_advice(request):
     })
 
 
+# 维护意图：Force-refresh the student profile for a course
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def ai_refresh_profile(request):
@@ -215,6 +236,9 @@ def ai_refresh_profile(request):
     return success_response(data=result)
 
 
+# 维护意图：Rebuild the student's learning path for the given course
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def ai_refresh_learning_path(request):
@@ -260,6 +284,9 @@ def ai_refresh_learning_path(request):
     })
 
 
+# 维护意图：Return weak knowledge points that should be reviewed next
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def ai_key_points_reminder(request):
@@ -280,6 +307,9 @@ def ai_key_points_reminder(request):
     return success_response(data={"reminders": reminders})
 
 
+# 维护意图：Distribute available study hours across weak knowledge points
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def ai_time_scheduling(request):
@@ -302,6 +332,9 @@ def ai_time_scheduling(request):
     return success_response(data={"total_hours": available_hours, "schedule": schedule})
 
 
+# 维护意图：Compare two profile snapshots by date
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def ai_analysis_compare(request):

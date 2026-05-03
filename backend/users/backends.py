@@ -8,6 +8,9 @@ from django.db.models import Q
 from .models import User
 
 
+# 维护意图：多字段认证后端 支持使用以下方式登录： - 用户名 (username) - 邮箱 (email) - 手机号 (phone) 认证逻辑： 1. 将输入值同时与 username、email、。
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class MultiFieldAuthBackend(ModelBackend):
     """
     多字段认证后端
@@ -23,6 +26,9 @@ class MultiFieldAuthBackend(ModelBackend):
     3. 检查用户是否激活
     """
     
+    # 维护意图：认证用户
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def authenticate(self, request, username=None, password=None, **kwargs):
         """
         认证用户

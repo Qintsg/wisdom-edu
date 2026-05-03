@@ -9,6 +9,9 @@ from learning.stage_test_selection import build_stage_test_payload
 from learning.view_helpers import _get_authenticated_user
 
 
+# 维护意图：获取阶段测试题目（内嵌做题）。
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def get_stage_test(request, node_id):

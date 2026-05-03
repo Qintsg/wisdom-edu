@@ -9,6 +9,9 @@ from django.db import transaction
 from .models import KnowledgePoint, KnowledgeRelation
 
 
+# 维护意图：根据前端提交节点更新现有知识点
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def update_existing_graph_nodes(*, course_id: int, nodes: list[dict[str, Any]]) -> None:
     """根据前端提交节点更新现有知识点。"""
     existing_points = {
@@ -35,6 +38,9 @@ def update_existing_graph_nodes(*, course_id: int, nodes: list[dict[str, Any]]) 
         KnowledgePoint.objects.filter(pk__in=removed_ids, course_id=course_id).delete()
 
 
+# 维护意图：按前端提交关系重建课程知识点边
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def rebuild_graph_relations(*, course_id: int, edges: list[dict[str, Any]]) -> None:
     """按前端提交关系重建课程知识点边。"""
     KnowledgeRelation.objects.filter(course_id=course_id).delete()
@@ -55,6 +61,9 @@ def rebuild_graph_relations(*, course_id: int, edges: list[dict[str, Any]]) -> N
         )
 
 
+# 维护意图：解析教师上传的 JSON 或 Excel 知识图谱文件
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def parse_imported_knowledge_map(file) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
     """解析教师上传的 JSON 或 Excel 知识图谱文件。"""
     file_ext = file.name.lower().split(".")[-1] if "." in file.name else ""
@@ -91,6 +100,9 @@ def parse_imported_knowledge_map(file) -> tuple[list[dict[str, Any]], list[dict[
     return nodes, edges
 
 
+# 维护意图：写入教师端导入的知识图谱节点和关系
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def persist_imported_knowledge_map(*, course_id: int, nodes: list[dict[str, Any]], edges: list[dict[str, Any]]) -> tuple[int, int]:
     """写入教师端导入的知识图谱节点和关系。"""
     id_map: dict[str, int] = {}

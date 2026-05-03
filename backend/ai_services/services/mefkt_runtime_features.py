@@ -14,6 +14,9 @@ DifficultyToScore = Callable[[str | None], float]
 ClampValue = Callable[[float], float]
 
 
+# 维护意图：为章节顺序生成归一化映射
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_chapter_norm_map(
     questions: list[QuestionLike],
     normalize_values: NormalizeValues,
@@ -28,6 +31,9 @@ def build_chapter_norm_map(
     return {chapter: chapter_norm[index] for index, chapter in enumerate(chapter_values)}
 
 
+# 维护意图：收集单题题图和答题统计特征
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def collect_question_feature_entry(
     *,
     question: QuestionLike,
@@ -65,6 +71,9 @@ def collect_question_feature_entry(
     return meta, raw_values, point_index_map
 
 
+# 维护意图：基于知识点集合收集关联资源 ID
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def collect_resource_ids(
     point_ids: list[int],
     point_to_resources: dict[int, set[int]],
@@ -77,6 +86,9 @@ def collect_resource_ids(
     }
 
 
+# 维护意图：统计题目知识点周边的先修、后继和相关关系数量
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def collect_relation_counts(
     point_ids: list[int],
     sources: RuntimeFeatureSources,
@@ -88,6 +100,9 @@ def collect_relation_counts(
     return prereq_count, dependent_count, related_count
 
 
+# 维护意图：整理后续归一化和图统计共享的题目元数据
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_question_meta(
     *,
     question: QuestionLike,
@@ -113,6 +128,9 @@ def build_question_meta(
     }
 
 
+# 维护意图：生成一组待归一化的题目原始数值
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_question_raw_values(
     *,
     question: QuestionLike,
@@ -136,6 +154,9 @@ def build_question_raw_values(
     ]
 
 
+# 维护意图：统一计算题目特征归一化结果
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def normalize_question_feature_scales(
     *,
     normalize_values: NormalizeValues,
@@ -165,6 +186,9 @@ def normalize_question_feature_scales(
     )
 
 
+# 维护意图：为题目级运行时构造元信息和归一化特征
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def prepare_question_features(
     *,
     questions: list[QuestionLike],
@@ -197,6 +221,9 @@ def prepare_question_features(
     return collector.to_preparation(scales)
 
 
+# 维护意图：保存跨题目聚合过程中的中间列表，降低主流程分支复杂度
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class QuestionFeatureCollector:
     """保存跨题目聚合过程中的中间列表，降低主流程分支复杂度。"""
 
@@ -214,6 +241,9 @@ class QuestionFeatureCollector:
         self.question_to_points: dict[int, list[int]] = {}
         self.point_to_question_indices: dict[int, list[int]] = {}
 
+    # 维护意图：收集一道题的元数据、关系索引与归一化原始值
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def add_question(
         self,
         *,
@@ -241,6 +271,9 @@ class QuestionFeatureCollector:
         self.difficulty_values_raw.append(raw_values[7])
         self.question_meta.append(meta)
 
+    # 维护意图：把收集器状态转换为不可变语义的准备结果对象
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def to_preparation(self, scales: QuestionFeatureScales) -> QuestionFeaturePreparation:
         """把收集器状态转换为不可变语义的准备结果对象。"""
         return QuestionFeaturePreparation(

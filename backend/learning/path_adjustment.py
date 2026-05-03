@@ -19,6 +19,9 @@ logger = logging.getLogger(__name__)
 CourseId = int | str
 
 
+# 维护意图：基于 KT 掌握度刷新未完成学习路径
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def refresh_learning_path_from_mastery(
     *,
     path: LearningPath,
@@ -38,6 +41,9 @@ def refresh_learning_path_from_mastery(
     }
 
 
+# 维护意图：对失败节点插入强化练习节点，兼容旧版路径调整逻辑
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def insert_remediation_nodes(path: LearningPath) -> dict[str, object]:
     """对失败节点插入强化练习节点，兼容旧版路径调整逻辑。"""
     with transaction.atomic():
@@ -56,6 +62,9 @@ def insert_remediation_nodes(path: LearningPath) -> dict[str, object]:
     }
 
 
+# 维护意图：用户主动刷新路径时，先用课程历史答题记录更新 KT 掌握度
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def _update_mastery_from_answer_history(*, user: User, course_id: CourseId) -> None:
     """用户主动刷新路径时，先用课程历史答题记录更新 KT 掌握度。"""
     try:
@@ -92,6 +101,9 @@ def _update_mastery_from_answer_history(*, user: User, course_id: CourseId) -> N
         )
 
 
+# 维护意图：读取课程答题历史并转换为 KT 服务输入结构
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def _build_kt_history(*, user: User, course_id: CourseId) -> list[dict[str, int]]:
     """读取课程答题历史并转换为 KT 服务输入结构。"""
     answer_records = (
@@ -113,6 +125,9 @@ def _build_kt_history(*, user: User, course_id: CourseId) -> list[dict[str, int]
     ]
 
 
+# 维护意图：把 KT 输出写回课程知识点掌握度
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def _apply_kt_predictions(
     *,
     user: User,
@@ -140,6 +155,9 @@ def _apply_kt_predictions(
             )
 
 
+# 维护意图：删除未来 locked 节点，并根据掌握度补齐新的学习/测试节点
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _rebuild_locked_path_nodes(
     *,
     path: LearningPath,
@@ -167,12 +185,18 @@ def _rebuild_locked_path_nodes(
     path.save()
 
 
+# 维护意图：保留已完成、进行中、跳过和失败节点，避免刷新丢失学习进度
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _preserved_path_nodes(path: LearningPath) -> list[PathNode]:
     """保留已完成、进行中、跳过和失败节点，避免刷新丢失学习进度。"""
     preserved_statuses = ("completed", "active", "skipped", "failed")
     return list(path.nodes.filter(status__in=preserved_statuses))
 
 
+# 维护意图：根据剩余知识点和配置生成候选节点列表
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def _build_replacement_nodes(
     *,
     path: LearningPath,
@@ -199,6 +223,9 @@ def _build_replacement_nodes(
     )
 
 
+# 维护意图：读取课程知识点掌握度，用于低掌握度优先排序
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _course_mastery_map(*, user: User, course_id: CourseId) -> dict[int, float]:
     """读取课程知识点掌握度，用于低掌握度优先排序。"""
     return {
@@ -207,6 +234,9 @@ def _course_mastery_map(*, user: User, course_id: CourseId) -> dict[int, float]:
     }
 
 
+# 维护意图：获取尚未被保留节点覆盖的已发布知识点
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _remaining_course_points(
     course_id: CourseId,
     preserved_point_ids: set[int],
@@ -219,11 +249,17 @@ def _remaining_course_points(
     )
 
 
+# 维护意图：计算新节点追加起始顺序
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _next_order_index(preserved_nodes: list[PathNode]) -> int:
     """计算新节点追加起始顺序。"""
     return max((node.order_index for node in preserved_nodes), default=-1) + 1
 
 
+# 维护意图：按学习节点和阶段测试间隔构造 bulk_create 输入
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def _make_path_node_batch(
     *,
     path: LearningPath,
@@ -254,6 +290,9 @@ def _make_path_node_batch(
     return nodes_to_create, node_resource_points
 
 
+# 维护意图：生成单个学习节点
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def _make_study_node(
     path: LearningPath,
     point: KnowledgePoint,
@@ -275,6 +314,9 @@ def _make_study_node(
     )
 
 
+# 维护意图：为一组学习节点生成阶段测试节点
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def _make_test_node(
     path: LearningPath,
     study_batch: list[KnowledgePoint],
@@ -302,6 +344,9 @@ def _make_test_node(
     )
 
 
+# 维护意图：批量创建节点，并为学习节点绑定可见资源
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def _create_path_nodes_with_resources(
     nodes_to_create: list[PathNode],
     node_resource_points: list[KnowledgePoint | None],
@@ -319,6 +364,9 @@ def _create_path_nodes_with_resources(
             node.resources.set(resources)
 
 
+# 维护意图：当全部保留节点已完成时，激活第一个未来节点
+# 边界说明：校验边界集中在这里，避免非法输入进入业务主流程。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def _ensure_active_path_node(path: LearningPath) -> None:
     """当全部保留节点已完成时，激活第一个未来节点。"""
     if path.nodes.filter(status="active").exists():
@@ -329,6 +377,9 @@ def _ensure_active_path_node(path: LearningPath) -> None:
         first_locked.save()
 
 
+# 维护意图：序列化刷新路径后的节点列表
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def _serialize_refreshed_nodes(path: LearningPath) -> list[dict[str, object]]:
     """序列化刷新路径后的节点列表。"""
     return [
@@ -350,6 +401,9 @@ def _serialize_refreshed_nodes(path: LearningPath) -> list[dict[str, object]]:
     ]
 
 
+# 维护意图：为失败节点插入一个强化练习节点，并重新激活原节点
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _insert_remediation_node_if_missing(path: LearningPath, failed_node: PathNode) -> None:
     """为失败节点插入一个强化练习节点，并重新激活原节点。"""
     existing = path.nodes.filter(
@@ -378,6 +432,9 @@ def _insert_remediation_node_if_missing(path: LearningPath, failed_node: PathNod
     failed_node.save()
 
 
+# 维护意图：序列化旧版强化练习路径调整响应
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def _serialize_legacy_adjusted_nodes(path: LearningPath) -> list[dict[str, object]]:
     """序列化旧版强化练习路径调整响应。"""
     return [

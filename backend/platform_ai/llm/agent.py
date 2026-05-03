@@ -19,6 +19,9 @@ from platform_ai.llm.agent_support import (
 logger = logging.getLogger(__name__)
 
 
+# 维护意图：Thin agent wrapper used by legacy LLMService for structured outputs
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class LangChainAgentService:
     """Thin agent wrapper used by legacy LLMService for structured outputs."""
 
@@ -58,11 +61,17 @@ class LangChainAgentService:
         self._model = None
         self._agent = None
 
+    # 维护意图：Return whether provider credentials are available for agent invocation
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     @property
     def is_available(self) -> bool:
         """Return whether provider credentials are available for agent invocation."""
         return bool(self.api_key)
 
+    # 维护意图：Instantiate the compatible chat client lazily for the configured provider
+    # 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+    # 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
     def _get_model(self):
         """Instantiate the compatible chat client lazily for the configured provider."""
         if self._model is not None or not self.is_available:
@@ -98,6 +107,9 @@ class LangChainAgentService:
             self._model = None
         return self._model
 
+    # 维护意图：Create the minimal grounding tools exposed to the agent runtime
+    # 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+    # 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
     def _get_tools(self):
         """Create the minimal grounding tools exposed to the agent runtime."""
         try:
@@ -106,6 +118,9 @@ class LangChainAgentService:
             logger.warning("LangChain tools import failed: %s", exc)
             return []
 
+        # 维护意图：Look up course and optional knowledge point context
+        # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+        # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
         @tool
         def lookup_course_context(course_id: int, point_id: int | None = None) -> str:
             """Look up course and optional knowledge point context."""
@@ -114,6 +129,9 @@ class LangChainAgentService:
                 return "课程不存在"
             return json.dumps(payload, ensure_ascii=False)
 
+        # 维护意图：Retrieve GraphRAG evidence for a course or knowledge-point question
+        # 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+        # 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
         @tool
         def query_course_graphrag(
             course_id: int,
@@ -130,6 +148,9 @@ class LangChainAgentService:
             )
             return json.dumps(payload, ensure_ascii=False)
 
+        # 维护意图：Summarize learner mastery for a course
+        # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+        # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
         @tool
         def summarize_mastery(user_id: int, course_id: int) -> str:
             """Summarize learner mastery for a course."""
@@ -154,6 +175,9 @@ class LangChainAgentService:
             summarize_mastery,
         ]
 
+    # 维护意图：Build and cache the LangChain agent instance on first successful use
+    # 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+    # 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
     def _get_agent(self):
         """Build and cache the LangChain agent instance on first successful use."""
         if self._agent is not None or not self.is_available:
@@ -180,6 +204,9 @@ class LangChainAgentService:
             self._agent = None
         return self._agent
 
+    # 维护意图：Invoke the agent and coerce its final answer into the expected JSON shape
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def invoke_json(self, *, call_type: str, prompt: str, fallback_response: dict) -> dict:
         """Invoke the agent and coerce its final answer into the expected JSON shape."""
         agent = self._get_agent()
@@ -202,6 +229,9 @@ class LangChainAgentService:
             return fallback_response
 
 
+# 维护意图：Reuse a small pool of agent service instances per provider configuration
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 @lru_cache(maxsize=8)
 def get_agent_service(
     model_name: str,
@@ -237,6 +267,9 @@ def get_agent_service(
     )
 
 
+# 维护意图：Resolve the default provider credentials from Django settings
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 def get_default_agent_service() -> LangChainAgentService:
     """Resolve the default provider credentials from Django settings."""
     from ai_services.services.llm_service import LLMService, resolve_llm_proxy_for_base_url

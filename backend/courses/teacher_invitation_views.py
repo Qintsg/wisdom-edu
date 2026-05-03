@@ -16,6 +16,9 @@ from users.models import ClassInvitation
 from .models import Class
 
 
+# 维护意图：生成班级邀请码
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["POST"])
 @permission_classes([IsAuthenticated, IsTeacherOrAdmin])
 def generate_class_invitation(request):
@@ -68,6 +71,9 @@ def generate_class_invitation(request):
     }, msg="邀请码生成成功")
 
 
+# 维护意图：获取班级邀请码列表
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 @api_view(["GET"])
 @permission_classes([IsAuthenticated, IsTeacherOrAdmin])
 def list_class_invitations(request, class_id):
@@ -83,6 +89,9 @@ def list_class_invitations(request, class_id):
     return success_response(data={"class_id": class_id, "class_name": class_obj.name, "invitations": [{"id": invitation.id, "code": invitation.code, "max_uses": invitation.max_uses, "use_count": invitation.use_count, "expires_at": invitation.expires_at.isoformat() if invitation.expires_at else None, "is_active": invitation.is_active, "is_valid": invitation.is_valid(), "created_at": invitation.created_at.isoformat()} for invitation in invitations]})
 
 
+# 维护意图：删除班级邀请码
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 @api_view(["DELETE"])
 @permission_classes([IsAuthenticated, IsTeacherOrAdmin])
 def delete_class_invitation(request, invitation_id):

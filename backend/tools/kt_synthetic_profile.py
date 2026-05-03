@@ -11,6 +11,9 @@ from typing import Any
 from tools.kt_synthetic_math import clamp_value
 
 
+# 维护意图：根据先修关系构造每个知识点的后继节点映射
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_children_map(
     prereqs: dict[int, list[int]],
     kp_to_idx: dict[int, int],
@@ -24,6 +27,9 @@ def build_children_map(
     return dict(children)
 
 
+# 维护意图：递归计算知识点在先修图中的深度
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def calculate_kp_depth(
     current_kp_id: int,
     prereqs: dict[int, list[int]],
@@ -57,6 +63,9 @@ def calculate_kp_depth(
     return depth
 
 
+# 维护意图：综合元数据、题量和先修结构估计知识点难度
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def compute_kp_difficulty(
     *,
     meta: dict[str, Any],
@@ -105,6 +114,9 @@ def compute_kp_difficulty(
     return clamp_value(difficulty, 0.18, 0.92)
 
 
+# 维护意图：构造单个知识点的画像条目
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_kp_profile(
     *,
     kp_id: int,
@@ -148,6 +160,9 @@ def build_kp_profile(
     }
 
 
+# 维护意图：初始化学生对各知识点的掌握度
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def initialize_mastery_levels(
     kp_profiles: dict[int, dict[str, Any]],
     profile: dict[str, float | str | int],

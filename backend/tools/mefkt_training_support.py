@@ -31,6 +31,9 @@ from tools.mefkt_public_data import (
 )
 
 
+# 维护意图：MEFKT 训练参数
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @dataclass(frozen=True)
 class MEFKTTrainingConfig:
     """MEFKT 训练参数。"""
@@ -47,6 +50,9 @@ class MEFKTTrainingConfig:
     use_gpu: bool | None
 
 
+# 维护意图：MEFKT 图编码、属性编码与融合组件
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @dataclass(frozen=True)
 class MEFKTModelComponents:
     """MEFKT 图编码、属性编码与融合组件。"""
@@ -60,6 +66,9 @@ class MEFKTModelComponents:
     relation_dim: int
 
 
+# 维护意图：MEFKT 序列模型训练结果
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @dataclass(frozen=True)
 class MEFKTSequenceTrainingResult:
     """MEFKT 序列模型训练结果。"""
@@ -68,12 +77,18 @@ class MEFKTSequenceTrainingResult:
     best_sequence_state: dict[str, Tensor]
 
 
+# 维护意图：持久化模型元数据
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def write_mefkt_metadata(metadata_path: Path, payload: dict[str, object]) -> None:
     """持久化模型元数据。"""
     metadata_path.parent.mkdir(parents=True, exist_ok=True)
     metadata_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
+# 维护意图：针对公开训练包训练可在线重建的 MEFKT 模型
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def train_mefkt_bundle(
     *,
     bundle: MEFKTTrainingBundle,
@@ -112,6 +127,9 @@ def train_mefkt_bundle(
     }
 
 
+# 维护意图：构建 MEFKT 编码器和融合层
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_mefkt_components(
     bundle: MEFKTTrainingBundle,
     config: MEFKTTrainingConfig,
@@ -141,6 +159,9 @@ def build_mefkt_components(
     )
 
 
+# 维护意图：预训练图结构、属性编码和融合层，返回题目 embedding
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def pretrain_mefkt_embedding(
     bundle: MEFKTTrainingBundle,
     components: MEFKTModelComponents,
@@ -177,6 +198,9 @@ def pretrain_mefkt_embedding(
     return fused_embedding
 
 
+# 维护意图：执行单轮 MEFKT 表征预训练
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def run_pretrain_epoch(
     *,
     components: MEFKTModelComponents,
@@ -221,6 +245,9 @@ def run_pretrain_epoch(
     return fused_embedding
 
 
+# 维护意图：训练 MEFKT 序列预测模型
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def train_sequence_predictor(
     bundle: MEFKTTrainingBundle,
     ready_embedding: Tensor,
@@ -262,6 +289,9 @@ def train_sequence_predictor(
     )
 
 
+# 维护意图：执行单轮序列模型训练并返回平均 loss
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def run_sequence_epoch(
     *,
     sequence_model: MEFKTSequenceModel,
@@ -299,11 +329,17 @@ def run_sequence_epoch(
     return total_loss_value / max(valid_batch_count, 1)
 
 
+# 维护意图：将模型 state_dict 移动到 CPU
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def cpu_state_dict(model: torch.nn.Module) -> dict[str, Tensor]:
     """将模型 state_dict 移动到 CPU。"""
     return {key: value.detach().cpu() for key, value in model.state_dict().items()}
 
 
+# 维护意图：构造 MEFKT 运行时元数据
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_mefkt_metadata(
     *,
     bundle: MEFKTTrainingBundle,
@@ -352,6 +388,9 @@ def build_mefkt_metadata(
     }
 
 
+# 维护意图：保存 MEFKT 训练检查点和元数据
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def save_mefkt_checkpoint(
     *,
     output_path: Path,

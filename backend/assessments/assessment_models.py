@@ -6,6 +6,9 @@ from django.db import models
 from .question_models import Question
 
 
+# 维护意图：测评模型
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class Assessment(models.Model):
     """测评模型。"""
 
@@ -23,6 +26,9 @@ class Assessment(models.Model):
     is_active = models.BooleanField('是否启用', default=True)
     created_at = models.DateTimeField('创建时间', auto_now_add=True)
 
+    # 维护意图：Meta
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     class Meta:
         db_table = 'assessments'
         verbose_name = '测评'
@@ -32,6 +38,9 @@ class Assessment(models.Model):
         return self.title
 
 
+# 维护意图：测评-题目关联模型
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class AssessmentQuestion(models.Model):
     """测评-题目关联模型。"""
 
@@ -39,11 +48,17 @@ class AssessmentQuestion(models.Model):
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
     order = models.IntegerField('排序', default=0)
 
+    # 维护意图：Meta
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     class Meta:
         db_table = 'assessment_questions'
         ordering = ['order']
 
 
+# 维护意图：测评结果模型
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class AssessmentResult(models.Model):
     """测评结果模型。"""
 
@@ -55,6 +70,9 @@ class AssessmentResult(models.Model):
     result_data = models.JSONField('结果数据', default=dict)
     completed_at = models.DateTimeField('完成时间', auto_now_add=True)
 
+    # 维护意图：Meta
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     class Meta:
         db_table = 'assessment_results'
         verbose_name = '测评结果'
@@ -65,6 +83,9 @@ class AssessmentResult(models.Model):
         return f"{self.user.username} - {self.assessment.title}"
 
 
+# 维护意图：测评状态模型
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class AssessmentStatus(models.Model):
     """测评状态模型。"""
 
@@ -76,6 +97,9 @@ class AssessmentStatus(models.Model):
     generating = models.BooleanField('正在生成中', default=False)
     generation_error = models.TextField('生成错误信息', null=True, blank=True)
 
+    # 维护意图：Meta
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     class Meta:
         db_table = 'assessment_status'
         verbose_name = '测评状态'
@@ -85,12 +109,18 @@ class AssessmentStatus(models.Model):
     def __str__(self):
         return f"{self.user.username} - {self.course.name} 测评状态"
 
+    # 维护意图：判断是否全部完成
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     @property
     def is_all_done(self):
         """判断是否全部完成。"""
         return self.knowledge_done and self.ability_done and self.habit_done
 
 
+# 维护意图：能力评分模型
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class AbilityScore(models.Model):
     """能力评分模型。"""
 
@@ -100,6 +130,9 @@ class AbilityScore(models.Model):
     created_at = models.DateTimeField('创建时间', auto_now_add=True)
     updated_at = models.DateTimeField('更新时间', auto_now=True)
 
+    # 维护意图：Meta
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     class Meta:
         db_table = 'ability_scores'
         verbose_name = '能力评分'

@@ -13,6 +13,9 @@ from decimal import Decimal
 logger = logging.getLogger(__name__)
 
 
+# 维护意图：评分服务类 提供测评和考试的自动评分功能
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class ScoringService:
     """
     评分服务类
@@ -20,6 +23,9 @@ class ScoringService:
     提供测评和考试的自动评分功能
     """
     
+    # 维护意图：对客观题进行评分
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     @staticmethod
     def score_objective_question(
         question_type: str,
@@ -79,6 +85,9 @@ class ScoringService:
             logger.warning(f"题型 {question_type} 需要人工评分")
             return 0.0
     
+    # 维护意图：标准化答案格式
+    # 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+    # 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
     @staticmethod
     def _normalize_answer(answer: Any) -> str:
         """标准化答案格式"""
@@ -86,6 +95,9 @@ class ScoringService:
             answer = answer.get('answer', '')
         return str(answer).strip().upper()
     
+    # 维护意图：标准化列表答案
+    # 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+    # 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
     @staticmethod
     def _normalize_list(answer: Any) -> List[str]:
         """标准化列表答案"""
@@ -97,6 +109,9 @@ class ScoringService:
             return [str(a).strip().upper() for a in answer]
         return [str(answer).strip().upper()]
     
+    # 维护意图：转换为布尔值
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     @staticmethod
     def _to_bool(value: Any) -> bool:
         """转换为布尔值"""
@@ -107,6 +122,9 @@ class ScoringService:
         s = str(value).strip().lower()
         return s in ('true', '1', 'yes', '对', '正确', 't')
     
+    # 维护意图：对考试进行评分
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     @staticmethod
     def score_exam(
         exam, 
@@ -182,6 +200,9 @@ class ScoringService:
             'point_stats': list(point_stats.values())
         }
     
+    # 维护意图：根据答题情况更新知识点掌握度
+    # 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+    # 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
     @staticmethod
     def update_mastery(
         user, 
@@ -224,6 +245,9 @@ class ScoringService:
                     f"掌握度更新: {old_rate:.2f} -> {new_rate:.2f}"
                 )
     
+    # 维护意图：计算能力测评得分 根据问卷答案计算各维度能力得分
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     @staticmethod
     def calculate_ability_score(
         answers: Dict[str, str], 

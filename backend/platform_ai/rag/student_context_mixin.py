@@ -10,9 +10,15 @@ from .student_utils import RankedContext, dedupe_strings, sanitize_answer_text
 logger = logging.getLogger(__name__)
 
 
+# 维护意图：组合多种 GraphRAG 查询模式的上下文与证据来源
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class StudentContextMixin:
     """组合多种 GraphRAG 查询模式的上下文与证据来源。"""
 
+    # 维护意图：实现 GraphRAG Local Search
+    # 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+    # 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
     def _build_local_context(
         self,
         course_id: int,
@@ -75,6 +81,9 @@ class StudentContextMixin:
         )
         return RankedContext(context="\n".join(context_lines), sources=sources, matched_entity_ids=[entity_id for entity_id in focus_ids if entity_id])
 
+    # 维护意图：实现 GraphRAG Global Search
+    # 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+    # 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
     def _build_global_context(self, course_id: int, query: str) -> RankedContext:
         """实现 GraphRAG Global Search。"""
         payload = self._ensure_index(course_id)
@@ -98,6 +107,9 @@ class StudentContextMixin:
             matched_entity_ids=community_ids,
         )
 
+    # 维护意图：实现 GraphRAG DRIFT Search
+    # 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+    # 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
     def _build_drift_context(self, course_id: int, query: str, seed_entity_ids: Iterable[str] = ()) -> RankedContext:
         """实现 GraphRAG DRIFT Search。"""
         payload = self._ensure_index(course_id)
@@ -149,6 +161,9 @@ class StudentContextMixin:
         )
         return RankedContext(context="\n".join(context_lines), sources=sources, matched_entity_ids=sorted(expanded_entity_ids))
 
+    # 维护意图：组合 local / global / drift 三类上下文
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def _compose_query_context(
         self,
         course_id: int,
@@ -175,6 +190,9 @@ class StudentContextMixin:
         )
         return {"context": "\n\n".join(section for section in context_sections if section), "sources": merged_sources, "matched_entity_ids": matched_entity_ids}
 
+    # 维护意图：保留旧方法调用形式，委托给共享工具
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def _humanize_document_title(self, document: dict[str, object]) -> str:
         """保留旧方法调用形式，委托给共享工具。"""
         from .student_utils import humanize_document_title

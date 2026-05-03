@@ -13,6 +13,9 @@ from common.defense_demo_stage import build_stage_feedback_payload
 DemoNodeSpec = dict[str, object]
 
 
+# 维护意图：创建固定学习路径与节点进度预置。
+# 边界说明：校验边界集中在这里，避免非法输入进入业务主流程。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def _ensure_demo_learning_path(
     course: Course,
     student: User,
@@ -52,6 +55,9 @@ def _ensure_demo_learning_path(
         )
 
 
+# 维护意图：创建或更新答辩演示专用学习路径
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def _upsert_demo_path(course: Course, student: User) -> LearningPath:
     """创建或更新答辩演示专用学习路径。"""
     path, _ = LearningPath.objects.update_or_create(
@@ -65,6 +71,9 @@ def _upsert_demo_path(course: Course, student: User) -> LearningPath:
     return path
 
 
+# 维护意图：返回答辩演示固定路径节点定义
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _demo_node_specs(points: list[KnowledgePoint]) -> list[DemoNodeSpec]:
     """返回答辩演示固定路径节点定义。"""
     return [
@@ -137,6 +146,9 @@ def _demo_node_specs(points: list[KnowledgePoint]) -> list[DemoNodeSpec]:
     ]
 
 
+# 维护意图：同步固定路径节点，并为每个节点设置预置进度数据
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def _sync_demo_nodes(
     *,
     path: LearningPath,
@@ -166,6 +178,9 @@ def _sync_demo_nodes(
     return node_map, progress_map
 
 
+# 维护意图：创建或更新单个演示节点及其 NodeProgress
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def _upsert_demo_node(
     *,
     path: LearningPath,
@@ -205,6 +220,9 @@ def _upsert_demo_node(
     return node, progress
 
 
+# 维护意图：返回演示节点进度的基础默认值
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _progress_defaults() -> dict[str, object]:
     """返回演示节点进度的基础默认值。"""
     return {
@@ -216,6 +234,9 @@ def _progress_defaults() -> dict[str, object]:
     }
 
 
+# 维护意图：把预置资源或预置阶段测试数据写入节点进度
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def _apply_demo_progress_payload(
     *,
     progress: NodeProgress,
@@ -238,6 +259,9 @@ def _apply_demo_progress_payload(
     progress.save(update_fields=["extra_data", "updated_at"])
 
 
+# 维护意图：已完成演示时，回放阶段测试完成后的节点状态和进度
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def _apply_completed_stage_result(
     *,
     node_map: dict[int, PathNode],
@@ -268,6 +292,9 @@ def _apply_completed_stage_result(
     )
 
 
+# 维护意图：将演示路径推进到阶段测试已完成后的固定状态
+# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
+# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def _apply_completed_statuses(node_map: dict[int, PathNode]) -> None:
     """将演示路径推进到阶段测试已完成后的固定状态。"""
     completed_status_map = {
@@ -286,6 +313,9 @@ def _apply_completed_statuses(node_map: dict[int, PathNode]) -> None:
         node.save(update_fields=["status"])
 
 
+# 维护意图：从阶段测试结果中提取前后掌握度快照
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _mastery_maps_from_result(
     completed_stage_result: dict[str, object],
 ) -> tuple[dict[int, float], dict[int, float]]:
@@ -302,6 +332,9 @@ def _mastery_maps_from_result(
     return mastery_before_map, mastery_after_map
 
 
+# 维护意图：收集单条掌握度变化
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _collect_mastery_change(
     item: dict[str, object],
     mastery_before_map: dict[int, float],
@@ -317,6 +350,9 @@ def _collect_mastery_change(
         mastery_after_map[point_id] = float(mastery_after)
 
 
+# 维护意图：回放已完成学习节点的资源完成和掌握度变化
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _complete_study_progress(
     *,
     node: PathNode | None,
@@ -349,6 +385,9 @@ def _complete_study_progress(
     )
 
 
+# 维护意图：回放阶段测试节点完成状态和结果
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _complete_stage_progress(
     *,
     stage_progress: NodeProgress | None,

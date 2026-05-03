@@ -20,6 +20,9 @@ from .teacher_helpers import bad_request, refresh_course_rag_index
 logger = logging.getLogger(__name__)
 
 
+# 维护意图：获取知识点关系列表，优先 Neo4j，不可用时降级 PostgreSQL
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["GET"])
 @permission_classes([IsAuthenticated, IsTeacherOrAdmin])
 def knowledge_relation_list(request: Request) -> Response:
@@ -59,6 +62,9 @@ def knowledge_relation_list(request: Request) -> Response:
     })
 
 
+# 维护意图：创建知识点关系
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["POST"])
 @permission_classes([IsAuthenticated, IsTeacherOrAdmin])
 def knowledge_relation_create(request: Request) -> Response:
@@ -97,6 +103,9 @@ def knowledge_relation_create(request: Request) -> Response:
     )
 
 
+# 维护意图：删除知识点关系
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["DELETE"])
 @permission_classes([IsAuthenticated, IsTeacherOrAdmin])
 def knowledge_relation_delete(request: Request, relation_id: int) -> Response:

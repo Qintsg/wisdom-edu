@@ -13,6 +13,9 @@ from platform_ai.rag import student_learning_rag
 logger = logging.getLogger(__name__)
 
 
+# 维护意图：读取当前学生拥有的学习路径节点
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 def get_student_path_node(node_id: int, user: object) -> PathNode | None:
     """读取当前学生拥有的学习路径节点。"""
     return (
@@ -22,6 +25,9 @@ def get_student_path_node(node_id: int, user: object) -> PathNode | None:
     )
 
 
+# 维护意图：组装学习节点 AI 推荐资源响应
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_ai_resource_payload(user: object, node: PathNode) -> dict[str, object]:
     """组装学习节点 AI 推荐资源响应。"""
     if not node.knowledge_point:
@@ -45,11 +51,17 @@ def build_ai_resource_payload(user: object, node: PathNode) -> dict[str, object]
     }
 
 
+# 维护意图：返回空资源推荐载荷
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def empty_resource_payload() -> dict[str, object]:
     """返回空资源推荐载荷。"""
     return {"internal_resources": [], "external_resources": []}
 
 
+# 维护意图：答辩演示账号命中时返回预置资源推荐
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def defense_demo_resource_payload(
     user: object,
     node: PathNode,
@@ -66,6 +78,9 @@ def defense_demo_resource_payload(
     }
 
 
+# 维护意图：标准化已完成资源 ID，兼容 JSON 中的整数和字符串
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def completed_resource_id_set(progress: NodeProgress | None) -> set[str]:
     """标准化已完成资源 ID，兼容 JSON 中的整数和字符串。"""
     if not progress or not progress.completed_resources:
@@ -73,6 +88,9 @@ def completed_resource_id_set(progress: NodeProgress | None) -> set[str]:
     return {str(resource_id) for resource_id in progress.completed_resources}
 
 
+# 维护意图：读取推荐资源使用的学习前掌握度
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def mastery_before_value(progress: NodeProgress | None) -> float | None:
     """读取推荐资源使用的学习前掌握度。"""
     if progress and progress.mastery_before is not None:
@@ -80,6 +98,9 @@ def mastery_before_value(progress: NodeProgress | None) -> float | None:
     return None
 
 
+# 维护意图：调用学生 RAG 推荐服务，失败时退回课程内可见资源
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def recommend_node_resources(
     *,
     user: object,
@@ -109,6 +130,9 @@ def recommend_node_resources(
         return fallback_node_resources(node, completed_resource_ids)
 
 
+# 维护意图：RAG 推荐失败时仅返回课程内与知识点直接关联的可见资源
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def fallback_node_resources(node: PathNode, completed_resource_ids: set[str]) -> dict[str, object]:
     """RAG 推荐失败时仅返回课程内与知识点直接关联的可见资源。"""
     return {
@@ -120,6 +144,9 @@ def fallback_node_resources(node: PathNode, completed_resource_ids: set[str]) ->
     }
 
 
+# 维护意图：序列化课程内兜底资源推荐项
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_fallback_resource_payload(resource: object, node: PathNode, completed_resource_ids: set[str]) -> dict[str, object]:
     """序列化课程内兜底资源推荐项。"""
     return {

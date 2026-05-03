@@ -7,6 +7,9 @@ from __future__ import annotations
 from ai_services.services.mefkt_runtime_types import RuntimeFeatureSources, RuntimeSourceData
 
 
+# 维护意图：加载课程题目、资源、关系和答题统计
+# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 def load_runtime_source_data(course_id: int) -> RuntimeSourceData:
     """加载课程题目、资源、关系和答题统计。"""
     from assessments.models import AnswerHistory, Question
@@ -36,6 +39,9 @@ def load_runtime_source_data(course_id: int) -> RuntimeSourceData:
     )
 
 
+# 维护意图：按知识点聚合可见资源，避免后续逐题循环查库
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def collect_point_resource_map(resources: list[object]) -> dict[int, set[int]]:
     """按知识点聚合可见资源，避免后续逐题循环查库。"""
     point_to_resources: dict[int, set[int]] = {}
@@ -45,6 +51,9 @@ def collect_point_resource_map(resources: list[object]) -> dict[int, set[int]]:
     return point_to_resources
 
 
+# 维护意图：把 Neo4j 前的 PostgreSQL 关系索引拆成先修、后继与相关关系
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def collect_knowledge_relation_maps(
     course_id: int,
 ) -> tuple[dict[int, set[int]], dict[int, set[int]], dict[int, set[int]]]:
@@ -71,6 +80,9 @@ def collect_knowledge_relation_maps(
     return prereq_points, dependent_points, related_points
 
 
+# 维护意图：把单条知识关系写入运行时邻接索引
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def register_relation_row(
     *,
     prereq_points: dict[int, set[int]],
@@ -89,6 +101,9 @@ def register_relation_row(
     related_points.setdefault(post_point_id, set()).add(pre_point_id)
 
 
+# 维护意图：聚合历史答题总数与正确数，供题目难度代理特征使用
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def collect_question_answer_stats(course_id: int) -> dict[int, dict[str, float]]:
     """聚合历史答题总数与正确数，供题目难度代理特征使用。"""
     from assessments.models import AnswerHistory
@@ -106,6 +121,9 @@ def collect_question_answer_stats(course_id: int) -> dict[int, dict[str, float]]
     return answer_stats
 
 
+# 维护意图：将课程源数据收敛为题目特征提取的输入
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_feature_sources(source_data: RuntimeSourceData) -> RuntimeFeatureSources:
     """将课程源数据收敛为题目特征提取的输入。"""
     return RuntimeFeatureSources(

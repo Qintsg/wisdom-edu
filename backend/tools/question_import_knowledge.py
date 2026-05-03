@@ -20,6 +20,9 @@ from tools.question_import_types import QuestionImportContext
 LEADING_DIGITS_PATTERN = re.compile(r"^\d+")
 
 
+# 维护意图：统一规整题目关联知识点名称
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def normalize_knowledge_point_names(value: object) -> list[str]:
     """统一规整题目关联知识点名称。"""
     if isinstance(value, str):
@@ -31,6 +34,9 @@ def normalize_knowledge_point_names(value: object) -> list[str]:
     return [item for item in items if item]
 
 
+# 维护意图：尝试将一个话题名称匹配到课程知识点
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def match_knowledge_point_by_topic(
     topic: str,
     knowledge_points: Sequence[KnowledgePoint],
@@ -54,6 +60,9 @@ def match_knowledge_point_by_topic(
     return best_match
 
 
+# 维护意图：预加载课程知识点上下文
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_question_import_context(course: Course) -> QuestionImportContext:
     """预加载课程知识点上下文。"""
     knowledge_points = list(KnowledgePoint.objects.filter(course=course))
@@ -64,6 +73,9 @@ def build_question_import_context(course: Course) -> QuestionImportContext:
     )
 
 
+# 维护意图：按知识点名称为题目绑定知识点
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def link_question_knowledge_points(
     question: Question,
     knowledge_point_names: Sequence[str],
@@ -87,6 +99,9 @@ def link_question_knowledge_points(
     return linked
 
 
+# 维护意图：尝试根据文件名推导默认知识点
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def resolve_filename_knowledge_point(
     filename_stem: str,
     context: QuestionImportContext,

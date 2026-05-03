@@ -6,6 +6,9 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 
 
+# 维护意图：学生作业表现等级与降级建议
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @dataclass(frozen=True)
 class FeedbackPerformance:
     """学生作业表现等级与降级建议。"""
@@ -17,6 +20,9 @@ class FeedbackPerformance:
     next_tasks: list[str]
 
 
+# 维护意图：作业反馈报告生成所需输入
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @dataclass(frozen=True)
 class FeedbackReportInput:
     """作业反馈报告生成所需输入。"""
@@ -27,12 +33,18 @@ class FeedbackReportInput:
     mistakes: Sequence[Mapping[str, object]]
     kt_predictions: Mapping[object, object] | None
 
+    # 维护意图：返回本次作业正确率
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     @property
     def accuracy(self) -> float:
         """返回本次作业正确率。"""
         return self.score / self.total_score if self.total_score > 0 else 0.0
 
 
+# 维护意图：KT 预测结果的可读统计摘要
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @dataclass(frozen=True)
 class KTPredictionSummary:
     """KT 预测结果的可读统计摘要。"""
@@ -44,6 +56,9 @@ class KTPredictionSummary:
     avg_mastery: float
 
 
+# 维护意图：答题历史趋势统计
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @dataclass(frozen=True)
 class KTAnswerTrend:
     """答题历史趋势统计。"""
@@ -52,6 +67,9 @@ class KTAnswerTrend:
     recent_accuracy: float
 
 
+# 维护意图：KT 洞察报告生成所需输入
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @dataclass(frozen=True)
 class KTAnalysisInput:
     """KT 洞察报告生成所需输入。"""
@@ -62,6 +80,9 @@ class KTAnalysisInput:
     point_name_map: Mapping[int, str] | None
 
 
+# 维护意图：提取前 5 道错题的可读上下文
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_mistake_points(mistakes: Sequence[Mapping[str, object]]) -> list[dict[str, object]]:
     """提取前 5 道错题的可读上下文。"""
     mistake_points: list[dict[str, object]] = []
@@ -77,6 +98,9 @@ def build_mistake_points(mistakes: Sequence[Mapping[str, object]]) -> list[dict[
     return mistake_points
 
 
+# 维护意图：根据正确率生成表现等级和降级学习建议
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def classify_feedback_performance(accuracy: float) -> FeedbackPerformance:
     """根据正确率生成表现等级和降级学习建议。"""
     if accuracy >= 0.9:
@@ -120,6 +144,9 @@ def classify_feedback_performance(accuracy: float) -> FeedbackPerformance:
     )
 
 
+# 维护意图：构造作业反馈报告 prompt
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_feedback_report_prompt(report_input: FeedbackReportInput) -> str:
     """构造作业反馈报告 prompt。"""
     mistake_points = build_mistake_points(report_input.mistakes)
@@ -156,6 +183,9 @@ def build_feedback_report_prompt(report_input: FeedbackReportInput) -> str:
 3. 根据表现等级调整建议的难度"""
 
 
+# 维护意图：构造作业反馈报告降级响应
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_feedback_report_fallback(report_input: FeedbackReportInput) -> dict[str, object]:
     """构造作业反馈报告降级响应。"""
     performance = classify_feedback_performance(report_input.accuracy)
@@ -178,6 +208,9 @@ def build_feedback_report_fallback(report_input: FeedbackReportInput) -> dict[st
     }
 
 
+# 维护意图：将 KT 预测结果转换为可展示名称和统计数据
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def summarize_kt_predictions(
     predictions: Mapping[object, object],
     point_name_map: Mapping[int, str] | None,
@@ -209,12 +242,18 @@ def summarize_kt_predictions(
     )
 
 
+# 维护意图：将知识点 ID 转成可读名称
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def readable_point_name(point_id: object, point_name_map: Mapping[int, str]) -> str:
     """将知识点 ID 转成可读名称。"""
     normalized_id = int(point_id) if isinstance(point_id, (int, float)) else point_id
     return point_name_map.get(normalized_id, f"知识点{point_id}") if isinstance(normalized_id, int) else f"知识点{point_id}"
 
 
+# 维护意图：统计答题历史数量和近期正确率
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def summarize_answer_trend(answer_history: Sequence[Mapping[str, object]] | None) -> KTAnswerTrend:
     """统计答题历史数量和近期正确率。"""
     if not answer_history:
@@ -227,6 +266,9 @@ def summarize_answer_trend(answer_history: Sequence[Mapping[str, object]] | None
     )
 
 
+# 维护意图：构造 KT 学习洞察 prompt
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_kt_analysis_prompt(analysis_input: KTAnalysisInput) -> str:
     """构造 KT 学习洞察 prompt。"""
     predictions = analysis_input.kt_result.get("predictions", {})
@@ -267,6 +309,9 @@ def build_kt_analysis_prompt(analysis_input: KTAnalysisInput) -> str:
 }}"""
 
 
+# 维护意图：构造 KT 学习洞察降级响应
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_kt_analysis_fallback(analysis_input: KTAnalysisInput) -> dict[str, object]:
     """构造 KT 学习洞察降级响应。"""
     predictions = analysis_input.kt_result.get("predictions", {})
@@ -294,6 +339,9 @@ def build_kt_analysis_fallback(analysis_input: KTAnalysisInput) -> dict[str, obj
     }
 
 
+# 维护意图：构造最多 3 条薄弱知识点分析
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_weak_point_analysis(
     weak_points: Mapping[object, float],
     point_name_map: Mapping[int, str],

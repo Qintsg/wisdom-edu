@@ -9,9 +9,15 @@ from collections import defaultdict
 from typing import Any, Dict, List, Optional
 
 
+# 维护意图：提供 KT 预测结果整理与内置统计算法
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class KTPredictionStatsMixin:
     """提供 KT 预测结果整理与内置统计算法。"""
 
+    # 维护意图：为所有预测模式补齐统一元数据
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def _attach_prediction_metadata(
         self,
         result: Optional[Dict[str, Any]],
@@ -32,6 +38,9 @@ class KTPredictionStatsMixin:
         )
         return payload
 
+    # 维护意图：根据样本量和覆盖面估计统计回退的可信度
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def _estimate_stat_confidence(
         self,
         answer_history: List[Dict[str, Any]],
@@ -55,6 +64,9 @@ class KTPredictionStatsMixin:
         confidence = floor + sample_factor * 0.28 + coverage_factor * 0.1
         return round(min(ceiling, confidence), 3)
 
+    # 维护意图：从模型结果中提取可参与融合的知识点掌握度字典
+    # 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+    # 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
     @staticmethod
     def _extract_prediction_map(
         result: Optional[Dict[str, Any]],
@@ -76,6 +88,9 @@ class KTPredictionStatsMixin:
 
         return normalized_predictions
 
+    # 维护意图：将批量请求中的标识值安全转换为整数
+    # 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+    # 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
     @staticmethod
     def _coerce_int_identifier(value: object, default: int = 0) -> int:
         """将批量请求中的标识值安全转换为整数。"""
@@ -87,6 +102,9 @@ class KTPredictionStatsMixin:
         except (TypeError, ValueError):
             return default
 
+    # 维护意图：基于答题历史计算知识点掌握度。
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def _calculate_point_mastery(
         self,
         answer_history: List[Dict[str, Any]],
@@ -159,6 +177,9 @@ class KTPredictionStatsMixin:
 
         return predictions
 
+    # 维护意图：准备模型输入数据，保留历史融合模式兼容格式
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     @staticmethod
     def _prepare_input_data(
         answer_history: List[Dict[str, Any]],
@@ -180,6 +201,9 @@ class KTPredictionStatsMixin:
             "timestamps": timestamps,
         }
 
+    # 维护意图：返回无答题记录时的默认预测结果
+    # 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
+    # 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
     def _get_default_prediction(
         self, knowledge_points: List[int] = None
     ) -> Dict[str, Any]:

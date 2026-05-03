@@ -9,6 +9,9 @@ from rest_framework.request import Request
 from .models import KnowledgeMastery, KnowledgePoint, KnowledgeRelation, Resource
 
 
+# 维护意图：读取当前学生在课程内的知识点掌握度索引
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_mastery_lookup(*, user: AbstractBaseUser, course_id: int) -> dict[int, float]:
     """读取当前学生在课程内的知识点掌握度索引。"""
     if not user.is_authenticated:
@@ -23,6 +26,9 @@ def build_mastery_lookup(*, user: AbstractBaseUser, course_id: int) -> dict[int,
     return mastery_lookup
 
 
+# 维护意图：使用 PostgreSQL 构建知识图谱回退载荷
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_postgresql_knowledge_map_payload(
     *,
     course_id: int,
@@ -38,7 +44,7 @@ def build_postgresql_knowledge_map_payload(
         {
             "point_id": point.id,
             "point_name": point.name,
-            "mastery_rate": mastery_lookup.get(point.id, 0),
+            "mastery_rate": read_mastery_rate(mastery_lookup, point.id),
             "chapter": point.chapter or "",
             "type": point.point_type,
             "level": point.level,
@@ -66,6 +72,9 @@ def build_postgresql_knowledge_map_payload(
     )
 
 
+# 维护意图：将 Neo4j 图谱数据规范化为学生端 API 载荷
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_neo4j_knowledge_map_payload(
     *,
     course_id: int,
@@ -74,31 +83,31 @@ def build_neo4j_knowledge_map_payload(
 ) -> dict[str, object]:
     """将 Neo4j 图谱数据规范化为学生端 API 载荷。"""
     nodes = []
-    for node in _mapping_records(neo4j_data.get("nodes", [])):
-        point_id = node.get("point_id")
+    for node in mapping_records(read_mapping_field(neo4j_data, "nodes", [])):
+        point_id = read_mapping_field(node, "point_id")
         mastery_key = point_id if isinstance(point_id, int) else None
         nodes.append(
             {
                 "point_id": point_id,
-                "point_name": node.get("point_name", ""),
-                "mastery_rate": mastery_lookup.get(mastery_key, 0),
-                "chapter": node.get("chapter", ""),
-                "type": node.get("type", "knowledge"),
-                "level": node.get("level", 1),
-                "tags": node.get("tags", ""),
-                "cognitive_dimension": node.get("cognitive_dimension", ""),
-                "category": node.get("category", ""),
-                "teaching_goal": node.get("teaching_goal", ""),
-                "description": node.get("description", ""),
+                "point_name": read_mapping_field(node, "point_name", ""),
+                "mastery_rate": read_mastery_rate(mastery_lookup, mastery_key),
+                "chapter": read_mapping_field(node, "chapter", ""),
+                "type": read_mapping_field(node, "type", "knowledge"),
+                "level": read_mapping_field(node, "level", 1),
+                "tags": read_mapping_field(node, "tags", ""),
+                "cognitive_dimension": read_mapping_field(node, "cognitive_dimension", ""),
+                "category": read_mapping_field(node, "category", ""),
+                "teaching_goal": read_mapping_field(node, "teaching_goal", ""),
+                "description": read_mapping_field(node, "description", ""),
             }
         )
     edges = [
         {
-            "source": edge.get("source"),
-            "target": edge.get("target"),
-            "relation_type": edge.get("relation_type", "prerequisite"),
+            "source": read_mapping_field(edge, "source"),
+            "target": read_mapping_field(edge, "target"),
+            "relation_type": read_mapping_field(edge, "relation_type", "prerequisite"),
         }
-        for edge in _mapping_records(neo4j_data.get("edges", []))
+        for edge in mapping_records(read_mapping_field(neo4j_data, "edges", []))
     ]
     return build_knowledge_map_response_payload(
         course_id=course_id,
@@ -108,6 +117,9 @@ def build_neo4j_knowledge_map_payload(
     )
 
 
+# 维护意图：构建图谱响应公共结构，保持统计字段与旧接口一致
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_knowledge_map_response_payload(
     *,
     course_id: int,
@@ -118,7 +130,7 @@ def build_knowledge_map_response_payload(
     """构建图谱响应公共结构，保持统计字段与旧接口一致。"""
     avg_mastery = (
         round(
-            sum(float(node.get("mastery_rate", 0) or 0) for node in nodes)
+            sum(float(read_mapping_field(node, "mastery_rate", 0) or 0) for node in nodes)
             / len(nodes),
             3,
         )
@@ -138,6 +150,9 @@ def build_knowledge_map_response_payload(
     }
 
 
+# 维护意图：读取 PostgreSQL 中的前置与后继知识点
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_postgresql_point_relations(
     point: KnowledgePoint,
 ) -> tuple[list[dict[str, object]], list[dict[str, object]]]:
@@ -153,6 +168,9 @@ def build_postgresql_point_relations(
     return prerequisites, postrequisites
 
 
+# 维护意图：构建知识点详情中的资源载荷
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_resource_payload(
     *,
     request: Request,
@@ -168,7 +186,7 @@ def build_resource_payload(
             "chapter_number": resource.chapter_number,
             "sort_order": resource.sort_order,
         }
-        item["url"] = _resolve_resource_url(request=request, resource=resource)
+        item["url"] = resolve_resource_url(request=request, resource=resource)
         if resource.resource_type == "video" and resource.duration:
             item["duration"] = resource.duration
             item["duration_display"] = (
@@ -178,6 +196,9 @@ def build_resource_payload(
     return resource_list
 
 
+# 维护意图：组装知识点详情响应，避免视图层混入资源与图谱字段细节
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_point_detail_payload(
     *,
     request: Request,
@@ -206,12 +227,15 @@ def build_point_detail_payload(
         "resources": build_resource_payload(request=request, resources=resources),
         "examples": [],
         "data_source": data_source,
-        "graph_rag_summary": graph_rag_support.get("summary", ""),
-        "graph_rag_sources": graph_rag_support.get("sources", []),
-        "graph_rag_mode": graph_rag_support.get("mode", "graph_rag"),
+        "graph_rag_summary": read_mapping_field(graph_rag_support, "summary", ""),
+        "graph_rag_sources": read_mapping_field(graph_rag_support, "sources", []),
+        "graph_rag_mode": read_mapping_field(graph_rag_support, "mode", "graph_rag"),
     }
 
 
+# 维护意图：构建 Neo4j 关系列表响应载荷
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_neo4j_relations_payload(
     *,
     course_id: int,
@@ -220,16 +244,16 @@ def build_neo4j_relations_payload(
     """构建 Neo4j 关系列表响应载荷。"""
     relation_list = [
         {
-            "id": relation.get("relation_id"),
-            "pre_point_id": relation.get("pre_point_id"),
-            "pre_point_name": relation.get("pre_point_name", ""),
-            "post_point_id": relation.get("post_point_id"),
-            "post_point_name": relation.get("post_point_name", ""),
-            "relation_type": relation.get("relation_type", "prerequisite"),
+            "id": read_mapping_field(relation, "relation_id"),
+            "pre_point_id": read_mapping_field(relation, "pre_point_id"),
+            "pre_point_name": read_mapping_field(relation, "pre_point_name", ""),
+            "post_point_id": read_mapping_field(relation, "post_point_id"),
+            "post_point_name": read_mapping_field(relation, "post_point_name", ""),
+            "relation_type": read_mapping_field(relation, "relation_type", "prerequisite"),
         }
-        for relation in _mapping_records(neo4j_relations)
+        for relation in mapping_records(neo4j_relations)
     ]
-    return _build_collection_payload(
+    return build_collection_payload(
         course_id=course_id,
         key="relations",
         records=relation_list,
@@ -237,6 +261,9 @@ def build_neo4j_relations_payload(
     )
 
 
+# 维护意图：构建 PostgreSQL 关系列表响应载荷
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_postgresql_relations_payload(*, course_id: int) -> dict[str, object]:
     """构建 PostgreSQL 关系列表响应载荷。"""
     relations = KnowledgeRelation.objects.filter(course_id=course_id).select_related(
@@ -254,7 +281,7 @@ def build_postgresql_relations_payload(*, course_id: int) -> dict[str, object]:
         }
         for relation in relations
     ]
-    return _build_collection_payload(
+    return build_collection_payload(
         course_id=course_id,
         key="relations",
         records=relation_list,
@@ -262,28 +289,31 @@ def build_postgresql_relations_payload(*, course_id: int) -> dict[str, object]:
     )
 
 
+# 维护意图：构建 Neo4j 知识点列表响应载荷，空结果交由视图回退
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_neo4j_points_payload(
     *,
     course_id: int,
     neo4j_points: object,
 ) -> dict[str, object] | None:
     """构建 Neo4j 知识点列表响应载荷，空结果交由视图回退。"""
-    point_records = _mapping_records(neo4j_points)
+    point_records = mapping_records(neo4j_points)
     if not point_records:
         return None
 
     points_list = [
         {
-            "id": point.get("id"),
-            "name": point.get("name", ""),
-            "chapter": point.get("chapter", ""),
-            "type": point.get("type", "knowledge"),
-            "description": point.get("description", ""),
-            "is_published": point.get("is_published", True),
+            "id": read_mapping_field(point, "id"),
+            "name": read_mapping_field(point, "name", ""),
+            "chapter": read_mapping_field(point, "chapter", ""),
+            "type": read_mapping_field(point, "type", "knowledge"),
+            "description": read_mapping_field(point, "description", ""),
+            "is_published": read_mapping_field(point, "is_published", True),
         }
         for point in point_records
     ]
-    return _build_collection_payload(
+    return build_collection_payload(
         course_id=course_id,
         key="points",
         records=points_list,
@@ -291,6 +321,9 @@ def build_neo4j_points_payload(
     )
 
 
+# 维护意图：构建 PostgreSQL 知识点列表响应载荷
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_postgresql_points_payload(
     *,
     course_id: int,
@@ -314,7 +347,7 @@ def build_postgresql_points_payload(
         }
         for point in queryset
     ]
-    return _build_collection_payload(
+    return build_collection_payload(
         course_id=course_id,
         key="points",
         records=points_list,
@@ -322,6 +355,9 @@ def build_postgresql_points_payload(
     )
 
 
+# 维护意图：构建用户知识掌握度列表响应载荷
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_mastery_payload(
     *,
     user: AbstractBaseUser,
@@ -363,19 +399,44 @@ def build_mastery_payload(
     }
 
 
+# 维护意图：将 Neo4j 关系字段规范为列表，异常结构按空列表处理
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def normalize_relation_records(value: object) -> list[dict[str, object]]:
     """将 Neo4j 关系字段规范为列表，异常结构按空列表处理。"""
-    return [dict(item) for item in _mapping_records(value)]
+    return [dict(item) for item in mapping_records(value)]
 
 
-def _mapping_records(value: object) -> list[Mapping[str, object]]:
+# 维护意图：读取外部图服务返回字段，集中表达默认值语义
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
+def read_mapping_field(record: Mapping[str, object], key: str, default: object = None) -> object:
+    """读取外部图服务返回字段，集中表达默认值语义。"""
+    return record.get(key, default)
+
+
+# 维护意图：读取掌握度索引，缺失或空知识点统一按 0 处理
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
+def read_mastery_rate(mastery_lookup: dict[int, float], point_id: int | None) -> float:
+    """读取掌握度索引，缺失或空知识点统一按 0 处理。"""
+    return mastery_lookup.get(point_id, 0) if point_id is not None else 0
+
+
+# 维护意图：筛选图服务返回值中的映射记录，隔离外部数据形态波动
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
+def mapping_records(value: object) -> list[Mapping[str, object]]:
     """筛选图服务返回值中的映射记录，隔离外部数据形态波动。"""
     if not isinstance(value, Iterable) or isinstance(value, (str, bytes)):
         return []
     return [item for item in value if isinstance(item, Mapping)]
 
 
-def _resolve_resource_url(*, request: Request, resource: Resource) -> str:
+# 维护意图：解析资源 URL，兼容文件字段缺失或存储后端未返回 URL 的情况
+# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
+# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
+def resolve_resource_url(*, request: Request, resource: Resource) -> str:
     """解析资源 URL，兼容文件字段缺失或存储后端未返回 URL 的情况。"""
     if resource.file:
         try:
@@ -393,7 +454,10 @@ def _resolve_resource_url(*, request: Request, resource: Resource) -> str:
     return "#"
 
 
-def _build_collection_payload(
+# 维护意图：构建列表类接口通用响应结构
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
+def build_collection_payload(
     *,
     course_id: int,
     key: str,

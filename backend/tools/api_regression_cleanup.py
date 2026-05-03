@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TypeAlias
 
-from tools.api_regression_helpers import _record
+from tools.api_regression_helpers import record_check
 from tools.testing import CheckResult, _request
 
 
@@ -13,6 +13,9 @@ Headers: TypeAlias = dict[str, str]
 TempIds: TypeAlias = dict[str, int | None]
 
 
+# 维护意图：回归清理所需上下文
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @dataclass(frozen=True)
 class RegressionCleanupContext:
     """回归清理所需上下文。"""
@@ -26,6 +29,9 @@ class RegressionCleanupContext:
     include_all: bool
 
 
+# 维护意图：单个临时实体删除动作
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @dataclass(frozen=True)
 class CleanupAction:
     """单个临时实体删除动作。"""
@@ -35,6 +41,9 @@ class CleanupAction:
     headers: Headers
 
 
+# 维护意图：清理全量公开 API 回归中创建的临时数据
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def cleanup_regression_entities(context: RegressionCleanupContext) -> None:
     """清理全量公开 API 回归中创建的临时数据。"""
     if not context.include_all:
@@ -44,6 +53,9 @@ def cleanup_regression_entities(context: RegressionCleanupContext) -> None:
         record_cleanup_action(context.checks, action)
 
 
+# 维护意图：按依赖顺序生成临时实体删除动作
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_cleanup_actions(context: RegressionCleanupContext) -> list[CleanupAction]:
     """按依赖顺序生成临时实体删除动作。"""
     return (
@@ -52,6 +64,9 @@ def build_cleanup_actions(context: RegressionCleanupContext) -> list[CleanupActi
     )
 
 
+# 维护意图：生成教师端临时资源清理动作
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def teacher_cleanup_actions(context: RegressionCleanupContext) -> list[CleanupAction]:
     """生成教师端临时资源清理动作。"""
     route_templates = [
@@ -69,6 +84,9 @@ def teacher_cleanup_actions(context: RegressionCleanupContext) -> list[CleanupAc
     )
 
 
+# 维护意图：生成管理端临时资源清理动作
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def admin_cleanup_actions(context: RegressionCleanupContext) -> list[CleanupAction]:
     """生成管理端临时资源清理动作。"""
     route_templates = [
@@ -85,6 +103,9 @@ def admin_cleanup_actions(context: RegressionCleanupContext) -> list[CleanupActi
     )
 
 
+# 维护意图：从 ID 字典和路由模板生成有效删除动作
+# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
+# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_actions_from_templates(
     *,
     base_url: str,
@@ -108,10 +129,13 @@ def build_actions_from_templates(
     return actions
 
 
+# 维护意图：执行删除请求并记录回归检查结果
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def record_cleanup_action(checks: list[CheckResult], action: CleanupAction) -> None:
     """执行删除请求并记录回归检查结果。"""
     response, error = _request("DELETE", action.url, headers=action.headers)
-    _record(
+    record_check(
         checks,
         action.label,
         response,
@@ -120,6 +144,9 @@ def record_cleanup_action(checks: list[CheckResult], action: CleanupAction) -> N
     )
 
 
+# 维护意图：兼容旧导入路径的清理入口
+# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _cleanup_regression_entities(
     checks: list[CheckResult],
     base_url: str,
