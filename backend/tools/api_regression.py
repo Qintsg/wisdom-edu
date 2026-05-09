@@ -8,6 +8,7 @@ import time
 from typing import List
 
 from tools.api_regression_admin import _run_admin_regression
+from tools.api_regression_cleanup import _cleanup_regression_entities
 from tools.api_regression_helpers import (
     DEFAULT_BASE_URL,
     build_auth_headers,
@@ -67,7 +68,7 @@ def api_regression(
             course_id=course_id,
             include_all=include_all,
         )
-        _run_teacher_regression(
+        teacher_temp_ids = _run_teacher_regression(
             checks=checks,
             base_url=base_url,
             teacher_headers=teacher_headers,
@@ -75,13 +76,24 @@ def api_regression(
             include_all=include_all,
             temp_suffix=temp_suffix,
         )
+    else:
+        teacher_temp_ids = {}
 
-    _run_admin_regression(
+    admin_temp_ids = _run_admin_regression(
         checks=checks,
         base_url=base_url,
         admin_headers=admin_headers,
         include_all=include_all,
         temp_suffix=temp_suffix,
+    )
+    _cleanup_regression_entities(
+        checks=checks,
+        base_url=base_url,
+        teacher_headers=teacher_headers,
+        admin_headers=admin_headers,
+        teacher_temp_ids=teacher_temp_ids,
+        admin_temp_ids=admin_temp_ids,
+        include_all=include_all,
     )
 
     _print_checks(checks, as_json=as_json)

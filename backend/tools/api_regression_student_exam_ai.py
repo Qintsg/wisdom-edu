@@ -153,7 +153,13 @@ def _run_student_ai_kt_checks(
                 "POST",
                 f"{base_url}/api/student/ai/node-intro",
                 headers=student_headers,
-                json={"point_name": "测试知识点", "course_name": "大数据技术与应用"},
+                json={
+                    "course_id": course_id,
+                    "point_id": point_id,
+                    "point_name": "测试知识点",
+                    "course_name": "大数据技术与应用",
+                },
+                timeout=90,
             ),
             expected=(200,),
         )
@@ -165,6 +171,7 @@ def _run_student_ai_kt_checks(
             f"{base_url}/api/student/ai/profile-analysis",
             headers=student_headers,
             json={"course_id": course_id},
+            timeout=90,
         ),
         expected=(200, 400, 404, 500),
     )
@@ -188,6 +195,7 @@ def _run_student_ai_kt_checks(
             f"{base_url}/api/student/ai/refresh-profile",
             headers=student_headers,
             json={"course_id": course_id},
+            timeout=90,
         ),
         expected=(200, 500),
     )
@@ -199,6 +207,7 @@ def _run_student_ai_kt_checks(
             f"{base_url}/api/student/ai/refresh-learning-path",
             headers=student_headers,
             json={"course_id": course_id},
+            timeout=90,
         ),
         expected=(200, 404, 500),
     )
@@ -215,6 +224,7 @@ def _run_student_ai_kt_checks(
                 "course_name": "大数据技术与应用",
                 "history": [],
             },
+            timeout=90,
         ),
         expected=(200,),
     )

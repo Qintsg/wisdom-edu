@@ -5,6 +5,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, cast
 
+from assessments.ability_survey_defaults import DEFAULT_ABILITY_QUESTIONS
+from assessments.habit_survey_defaults import DEFAULT_HABIT_QUESTIONS
 from assessments.models import Question, SurveyQuestion
 from common.neo4j_service import neo4j_service
 from courses.models import Class, ClassCourse, Course, Enrollment
@@ -353,7 +355,11 @@ def _seed_class_invitations(
 def _seed_survey_questions(data: dict[str, Any], courses: list[Course]) -> None:
     """写入问卷题目种子。"""
     survey_data = data.get("survey_questions", {})
-    for survey_question in survey_data.get("habit", []):
+    habit_questions = survey_data.get("habit", []) or list(DEFAULT_HABIT_QUESTIONS)
+    ability_questions = survey_data.get("ability", []) or list(DEFAULT_ABILITY_QUESTIONS)
+    use_course_scoped_ability_questions = bool(survey_data.get("ability", []))
+
+    for survey_question in habit_questions:
         SurveyQuestion.objects.update_or_create(
             text=survey_question["text"],
             survey_type="habit",
@@ -366,17 +372,17 @@ def _seed_survey_questions(data: dict[str, Any], courses: list[Course]) -> None:
             },
         )
 
-    for survey_question in survey_data.get("ability", []):
+    for survey_question in ability_questions:
         SurveyQuestion.objects.update_or_create(
             text=survey_question["text"],
             survey_type="ability",
-            course=courses[0] if courses else None,
+            course=courses[0] if use_course_scoped_ability_questions and courses else None,
             defaults={
                 "question_type": survey_question.get("question_type", "single_select"),
                 "options": survey_question.get("options", []),
-                "dimension": survey_question.get("score_dimension"),
+                "dimension": survey_question.get("score_dimension") or survey_question.get("dimension"),
                 "order": survey_question.get("order", 1),
-                "is_global": False,
+                "is_global": survey_question.get("is_global", not use_course_scoped_ability_questions),
             },
         )
 

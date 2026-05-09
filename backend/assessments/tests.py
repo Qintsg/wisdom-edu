@@ -4,9 +4,16 @@ from rest_framework.test import APITestCase
 
 from unittest.mock import patch
 
-from assessments.models import Assessment, AssessmentQuestion, AbilityScore, Question
+from assessments.models import (
+    Assessment,
+    AssessmentQuestion,
+    AbilityScore,
+    Question,
+    SurveyQuestion,
+)
 from courses.models import Course
 from knowledge.models import KnowledgeMastery, KnowledgePoint, KnowledgeRelation
+from tools.db_seed_support import _seed_survey_questions
 from users.models import User
 
 
@@ -80,6 +87,24 @@ class AbilityAssessmentScoringTests(APITestCase):
 
         ability_score = AbilityScore.objects.get(user=self.student, course=self.course)
         self.assertEqual(ability_score.scores, {})
+
+
+# 维护意图：验证基础测试数据会补齐内置能力与习惯问卷题
+# 边界说明：只调用问卷种子函数，不触碰课程资源和图谱导入链路。
+# 风险说明：内置问卷题结构变化时，需要同步导入映射字段。
+class SurveyQuestionSeedTests(APITestCase):
+    """验证基础测试数据会补齐内置能力与习惯问卷题。"""
+
+    # 维护意图：空 survey_questions 配置也应生成默认问卷题
+    # 边界说明：对应 testdata.json5 中 habit/ability 为空数组的默认场景。
+    # 风险说明：若改为完全按配置驱动，需要同步 db-check 和演示数据说明。
+    def test_seed_survey_questions_should_use_builtin_defaults_when_config_empty(self):
+        """空 survey_questions 配置也应生成默认问卷题。"""
+        _seed_survey_questions({"survey_questions": {"habit": [], "ability": []}}, [])
+
+        self.assertGreater(SurveyQuestion.objects.filter(survey_type="habit").count(), 0)
+        self.assertGreater(SurveyQuestion.objects.filter(survey_type="ability").count(), 0)
+        self.assertFalse(SurveyQuestion.objects.filter(survey_type="ability", is_global=False).exists())
 
 
 # 维护意图：Check prerequisite-aware mastery updates for knowledge assessments

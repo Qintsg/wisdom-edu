@@ -30,6 +30,22 @@ def sync_neo4j(course_id: int):
     return result
 
 
+# 维护意图：兼容 Neo4j 统计接口的新旧字段名
+# 边界说明：统计展示只在这里做别名解析，避免命令输出再次漂移。
+# 风险说明：调整统计契约时，需同步 neo4j-status 与 API 图谱响应验证。
+def _graph_stat_value(stats: dict[str, object], *keys: str) -> int:
+    """兼容 Neo4j 统计接口的新旧字段名。"""
+    for key in keys:
+        value = stats.get(key)
+        if value is None:
+            continue
+        try:
+            return int(value)
+        except (TypeError, ValueError):
+            return 0
+    return 0
+
+
 # 维护意图：查看Neo4j状态
 # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
 # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
@@ -42,8 +58,9 @@ def neo4j_status():
 
     for c in Course.objects.all().order_by('id'):
         stats = neo4j_service.get_graph_stats(int(c.pk))
-        print(f"- {c.name}: nodes={stats.get('nodes', 0)}, "
-              f"relations={stats.get('relations', 0)}")
+        node_count = _graph_stat_value(stats, 'node_count', 'nodes')
+        relation_count = _graph_stat_value(stats, 'relation_count', 'relations')
+        print(f"- {c.name}: nodes={node_count}, relations={relation_count}")
 
 
 # 维护意图：同步所有课程到Neo4j

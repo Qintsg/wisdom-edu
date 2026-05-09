@@ -14,6 +14,7 @@ from django.db.models import Q, QuerySet
 from django.http import HttpResponse
 
 from .admin_helpers import UTF8_BOM
+from .managers import normalize_optional_unique_contact
 from .models import User
 
 
@@ -26,6 +27,35 @@ USER_TEMPLATE_ROWS = [
     ["zhangsan", DEFAULT_IMPORT_PASSWORD, "student", "zhangsan@example.com", "张三", "2024001"],
     ["teacher1", DEFAULT_IMPORT_PASSWORD, "teacher", "teacher1@example.com", "李老师", "T001"],
 ]
+
+
+# 维护意图：把可选唯一联系方式中的空值统一落为数据库 NULL
+# 边界说明：只规整 email/phone 这类可选唯一字段，避免空字符串占用唯一索引。
+# 风险说明：调整用户模型唯一约束时，需同步管理端创建、更新和导入链路。
+def normalize_optional_unique_text(value: object) -> str | None:
+    """把可选唯一联系方式中的空值统一落为数据库 NULL。"""
+    return normalize_optional_unique_contact(value)
+
+
+# 维护意图：在写入前检查可选唯一字段冲突并返回用户可读错误
+# 边界说明：数据库约束仍是最终保护，这里负责把可预期冲突转成 400。
+# 风险说明：新增唯一字段时，应复用该检查以避免 IntegrityError 泄漏为 500。
+def validate_optional_unique_contacts(
+    *,
+    email: str | None,
+    phone: str | None,
+    excluded_user_id: int | None = None,
+) -> str | None:
+    """在写入前检查可选唯一字段冲突并返回用户可读错误。"""
+    for field, value, label in (("email", email, "邮箱"), ("phone", phone, "手机号")):
+        if not value:
+            continue
+        queryset = User.objects.filter(**{field: value})
+        if excluded_user_id is not None:
+            queryset = queryset.exclude(id=excluded_user_id)
+        if queryset.exists():
+            return f"{label}已存在"
+    return None
 
 
 # 维护意图：用户导入文件只依赖文件名和二进制读取能力
@@ -144,15 +174,21 @@ def create_admin_user(data: Mapping[str, object]) -> tuple[dict[str, object] | N
         return None, "无效的角色类型"
     if User.objects.filter(username=username).exists():
         return None, "用户名已存在"
+    email = normalize_optional_unique_text(data.get("email"))
+    phone = normalize_optional_unique_text(data.get("phone"))
+    contact_error = validate_optional_unique_contacts(email=email, phone=phone)
+    if contact_error:
+        return None, contact_error
 
-    new_user = User.objects.create_user(
+    new_user = User(
         username=username,
-        password=password,
         role=role,
-        email=data.get("email", ""),
-        phone=data.get("phone", ""),
+        email=email,
+        phone=phone,
         real_name=data.get("real_name", ""),
     )
+    new_user.set_password(str(password))
+    new_user.save()
     return {"user_id": new_user.id, "username": new_user.username, "role": new_user.role}, None
 
 
@@ -168,6 +204,24 @@ def update_admin_user(target_user: User, data: Mapping[str, object]) -> tuple[li
         field_value = data[field]
         if field == "role" and field_value not in VALID_USER_ROLES:
             return None, "无效的角色类型"
+        if field == "email":
+            field_value = normalize_optional_unique_text(field_value)
+            contact_error = validate_optional_unique_contacts(
+                email=field_value,
+                phone=None,
+                excluded_user_id=target_user.id,
+            )
+            if contact_error:
+                return None, contact_error
+        if field == "phone":
+            field_value = normalize_optional_unique_text(field_value)
+            contact_error = validate_optional_unique_contacts(
+                email=None,
+                phone=field_value,
+                excluded_user_id=target_user.id,
+            )
+            if contact_error:
+                return None, contact_error
         setattr(target_user, field, field_value)
         updated_fields.append(field)
 
@@ -325,11 +379,15 @@ def create_user_from_import_row(row: Mapping[str, str], index: int) -> tuple[boo
         return False, f"第{index}行：缺少用户名"
     if User.objects.filter(username=username).exists():
         return False, f"第{index}行：用户名 {username} 已存在"
+    email = normalize_optional_unique_text(first_row_value(row, "email", "邮箱"))
+    contact_error = validate_optional_unique_contacts(email=email, phone=None)
+    if contact_error:
+        return False, f"第{index}行：{contact_error}"
 
     user = User(
         username=username,
         role=role,
-        email=first_row_value(row, "email", "邮箱"),
+        email=email,
         real_name=first_row_value(row, "real_name", "姓名"),
         student_id=first_row_value(row, "student_id", "学号"),
     )

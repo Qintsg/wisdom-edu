@@ -3,12 +3,23 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta, timezone
 
 from tools.api_regression_helpers import TEMP_PREFIX, record_check
 from tools.testing import CheckResult, _request
 
 
 TempIdMap = dict[str, int | None]
+
+
+# 维护意图：为教师端考试创建回归生成稳定的有效时间窗
+# 边界说明：时间窗只服务测试数据，业务校验仍由接口本身负责。
+# 风险说明：调整考试时间校验时，需同步此处和教师端创建契约测试。
+def _exam_time_window() -> tuple[str, str]:
+    """为教师端考试创建回归生成稳定的有效时间窗。"""
+    start_time = datetime.now(timezone.utc) + timedelta(days=1)
+    end_time = start_time + timedelta(hours=1)
+    return start_time.isoformat(), end_time.isoformat()
 
 
 # 维护意图：教师端回归执行上下文
@@ -238,21 +249,28 @@ def _create_exam(context: TeacherRegressionContext) -> None:
     if not context.temp_ids["question_id"]:
         return
 
+    start_time, end_time = _exam_time_window()
+    exam_payload: dict[str, object] = {
+        "course_id": context.temp_ids["course_id"],
+        "title": f"{TEMP_PREFIX}考试{context.temp_suffix}",
+        "type": "chapter",
+        "question_ids": [context.temp_ids["question_id"]],
+        "duration": 30,
+        "total_score": 100,
+        "pass_score": 60,
+        "start_time": start_time,
+        "end_time": end_time,
+    }
+    if context.temp_ids["class_id"]:
+        exam_payload["class_id"] = context.temp_ids["class_id"]
+
     response, ok = record_check_request(
         context,
         "教师-创建考试",
         "POST",
         "/api/teacher/exams/create",
         expected=(200, 201),
-        json={
-            "course_id": context.temp_ids["course_id"],
-            "title": f"{TEMP_PREFIX}考试{context.temp_suffix}",
-            "exam_type": "chapter",
-            "questions": [context.temp_ids["question_id"]],
-            "duration": 30,
-            "total_score": 100,
-            "pass_score": 60,
-        },
+        json=exam_payload,
     )
     context.temp_ids["exam_id"] = _response_id(response, ok, "exam_id", "id")
     if not context.temp_ids["exam_id"]:

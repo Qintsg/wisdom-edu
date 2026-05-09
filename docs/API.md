@@ -1,5 +1,28 @@
 # API 变更记录
 
+## 2026-05-09
+
+### 后端数据导入与回归工具
+
+- `tools.py create-test-data` / `tools.py rebuild-demo-data` 在 `tools/testdata.json5` 的 `survey_questions.habit`、`survey_questions.ability` 为空数组时，会写入后端内置的习惯问卷与能力评测默认题，`tools.py db-check` 不再误报“问卷存在性 count=0”。
+- `tools.py neo4j-status` 现在读取 Neo4j 统计接口的 `node_count` / `relation_count` 字段，并保留 `nodes` / `relations` 旧字段兼容，命令行展示与学生端知识图谱接口统计保持一致。
+- `tools.py api-regression --all` 对学生端 AI / GraphRAG / RAG 相关接口使用更长请求超时，并在 `POST /api/student/ai/node-intro` 中显式传入 `course_id` 与 `point_id`；全量模式结束后会调用已有清理链路删除本轮创建的临时课程、班级、题目、作业、邀请码与用户。
+
+### 教师端作业创建
+
+- `POST /api/teacher/exams/create`
+  - `start_time`、`end_time`、`target_class` 仍为可选字段；省略时不会再被规范化为 `null` 后触发 DRF 字段校验错误。
+  - 继续兼容旧字段别名：`question_ids` 等价于 `questions`，`class_id` 等价于 `target_class`。
+
+### 管理员用户管理
+
+- `POST /api/admin/activation-codes/generate`
+  - 返回的 `codes[]` 现在包含 `id`，便于管理端和回归清理链路直接定位并删除未使用的临时激活码。
+
+- `POST /api/admin/users/create`
+  - `email`、`phone` 为空字符串或缺省时按可选字段处理并写入 `NULL`，不会占用唯一索引。
+  - 非空 `email` / `phone` 与已有用户冲突时返回 `400`，错误消息为 `邮箱已存在` 或 `手机号已存在`，不再泄漏数据库唯一约束异常为 `500`。
+
 ## 2026-05-02
 
 ### 知识追踪（KT）

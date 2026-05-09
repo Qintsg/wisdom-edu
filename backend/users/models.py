@@ -13,6 +13,8 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.utils import timezone
 
+from .managers import OptionalContactUserManager
+
 
 # 维护意图：用户模型 扩展Django默认用户，增加角色、头像、手机号等字段 角色类型：学生(student)、教师(teacher)、管理员(admin)
 # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
@@ -70,6 +72,7 @@ class User(AbstractUser):
         blank=True,
         null=True
     )
+    objects = OptionalContactUserManager()
     
     # 维护意图：Meta
     # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。

@@ -1,6 +1,6 @@
 """Regression tests for deterministic defense-demo data seeding."""
 
-from django.test import TestCase
+from django.test import SimpleTestCase, TestCase
 
 from assessments.models import AnswerHistory, AssessmentResult, AssessmentStatus, AbilityScore
 from common.defense_demo import (
@@ -15,7 +15,25 @@ from courses.models import Course
 from exams.models import ExamSubmission, FeedbackReport
 from knowledge.models import KnowledgeMastery, ProfileSummary
 from learning.models import LearningPath, NodeProgress, PathNode
+from tools.neo4j_tools import _graph_stat_value
 from users.models import HabitPreference, User, UserCourseContext
+
+
+# 维护意图：验证 Neo4j 状态命令能读取当前统计字段
+# 边界说明：不连接外部 Neo4j，只覆盖统计字段别名解析。
+# 风险说明：调整图谱统计响应字段时，需同步 neo4j-status 命令。
+class Neo4jStatusStatTests(SimpleTestCase):
+	"""验证 Neo4j 状态命令能读取当前统计字段。"""
+
+	# 维护意图：node_count/relation_count 是当前服务统计契约
+	# 边界说明：保留 nodes/relations 旧字段兼容，但优先读取新字段。
+	# 风险说明：若统计接口再次改名，需要同步 CLI 和 API 回归检查。
+	def test_graph_stat_value_should_accept_current_and_legacy_keys(self):
+		"""node_count/relation_count 是当前服务统计契约。"""
+		stats = {"node_count": 74, "relation_count": "125", "nodes": 0, "relations": 0}
+
+		self.assertEqual(_graph_stat_value(stats, "node_count", "nodes"), 74)
+		self.assertEqual(_graph_stat_value(stats, "relation_count", "relations"), 125)
 
 
 # 维护意图：Guard the completeness and idempotency of defense-demo preset data

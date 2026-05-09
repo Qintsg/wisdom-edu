@@ -3,13 +3,16 @@
 from unittest.mock import patch
 from typing import cast
 
+from django.test import SimpleTestCase
 from rest_framework.test import APIClient, APITestCase
 from rest_framework.response import Response
 
+from application.teacher.contracts import normalize_exam_payload
 from users.models import User
 from courses.models import Course
 from assessments.models import Question
 from exams.models import Exam, ExamQuestion, ExamSubmission, FeedbackReport
+from exams.serializers import ExamCreateSerializer
 from common.utils import build_answer_display, decorate_question_options
 from knowledge.models import KnowledgePoint
 
@@ -31,6 +34,32 @@ def _model_id(instance: Exam | Question | FeedbackReport | KnowledgePoint) -> in
     if model_id is None:
         raise AssertionError('测试对象缺少主键')
     return int(model_id)
+
+
+# 维护意图：教师端考试创建载荷兼容性回归测试
+# 边界说明：不触碰数据库，只验证请求规范化和序列化器字段语义。
+# 风险说明：调整教师端考试创建契约时，需同步回归脚本与 API 文档。
+class ExamCreatePayloadContractTests(SimpleTestCase):
+    """教师端考试创建载荷兼容性回归测试。"""
+
+    # 维护意图：缺省时间和班级字段不应被规整为 None 后触发 DRF 校验错误
+    # 边界说明：覆盖前端或脚本省略可选字段的兼容入口。
+    # 风险说明：若这些字段改为必填，需要同步此测试和公开接口契约。
+    def test_optional_schedule_and_class_fields_should_remain_absent(self):
+        """缺省时间和班级字段不应被规整为 None 后触发 DRF 校验错误。"""
+        raw_payload = {
+            'course_id': 1,
+            'title': '缺省时间考试',
+            'questions': [1],
+        }
+
+        normalized = normalize_exam_payload(raw_payload)
+        serializer = ExamCreateSerializer(data=raw_payload)
+
+        self.assertNotIn('start_time', normalized)
+        self.assertNotIn('end_time', normalized)
+        self.assertNotIn('target_class', normalized)
+        self.assertTrue(serializer.is_valid(), serializer.errors)
 
 
 # 维护意图：ExamPassLogicTests
@@ -203,6 +232,63 @@ class AnswerDisplayTests(APITestCase):
 
         self.assertEqual(build_answer_display('false', 'true_false', options), 'B. 错误')
         self.assertEqual(build_answer_display(True, 'true_false', options), 'A. 正确')
+
+
+# 维护意图：验证教师端考试创建兼容公开文档中的载荷字段
+# 边界说明：只覆盖请求契约归一，不依赖回归脚本或浏览器流程。
+# 风险说明：教师端作业字段调整时，需要同步 OpenAPI、前端与回归脚本。
+class TeacherExamCreateContractTests(APITestCase):
+    """验证教师端考试创建兼容公开文档中的载荷字段。"""
+
+    # 维护意图：构造教师、课程与可加入试卷的题目
+    # 边界说明：创建接口本身负责写入 Exam 与 ExamQuestion。
+    # 风险说明：权限或题库模型变化时，需要同步测试数据构造。
+    def setUp(self):
+        """构造教师、课程与可加入试卷的题目。"""
+        self.teacher = User.objects.create_user(
+            username='contract_teacher',
+            password='pass123456',
+            role='teacher',
+        )
+        self.course = Course.objects.create(
+            name='契约测试课程',
+            created_by=self.teacher,
+        )
+        self.question = Question.objects.create(
+            course=self.course,
+            content='契约测试题目',
+            question_type='single_choice',
+            options=[
+                {'label': 'A', 'content': '正确'},
+                {'label': 'B', 'content': '错误'},
+            ],
+            answer={'answer': 'A'},
+            score=10,
+            is_visible=True,
+            created_by=self.teacher,
+        )
+        _api_client(self).force_authenticate(user=self.teacher)
+
+    # 维护意图：question_ids/class_id 兼容字段不应被 None 可选字段阻断
+    # 边界说明：省略 start_time/end_time/class_id 是教师端快速创建作业的合法形态。
+    # 风险说明：若未来要求发布时间必填，应同步回归脚本和文档。
+    def test_create_exam_should_accept_documented_question_ids_without_optional_times(self):
+        """question_ids 兼容字段不应被 None 可选字段阻断。"""
+        response = cast(Response, _api_client(self).post(
+            '/api/teacher/exams/create',
+            {
+                'course_id': self.course.id,
+                'title': '契约测试作业',
+                'type': 'chapter',
+                'question_ids': [self.question.id],
+            },
+            format='json',
+        ))
+
+        self.assertEqual(response.status_code, 200)
+        exam = Exam.objects.get(id=response.data['data']['exam_id'])
+        self.assertEqual(exam.exam_type, 'chapter')
+        self.assertTrue(ExamQuestion.objects.filter(exam=exam, question=self.question).exists())
 
 
 # 维护意图：ExamAsyncFeedbackTests

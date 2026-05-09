@@ -62,7 +62,7 @@ def normalize_class_payload(data: Any) -> dict[str, Any]:
 def normalize_exam_payload(data: Any) -> dict[str, Any]:
     """Accept legacy and canonical teacher exam payload keys."""
     question_ids = first_present(data, "questions", "question_ids", default=[])
-    return {
+    payload = {
         "course_id": first_present(data, "course_id"),
         "title": first_present(data, "title", "exam_name"),
         "description": first_present(data, "description", default=""),
@@ -70,11 +70,15 @@ def normalize_exam_payload(data: Any) -> dict[str, Any]:
         "total_score": first_present(data, "total_score", default=100),
         "pass_score": first_present(data, "pass_score", default=60),
         "duration": first_present(data, "duration", default=60),
+        "exam_type": first_present(data, "exam_type", "type", default="chapter"),
+    }
+    optional_values = {
         "start_time": first_present(data, "start_time"),
         "end_time": first_present(data, "end_time"),
         "target_class": first_present(data, "target_class", "class_id"),
-        "exam_type": first_present(data, "exam_type", "type", default="chapter"),
     }
+    payload.update({key: value for key, value in optional_values.items() if value is not None})
+    return payload
 
 
 # 维护意图：Accept both `points` and `knowledge_point_ids` request fields

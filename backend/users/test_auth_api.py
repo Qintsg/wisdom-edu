@@ -145,6 +145,81 @@ class AuthAPITests(APITestCase):
         self.assertEqual(user.student_id, '20240001')
 
 
+# 维护意图：管理员用户管理 API 回归测试
+# 边界说明：测试管理端用户创建中的可选唯一字段语义。
+# 风险说明：调整 User.email/User.phone 唯一约束时，需同步这些断言。
+class AdminUserManagementAPITests(APITestCase):
+    """管理员用户管理 API 回归测试。"""
+
+    # 维护意图：创建管理员并登录管理端接口上下文
+    # 边界说明：调用契约在这里保持稳定，避免权限失败掩盖业务断言。
+    # 风险说明：调整管理员权限判断时，需同步认证构造方式。
+    def setUp(self):
+        """创建管理员并登录管理端接口上下文。"""
+        self.admin = User.objects.create_superuser(
+            username='admin_user_manager',
+            password='AdminPassword123',
+            role='admin',
+        )
+        self.client.force_authenticate(user=self.admin)
+
+    # 维护意图：缺省或空邮箱不应占用唯一索引导致后续创建 500
+    # 边界说明：通过真实 API 覆盖 request.data 到数据库写入链路。
+    # 风险说明：若前端改为强制邮箱，该测试仍保护后端兼容旧客户端。
+    def test_create_users_without_email_should_store_null_email(self):
+        """缺省或空邮箱不应占用唯一索引导致后续创建 500。"""
+        first_response = self.client.post(
+            '/api/admin/users/create',
+            {
+                'username': 'managed_no_email_1',
+                'password': 'TestPassword123',
+                'role': 'student',
+            },
+            format='json',
+        )
+        second_response = self.client.post(
+            '/api/admin/users/create',
+            {
+                'username': 'managed_no_email_2',
+                'password': 'TestPassword123',
+                'role': 'student',
+                'email': '',
+            },
+            format='json',
+        )
+
+        self.assertEqual(first_response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(second_response.status_code, status.HTTP_201_CREATED)
+        self.assertIsNone(User.objects.get(username='managed_no_email_1').email)
+        self.assertIsNone(User.objects.get(username='managed_no_email_2').email)
+
+    # 维护意图：重复非空邮箱应以 400 返回，而不是泄漏数据库 IntegrityError
+    # 边界说明：数据库唯一索引仍保留，接口层负责用户可读错误。
+    # 风险说明：调整错误响应字段时，需同步这里的消息断言。
+    def test_create_user_with_duplicate_email_should_return_400(self):
+        """重复非空邮箱应以 400 返回，而不是泄漏数据库 IntegrityError。"""
+        User.objects.create_user(
+            username='existing_email_user',
+            password='TestPassword123',
+            role='student',
+            email='dup@example.com',
+        )
+
+        response = self.client.post(
+            '/api/admin/users/create',
+            {
+                'username': 'managed_duplicate_email',
+                'password': 'TestPassword123',
+                'role': 'student',
+                'email': 'dup@example.com',
+            },
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data['msg'], '邮箱已存在')
+
+
 # 维护意图：激活码 API 测试
 # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
 # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
@@ -180,6 +255,7 @@ class ActivationCodeAPITests(APITestCase):
         })
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(len(response.data['data']['codes']), 3)
+        self.assertIn('id', response.data['data']['codes'][0])
 
     # 维护意图：测试学生无法生成激活码
     # 边界说明：测试步骤保持显式，便于定位回归阶段和失败上下文。

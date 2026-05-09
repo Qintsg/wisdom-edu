@@ -52,6 +52,7 @@ def generate_activation_code(request):
             remark=remark,
         )
         codes.append({
+            'id': code.id,
             'code': code.code,
             'code_type': code.code_type,
             'expires_at': code.expires_at.isoformat() if code.expires_at else None,

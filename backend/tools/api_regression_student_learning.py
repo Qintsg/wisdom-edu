@@ -116,6 +116,7 @@ def _run_student_knowledge_checks(
                 f"{base_url}/api/student/knowledge-points/{point_id}",
                 headers=student_headers,
                 params={"course_id": course_id},
+                timeout=90,
             ),
             expected=(200,),
         )
@@ -194,6 +195,7 @@ def _run_student_path_checks(
             f"{base_url}/api/student/learning-path/adjust",
             headers=student_headers,
             json={"course_id": course_id, "reason": "manual_refresh"},
+            timeout=90,
         ),
         expected=(200, 404),
     )
@@ -242,6 +244,7 @@ def _run_student_path_checks(
             "GET",
             f"{base_url}/api/student/path-nodes/{node_id}/ai-resources",
             headers=student_headers,
+            timeout=90,
         ),
         expected=(200,),
     )
@@ -253,6 +256,7 @@ def _run_student_path_checks(
             f"{base_url}/api/student/path-nodes/{node_id}/exams",
             headers=student_headers,
             params={"course_id": course_id},
+            timeout=90,
         ),
         expected=(200,),
     )
