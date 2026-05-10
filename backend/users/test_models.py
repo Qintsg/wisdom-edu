@@ -8,6 +8,15 @@ from courses.models import Class, Course
 from .models import ActivationCode, ClassInvitation, User
 
 
+# 维护意图：统一校验十六进制邀请码字符集，避免纯数字随机值误判大小写
+# 边界说明：只用于模型测试，不改变生成算法。
+# 风险说明：若生成字符集扩展为非十六进制，需要同步该断言。
+def _assert_upper_hex_code(test_case: TestCase, code: str, expected_length: int) -> None:
+    """统一校验十六进制邀请码字符集，避免纯数字随机值误判大小写。"""
+    test_case.assertEqual(len(code), expected_length)
+    test_case.assertTrue(all(char in '0123456789ABCDEF' for char in code))
+
+
 # 维护意图：用户模型测试
 # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
 # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
@@ -84,8 +93,7 @@ class ActivationCodeModelTests(TestCase):
     def test_generate_code(self):
         """测试生成激活码。"""
         code = ActivationCode.generate_code()
-        self.assertEqual(len(code), 8)
-        self.assertTrue(code.isupper())
+        _assert_upper_hex_code(self, code, 8)
 
     # 维护意图：测试创建激活码
     # 边界说明：测试步骤保持显式，便于定位回归阶段和失败上下文。
@@ -167,8 +175,7 @@ class ClassInvitationModelTests(TestCase):
     def test_generate_code(self):
         """测试生成邀请码。"""
         code = ClassInvitation.generate_code()
-        self.assertEqual(len(code), 6)
-        self.assertTrue(code.isupper())
+        _assert_upper_hex_code(self, code, 6)
 
     # 维护意图：测试创建邀请码
     # 边界说明：测试步骤保持显式，便于定位回归阶段和失败上下文。

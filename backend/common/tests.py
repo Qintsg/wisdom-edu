@@ -55,6 +55,7 @@ class DefenseDemoPresetTests(TestCase):
 			is_public=True,
 		)
 		self.summary = ensure_defense_demo_environment(self.course.name)
+		self.course.refresh_from_db()
 		self.warmup_student = User.objects.get(username=DEFENSE_DEMO_WARMUP_STUDENT_USERNAME)
 		self.primary_student = User.objects.get(username=DEFENSE_DEMO_PRIMARY_STUDENT_USERNAME)
 

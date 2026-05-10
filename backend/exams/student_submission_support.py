@@ -281,6 +281,7 @@ def refresh_exam_kt_analysis(
                 "predictions": kt_predictions,
                 "confidence": kt_result.get("confidence", 0),
                 "model_type": kt_result.get("model_type", "unknown"),
+                "answer_count": kt_result.get("answer_count", len(answer_history_records)),
             }
             logger.info(
                 build_log_message(

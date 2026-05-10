@@ -2,13 +2,65 @@
 
 from unittest.mock import patch
 
+from django.test import TestCase
 from rest_framework.test import APITestCase
 
 from assessments.models import Question
 from courses.models import Course
-from knowledge.models import KnowledgeMastery, KnowledgePoint, ProfileSummary
+from knowledge.models import KnowledgeMastery, KnowledgePoint, KnowledgeRelation, ProfileSummary
 from learning.models import LearningPath, NodeProgress, PathNode
+from learning.path_rules import apply_prerequisite_caps
 from users.models import User
+
+
+# 维护意图：验证前置掌握度约束覆盖 KT 预测中的非发布知识点
+# 边界说明：只调用规则函数，不穿透学习路径服务。
+# 风险说明：若知识点发布策略调整，需要同步这里的边界样例。
+class PrerequisiteCapTests(TestCase):
+    """验证前置掌握度约束覆盖 KT 预测中的非发布知识点。"""
+
+    # 维护意图：非发布后继点仍应受已知前置点掌握度上限约束
+    # 边界说明：构造最小课程和先修关系，避免依赖 Neo4j。
+    # 风险说明：调整 PostgreSQL 关系模型时，需要同步该规则测试。
+    def test_caps_should_apply_to_unpublished_predicted_point(self):
+        """非发布后继点仍应受已知前置点掌握度上限约束。"""
+        teacher = User.objects.create_user(
+            username="cap_teacher",
+            password="Test123456",
+            role="teacher",
+        )
+        course = Course.objects.create(
+            name="前置约束课程",
+            created_by=teacher,
+        )
+        prerequisite = KnowledgePoint.objects.create(
+            course=course,
+            name="前置知识点",
+            order=1,
+            is_published=True,
+        )
+        predicted_only = KnowledgePoint.objects.create(
+            course=course,
+            name="预测后继知识点",
+            order=2,
+            is_published=False,
+        )
+        KnowledgeRelation.objects.create(
+            course=course,
+            pre_point=prerequisite,
+            post_point=predicted_only,
+            relation_type="prerequisite",
+        )
+
+        adjusted = apply_prerequisite_caps(
+            {
+                prerequisite.id: 0.4,
+                predicted_only.id: 0.9,
+            },
+            course.id,
+        )
+
+        self.assertEqual(adjusted[predicted_only.id], 0.4)
 
 
 # 维护意图：Exercise resource-completion routes exposed on learning path nodes
@@ -141,7 +193,7 @@ class StageTestScoringTests(APITestCase):
     # 维护意图：Stage-test payloads should use percentage scoring and include per-question detail
     # 边界说明：测试步骤保持显式，便于定位回归阶段和失败上下文。
     # 风险说明：调整测试断言时，需保留失败上下文和可复现实例。
-    @patch("ai_services.services.llm_service.generate_feedback_report")
+    @patch("ai_services.services.llm_service.LLMService.generate_feedback_report")
     @patch("ai_services.services.kt_service.kt_service.predict_mastery")
     def test_stage_test_should_return_100_point_scale_and_question_details(
         self, mock_predict_mastery, mock_feedback_report
@@ -211,13 +263,13 @@ class LearningPathRefreshTests(APITestCase):
             created_by=self.teacher,
         )
         self.point_done = KnowledgePoint.objects.create(
-            course=self.course, name="已完成知识点", order=1
+            course=self.course, name="已完成知识点", order=1, is_published=True
         )
         self.point_active = KnowledgePoint.objects.create(
-            course=self.course, name="当前知识点", order=2
+            course=self.course, name="当前知识点", order=2, is_published=True
         )
         self.point_future = KnowledgePoint.objects.create(
-            course=self.course, name="未来知识点", order=3
+            course=self.course, name="未来知识点", order=3, is_published=True
         )
         self.path = LearningPath.objects.create(
             user=self.student,
@@ -303,7 +355,7 @@ class LearningPathRefreshTests(APITestCase):
 
         self.assertEqual(response.status_code, 200)
         payload = response.data["data"]
-        self.assertEqual(payload["change_summary"]["preserved_context"], 1)
+        self.assertEqual(payload["change_summary"]["preserved_context"], 2)
         self.assertEqual(payload["change_summary"]["removed_count"], 1)
         self.assertTrue(any(node["title"] == "当前节点" for node in payload["nodes"]))
 
@@ -315,6 +367,51 @@ class LearningPathRefreshTests(APITestCase):
         self, mock_predict_mastery
     ):
         """Low-mastery completed points should be reinserted as remedial work."""
+        self.point_future.is_published = False
+        self.point_future.save(update_fields=["is_published"])
+        KnowledgeMastery.objects.filter(
+            user=self.student,
+            course=self.course,
+            knowledge_point=self.point_done,
+        ).update(mastery_rate=0.45)
+        mock_predict_mastery.return_value = {
+            "predictions": {
+                self.point_done.id: 0.45,
+                self.point_active.id: 0.72,
+            },
+            "confidence": 0.8,
+            "model_type": "mefkt",
+            "answer_count": 3,
+        }
+
+        response = self.client.post(
+            "/api/student/ai/refresh-learning-path",
+            {"course_id": self.course.id},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.data["data"]
+        remedial_nodes = [
+            node
+            for node in payload["nodes"]
+            if node["knowledge_point_id"] == self.point_done.id
+            and node.get("is_inserted")
+        ]
+        self.assertTrue(remedial_nodes)
+        self.assertIn("补强", remedial_nodes[0]["title"])
+
+    # 维护意图：节点数达到上限时仍应优先保留低掌握完成点的补强机会
+    # 边界说明：只压低学习路径节点上限，不修改全局配置文件。
+    # 风险说明：若路径上限策略变为硬限制，需要同步前端提示和本测试预期。
+    @patch("ai_services.services.path_generation_nodes.AppConfig.max_path_nodes", return_value=2)
+    @patch("ai_services.services.kt_service.kt_service.predict_mastery")
+    def test_refresh_learning_path_should_reinsert_remedial_point_when_node_cap_reached(
+        self,
+        mock_predict_mastery,
+        _mock_max_path_nodes,
+    ):
+        """节点数达到上限时仍应优先保留低掌握完成点的补强机会。"""
         self.point_future.is_published = False
         self.point_future.save(update_fields=["is_published"])
         KnowledgeMastery.objects.filter(

@@ -54,6 +54,8 @@ def apply_prerequisite_caps(mastery_dict: dict[int, float], course_id: int, buff
     prereq_map, _ = build_prerequisite_maps(course_id)
 
     ordered_ids = [point.id for point in points]
+    ordered_id_set = set(ordered_ids)
+    ordered_ids.extend(point_id for point_id in adjusted if point_id not in ordered_id_set)
     for point_id in ordered_ids:
         prereqs = [pre_id for pre_id in prereq_map.get(point_id, []) if pre_id in adjusted]
         if not prereqs or point_id not in adjusted:

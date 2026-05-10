@@ -26,7 +26,7 @@ from .student_profile_support import (
 )
 
 
-# 维护意图：获取学习者画像 GET /api/profile
+# 维护意图：获取学习者画像 GET /api/student/profile
 # 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
 # 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 @api_view(['GET'])
@@ -34,7 +34,7 @@ from .student_profile_support import (
 def get_profile(request: Request) -> Response:
     """
     获取学习者画像
-    GET /api/profile
+    GET /api/student/profile
     """
     return success_response(
         data=build_student_profile_payload(
@@ -44,7 +44,7 @@ def get_profile(request: Request) -> Response:
     )
 
 
-# 维护意图：更新学习习惯偏好 PUT /api/profile/habit
+# 维护意图：更新学习习惯偏好 PUT /api/student/profile/habit
 # 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
 # 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 @api_view(['PUT'])
@@ -52,7 +52,7 @@ def get_profile(request: Request) -> Response:
 def update_habit_preference(request: Request) -> Response:
     """
     更新学习习惯偏好
-    PUT /api/profile/habit
+    PUT /api/student/profile/habit
     """
     habit_preference, _ = HabitPreference.objects.get_or_create(user=request.user)
     serializer = HabitPreferenceSerializer(habit_preference, data=request.data, partial=True)
@@ -93,7 +93,7 @@ def update_student_profile(request: Request) -> Response:
     return success_response(data=payload, msg='画像刷新成功（已调用AI分析）')
 
 
-# 维护意图：获取画像历史（趋势对比） GET /api/profile/history 查询参数： - course_id: 课程ID（必填） - limit: 返回记录数（默认10）
+# 维护意图：获取画像历史（趋势对比） GET /api/student/profile/history 查询参数： - course_id: 课程ID（必填） - limit: 返回记录数（默认10）
 # 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
 # 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 @api_view(['GET'])
@@ -101,7 +101,7 @@ def update_student_profile(request: Request) -> Response:
 def get_profile_history(request: Request) -> Response:
     """
     获取画像历史（趋势对比）
-    GET /api/profile/history
+    GET /api/student/profile/history
 
     查询参数：
     - course_id: 课程ID（必填）

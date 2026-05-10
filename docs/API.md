@@ -23,6 +23,16 @@
   - `email`、`phone` 为空字符串或缺省时按可选字段处理并写入 `NULL`，不会占用唯一索引。
   - 非空 `email` / `phone` 与已有用户冲突时返回 `400`，错误消息为 `邮箱已存在` 或 `手机号已存在`，不再泄漏数据库唯一约束异常为 `500`。
 
+### 学生端画像、图谱与学习路径
+
+- 学生画像接口只保留 `/api/student/profile*` 路径；旧 `/api/profile*` 路径不再作为兼容入口，前端与测试应统一使用学生端命名空间。
+- `GET /api/student/knowledge-map`
+  - Neo4j 可用但课程图谱为空时，会与 Neo4j 不可用场景一致回退到 PostgreSQL 图谱数据，并在 `stats.data_source` 中返回 `postgresql`。
+- `POST /api/student/exams/{exam_id}/submit`
+  - 反馈报告中的 `overview.kt_analysis.answer_count` 在 KT 服务未显式返回该字段时，会回退为本次提交写入的有效答题历史数量。
+- `POST /api/student/ai/refresh-learning-path`
+  - 当已完成节点的最新掌握度低于补强阈值时，即使当前保留节点数已达到学习路径节点上限，也会重新插入该知识点的补强学习节点，避免“完成过但重新掉到薄弱”的知识点被刷新策略跳过。
+
 ## 2026-05-02
 
 ### 知识追踪（KT）

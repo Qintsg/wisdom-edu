@@ -311,7 +311,11 @@ def build_generation_plan(
 ) -> PathGenerationPlan:
     """根据保留节点和掌握度生成新一轮路径节点计划。"""
     max_order = max((node.order_index for node in preserved_nodes), default=-1)
-    remaining_quota = max(0, AppConfig.max_path_nodes() - len(preserved_nodes))
+    remaining_quota = max(
+        len(remedial_point_ids),
+        AppConfig.max_path_nodes() - len(preserved_nodes),
+        0,
+    )
     completed_nodes, completed_points, next_order = build_completed_nodes(
         learning_path=learning_path,
         auto_completed_points=auto_completed_points,

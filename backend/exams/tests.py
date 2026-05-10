@@ -151,7 +151,7 @@ class ExamPassLogicTests(APITestCase):
         ExamSubmission.objects.create(
             exam=exam,
             user=self.student,
-            answers={str(_model_id(self.question)): 'A'},
+            answers={str(_model_id(self.question)): 'B'},
             score=10,
             is_passed=True,  # 模拟历史错误数据
         )
@@ -359,7 +359,6 @@ class ExamAsyncFeedbackTests(APITestCase):
             'predictions': {_model_id(self.point): 0.66},
             'confidence': 0.72,
             'model_type': 'builtin',
-            'answer_count': 1,
         }
 
         response = cast(Response, _api_client(self).post(

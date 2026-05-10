@@ -38,7 +38,7 @@ class HabitPreferenceTests(APITestCase):
         """测试更新学习偏好。"""
         self.client.force_authenticate(user=self.user)
 
-        response = self.client.put('/api/profile/habit', {
+        response = self.client.put('/api/student/profile/habit', {
             'preferred_resource': 'video',
             'preferred_study_time': 'evening'
         })
@@ -55,11 +55,27 @@ class HabitPreferenceTests(APITestCase):
         """测试获取画像。"""
         self.client.force_authenticate(user=self.user)
 
-        response = self.client.get('/api/profile')
+        response = self.client.get('/api/student/profile')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn('knowledge_mastery', response.data['data'])
         self.assertIn('ability_scores', response.data['data'])
         self.assertIn('habit_preferences', response.data['data'])
+
+    # 维护意图：旧画像 API 路径不应继续暴露，避免测试和前端回退到历史入口
+    # 边界说明：只验证路由层行为，不复用新接口逻辑。
+    # 风险说明：若未来需要重新提供兼容跳转，应同步公开文档和前端 API 层。
+    def test_legacy_profile_routes_should_not_be_exposed(self):
+        """旧画像 API 路径不应继续暴露，避免测试和前端回退到历史入口。"""
+        self.client.force_authenticate(user=self.user)
+
+        profile_response = self.client.get('/api/profile')
+        habit_response = self.client.put('/api/profile/habit', {
+            'preferred_resource': 'video',
+            'preferred_study_time': 'evening',
+        })
+
+        self.assertEqual(profile_response.status_code, status.HTTP_404_NOT_FOUND)
+        self.assertEqual(habit_response.status_code, status.HTTP_404_NOT_FOUND)
 
 
 # 维护意图：学习者画像服务缓存回归测试
