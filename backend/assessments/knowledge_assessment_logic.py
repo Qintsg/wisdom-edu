@@ -8,12 +8,19 @@ from __future__ import annotations
 from dataclasses import dataclass
 import logging
 
+from ai_services.services.kt_prediction_support import (
+    answered_point_ids,
+    is_mefkt_prediction,
+    normalize_prediction_map,
+)
 from common.utils import decorate_question_options, serialize_answer_payload
 from knowledge.models import KnowledgePoint
 from learning.path_rules import apply_prerequisite_caps
 from users.models import User
 
 from .assessment_helpers import (
+    INITIAL_MASTERY_MAX,
+    INITIAL_MASTERY_PRIOR_MEAN,
     build_answer_display_value,
     calculate_initial_mastery_baseline,
     clean_text,
@@ -268,6 +275,10 @@ def blend_mastery_with_kt(
     answer_history_records: list[dict[str, int]],
 ) -> dict[int, float]:
     """结合 KT 预测结果对知识测评基线掌握度做保守融合。"""
+    course_point_ids = load_initial_course_point_ids(
+        course_id=int(course_id),
+        measured_point_ids=set(mastery_map),
+    )
     try:
         from ai_services.services import kt_service
 
@@ -275,29 +286,59 @@ def blend_mastery_with_kt(
             user_id=user_id,
             course_id=course_id,
             answer_history=answer_history_records,
+            knowledge_points=course_point_ids,
         )
     except Exception as exc:
         logger.warning("KT预测或更新失败: %s", exc)
         return apply_prerequisite_caps(mastery_map, int(course_id))
 
-    kt_predictions = kt_result.get('predictions') or {}
+    kt_predictions = normalize_prediction_map(kt_result.get('predictions'))
+    if not is_mefkt_prediction(kt_result):
+        evidence_points = answered_point_ids(answer_history_records)
+        kt_predictions = {
+            point_id: rate
+            for point_id, rate in kt_predictions.items()
+            if point_id in evidence_points
+        }
     if not kt_predictions:
         return apply_prerequisite_caps(mastery_map, int(course_id))
 
     blended_mastery_map = dict(mastery_map)
-    for knowledge_point_id, rate in kt_predictions.items():
-        try:
-            normalized_point_id = int(knowledge_point_id)
-            rate_f = float(rate)
-        except (TypeError, ValueError):
+    uses_mefkt = is_mefkt_prediction(kt_result)
+    for normalized_point_id, rate_f in kt_predictions.items():
+        normalized_rate = max(0.0, min(INITIAL_MASTERY_MAX, float(rate_f)))
+        if normalized_point_id not in mastery_map:
+            if uses_mefkt and normalized_point_id in course_point_ids:
+                blended_mastery_map[normalized_point_id] = round(normalized_rate, 4)
             continue
         point_total = max(int(point_stats.get(normalized_point_id, {}).get('total', 0)), 0)
-        baseline = float(mastery_map.get(normalized_point_id, 0.25))
+        baseline = float(mastery_map.get(normalized_point_id, INITIAL_MASTERY_PRIOR_MEAN))
         kt_weight = min(0.35, 0.1 + point_total * 0.08)
-        blended = baseline * (1 - kt_weight) + rate_f * kt_weight
+        blended = baseline * (1 - kt_weight) + normalized_rate * kt_weight
         blended = min(blended, baseline + 0.12)
-        blended_mastery_map[normalized_point_id] = round(max(0.0, min(0.9, blended)), 4)
+        blended_mastery_map[normalized_point_id] = round(max(0.0, min(INITIAL_MASTERY_MAX, blended)), 4)
     return apply_prerequisite_caps(blended_mastery_map, int(course_id))
+
+
+# 维护意图：为初测 KT/MEFKT 融合加载课程预测目标。
+# 边界说明：真实 MEFKT 可推断未测已发布点；已作答点即使未发布也必须保留。
+# 风险说明：读取失败时仅返回已测点，避免提交链路因图谱数据异常中断。
+def load_initial_course_point_ids(
+    *,
+    course_id: int,
+    measured_point_ids: set[int],
+) -> list[int]:
+    """为初测 KT/MEFKT 融合加载课程预测目标。"""
+    try:
+        published_point_ids = [
+            int(point_id)
+            for point_id in KnowledgePoint.objects.filter(course_id=course_id, is_published=True)
+            .order_by('order', 'id')
+            .values_list('id', flat=True)
+        ]
+    except (TypeError, ValueError):
+        published_point_ids = []
+    return list(dict.fromkeys(published_point_ids + sorted(measured_point_ids)))
 
 
 # 维护意图：将反馈报告模型规整为前端消费的响应结构
@@ -356,6 +397,7 @@ __all__ = [
     'build_answer_history_models',
     'evaluate_knowledge_answers',
     'blend_mastery_with_kt',
+    'load_initial_course_point_ids',
     'build_feedback_report_payload',
     'build_empty_knowledge_result',
 ]

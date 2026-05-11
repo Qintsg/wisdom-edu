@@ -5,6 +5,12 @@ from __future__ import annotations
 import logging
 from typing import TYPE_CHECKING
 
+from assessments.assessment_helpers import INITIAL_MASTERY_PRIOR_MEAN
+from ai_services.services.kt_prediction_support import (
+    answered_point_ids,
+    is_mefkt_prediction,
+    normalize_prediction_map,
+)
 from ai_services.services.path_generation_nodes import (
     PathGenerationPlan,
     attach_resources_to_created_nodes,
@@ -47,7 +53,6 @@ def sync_course_mastery(
 ) -> dict[int, float]:
     """同步课程全量掌握度，保证路径规划覆盖全部知识点。"""
     from assessments.models import AnswerHistory
-    from ai_services.services import kt_service
     from knowledge.models import KnowledgeMastery
     from learning.path_rules import apply_prerequisite_caps
 
@@ -78,7 +83,7 @@ def sync_course_mastery(
     }
     for point_id in course_point_ids:
         if point_id not in mastery_dict:
-            mastery_dict[point_id] = existing_mastery.get(point_id, 0.25)
+            mastery_dict[point_id] = existing_mastery.get(point_id, INITIAL_MASTERY_PRIOR_MEAN)
 
     mastery_dict = apply_prerequisite_caps(
         mastery_dict,
@@ -115,16 +120,20 @@ def predict_course_mastery(
             answer_history=kt_history,
             knowledge_points=course_point_ids,
         )
-        raw_predictions = kt_result.get("predictions") or {}
-        mastery_dict = {
-            int(point_id): float(value)
-            for point_id, value in raw_predictions.items()
-        }
+        mastery_dict = normalize_prediction_map(kt_result.get("predictions"))
+        if not is_mefkt_prediction(kt_result):
+            evidence_points = answered_point_ids(kt_history)
+            mastery_dict = {
+                point_id: value
+                for point_id, value in mastery_dict.items()
+                if point_id in evidence_points
+            }
         logger.info(
-            "KT服务调用成功(路径生成): 用户=%s, 答题历史=%d条, 预测结果=%d条",
+            "KT服务调用成功(路径生成): 用户=%s, 答题历史=%d条, 预测结果=%d条, model_type=%s",
             user.id,
             len(kt_history),
             len(mastery_dict),
+            kt_result.get("model_type"),
         )
         return mastery_dict
     except Exception as kt_error:

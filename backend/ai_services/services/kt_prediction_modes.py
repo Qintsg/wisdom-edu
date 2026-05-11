@@ -44,7 +44,7 @@ class KTPredictionModeMixin(KTPredictionStatsMixin):
             )
             default_result = self._get_default_prediction(resolved_points)
             if resolved_points and not knowledge_points:
-                default_result["analysis"] = "无答题记录，返回课程知识点默认预测值"
+                default_result["analysis"] = "无答题记录，返回课程知识点未观测掌握度基线"
             elif not default_result.get("predictions"):
                 default_result["analysis"] = "无答题记录，且当前课程暂无可预测知识点"
             return self._attach_prediction_metadata(default_result, answer_history)

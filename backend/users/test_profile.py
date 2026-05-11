@@ -8,6 +8,7 @@ from django.test import TestCase
 from rest_framework import status
 from rest_framework.test import APITestCase
 
+from assessments.models import AnswerHistory, Question
 from courses.models import Course
 from knowledge.models import KnowledgeMastery, KnowledgePoint, ProfileSummary
 from .models import HabitPreference, User
@@ -109,6 +110,12 @@ class LearnerProfileServiceCacheTests(TestCase):
             description='用于验证缓存画像的测试知识点。',
             is_published=True,
         )
+        self.inferred_point = KnowledgePoint.objects.create(
+            course=self.course,
+            name='MapReduce 推断点',
+            description='用于验证 MEFKT 未测推断。',
+            is_published=True,
+        )
         KnowledgeMastery.objects.create(
             user=self.student,
             course=self.course,
@@ -150,3 +157,125 @@ class LearnerProfileServiceCacheTests(TestCase):
         self.assertEqual(result['weakness'], 'Hadoop 基础')
         self.assertEqual(result['suggestion'], '建议先完成路径首节点学习。')
         self.assertEqual(result['strength'], ['Hadoop 基础'])
+
+    # 维护意图：强制刷新画像时允许真实 MEFKT 写回未测知识点推断。
+    # 边界说明：通过 force_refresh 绕过缓存，避免测试命中已有画像摘要。
+    # 风险说明：新增真实 MEFKT model_type 时需同步白名单。
+    @patch('ai_services.services.llm_service')
+    @patch('ai_services.services.kt_service')
+    def test_generate_profile_for_course_should_keep_mefkt_inferred_points(
+        self,
+        mock_kt_service,
+        mock_llm_service,
+    ):
+        """强制刷新画像时允许真实 MEFKT 写回未测知识点推断。"""
+        question = Question.objects.create(
+            course=self.course,
+            content='画像刷新证据题',
+            question_type='single_choice',
+            options=[{'value': 'A', 'label': 'A'}],
+            answer={'answer': 'A'},
+            score=1,
+            is_visible=True,
+            created_by=self.teacher,
+        )
+        question.knowledge_points.add(self.point)
+        AnswerHistory.objects.create(
+            user=self.student,
+            course=self.course,
+            question=question,
+            knowledge_point=self.point,
+            student_answer={'answer': 'A'},
+            correct_answer={'answer': 'A'},
+            is_correct=True,
+            score=1,
+            source='initial',
+        )
+        mock_kt_service.predict_mastery.return_value = {
+            'predictions': {
+                self.point.id: 0.82,
+                self.inferred_point.id: 0.73,
+            },
+            'model_type': 'mefkt_question_online',
+            'confidence': 0.8,
+        }
+        mock_llm_service.analyze_profile.return_value = {
+            'summary': '画像摘要',
+            'weakness': [],
+            'suggestion': '继续学习',
+            'strength': ['Hadoop 基础'],
+        }
+
+        result = self.service.generate_profile_for_course(self.course.id, force_refresh=True)
+
+        self.assertTrue(result['success'])
+        inferred_mastery = KnowledgeMastery.objects.get(
+            user=self.student,
+            course=self.course,
+            knowledge_point=self.inferred_point,
+        )
+        self.assertAlmostEqual(float(inferred_mastery.mastery_rate), 0.73, places=3)
+
+    # 维护意图：画像刷新中的统计回退不能污染未测知识点。
+    # 边界说明：未测点没有 KnowledgeMastery 时应继续不存在，而不是被默认值创建。
+    # 风险说明：如果回退算法获得跨点推断能力，需要重新定义通过条件。
+    @patch('ai_services.services.llm_service')
+    @patch('ai_services.services.kt_service')
+    def test_generate_profile_for_course_should_ignore_builtin_unmeasured_points(
+        self,
+        mock_kt_service,
+        mock_llm_service,
+    ):
+        """画像刷新中的统计回退不能污染未测知识点。"""
+        question = Question.objects.create(
+            course=self.course,
+            content='画像刷新回退题',
+            question_type='single_choice',
+            options=[{'value': 'A', 'label': 'A'}],
+            answer={'answer': 'A'},
+            score=1,
+            is_visible=True,
+            created_by=self.teacher,
+        )
+        question.knowledge_points.add(self.point)
+        AnswerHistory.objects.create(
+            user=self.student,
+            course=self.course,
+            question=question,
+            knowledge_point=self.point,
+            student_answer={'answer': 'A'},
+            correct_answer={'answer': 'A'},
+            is_correct=True,
+            score=1,
+            source='initial',
+        )
+        KnowledgeMastery.objects.filter(
+            user=self.student,
+            course=self.course,
+            knowledge_point=self.inferred_point,
+        ).delete()
+        mock_kt_service.predict_mastery.return_value = {
+            'predictions': {
+                self.point.id: 0.82,
+                self.inferred_point.id: 0.4,
+            },
+            'model_type': 'builtin',
+            'confidence': 0.3,
+        }
+        mock_llm_service.analyze_profile.return_value = {
+            'summary': '画像摘要',
+            'weakness': [],
+            'suggestion': '继续学习',
+            'strength': ['Hadoop 基础'],
+        }
+
+        result = self.service.generate_profile_for_course(self.course.id, force_refresh=True)
+
+        self.assertTrue(result['success'])
+        self.assertFalse(
+            KnowledgeMastery.objects.filter(
+                user=self.student,
+                course=self.course,
+                knowledge_point=self.inferred_point,
+            ).exists()
+        )

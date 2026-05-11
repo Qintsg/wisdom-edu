@@ -8,6 +8,11 @@ from typing import Any, Dict, List, Protocol
 from django.db import DatabaseError
 
 from assessments.models import AnswerHistory, ProfileHistory
+from ai_services.services.kt_prediction_support import (
+    answered_point_ids,
+    is_mefkt_prediction,
+    normalize_prediction_map,
+)
 from common.logging_utils import build_log_message
 from knowledge.models import KnowledgeMastery, ProfileSummary
 from .models import User
@@ -223,22 +228,44 @@ def refresh_mastery_with_kt(user: User, course_id: int) -> Dict[str, Any]:
     kt_result = kt_service.predict_mastery(
         user_id=user.id,
         course_id=course_id,
-        answer_history=answer_history
+        answer_history=answer_history,
+        knowledge_points=load_course_point_ids(course_id),
     )
-    kt_predictions = kt_result.get('predictions') or {}
-    for kp_id_str, rate in kt_predictions.items():
-        try:
-            rate_float = float(rate)
-        except (TypeError, ValueError):
-            continue
+    kt_predictions = normalize_prediction_map(kt_result.get('predictions'))
+    if not is_mefkt_prediction(kt_result):
+        evidence_points = answered_point_ids(answer_history)
+        kt_predictions = {
+            point_id: rate
+            for point_id, rate in kt_predictions.items()
+            if point_id in evidence_points
+        }
+    for point_id, rate_float in kt_predictions.items():
         mastery_record, mastery_created = KnowledgeMastery.objects.update_or_create(
             user=user,
             course_id=course_id,
-            knowledge_point_id=kp_id_str,
+            knowledge_point_id=point_id,
             defaults={'mastery_rate': rate_float}
         )
         logger.debug("KT画像掌握度写入: mastery=%s created=%s", mastery_record.id, mastery_created)
     return kt_predictions
+
+
+# 维护意图：读取课程知识点作为 MEFKT 推断目标。
+# 边界说明：画像刷新应允许真实 MEFKT 基于课程题图推断未测点。
+# 风险说明：读取失败时返回空列表，让 KT 服务只处理答题历史覆盖点。
+def load_course_point_ids(course_id: int) -> list[int]:
+    """读取课程知识点作为 MEFKT 推断目标。"""
+    try:
+        from knowledge.models import KnowledgePoint
+
+        return [
+            int(point_id)
+            for point_id in KnowledgePoint.objects.filter(course_id=course_id, is_published=True)
+            .order_by('order', 'id')
+            .values_list('id', flat=True)
+        ]
+    except (DatabaseError, ImportError, TypeError, ValueError):
+        return []
 
 
 # 维护意图：优先使用 LLM 生成画像文案，失败时降级为规则摘要

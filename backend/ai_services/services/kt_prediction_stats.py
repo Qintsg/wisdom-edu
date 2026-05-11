@@ -8,6 +8,12 @@
 from collections import defaultdict
 from typing import Any, Dict, List, Optional
 
+from assessments.assessment_helpers import (
+    INITIAL_MASTERY_MAX,
+    INITIAL_MASTERY_PRIOR_MEAN,
+    calculate_initial_mastery_baseline,
+)
+
 
 # 维护意图：提供 KT 预测结果整理与内置统计算法
 # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
@@ -113,7 +119,8 @@ class KTPredictionStatsMixin:
         """
         基于答题历史计算知识点掌握度。
 
-        使用加权平均算法，近期答题权重更高；缺失目标知识点时返回低置信默认值。
+        使用初测弱先验作为小样本基线，并用近期表现做保守趋势修正。
+        统计回退无法推断未测点，因此缺失目标知识点只返回未观测基线。
         """
         point_stats = defaultdict(
             lambda: {
@@ -128,8 +135,7 @@ class KTPredictionStatsMixin:
 
         answer_count = len(answer_history)
         decay_factor = 0.9
-        prior_mean = 0.25
-        prior_strength = 4.0
+        unobserved_baseline = round(INITIAL_MASTERY_PRIOR_MEAN, 4)
 
         for index, record in enumerate(answer_history):
             point_id = record.get("knowledge_point_id", 0)
@@ -149,31 +155,33 @@ class KTPredictionStatsMixin:
         predictions = {}
         for point_id, stats in point_stats.items():
             if stats["total"] <= 0:
-                predictions[point_id] = round(prior_mean, 4)
+                predictions[point_id] = unobserved_baseline
                 continue
 
-            weighted_accuracy = (
-                stats["weighted_sum"] + prior_mean * prior_strength
-            ) / (stats["weight_total"] + prior_strength)
+            baseline = calculate_initial_mastery_baseline(
+                int(stats["correct"]),
+                int(stats["total"]),
+            )
             simple_accuracy = stats["correct"] / stats["total"]
             recent_accuracy = (
                 stats["recent_correct"] / stats["recent_total"]
                 if stats["recent_total"] > 0
                 else simple_accuracy
             )
-            sample_factor = min(stats["total"] / 6.0, 1.0)
-            blended = (
-                weighted_accuracy * 0.55
-                + simple_accuracy * 0.25
-                + recent_accuracy * 0.20
+            weighted_accuracy = (
+                stats["weighted_sum"] / stats["weight_total"]
+                if stats["weight_total"] > 0
+                else simple_accuracy
             )
-            mastery = prior_mean * (1 - sample_factor) + blended * sample_factor
-            predictions[point_id] = round(max(0.0, min(0.9, mastery)), 4)
+            trend_signal = weighted_accuracy * 0.6 + recent_accuracy * 0.4
+            trend_weight = min(0.35, 0.08 * int(stats["total"]))
+            mastery = baseline * (1 - trend_weight) + trend_signal * trend_weight
+            predictions[point_id] = round(max(0.0, min(INITIAL_MASTERY_MAX, mastery)), 4)
 
         if knowledge_points:
             for point_id in knowledge_points:
                 if point_id not in predictions:
-                    predictions[point_id] = round(prior_mean, 4)
+                    predictions[point_id] = unobserved_baseline
 
         return predictions
 
@@ -211,11 +219,11 @@ class KTPredictionStatsMixin:
         predictions = {}
         if knowledge_points:
             for point_id in knowledge_points:
-                predictions[point_id] = 0.25
+                predictions[point_id] = round(INITIAL_MASTERY_PRIOR_MEAN, 4)
 
         return {
             "predictions": predictions,
             "confidence": 0.0,
             "model_type": "default",
-            "analysis": "无答题记录，返回默认预测值",
+            "analysis": "无答题记录，返回未观测掌握度基线",
         }

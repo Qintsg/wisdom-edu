@@ -1,0 +1,1 @@
+"""Knowledge app management commands."""

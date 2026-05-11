@@ -9,6 +9,8 @@ from random import Random
 from django.test import SimpleTestCase, override_settings
 from rest_framework.test import APITestCase
 
+from assessments.assessment_helpers import INITIAL_MASTERY_PRIOR_MEAN
+from ai_services.services.kt_prediction_support import is_mefkt_prediction
 from ai_services.services.student_graph_rag_service import student_graph_rag_service
 from ai_services.services.web_search_service import (
     SEARCH_PROVIDERS,
@@ -344,11 +346,66 @@ class KTServiceRegressionTests(SimpleTestCase):
         mocked_loader.assert_called_once_with(12)
         self.assertEqual(
             result["predictions"],
-            {301: 0.25, 302: 0.25, 303: 0.25},
+            {
+                301: INITIAL_MASTERY_PRIOR_MEAN,
+                302: INITIAL_MASTERY_PRIOR_MEAN,
+                303: INITIAL_MASTERY_PRIOR_MEAN,
+            },
         )
         self.assertEqual(result["model_type"], "default")
         self.assertEqual(result["answer_count"], 0)
-        self.assertIn("默认预测", result["analysis"])
+        self.assertIn("未观测掌握度基线", result["analysis"])
+
+    # 维护意图：Builtin fallback should use the shared initial-assessment baseline for small samples
+    # 边界说明：只验证统计回退，不依赖本地 MEFKT 模型文件。
+    # 风险说明：若初测先验调整，需要同步这里的精确期望。
+    def test_builtin_prediction_should_not_collapse_small_samples_to_old_spikes(self):
+        """Builtin fallback should use the shared initial-assessment baseline for small samples."""
+        from ai_services.services.kt_service import KnowledgeTracingService
+
+        service = KnowledgeTracingService(enabled_models=[], prediction_mode="single")
+
+        result = service.predict_mastery(
+            user_id=11,
+            course_id=12,
+            answer_history=[
+                {"question_id": 1, "knowledge_point_id": 401, "correct": 0},
+                {"question_id": 2, "knowledge_point_id": 402, "correct": 1},
+            ],
+            knowledge_points=[401, 402, 403],
+        )
+
+        predictions = cast(dict[int, float], result["predictions"])
+        self.assertNotIn(round(predictions[401], 2), {0.25, 0.30, 0.50})
+        self.assertGreater(predictions[402], 0.5)
+        self.assertEqual(predictions[403], INITIAL_MASTERY_PRIOR_MEAN)
+        self.assertEqual(result["model_type"], "builtin")
+
+    # 维护意图：Fusion wrapper should still be recognized when every child result is real MEFKT
+    # 边界说明：只识别真实 MEFKT 子结果，MEFKT 统计降级不得获得未测点写回权限。
+    # 风险说明：新增 KT 模型类型时需同步 kt_prediction_support 白名单。
+    def test_mefkt_detection_should_accept_real_mefkt_inside_fusion_only(self):
+        """Fusion wrapper should still be recognized when every child result is real MEFKT."""
+        self.assertTrue(
+            is_mefkt_prediction(
+                {
+                    "model_type": "fusion",
+                    "model_results": {
+                        "mefkt": {"model_type": "mefkt_question_online"},
+                    },
+                }
+            )
+        )
+        self.assertFalse(
+            is_mefkt_prediction(
+                {
+                    "model_type": "fusion",
+                    "model_results": {
+                        "mefkt": {"model_type": "mefkt"},
+                    },
+                }
+            )
+        )
 
 
 # 维护意图：Validate that synthetic KT trajectories preserve expected structure

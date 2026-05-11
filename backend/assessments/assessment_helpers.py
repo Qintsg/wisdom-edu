@@ -17,7 +17,7 @@ from common.utils import (
     normalize_question_options,
     option_tokens,
 )
-from knowledge.models import KnowledgeMastery
+from knowledge.models import KnowledgeMastery, KnowledgePoint
 from users.models import User
 
 from .models import Assessment, AssessmentResult, Question
@@ -39,6 +39,20 @@ def get_authenticated_user(request: Request) -> User:
     return cast(User, request.user)
 
 
+# 维护意图：初始评测掌握度基线的弱先验参数。
+# 边界说明：四个数值是 KT 融合与前置约束共同依赖的契约，禁止散落到调用方。
+# 风险说明：调整任一数值都会同时影响初测、报告评分、推荐路径，必须同步演示数据与测试。
+#
+# 公式：mastery = (correct + prior_mean * prior_strength) / (total + prior_strength)
+# 历史问题：旧值 (0.25, 4.0) 在每个知识点 1-3 题的典型初测下，
+# 会把分布坍缩到 25% / 30% / 50% 三个尖峰，掩盖学生真实差异。
+# 当前值 (0.40, 1.5) 让作答信号在小样本下也能主导结果，
+# 全对 3/3 ≈ 0.80，全错 0/3 ≈ 0.13，未观测点维持 0.40 中性基线。
+INITIAL_MASTERY_PRIOR_MEAN: float = 0.40
+INITIAL_MASTERY_PRIOR_STRENGTH: float = 1.5
+INITIAL_MASTERY_MAX: float = 0.90
+
+
 # 维护意图：初始评测掌握度基线。
 # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
 # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
@@ -46,14 +60,17 @@ def calculate_initial_mastery_baseline(correct_count: int, total_count: int) -> 
     """
     初始评测掌握度基线。
 
-    使用保守的样本量平滑，避免少量题目或随机作答导致掌握度虚高。
+    采用弱先验贝叶斯平滑：先验均值 0.40、先验强度 1.5、上限 0.90。
+    在每个知识点 1-3 题的典型初测样本下，实测信号能主导结果，
+    取值在 0.13 ~ 0.80 之间铺开，不再聚集到 25% / 30% / 50% 三尖峰。
     """
-    prior_mean = 0.25
-    prior_strength = 4.0
+    prior_mean = INITIAL_MASTERY_PRIOR_MEAN
+    prior_strength = INITIAL_MASTERY_PRIOR_STRENGTH
     if total_count <= 0:
+        # 未观测：返回中性偏低的待诊断基线，避免锁死推荐与路径。
         return round(prior_mean, 4)
     mastery = (correct_count + prior_mean * prior_strength) / (total_count + prior_strength)
-    return round(max(0.0, min(0.85, mastery)), 4)
+    return round(max(0.0, min(INITIAL_MASTERY_MAX, mastery)), 4)
 
 
 # 维护意图：提取题目答案载荷中的统一答案值
@@ -155,9 +172,17 @@ def persist_mastery_snapshot(
     :return: 掌握度列表。
     """
     normalized_course_id = int(course_id)
+    point_names = {
+        point.id: point.name
+        for point in KnowledgePoint.objects.filter(
+            course_id=normalized_course_id,
+            id__in=mastery_map.keys(),
+        )
+        .only('id', 'name')
+    }
     mastery_list: list[dict[str, object]] = []
     for point_id, mastery_rate in mastery_map.items():
-        point_name = str(point_stats.get(point_id, {}).get('name', f'知识点{point_id}'))
+        point_name = str(point_stats.get(point_id, {}).get('name') or point_names.get(point_id) or f'知识点{point_id}')
         KnowledgeMastery.objects.update_or_create(
             user=user,
             course_id=normalized_course_id,

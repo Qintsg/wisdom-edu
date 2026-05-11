@@ -1,9 +1,12 @@
 """Assessment API regression tests for scoring and mastery updates."""
 
-from rest_framework.test import APITestCase
-
+from io import StringIO
 from unittest.mock import patch
 
+from django.core.management import call_command
+from rest_framework.test import APITestCase
+
+from assessments.assessment_helpers import calculate_initial_mastery_baseline
 from assessments.models import (
     Assessment,
     AssessmentQuestion,
@@ -140,6 +143,12 @@ class KnowledgeAssessmentMasteryTests(APITestCase):
         )
         self.pre_point = KnowledgePoint.objects.create(course=self.course, name='前置知识点', order=1)
         self.post_point = KnowledgePoint.objects.create(course=self.course, name='后置知识点', order=2)
+        self.inferred_point = KnowledgePoint.objects.create(
+            course=self.course,
+            name='MEFKT未测推断点',
+            order=3,
+            is_published=True,
+        )
         KnowledgeRelation.objects.create(
             course=self.course,
             pre_point=self.pre_point,
@@ -205,3 +214,188 @@ class KnowledgeAssessmentMasteryTests(APITestCase):
         post_mastery = float(KnowledgeMastery.objects.get(user=self.student, course=self.course, knowledge_point=self.post_point).mastery_rate)
         self.assertLess(pre_mastery, 0.6)
         self.assertLessEqual(post_mastery, pre_mastery)
+
+    # 维护意图：初测提交本身应保留真实 MEFKT 对未测知识点的推断。
+    # 边界说明：统计/default 回退不具备此权限，只验证真实 MEFKT model_type。
+    # 风险说明：如果 MEFKT 顶层封装改成 fusion，应继续由白名单函数识别。
+    @patch('assessments.knowledge_views.threading.Thread')
+    @patch('ai_services.services.kt_service.kt_service.predict_mastery')
+    def test_knowledge_assessment_should_persist_mefkt_unmeasured_inference(
+        self,
+        mock_predict_mastery,
+        _mock_thread,
+    ):
+        """初测提交本身应保留真实 MEFKT 对未测知识点的推断。"""
+        mock_predict_mastery.return_value = {
+            'predictions': {
+                self.pre_point.id: 0.58,
+                self.inferred_point.id: 0.71,
+            },
+            'confidence': 0.8,
+            'model_type': 'mefkt_question_online',
+            'answer_count': 1,
+        }
+
+        response = self.client.post(
+            '/api/student/assessments/initial/knowledge/submit',
+            {
+                'course_id': self.course.id,
+                'answers': [
+                    {'question_id': self.pre_question.id, 'answer': 'A'},
+                    {'question_id': self.post_question.id, 'answer': 'A'},
+                ],
+            },
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, 200)
+        mock_predict_mastery.assert_called_once()
+        called_kwargs = mock_predict_mastery.call_args.kwargs
+        self.assertIn(self.inferred_point.id, called_kwargs['knowledge_points'])
+        inferred_mastery = KnowledgeMastery.objects.get(
+            user=self.student,
+            course=self.course,
+            knowledge_point=self.inferred_point,
+        )
+        self.assertAlmostEqual(float(inferred_mastery.mastery_rate), 0.71, places=3)
+        self.assertTrue(
+            any(
+                item['point_id'] == self.inferred_point.id
+                and item['point_name'] == self.inferred_point.name
+                for item in response.data['data']['mastery']
+            )
+        )
+
+    # 维护意图：初测小样本掌握度应避开旧 25/30/50 尖峰。
+    # 边界说明：只验证提交链路的持久化结果，不触发异步报告断言。
+    # 风险说明：若初测先验重新调整，需要同步这些精确期望。
+    @patch('assessments.knowledge_views.threading.Thread')
+    @patch('ai_services.services.kt_service.kt_service.predict_mastery')
+    def test_knowledge_assessment_should_spread_small_sample_mastery(self, mock_predict_mastery, _mock_thread):
+        """初测小样本掌握度应避开旧 25/30/50 尖峰。"""
+        mock_predict_mastery.return_value = {
+            'predictions': {},
+            'confidence': 0.0,
+            'model_type': 'builtin',
+            'answer_count': 2,
+        }
+
+        response = self.client.post(
+            '/api/student/assessments/initial/knowledge/submit',
+            {
+                'course_id': self.course.id,
+                'answers': [
+                    {'question_id': self.pre_question.id, 'answer': 'B'},
+                    {'question_id': self.post_question.id, 'answer': 'A'},
+                ],
+            },
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, 200)
+        pre_mastery = float(KnowledgeMastery.objects.get(user=self.student, course=self.course, knowledge_point=self.pre_point).mastery_rate)
+        post_mastery = float(KnowledgeMastery.objects.get(user=self.student, course=self.course, knowledge_point=self.post_point).mastery_rate)
+        self.assertAlmostEqual(pre_mastery, calculate_initial_mastery_baseline(0, 1), places=3)
+        self.assertLessEqual(post_mastery, pre_mastery)
+        self.assertNotIn(round(pre_mastery, 2), {0.25, 0.30, 0.50})
+
+
+# 维护意图：验证现有初测掌握度修复命令。
+# 边界说明：只构造最小 answer_history / mastery 数据，不依赖外部模型文件。
+# 风险说明：修复策略变化时，应保留 dry-run 与 apply 的行为断言。
+class RepairInitialMasteryCommandTests(APITestCase):
+    """验证现有初测掌握度修复命令。"""
+
+    def setUp(self):
+        """创建旧尖峰掌握度和可 MEFKT 推断的未测知识点。"""
+        self.teacher = User.objects.create_user(username='repair_teacher', password='Test123456', role='teacher')
+        self.student = User.objects.create_user(username='repair_student', password='Test123456', role='student')
+        self.course = Course.objects.create(name='掌握度修复课程', created_by=self.teacher)
+        self.measured_point = KnowledgePoint.objects.create(course=self.course, name='已测知识点', order=1, is_published=True)
+        self.inferred_point = KnowledgePoint.objects.create(course=self.course, name='未测知识点', order=2, is_published=True)
+        self.question = Question.objects.create(
+            course=self.course,
+            content='已测题目',
+            question_type='single_choice',
+            options=[{'value': 'A', 'label': 'A'}, {'value': 'B', 'label': 'B'}],
+            answer={'answer': 'A'},
+            score=2,
+            is_visible=True,
+            created_by=self.teacher,
+        )
+        self.question.knowledge_points.add(self.measured_point)
+        from assessments.models import AnswerHistory
+
+        AnswerHistory.objects.create(
+            user=self.student,
+            course=self.course,
+            question=self.question,
+            knowledge_point=self.measured_point,
+            student_answer={'answer': 'A'},
+            correct_answer={'answer': 'A'},
+            is_correct=True,
+            score=2,
+            source='initial',
+        )
+        KnowledgeMastery.objects.create(
+            user=self.student,
+            course=self.course,
+            knowledge_point=self.measured_point,
+            mastery_rate=0.25,
+        )
+        KnowledgeMastery.objects.create(
+            user=self.student,
+            course=self.course,
+            knowledge_point=self.inferred_point,
+            mastery_rate=0.25,
+        )
+
+    @patch('ai_services.services.kt_service.kt_service.predict_mastery')
+    def test_repair_initial_mastery_should_apply_mefkt_inferred_points(self, mock_predict_mastery):
+        """修复命令应允许真实 MEFKT 推断未测知识点。"""
+        mock_predict_mastery.return_value = {
+            'predictions': {
+                self.measured_point.id: 0.8,
+                self.inferred_point.id: 0.72,
+            },
+            'model_type': 'mefkt_question_online',
+            'confidence': 0.8,
+        }
+        output = StringIO()
+
+        call_command(
+            'repair_initial_mastery',
+            '--apply',
+            user_id=self.student.id,
+            course_id=self.course.id,
+            stdout=output,
+        )
+
+        measured_rate = float(KnowledgeMastery.objects.get(user=self.student, knowledge_point=self.measured_point).mastery_rate)
+        inferred_rate = float(KnowledgeMastery.objects.get(user=self.student, knowledge_point=self.inferred_point).mastery_rate)
+        self.assertGreater(measured_rate, 0.25)
+        self.assertAlmostEqual(inferred_rate, 0.72, places=3)
+        self.assertIn('已写回', output.getvalue())
+
+    @patch('ai_services.services.kt_service.kt_service.predict_mastery')
+    def test_repair_initial_mastery_should_ignore_fallback_unmeasured_points(self, mock_predict_mastery):
+        """修复命令不应让统计回退覆盖未测知识点。"""
+        mock_predict_mastery.return_value = {
+            'predictions': {
+                self.measured_point.id: 0.4,
+                self.inferred_point.id: 0.4,
+            },
+            'model_type': 'builtin',
+            'confidence': 0.3,
+        }
+
+        call_command(
+            'repair_initial_mastery',
+            '--apply',
+            user_id=self.student.id,
+            course_id=self.course.id,
+            stdout=StringIO(),
+        )
+
+        inferred_rate = float(KnowledgeMastery.objects.get(user=self.student, knowledge_point=self.inferred_point).mastery_rate)
+        self.assertEqual(inferred_rate, 0.25)

@@ -7,6 +7,11 @@ import logging
 from django.db import models, transaction
 
 from assessments.models import AnswerHistory
+from ai_services.services.kt_prediction_support import (
+    answered_point_ids,
+    is_mefkt_prediction,
+    normalize_prediction_map,
+)
 from common.config import AppConfig
 from common.logging_utils import build_log_message
 from knowledge.models import KnowledgeMastery, KnowledgePoint
@@ -78,8 +83,16 @@ def _update_mastery_from_answer_history(*, user: User, course_id: CourseId) -> N
             user_id=user.id,
             course_id=course_id,
             answer_history=history,
+            knowledge_points=_load_course_point_ids(course_id),
         )
-        kt_predictions = kt_result.get("predictions") or {}
+        kt_predictions = normalize_prediction_map(kt_result.get("predictions"))
+        if not is_mefkt_prediction(kt_result):
+            evidence_points = answered_point_ids(history)
+            kt_predictions = {
+                point_id: rate
+                for point_id, rate in kt_predictions.items()
+                if point_id in evidence_points
+            }
         logger.info(
             build_log_message(
                 "kt.path_refresh.success",
@@ -87,6 +100,7 @@ def _update_mastery_from_answer_history(*, user: User, course_id: CourseId) -> N
                 course_id=course_id,
                 answer_count=len(history),
                 prediction_count=len(kt_predictions),
+                model_type=kt_result.get("model_type"),
             )
         )
         _apply_kt_predictions(user=user, course_id=course_id, predictions=kt_predictions)
@@ -123,6 +137,22 @@ def _build_kt_history(*, user: User, course_id: CourseId) -> list[dict[str, int]
         for record in answer_records
         if record["knowledge_point_id"]
     ]
+
+
+# 维护意图：读取课程知识点作为 MEFKT 路径刷新推断目标
+# 边界说明：真实 MEFKT 可推断未直接作答点，统计回退会在调用方过滤。
+# 风险说明：读取失败时返回空列表，保持旧的答题证据范围。
+def _load_course_point_ids(course_id: CourseId) -> list[int]:
+    """读取课程知识点作为 MEFKT 路径刷新推断目标。"""
+    try:
+        return [
+            int(point_id)
+            for point_id in KnowledgePoint.objects.filter(course_id=course_id, is_published=True)
+            .order_by("order", "id")
+            .values_list("id", flat=True)
+        ]
+    except (TypeError, ValueError):
+        return []
 
 
 # 维护意图：把 KT 输出写回课程知识点掌握度

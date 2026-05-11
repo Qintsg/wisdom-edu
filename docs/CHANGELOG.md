@@ -2,6 +2,12 @@
 
 ## 2026-05-11
 
+### Backend / KT — 初始评测掌握度异常聚集修复
+
+- 修复初始知识评测后掌握度大量集中在 25% / 30% / 50% 左右的问题，KT 统计回退统一使用初测弱先验基线，不再硬编码旧 0.25 默认值。
+- 学习路径生成、手动路径刷新与学习者画像刷新现在优先保留真实 MEFKT 推断结果；只有真实 MEFKT 输出可推断未直接作答知识点，统计/default 回退只更新有答题证据的知识点。
+- 新增 `repair_initial_mastery` 管理命令，用于按初测作答历史与 MEFKT 预测修复开发库中已存在的异常 `KnowledgeMastery` 数据。
+
 ### Frontend / Backend — 学生端 AI 流式问答与画像布局优化
 
 - `/ws/student/ai/chat` 新增真实流式优先的学生端 AI 问答链路，WebSocket 现在会发送 `stage`、`chunk` 与包含 `reply / streamed / mode / sources / matched_point / query_modes / key_points` 的 `done` 事件；模型流式不可用时会回退到原完整回答再分块推送。
