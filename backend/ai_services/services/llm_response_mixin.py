@@ -34,6 +34,11 @@ class LLMResponseMixin:
 4. Keep recommendations concrete, complete, and actionable.
 5. If information is limited, still return the full JSON structure with the best available content."""
 
+    _TEXT_STREAM_SYSTEM_CONTENT = """You are the AI learning assistant for a graph-grounded adaptive learning system.
+
+Answer in Chinese. Use the supplied course evidence when it is available. Do not invent facts outside the evidence.
+Write directly for the student, keep the response concise, and do not output JSON."""
+
     _format_input_data = staticmethod(format_input_data)
     _strip_reasoning_blocks = staticmethod(strip_reasoning_blocks)
     _parse_json_response = staticmethod(parse_json_response)
@@ -154,6 +159,29 @@ class LLMResponseMixin:
             ]
         )
         return self._coerce_message_text(response.content)
+
+    # 维护意图：从 LangChain 流式消息块中提取可直接展示的文本片段
+    # 边界说明：兼容 chunk.text、content_blocks 与 content 三种常见结构。
+    # 风险说明：模型 SDK 升级时需确认 reasoning/tool blocks 不会泄露到学生端。
+    def _coerce_stream_chunk_text(self, chunk: Any) -> str:
+        """从 LangChain 流式消息块中提取可直接展示的文本片段。"""
+        chunk_text = getattr(chunk, "text", "")
+        if isinstance(chunk_text, str) and chunk_text:
+            return self._strip_reasoning_blocks(chunk_text)
+
+        content_blocks = getattr(chunk, "content_blocks", None)
+        if isinstance(content_blocks, list):
+            text_parts = [
+                str(block.get("text", ""))
+                for block in content_blocks
+                if isinstance(block, dict)
+                and block.get("type") == "text"
+                and str(block.get("text", "")).strip()
+            ]
+            if text_parts:
+                return self._strip_reasoning_blocks("".join(text_parts))
+
+        return self._coerce_message_text(getattr(chunk, "content", None))
 
     # 维护意图：解析当前输出，必要时再尝试一次 JSON 修复
     # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
@@ -395,6 +423,69 @@ class LLMResponseMixin:
             temperature=temperature,
             extra_body_overrides=extra_body_overrides,
         )
+
+    # 维护意图：以文本流方式调用 LLM，并在模型不可用或失败时输出降级文本
+    # 边界说明：仅用于学生端实时问答，不参与结构化 JSON 解析和修复流程。
+    # 风险说明：流式异常发生在已输出部分内容之后时不再追加整段 fallback，避免重复回答。
+    def stream_text_with_fallback(
+        self,
+        *,
+        prompt: str,
+        call_type: str,
+        fallback_text: str,
+        temperature: float = None,
+        extra_body_overrides: Optional[Dict[str, Any]] = None,
+    ):
+        """以文本流方式调用 LLM，并在模型不可用或失败时输出降级文本。"""
+        from langchain_core.messages import HumanMessage, SystemMessage
+
+        start_time, execution_policy, prepared_prompt = self._prepare_structured_call(
+            prompt,
+            call_type,
+        )
+        llm = self._get_llm_for_policy(execution_policy, extra_body_overrides)
+        if llm is None:
+            if fallback_text:
+                yield fallback_text
+            return
+
+        emitted = False
+        original_temp = self._apply_temperature_override(llm, temperature)
+        try:
+            for chunk in llm.stream(
+                [
+                    SystemMessage(content=self._TEXT_STREAM_SYSTEM_CONTENT),
+                    HumanMessage(content=prepared_prompt),
+                ]
+            ):
+                chunk_text = self._coerce_stream_chunk_text(chunk)
+                if not chunk_text:
+                    continue
+                emitted = True
+                yield chunk_text
+
+            duration_ms = int((time.time() - start_time) * 1000)
+            logger.debug(
+                build_log_message(
+                    "llm.stream.success",
+                    call_type=call_type,
+                    duration_ms=duration_ms,
+                    model=self.model_name,
+                )
+            )
+        except Exception as error:  # noqa: BLE001
+            logger.error(
+                build_log_message(
+                    "llm.stream.fail",
+                    call_type=call_type,
+                    model=self.model_name,
+                    error=error,
+                )
+            )
+            if not emitted and fallback_text:
+                yield fallback_text
+        finally:
+            self._restore_temperature(llm, original_temp)
 
     _FIELD_MAX_LEN = {}
 

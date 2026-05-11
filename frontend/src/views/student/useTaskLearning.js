@@ -1,7 +1,8 @@
 import { computed, nextTick, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { aiChat, getAINodeIntro } from '@/api/student/ai'
+import { getAINodeIntro } from '@/api/student/ai'
+import { useStudentAIStream } from '@/composables/useStudentAIStream'
 import {
   completePathNode,
   completeResource,
@@ -69,7 +70,6 @@ export function useTaskLearning() {
   const chatDrawerVisible = ref(false)
   const chatMessages = ref([])
   const chatInput = ref('')
-  const chatLoading = ref(false)
   const chatMessagesRef = ref(null)
   const currentNodeExam = ref(buildDefaultNodeExamModel())
   const nodeQuizResult = ref(buildDefaultNodeQuizResultModel())
@@ -296,31 +296,43 @@ export function useTaskLearning() {
     if (chatContainerElement) chatContainerElement.scrollTop = chatContainerElement.scrollHeight
   }
 
+  const {
+    closeSocket: closeChatSocket,
+    createAssistantMessage,
+    loading: chatLoading,
+    sendStreamMessage,
+    stageText: chatStageText
+  } = useStudentAIStream({
+    messages: chatMessages,
+    scrollToBottom: scrollChat
+  })
+
   const sendChat = async () => {
     const questionText = chatInput.value.trim()
     if (!questionText || chatLoading.value) return
 
     const recentHistory = chatMessages.value.slice(-12)
+    const assistantMessage = createAssistantMessage()
     chatMessages.value.push({ role: 'user', content: questionText })
+    chatMessages.value.push(assistantMessage)
     chatInput.value = ''
-    chatLoading.value = true
     await scrollChat()
 
     try {
-      const chatReplyPayload = normalizeObjectFromPayload(await aiChat({
+      await sendStreamMessage({
         question: questionText,
-        message: questionText,
-        course_id: courseStore.courseId || null,
-        point_id: currentTask.value.knowledgePointId || null,
-        knowledge_point: currentTask.value.pointNameText || '',
-        course_name: courseStore.courseName || '',
-        history: recentHistory
-      }))
-      chatMessages.value.push({ role: 'assistant', content: normalizeText(chatReplyPayload.reply) || '暂无回复' })
+        assistantMessage,
+        history: recentHistory,
+        payload: {
+          course_id: courseStore.courseId || null,
+          point_id: currentTask.value.knowledgePointId || null,
+          knowledge_point: currentTask.value.pointNameText || '',
+          course_name: courseStore.courseName || ''
+        }
+      })
     } catch {
-      chatMessages.value.push({ role: 'assistant', content: '抱歉，AI助手暂时无法回复，请稍后重试。' })
+      assistantMessage.content = '抱歉，AI助手暂时无法回复，请稍后重试。'
     } finally {
-      chatLoading.value = false
       await scrollChat()
     }
   }
@@ -333,11 +345,16 @@ export function useTaskLearning() {
   }
 
   const openFullAssistant = () => {
+    closeChatSocket()
     chatDrawerVisible.value = false
     void router.push({
       path: '/student/ai-assistant',
       query: { pointId: currentTask.value.knowledgePointId || '', keyword: currentTask.value.pointNameText || '' }
     })
+  }
+
+  const handleChatDrawerClose = () => {
+    closeChatSocket()
   }
 
   const formatMessage = (content) => renderMarkdown(content)
@@ -364,6 +381,7 @@ export function useTaskLearning() {
     aiResourcesLoading,
     chatDrawerVisible,
     chatInput,
+    chatStageText,
     chatLoading,
     chatMessages,
     chatMessagesRef,
@@ -383,6 +401,7 @@ export function useTaskLearning() {
     hasNodeQuizResult,
     hasStageFeedbackReport,
     hasStageTestResult,
+    handleChatDrawerClose,
     introLoading,
     isTestNode,
     loadStageTest,

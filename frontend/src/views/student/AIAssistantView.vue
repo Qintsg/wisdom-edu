@@ -1,12 +1,25 @@
 <template>
   <div class="ai-assistant-view">
+    <section class="assistant-command-bar">
+      <div>
+        <span class="assistant-eyebrow">GraphRAG Assistant</span>
+        <h2>AI助手</h2>
+        <p>围绕当前课程证据、知识图谱关系和学习状态进行追问。</p>
+      </div>
+      <div class="assistant-status-strip">
+        <el-tag v-if="courseStore.courseName" effect="plain">{{ courseStore.courseName }}</el-tag>
+        <el-tag :type="isGraphEnhancedMode(lastMode) ? 'success' : 'warning'" effect="plain">
+          {{ isGraphEnhancedMode(lastMode) ? '图谱增强' : '课程级回答' }}
+        </el-tag>
+      </div>
+    </section>
+
     <div class="assistant-layout">
       <el-card class="search-panel" shadow="hover">
         <template #header>
           <div class="panel-header">
             <span>知识图谱检索</span>
             <div class="panel-header-tags">
-              <el-tag v-if="courseStore.courseName" size="small" effect="plain">{{ courseStore.courseName }}</el-tag>
               <el-tag size="small" type="info">GraphRAG</el-tag>
             </div>
           </div>
@@ -92,9 +105,7 @@
         <template #header>
           <div class="panel-header">
             <span>图谱增强问答</span>
-            <el-tag :type="isGraphEnhancedMode(lastMode) ? 'success' : 'warning'" size="small">
-              {{ isGraphEnhancedMode(lastMode) ? '图谱增强回答' : '课程级回答' }}
-            </el-tag>
+            <span class="stream-status">{{ chatLoading ? chatStageText : '流式输出就绪' }}</span>
           </div>
         </template>
 
@@ -147,13 +158,14 @@
 </template>
 
 <script setup>
-import { nextTick, onMounted, onUnmounted, ref } from 'vue'
+import { nextTick, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 
 import { extractApiErrorMessage, isApiErrorHandled } from '@/api'
-import { askGraphRAG, createStudentAIChatSocket, searchGraphRAG } from '@/api/student/ai'
+import { askGraphRAG, searchGraphRAG } from '@/api/student/ai'
 import { getKnowledgePointDetail } from '@/api/student/knowledge'
+import { useStudentAIStream } from '@/composables/useStudentAIStream'
 import { useCourseStore } from '@/stores/course'
 import { renderMarkdown } from '@/utils/markdown'
 
@@ -167,9 +179,7 @@ const searchResults = ref([])
 const selectedPoint = ref(null)
 const selectedPointDetail = ref(null)
 const questionInput = ref('')
-const chatLoading = ref(false)
 const chatScrollRef = ref(null)
-const activeSocket = ref(null)
 const chatMessages = ref([
   {
     role: 'assistant',
@@ -178,41 +188,11 @@ const chatMessages = ref([
     matchedPoint: null
   }
 ])
-const lastMode = ref('graph_rag')
 
 const isGraphEnhancedMode = (mode) => {
   const normalizedMode = String(mode || '').trim()
   return normalizedMode !== '' && normalizedMode !== 'llm_fallback' && normalizedMode !== 'error'
 }
-
-// ---- AI 对话阶段动画 (DEFENSE_DEMO_PROGRESS) ----
-const chatStageText = ref('AI助手正在检索知识图谱')
-let chatStageTimer = null
-let chatStageIdx = 0
-const CHAT_STAGES = [
-  'AI助手正在检索知识图谱',
-  '正在匹配相关知识点',
-  '正在整理图谱证据',
-  '正在生成回答内容'
-]
-
-function startChatStageAnimation() {
-  stopChatStageAnimation()
-  chatStageIdx = 0
-  chatStageText.value = CHAT_STAGES[0]
-  chatStageTimer = window.setInterval(() => {
-    chatStageIdx = (chatStageIdx + 1) % CHAT_STAGES.length
-    chatStageText.value = CHAT_STAGES[chatStageIdx]
-  }, 2500)
-}
-
-function stopChatStageAnimation() {
-  if (chatStageTimer) {
-    window.clearInterval(chatStageTimer)
-    chatStageTimer = null
-  }
-}
-// ---- END DEFENSE_DEMO_PROGRESS ----
 
 const ensureCourseSelected = () => {
   if (!courseStore.courseId) {
@@ -229,6 +209,18 @@ const scrollToBottom = async () => {
     chatScrollRef.value.scrollTop = chatScrollRef.value.scrollHeight
   }
 }
+
+const {
+  createAssistantMessage,
+  lastMode,
+  loading: chatLoading,
+  sendStreamMessage,
+  stageText: chatStageText
+} = useStudentAIStream({
+  messages: chatMessages,
+  scrollToBottom,
+  inlineErrorFallback: false
+})
 
 const handleComposerKeydown = (event) => {
   if (
@@ -303,20 +295,26 @@ const askQuestion = async () => {
 
   chatMessages.value.push({ role: 'user', content: question, sources: [], matchedPoint: null })
   questionInput.value = ''
-  chatLoading.value = true
-  startChatStageAnimation()
-  const assistantMessage = {
-    role: 'assistant',
-    content: '',
-    sources: [],
-    matchedPoint: null
-  }
+  const assistantMessage = createAssistantMessage()
   chatMessages.value.push(assistantMessage)
   await scrollToBottom()
 
   try {
-    const websocketSucceeded = await askQuestionByWebSocket(question, assistantMessage)
-    if (!websocketSucceeded) {
+    await sendStreamMessage({
+      question,
+      assistantMessage,
+      payload: {
+        course_id: courseStore.courseId,
+        point_id: selectedPoint.value?.point_id || null
+      },
+      onDone: async (streamPayload) => {
+        if (streamPayload.matched_point && (!selectedPoint.value || selectedPoint.value.point_id !== streamPayload.matched_point.point_id)) {
+          await selectPoint(streamPayload.matched_point)
+        }
+      }
+    })
+
+    if (!assistantMessage.content) {
       const result = await askGraphRAG({
         course_id: courseStore.courseId,
         point_id: selectedPoint.value?.point_id || null,
@@ -334,85 +332,8 @@ const askQuestion = async () => {
     console.error('GraphRAG问答失败:', error)
     assistantMessage.content = `抱歉，AI助手暂时无法回复：${extractApiErrorMessage(error, '请稍后重试')}`
   } finally {
-    stopChatStageAnimation()
-    chatLoading.value = false
     await scrollToBottom()
   }
-}
-
-const askQuestionByWebSocket = (question, assistantMessage) => {
-  return new Promise((resolve) => {
-    let resolved = false
-    let receivedChunk = false
-    const timeoutId = window.setTimeout(() => {
-      try {
-        socket.close()
-      } catch {
-        // noop
-      }
-      finalize(false)
-    }, 12000)
-
-    if (activeSocket.value) {
-      activeSocket.value.close()
-      activeSocket.value = null
-    }
-
-    const socket = createStudentAIChatSocket()
-    activeSocket.value = socket
-
-    const finalize = (success) => {
-      if (resolved) return
-      resolved = true
-      window.clearTimeout(timeoutId)
-      if (activeSocket.value === socket) {
-        activeSocket.value = null
-      }
-      resolve(success)
-    }
-
-    socket.onopen = () => {
-      socket.send(JSON.stringify({
-        question,
-        course_id: courseStore.courseId,
-        point_id: selectedPoint.value?.point_id || null
-      }))
-    }
-
-    socket.onmessage = async (event) => {
-      const payload = JSON.parse(event.data || '{}')
-      if (payload.type === 'chunk') {
-        receivedChunk = true
-        assistantMessage.content += payload.content || ''
-        await scrollToBottom()
-        return
-      }
-      if (payload.type === 'done') {
-        assistantMessage.sources = payload.sources || []
-        assistantMessage.matchedPoint = payload.matched_point || null
-        lastMode.value = payload.mode || 'graph_rag'
-        if (payload.matched_point && (!selectedPoint.value || selectedPoint.value.point_id !== payload.matched_point.point_id)) {
-          await selectPoint(payload.matched_point)
-        }
-        socket.close()
-        finalize(receivedChunk || !!assistantMessage.content)
-        return
-      }
-      if (payload.type === 'error') {
-        assistantMessage.content = payload.message || ''
-        socket.close()
-        finalize(false)
-      }
-    }
-
-    socket.onerror = () => {
-      finalize(false)
-    }
-
-    socket.onclose = () => {
-      finalize(receivedChunk || !!assistantMessage.content)
-    }
-  })
 }
 
 const goToKnowledgeMap = () => {
@@ -450,13 +371,6 @@ onMounted(async () => {
   }
 })
 
-onUnmounted(() => {
-  stopChatStageAnimation()
-  if (activeSocket.value) {
-    activeSocket.value.close()
-    activeSocket.value = null
-  }
-})
 </script>
 
 <style scoped src="./AIAssistantView.css"></style>

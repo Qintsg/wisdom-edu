@@ -330,7 +330,13 @@
     </el-row>
 
     <!-- AI 聊天抽屉 -->
-    <el-drawer v-model="chatDrawerVisible" title="AI 学习助手" direction="rtl" size="400px">
+    <el-drawer
+      v-model="chatDrawerVisible"
+      title="AI 学习助手"
+      direction="rtl"
+      size="400px"
+      @closed="handleChatDrawerClose"
+    >
       <template #header>
         <div class="assistant-drawer-header">
           <span>AI 学习助手</span>
@@ -347,9 +353,20 @@
           </div>
           <div v-for="(msg, idx) in chatMessages" :key="idx" :class="['chat-msg', msg.role]">
             <div class="msg-bubble" v-html="formatMessage(msg.content)"></div>
+            <div v-if="msg.sources?.length || msg.matchedPoint" class="msg-meta">
+              <el-tag v-if="msg.matchedPoint" size="small" type="success" effect="plain">
+                {{ msg.matchedPoint.point_name }}
+              </el-tag>
+              <el-tag v-for="sourceItem in msg.sources" :key="sourceItem.title || sourceItem.kind" size="small" type="info" effect="plain">
+                {{ sourceItem.title || sourceItem.kind || '来源' }}
+              </el-tag>
+            </div>
           </div>
           <div v-if="chatLoading" class="chat-msg assistant">
-            <div class="msg-bubble typing"><span></span><span></span><span></span></div>
+            <div class="msg-bubble typing">
+              <span class="typing-text">{{ chatStageText }}</span>
+              <span class="typing-dots"><span></span><span></span><span></span></span>
+            </div>
           </div>
         </div>
         <div class="chat-input">
@@ -383,6 +400,7 @@ const {
   aiResourcesLoading,
   chatDrawerVisible,
   chatInput,
+  chatStageText,
   chatLoading,
   chatMessages,
   chatMessagesRef,
@@ -402,6 +420,7 @@ const {
   hasNodeQuizResult,
   hasStageFeedbackReport,
   hasStageTestResult,
+  handleChatDrawerClose,
   introLoading,
   isTestNode,
   loadStageTest,

@@ -352,6 +352,63 @@ class LLMServiceLatencyPolicyTests(SimpleTestCase):
         self.assertEqual(policy.max_attempts, 1)
         self.assertFalse(policy.allow_repair)
 
+    # 维护意图：学生端流式聊天应逐块透传模型文本
+    # 边界说明：测试只覆盖 LLM 服务流式入口，不依赖真实网关。
+    # 风险说明：LangChain chunk 结构变化时，需要同步文本提取逻辑。
+    def test_stream_text_with_fallback_should_yield_model_chunks(self):
+        """学生端流式聊天应逐块透传模型文本。"""
+        service = self._build_service()
+        mock_llm = Mock()
+        mock_llm.stream.return_value = [
+            SimpleNamespace(text="第一段"),
+            SimpleNamespace(text="第二段"),
+            SimpleNamespace(text=""),
+        ]
+        service._get_llm_for_policy = Mock(return_value=mock_llm)
+
+        chunks = list(service.stream_text_with_fallback(
+            prompt="请回答",
+            call_type="chat",
+            fallback_text="fallback",
+        ))
+
+        self.assertEqual(chunks, ["第一段", "第二段"])
+        mock_llm.stream.assert_called_once()
+
+    # 维护意图：模型不可用时流式入口应输出降级文本，避免前端空白
+    # 边界说明：不初始化 ChatOpenAI，直接锁定服务层 fallback 行为。
+    # 风险说明：若上层改为自行兜底，需要同步该断言。
+    def test_stream_text_with_fallback_should_yield_fallback_when_model_missing(self):
+        """模型不可用时流式入口应输出降级文本，避免前端空白。"""
+        service = self._build_service()
+        service._get_llm_for_policy = Mock(return_value=None)
+
+        chunks = list(service.stream_text_with_fallback(
+            prompt="请回答",
+            call_type="chat",
+            fallback_text="fallback",
+        ))
+
+        self.assertEqual(chunks, ["fallback"])
+
+    # 维护意图：流式调用首块前失败时应输出降级文本
+    # 边界说明：已输出部分 chunk 后不追加 fallback，避免前端重复回答。
+    # 风险说明：网关抖动时该路径决定 WebSocket 是否能继续给出兼容响应。
+    def test_stream_text_with_fallback_should_yield_fallback_when_stream_fails_early(self):
+        """流式调用首块前失败时应输出降级文本。"""
+        service = self._build_service()
+        mock_llm = Mock()
+        mock_llm.stream.side_effect = RuntimeError("gateway timeout")
+        service._get_llm_for_policy = Mock(return_value=mock_llm)
+
+        chunks = list(service.stream_text_with_fallback(
+            prompt="请回答",
+            call_type="chat",
+            fallback_text="fallback",
+        ))
+
+        self.assertEqual(chunks, ["fallback"])
+
 
 # 维护意图：Ensure the thin agent wrapper reuses the same proxy settings as LLMService
 # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。

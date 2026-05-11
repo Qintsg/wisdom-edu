@@ -2,6 +2,13 @@
 
 ## 2026-05-11
 
+### Frontend / Backend — 学生端 AI 流式问答与画像布局优化
+
+- `/ws/student/ai/chat` 新增真实流式优先的学生端 AI 问答链路，WebSocket 现在会发送 `stage`、`chunk` 与包含 `reply / streamed / mode / sources / matched_point / query_modes / key_points` 的 `done` 事件；模型流式不可用时会回退到原完整回答再分块推送。
+- `/student/ai-assistant` 与学习节点侧边 AI 问答统一接入共享流式聊天状态机，保留 GraphRAG 来源、命中知识点和 HTTP 降级能力。
+- AI助手页调整为更稳定的图谱上下文 + 对话主工作区布局；学习画像页收紧 hero 与指标区，并把能力、掌握度、画像总结和 AI 建议组织为更紧凑的分析网格。
+- `docs/大模型接入说明.md` 与 `docs/服务器部署说明.md` 已同步补充 WebSocket 流式协议和 ASGI 长连接排查口径。
+
 ### Backend / AI — 学习资源 MCP 切换 Tavily
 
 - 学生端外部学习资源 MCP 从 Exa + Firecrawl 切换为 Tavily Search API，`.env` 只需填写 `TAVILY_API_KEY`。

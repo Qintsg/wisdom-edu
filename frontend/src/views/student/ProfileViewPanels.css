@@ -1,7 +1,7 @@
-﻿.summary-layout {
+.summary-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1.05fr) minmax(280px, 0.95fr);
-  gap: 18px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
   align-items: start;
 }
 
@@ -11,9 +11,9 @@
 
 .summary-text {
   margin: 0;
-  padding: 18px;
-  border-radius: 20px;
-  background: linear-gradient(135deg, rgba(15, 108, 189, 0.08), rgba(255, 255, 255, 0.62));
+  padding: 14px;
+  border-radius: 14px;
+  background: var(--bg-soft);
   white-space: pre-line;
   color: var(--text-regular);
   line-height: 1.8;
@@ -22,14 +22,15 @@
 
 .summary-lenses {
   display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
 }
 
 .summary-block {
-  padding: 16px;
-  border-radius: 20px;
+  padding: 14px;
+  border-radius: 14px;
   border: 1px solid rgba(0, 0, 0, 0.05);
-  background: rgba(255, 255, 255, 0.68);
+  background: var(--bg-elevated);
 }
 
 .strength-block {
@@ -86,17 +87,17 @@
 .mastery-panel {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
 }
 
 .mastery-pulse {
   display: grid;
   grid-template-columns: 136px minmax(0, 1fr);
   align-items: center;
-  gap: 16px;
-  padding: 16px;
-  border-radius: 20px;
-  background: linear-gradient(135deg, rgba(15, 108, 189, 0.08), rgba(16, 124, 16, 0.08));
+  gap: 14px;
+  padding: 14px;
+  border-radius: 14px;
+  background: var(--bg-soft);
 }
 
 .mastery-pulse span {
@@ -107,19 +108,19 @@
 .mastery-pulse strong {
   display: block;
   color: var(--text-primary);
-  font-size: 30px;
+  font-size: 26px;
   line-height: 1.1;
 }
 
 .mastery-summary {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
+  gap: 10px;
 }
 
 .mastery-stat {
-  padding: 14px 12px;
-  border-radius: 16px;
+  padding: 12px 10px;
+  border-radius: 12px;
   background: var(--bg-soft);
   text-align: center;
 }
@@ -130,7 +131,7 @@
 
 .mastery-stat strong {
   display: block;
-  font-size: 26px;
+  font-size: 22px;
   color: var(--text-primary);
 }
 
@@ -144,8 +145,8 @@
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
-  padding: 12px 14px;
-  border-radius: 18px;
+  padding: 10px 12px;
+  border-radius: 12px;
   background: rgba(255, 244, 206, 0.42);
 }
 
@@ -170,18 +171,18 @@
 
 .suggestion-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
+  grid-template-columns: 1fr;
+  gap: 10px;
 }
 
 .suggestion-card {
   position: relative;
   overflow: hidden;
-  min-height: 108px;
-  padding: 16px 16px 16px 52px;
+  min-height: 88px;
+  padding: 14px 14px 14px 48px;
   border: 1px solid rgba(15, 108, 189, 0.1);
-  border-radius: 20px;
-  background: rgba(255, 255, 255, 0.7);
+  border-radius: 14px;
+  background: var(--bg-elevated);
 }
 
 .suggestion-card span {
@@ -224,7 +225,7 @@
 }
 
 .ai-placeholder {
-  min-height: 180px;
+  min-height: 170px;
 }
 
 .retry-row {
@@ -233,7 +234,7 @@
 }
 
 @media (max-width: 1200px) {
-  .profile-overview-grid {
+  .profile-analysis-grid {
     grid-template-columns: 1fr;
   }
 
@@ -262,12 +263,13 @@
   .metric-strip,
   .ability-insights,
   .mastery-pulse,
+  .summary-lenses,
   .suggestion-grid {
     grid-template-columns: 1fr;
   }
 
   .profile-hero {
-    padding: 22px;
+    padding: 18px;
   }
 
   .hero-main {

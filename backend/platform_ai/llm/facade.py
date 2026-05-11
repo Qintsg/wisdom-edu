@@ -87,5 +87,12 @@ class LLMFacade:
         """通过公共入口执行带降级保护的 LLM 调用。"""
         return self.service.call_with_fallback(*args, **kwargs)
 
+    # 维护意图：通过公共入口执行文本流式 LLM 调用
+    # 边界说明：调用契约在这里保持稳定，避免 WebSocket 层绕过 LLM 配置。
+    # 风险说明：调整流式协议时，需同步学生端 WebSocket 消费方。
+    def stream_text_with_fallback(self, *args, **kwargs):
+        """通过公共入口执行文本流式 LLM 调用。"""
+        return self.service.stream_text_with_fallback(*args, **kwargs)
+
 
 llm_facade = LLMFacade()

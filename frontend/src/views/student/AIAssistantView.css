@@ -1,14 +1,53 @@
 .ai-assistant-view {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 16px;
   min-height: calc(100vh - 142px);
+}
+
+.assistant-command-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 18px 20px;
+  border: 1px solid var(--border-light);
+  border-radius: 18px;
+  background: var(--bg-card);
+  box-shadow: var(--shadow-light);
+}
+
+.assistant-command-bar h2 {
+  margin: 2px 0 4px;
+  color: var(--text-primary);
+  font-size: 24px;
+  line-height: 1.2;
+}
+
+.assistant-command-bar p {
+  margin: 0;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.assistant-eyebrow {
+  color: var(--primary-color);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.assistant-status-strip {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .assistant-layout {
   display: grid;
-  grid-template-columns: minmax(320px, 0.95fr) minmax(0, 1.35fr);
-  gap: 20px;
+  grid-template-columns: minmax(300px, 0.82fr) minmax(0, 1.45fr);
+  gap: 16px;
   flex: 1;
   min-height: 0;
 }
@@ -32,6 +71,11 @@
   flex-wrap: wrap;
 }
 
+.stream-status {
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
 .search-panel,
 .chat-panel {
   min-height: 0;
@@ -47,7 +91,7 @@
 }
 
 .search-panel :deep(.el-card__body) {
-  gap: 16px;
+  gap: 14px;
 }
 
 .search-box {
@@ -56,8 +100,8 @@
 
 .search-results {
   display: grid;
-  gap: 10px;
-  max-height: min(34vh, 280px);
+  gap: 8px;
+  max-height: min(30vh, 260px);
   overflow: auto;
   padding-right: 4px;
   flex: 0 0 auto;
@@ -65,11 +109,11 @@
 
 .search-result-item {
   display: grid;
-  gap: 10px;
+  gap: 8px;
   width: 100%;
-  padding: 14px 16px;
+  padding: 12px 14px;
   border: 1px solid rgba(15, 108, 189, 0.08);
-  border-radius: 14px;
+  border-radius: 12px;
   background: var(--bg-elevated);
   text-align: left;
   cursor: pointer;
@@ -88,16 +132,16 @@
   margin: 0;
   line-height: 1.7;
   color: #606266;
+  overflow-wrap: anywhere;
 }
 
 .point-detail-card {
   display: grid;
-  gap: 16px;
-  padding: 18px;
+  gap: 14px;
+  padding: 16px;
   border: 1px solid rgba(15, 108, 189, 0.12);
-  border-radius: 18px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(244, 248, 252, 0.96));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  border-radius: 14px;
+  background: var(--bg-elevated);
   flex: 1;
   min-height: 0;
   overflow: auto;
@@ -115,7 +159,7 @@
 
 .relation-groups {
   display: grid;
-  gap: 14px;
+  gap: 12px;
 }
 
 .relation-label {
@@ -141,7 +185,7 @@
   min-height: 0;
   overflow-y: auto;
   display: grid;
-  gap: 14px;
+  gap: 12px;
   padding-right: 6px;
 }
 
@@ -154,9 +198,9 @@
 }
 
 .message-bubble {
-  max-width: 88%;
-  padding: 14px 16px;
-  border-radius: 16px;
+  max-width: min(88%, 760px);
+  padding: 13px 15px;
+  border-radius: 14px;
   background: var(--bg-elevated);
   border: 1px solid rgba(15, 108, 189, 0.08);
 }
@@ -169,6 +213,7 @@
 .message-content :deep(p) {
   margin: 0;
   line-height: 1.8;
+  overflow-wrap: anywhere;
 }
 
 .message-sources,
@@ -184,7 +229,7 @@
   color: #606266;
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: 6px;
 }
 
 .typing-stage-text {
@@ -211,7 +256,7 @@
 }
 
 .chat-composer {
-  margin-top: 18px;
+  margin-top: 14px;
   display: grid;
   gap: 10px;
 }
@@ -238,8 +283,24 @@
     grid-template-columns: 1fr;
   }
 
+  .chat-panel {
+    order: -1;
+  }
+
   .chat-history {
     height: 420px;
     min-height: 420px;
+  }
+}
+
+@media (max-width: 720px) {
+  .assistant-command-bar,
+  .composer-actions {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .assistant-status-strip {
+    justify-content: flex-start;
   }
 }

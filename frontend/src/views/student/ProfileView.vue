@@ -7,7 +7,6 @@
     <template v-else>
       <!-- Empty state appears only when the student has not produced any usable profile signals yet. -->
       <div v-if="noAssessmentDone" class="assessment-empty-card">
-        <div class="empty-orbit" aria-hidden="true" />
         <div>
           <p class="empty-eyebrow">Profile signals needed</p>
           <h3>完成初始测评后，画像会变得可解释</h3>
@@ -20,9 +19,8 @@
 
       <!-- Header collects identity, learner tags, and the manual refresh entry point. -->
       <section class="profile-hero">
-        <div class="hero-ambient" aria-hidden="true" />
         <div class="hero-main">
-          <el-avatar :size="86" class="user-avatar">
+          <el-avatar :size="64" class="user-avatar">
             {{ username.charAt(0).toUpperCase() }}
           </el-avatar>
           <div class="user-info">
@@ -49,6 +47,11 @@
 
       <div class="metric-strip">
         <div class="metric-card">
+          <span>画像完整度</span>
+          <strong>{{ profileCompleteness }}%</strong>
+          <em>{{ learnerTags.length ? '已形成标签' : '等待更多信号' }}</em>
+        </div>
+        <div class="metric-card">
           <span>能力均分</span>
           <strong>{{ abilityAverage }}%</strong>
           <em>{{ strongestAbility?.name || '暂无能力数据' }}</em>
@@ -58,6 +61,11 @@
           <strong>{{ masteryAverage }}%</strong>
           <em>{{ learningFocusLabel }}</em>
         </div>
+        <div class="metric-card warning">
+          <span>薄弱项</span>
+          <strong>{{ lowMasteryCount }}</strong>
+          <em>{{ lowMasteryCount ? '需要优先突破' : '暂无明显短板' }}</em>
+        </div>
         <div class="metric-card accent">
           <span>AI 建议</span>
           <strong>{{ aiSuggestions.length }}</strong>
@@ -65,7 +73,7 @@
         </div>
       </div>
 
-      <div class="profile-overview-grid">
+      <div class="profile-analysis-grid">
         <!-- Ability radar prefers the compact chart because dimensions are fixed and comparable. -->
         <el-card class="ability-card" shadow="hover">
           <template #header>
@@ -161,80 +169,79 @@
             </el-button>
           </div>
         </el-card>
-      </div>
+        <!-- Summary text is optional because some courses only return structured chart data. -->
+        <el-card v-if="profileSummary || profileWeakness || profileStrength" class="summary-card" shadow="hover">
+          <template #header>
+            <div class="card-header stacked">
+              <div>
+                <span class="card-eyebrow">Interpretation</span>
+                <strong>画像总结</strong>
+              </div>
+            </div>
+          </template>
+          <div class="summary-layout" :class="{ 'single-summary': !(profileStrength || profileWeakness) }">
+            <p v-if="profileSummary" class="summary-text">{{ profileSummary }}</p>
+            <div v-if="profileStrength || profileWeakness" class="summary-lenses">
+              <div v-if="profileStrength" class="summary-block strength-block">
+                <el-tag type="success" effect="plain" size="small">学习优势</el-tag>
+                <p class="summary-strength">{{ profileStrength }}</p>
+              </div>
+              <div v-if="profileWeakness" class="summary-block weakness-block">
+                <el-tag type="warning" effect="plain" size="small">薄弱环节</el-tag>
+                <p class="summary-weakness">{{ profileWeakness }}</p>
+              </div>
+            </div>
+          </div>
+        </el-card>
 
-      <!-- Summary text is optional because some courses only return structured chart data. -->
-      <el-card v-if="profileSummary || profileWeakness || profileStrength" class="summary-card" shadow="hover">
-        <template #header>
-          <div class="card-header stacked">
-            <div>
-              <span class="card-eyebrow">Interpretation</span>
-              <strong>画像总结</strong>
-            </div>
-          </div>
-        </template>
-        <div class="summary-layout" :class="{ 'single-summary': !(profileStrength || profileWeakness) }">
-          <p v-if="profileSummary" class="summary-text">{{ profileSummary }}</p>
-          <div v-if="profileStrength || profileWeakness" class="summary-lenses">
-            <div v-if="profileStrength" class="summary-block strength-block">
-              <el-tag type="success" effect="plain" size="small">学习优势</el-tag>
-              <p class="summary-strength">{{ profileStrength }}</p>
-            </div>
-            <div v-if="profileWeakness" class="summary-block weakness-block">
-              <el-tag type="warning" effect="plain" size="small">薄弱环节</el-tag>
-              <p class="summary-weakness">{{ profileWeakness }}</p>
-            </div>
-          </div>
-        </div>
-      </el-card>
-
-      <!-- AI advice is intentionally isolated from the base profile so stale suggestions can retry safely. -->
-      <el-card class="ai-card" shadow="hover">
-        <template #header>
-          <div class="card-header">
-            <span><el-icon>
-                <MagicStick />
-              </el-icon> AI 学习建议</span>
-            <el-button v-if="assessmentReady" :icon="Refresh" text :loading="aiLoading" @click="refreshAISuggestions">
-              刷新 AI 建议
-            </el-button>
-          </div>
-        </template>
-        <div v-if="!assessmentReady" class="chart-placeholder ai-placeholder">
-          <el-icon>
-            <DataAnalysis />
-          </el-icon>
-          <p>请先完成初始测评，系统才会生成 AI 学习建议。</p>
-          <el-button type="primary" size="small" @click="$router.push('/student/assessment')">
-            前往测评中心
-          </el-button>
-        </div>
-        <div v-else-if="aiLoading" class="ai-loading">
-          <el-progress :percentage="aiProgressPercent" :stroke-width="10" :show-text="true" status="" />
-          <p class="ai-progress-stage">{{ aiProgressStageText }}</p>
-        </div>
-        <div v-else class="ai-content">
-          <template v-if="aiLoadFailed">
-            <el-alert type="warning" :closable="false" title="获取 AI 学习建议失败" show-icon />
-            <div class="retry-row">
-              <el-button type="primary" size="small" @click="loadAISuggestions">
-                重新获取
+        <!-- AI advice is intentionally isolated from the base profile so stale suggestions can retry safely. -->
+        <el-card class="ai-card" shadow="hover">
+          <template #header>
+            <div class="card-header">
+              <span><el-icon>
+                  <MagicStick />
+                </el-icon> AI 学习建议</span>
+              <el-button v-if="assessmentReady" :icon="Refresh" text :loading="aiLoading" @click="refreshAISuggestions">
+                刷新 AI 建议
               </el-button>
             </div>
           </template>
-          <template v-else>
-            <!-- Suggestions are rendered as a merged flat list because the API may split them across fields. -->
-            <p class="ai-lead">系统基于当前画像，推荐以下学习动作：</p>
-            <div v-if="aiSuggestions.length" class="suggestion-grid">
-              <article v-for="(suggestion, index) in aiSuggestions" :key="index" class="suggestion-card">
-                <span>{{ String(index + 1).padStart(2, '0') }}</span>
-                <p>{{ suggestion }}</p>
-              </article>
-            </div>
-            <el-empty v-if="!aiSuggestions.length" description="暂无学习建议" />
-          </template>
-        </div>
-      </el-card>
+          <div v-if="!assessmentReady" class="chart-placeholder ai-placeholder">
+            <el-icon>
+              <DataAnalysis />
+            </el-icon>
+            <p>请先完成初始测评，系统才会生成 AI 学习建议。</p>
+            <el-button type="primary" size="small" @click="$router.push('/student/assessment')">
+              前往测评中心
+            </el-button>
+          </div>
+          <div v-else-if="aiLoading" class="ai-loading">
+            <el-progress :percentage="aiProgressPercent" :stroke-width="10" :show-text="true" status="" />
+            <p class="ai-progress-stage">{{ aiProgressStageText }}</p>
+          </div>
+          <div v-else class="ai-content">
+            <template v-if="aiLoadFailed">
+              <el-alert type="warning" :closable="false" title="获取 AI 学习建议失败" show-icon />
+              <div class="retry-row">
+                <el-button type="primary" size="small" @click="loadAISuggestions">
+                  重新获取
+                </el-button>
+              </div>
+            </template>
+            <template v-else>
+              <!-- Suggestions are rendered as a merged flat list because the API may split them across fields. -->
+              <p class="ai-lead">系统基于当前画像，推荐以下学习动作：</p>
+              <div v-if="aiSuggestions.length" class="suggestion-grid">
+                <article v-for="(suggestion, index) in aiSuggestions" :key="index" class="suggestion-card">
+                  <span>{{ String(index + 1).padStart(2, '0') }}</span>
+                  <p>{{ suggestion }}</p>
+                </article>
+              </div>
+              <el-empty v-if="!aiSuggestions.length" description="暂无学习建议" />
+            </template>
+          </div>
+        </el-card>
+      </div>
     </template>
   </div>
 </template>
