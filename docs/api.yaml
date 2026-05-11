@@ -12,6 +12,12 @@ info:
     - JWT 身份认证
     - MEFKT知识追踪（PyTorch，融合多视角习题表征与遗忘机制）
     - LLM服务（DeepSeek / Qwen-plus，通过LangChain编排）
+
+    ## 项目信息
+    - 开发者：饶弘玮（上海第二工业大学 25网工A2）
+    - 单位：上海第二工业大学 / 计算机与信息工程学院
+    - 参赛编号：20260235
+    - 资助项目：上海市大学生创新创业训练计划项目 2026-G12044-038
     
     ## API命名规范
     ```
@@ -39,9 +45,10 @@ info:
     
   version: 1.0.0
   contact:
-    name: Qintsg
+    name: 饶弘玮
+    email: qintsg@outlook.com
   license:
-    name: None
+    name: MIT
   x-changelog: |
     v1.0.1 (2026-03-05):
     - 文档元信息更新：技术栈版本、文档时间戳

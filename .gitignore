@@ -3,6 +3,16 @@
 # =========================
 output/
 .omx/
+
+# --- Local agent/tooling state ---
+.claude/
+.playwright-cli/
+.playwright-mcp
+.oms/
+AGENT_TODO.md
+AGENTS.md
+DESIGN.md
+
 # --- OS / Editor ---
 .DS_Store
 Thumbs.db
@@ -29,6 +39,7 @@ ENV/
 .coverage
 .coverage.*
 htmlcov/
+requirements*.txt
 
 # --- Backend runtime ---
 backend/.env
@@ -39,6 +50,7 @@ backend/*.sqlite3
 backend/logs/operations/
 
 # --- Node / Frontend ---
+node_modules/
 frontend/node_modules/
 frontend/dist/
 *.tsbuildinfo

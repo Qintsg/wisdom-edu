@@ -1,54 +1,63 @@
 # 知识图谱驱动的个性化自适应学习系统
 
-基于 `Vue 3 + Django + DRF + PostgreSQL + Neo4j + Qdrant + LangChain` 的课程级自适应学习平台，围绕知识图谱、学习画像、学习路径、在线测评、知识追踪与 AI 学习辅助构建完整闭环。
+本项目是面向课程教学、学习诊断与个性化辅导的一体化 Web 平台。系统以知识图谱为课程结构底座，结合学习画像、MEFKT 知识追踪、GraphRAG 检索增强生成、在线测评与 AI 学习助手，为学生提供可追溯的学习路径、资源推荐、阶段反馈与问答支持，同时为教师和管理员提供课程、题库、班级、资源与账号治理能力。
 
-## 当前重点能力
+## 项目元信息
 
-- 学生、教师、管理员三端统一 Web 应用
-- 课程知识图谱可视化与知识点详情联动
-- 个性化学习路径、任务学习、阶段测试与在线考试
-- AI 学习画像、学习建议、反馈报告、课程内外资源推荐
-- Neo4j GraphRAG + Qdrant 混合检索、MEFKT、LLM、外部搜索统一封装在 `backend/platform_ai`
-- 浏览器自动巡检、演示数据重建与 API 回归工具
+| 项目 | 内容 |
+| --- | --- |
+| 开发者 | 饶弘玮，上海第二工业大学 25网工A2 |
+| 单位 | 上海第二工业大学 / 计算机与信息工程学院 |
+| 上海市大学生计算机应用能力大赛 | 2026 年第十八届，参赛编号 `20260235`，参赛组别 Web 网站设计，作品名称“知识图谱驱动的个性化自适应学习系统” |
+| 超星杯“AI+教育”创新应用大赛 | 上海第二工业大学 2026 年超星杯“AI+教育”创新应用大赛，赛道一：AI 赋能学生学业，作品名称“个性化自适应学习系统” |
+| 大学生创新创业训练计划 | 2026 年度大学生创新创业训练计划项目，项目编号 `2026-G12044-038`，创新训练项目，国家级，项目名称“智慧教育——基于知识图谱的个性化教学辅助平台” |
+
+由上海市大学生创新创业训练计划项目 `2026-G12044-038` 资助。Supported by the Shanghai Undergraduate Training Program on Innovation and Entrepreneurship (SUTPIE) grant `2026-G12044-038`.
+
+## 核心能力
+
+- 学生、教师、管理员三端统一 Web 应用，覆盖学习、教学与平台治理。
+- 课程知识图谱可视化，支持知识点详情、关系查询、课程资源与学习状态联动。
+- 个性化学习路径、任务学习、初始测评、阶段测试、在线作业与反馈报告闭环。
+- 学习画像、资源推荐、课程问答、图谱增强解释和 GraphRAG 证据召回。
+- MEFKT 知识追踪与规则兜底并行，输出掌握度、薄弱点和学习建议。
+- 演示数据重建、API 回归、浏览器巡检和部署说明覆盖答辩与验收场景。
 
 ## 技术架构
 
 - 前端：`frontend/`
-  - Vue 3
-  - Element Plus
-  - Pinia / Vue Router
-  - D3.js 知识图谱
+  - Vue 3、Vite、TypeScript、Pinia、Vue Router。
+  - Element Plus 组件基础，界面规范按 Fluent 2 风格收口。
+  - D3.js / ECharts 用于知识图谱、画像和统计可视化。
 - 后端：`backend/`
-  - Django 6
-  - Django REST Framework
-  - PostgreSQL
-  - Neo4j
-  - Neo4j GraphRAG Python + Qdrant
-  - LangChain agent + 通义千问 / DeepSeek 兼容聊天客户端
-- 文档：`docs/`
+  - Python 3.12、Django、Django REST Framework、Channels。
+  - PostgreSQL 保存用户、课程、题目、学习记录、测评、任务与日志等事务数据。
+  - Neo4j 保存知识点、概念、依赖、先修和路径推理等图结构数据。
+  - Qdrant、Neo4j GraphRAG、LangChain、DeepSeek / 通义千问兼容客户端支撑 AI 能力。
+  - `backend/platform_ai` 汇聚 RAG、LLM、KT、搜索与 Agent 边界实现。
+- 文档与契约：`docs/`
+  - API 契约以 `docs/api.yaml` 为准，旧 Markdown API 文档已移除。
+  - 维护、安装、使用、部署、GraphRAG、MEFKT、LangChain 与大模型接入文档集中维护。
 
 ## 快速启动
 
-### 推荐：uv 管理后端环境
-
-```bash
-cd backend
-uv sync
-uv run python manage.py runserver 127.0.0.1:8000
-```
-
-首次运行前请基于 `backend/.env.example` 准备 `backend/.env`，并填写数据库、Neo4j 与 LLM 配置。前端开发期统一通过 `frontend/vite.config.ts` 代理 `/api`、`/media`、`/ws`。
-当前开发代理默认联调 `http://127.0.0.1:8000`，并监听 `0.0.0.0:3000`，因此本地 `npm run dev` 无需额外配置 Nginx、Caddy 或其他反向代理；如需临时联调远端后端，可通过 `VITE_DEV_BACKEND_ORIGIN` 覆盖开发代理目标，通过 `VITE_DEV_PORT` 覆盖开发端口。生产构建默认直连 `http://127.0.0.1:8000`，如需让生产包改连其他后端入口，可通过 `VITE_BACKEND_ORIGIN` 覆盖后重新构建。
-
 ### 后端
 
+首次运行前基于 `backend/.env.example` 创建 `backend/.env`，填写 PostgreSQL、Neo4j、LLM、GraphRAG、KT 和 Django 配置。
+
 ```bash
 cd backend
 uv sync
+uv run python manage.py migrate
 uv run python manage.py runserver 127.0.0.1:8000
 ```
 
-后端本地开发环境当前以 **Python 3.12** 为基线版本，依赖由 `backend/pyproject.toml` 与 `backend/uv.lock` 锁定；`uv sync` 会创建或更新 `backend/.venv`。
+后端依赖由 `backend/pyproject.toml` 与 `backend/uv.lock` 锁定。需要严格复现锁文件时使用：
+
+```bash
+cd backend
+uv sync --frozen
+```
 
 ### 前端
 
@@ -60,65 +69,73 @@ npm run dev
 
 默认开发地址：
 
-- 前端：`http://0.0.0.0:3000`（局域网访问时使用宿主机实际 IP）
+- 前端：`http://127.0.0.1:3000`
 - 后端：`http://127.0.0.1:8000`
-
-本地开发默认无需额外前端环境变量，也无需配置额外反向代理；`npm run dev` 会直接把 `/api`、`/media`、`/static`、`/ws` 代理到 `127.0.0.1:8000`。如需联调到其他后端地址，请调整 `frontend/vite.config.ts` 中对应代理目标或设置 `VITE_DEV_BACKEND_ORIGIN`；如需避开端口占用，可设置 `VITE_DEV_PORT`。若要让生产包请求其他域名/端口，则需要设置 `VITE_BACKEND_ORIGIN` 后重新构建。
-
-## 常用入口
-
-- 登录：`/login`
-- 注册：`/register`
-- 学生端：`/student/*`
-- 教师端：`/teacher/*`
-- 管理端：`/admin/*`
 - Swagger：`http://127.0.0.1:8000/api/docs/`
 - ReDoc：`http://127.0.0.1:8000/api/redoc/`
+- OpenAPI Schema：`http://127.0.0.1:8000/api/schema/`
+
+本地开发默认通过 `frontend/vite.config.ts` 将 `/api`、`/media`、`/static`、`/ws` 代理到 `127.0.0.1:8000`，不需要额外配置 Nginx、Caddy 或其他反向代理。需要临时联调远端后端时设置 `VITE_DEV_BACKEND_ORIGIN`；需要切换开发端口时设置 `VITE_DEV_PORT`；生产包需要直连其他后端入口时设置 `VITE_BACKEND_ORIGIN` 后重新构建。
 
 ## 常用命令
 
-### 演示数据重建
+### 后端验证
+
+```bash
+cd backend
+uv run python manage.py check
+uv run python manage.py makemigrations --check --dry-run
+uv run python tools.py db-check
+uv run python tools.py django-check
+```
+
+### 前端验证
+
+```bash
+cd frontend
+npm run typecheck
+npm run build
+```
+
+### 演示数据与浏览器巡检
 
 ```bash
 cd backend
 uv run python tools.py rebuild-demo-data --course-name "大数据技术与应用"
-```
-
-### 浏览器巡检
-
-```bash
-cd backend
 uv run python tools.py browser-audit --scenario audit --frontend-url http://127.0.0.1:3000 --api-base-url http://127.0.0.1:8000
 ```
-
-说明：
-
-- `audit` 会优先使用学生账号已完成提交的考试作为反馈报告入口，避免把未提交考试误判为反馈页异常。
-- 执行 `rebuild-demo-data` 或 `ensure_defense_demo_environment` 后，`student1` 会自动带有真实阶段测试提交与完成态反馈报告，便于直接验收学生端反馈链路。
-
-### 前端构建
-
-```bash
-cd frontend
-npm run build
-```
-
-## 文档导航
-
-- `docs/README.md`
-- `docs/安装说明.md`
-- `docs/使用说明.md`
-- `docs/服务器部署说明.md`
-- `docs/GraphRAG实现说明.md`
-- `docs/MEFKT实现说明.md`
-- `docs/LangChain智能体说明.md`
-- `docs/大模型接入说明.md`
-- `docs/API.md`
 
 ## 目录结构
 
 ```text
-backend/   Django + DRF + Channels + GraphRAG + KT
-frontend/  Vue 3 + Vite + Element Plus
-docs/      安装、使用、部署与 AI/KT 实现说明
+backend/   Django + DRF + Channels + GraphRAG + MEFKT + LLM 服务
+frontend/  Vue 3 + Vite + TypeScript + Fluent 2 风格界面
+docs/      安装、使用、部署、维护、API YAML 与 AI/KT 实现说明
 ```
+
+## 文档导航
+
+- `docs/README.md`：文档总览和推荐阅读顺序。
+- `docs/安装说明.md`：本地开发环境准备、依赖同步与启动验证。
+- `docs/使用说明.md`：学生、教师、管理员三端使用路径。
+- `docs/维护说明.md`：日常维护、依赖、API、数据、验证和发布要求。
+- `docs/服务器部署说明.md`：生产 / 演示环境部署说明。
+- `docs/GraphRAG实现说明.md`：课程级 GraphRAG、Qdrant 与 Neo4j 查询增强。
+- `docs/MEFKT实现说明.md`：MEFKT 训练、部署与 KT 服务接入。
+- `docs/LangChain智能体说明.md`：LangChain agent 边界与工具集。
+- `docs/大模型接入说明.md`：LLM 提供方配置、非思考模式与排障。
+- `docs/api.yaml`：OpenAPI 契约源文件。
+- `STYLE.md`：代码、文档、API 与前端界面风格约定。
+- `LICENSE`：MIT License。
+
+## 维护边界
+
+- 运行配置、密钥、缓存、依赖目录、Playwright 产物和本地代理状态不进入版本库。
+- 后端依赖以 `backend/pyproject.toml` 与 `backend/uv.lock` 为准，不再维护 `requirements.txt`。
+- 前端依赖以 `frontend/package.json` 与 `frontend/package-lock.json` 为准，`node_modules/` 仅本地生成。
+- API 契约以 `docs/api.yaml` 为准；接口变化后同步更新该文件、相关说明和 `docs/CHANGELOG.md`。
+- 涉及 RAG / KT / KG / LLM / Agent、数据库结构、配置、部署或关键交互的改动必须同步文档并完成验证。
+
+## 许可证
+
+本项目使用 MIT License，详见 `LICENSE`。

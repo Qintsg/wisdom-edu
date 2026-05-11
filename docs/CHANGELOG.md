@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-05-11
+
+### Docs / Repository Hygiene — 仓库整理与文档补全
+
+- 删除旧版 `docs/API.md`，API 契约统一收口到 `docs/api.yaml`。
+- `.gitignore` 补充本地代理、Playwright、Python 缓存、`.oms/`、`AGENTS.md`、`DESIGN.md`、`AGENT_TODO.md`、`requirements*.txt` 与通用 `node_modules/` 规则，防止本地产物重新进入版本库。
+- 清理本地 `frontend/node_modules/` 与空目录，保留可重新生成的依赖产物和缓存不入库的维护口径。
+- 根 `README.md`、`docs/README.md`、`docs/安装说明.md` 与 `docs/使用说明.md` 已同步项目元信息、资助声明、API YAML 入口、启动命令和维护边界。
+- 新增 `docs/维护说明.md`、`STYLE.md` 与 MIT `LICENSE`，补齐后续维护、风格和许可说明。
+
 ## 2026-05-09
 
 ### Backend / Demo Data — 数据导入与状态检查修复
