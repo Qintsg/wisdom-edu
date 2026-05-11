@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from functools import lru_cache
 
-from ai_services.services.web_search_service import search_learning_resources
+from platform_ai.mcp.resources import resource_mcp_service
 
 
 # 维护意图：统一外部检索入口。
@@ -14,8 +14,8 @@ class ExternalSearchProvider:
     """
     统一外部检索入口。
 
-    当前仍复用现有网页搜索服务，但把调用点集中到一层，
-    便于后续替换为更稳定的 provider、缓存和重排策略。
+    当前统一复用学习资源 MCP 的 Tavily 外部搜索能力，避免新调用点绕回
+    旧的网页搜索抓取逻辑。
     """
 
     # 维护意图：检索与指定知识点相关的外部学习资源
@@ -30,11 +30,24 @@ class ExternalSearchProvider:
     ) -> list[dict]:
         """检索与指定知识点相关的外部学习资源。"""
 
-        return search_learning_resources(
+        candidates = resource_mcp_service.search_external_resources(
             point_name=point_name,
+            student_mastery=None,
+            existing_titles=[],
             course_name=course_name,
             count=count,
         )
+        return [
+            {
+                "title": candidate.title,
+                "url": candidate.url,
+                "snippet": candidate.snippet,
+                "source": candidate.source,
+                "type": candidate.resource_type,
+                "provider": candidate.provider,
+            }
+            for candidate in candidates[:count]
+        ]
 
 
 external_search_provider = ExternalSearchProvider()

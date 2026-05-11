@@ -1,8 +1,8 @@
 """学生学习资源推荐的 MCP 工具适配层。
 
-该模块把三类推荐能力收束成稳定服务：项目内课程资源检索、Exa
-语义网页搜索、Firecrawl 正文抓取。调用方仍只消费结构化资源列表，
-避免在视图层或 RAG 编排层直接散落外部服务细节。
+该模块把项目内课程资源检索和 Tavily 外部网页搜索收束成稳定服务。
+调用方仍只消费结构化资源列表，避免在视图层或 RAG 编排层直接散落
+外部服务细节。
 """
 
 from __future__ import annotations
@@ -142,12 +142,12 @@ class InternalResourceCandidate:
         return _resource_id(self.resource)
 
 
-# 维护意图：Exa / Firecrawl MCP 外部资源结果
+# 维护意图：Tavily MCP 外部资源结果
 # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
 # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @dataclass(frozen=True)
 class ExternalResourceCandidate:
-    """Exa / Firecrawl MCP 外部资源结果。"""
+    """Tavily MCP 外部资源结果。"""
 
     title: str
     url: str
@@ -267,7 +267,7 @@ class LearningResourceMCPService:
             for resource in ordered_resources[:limit]
         ]
 
-    # 维护意图：使用 Exa 搜索，并按需用 Firecrawl 抓取正文摘要
+    # 维护意图：使用 Tavily 搜索外部学习资源
     # 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
     # 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
     def search_external_resources(
@@ -279,28 +279,18 @@ class LearningResourceMCPService:
         course_name: str | None,
         count: int,
     ) -> list[ExternalResourceCandidate]:
-        """使用 Exa 搜索，并按需用 Firecrawl 抓取正文摘要。"""
+        """使用 Tavily 搜索外部学习资源。"""
 
         if count <= 0 or not self._external_search_enabled():
             return []
 
-        exa_results = self._search_with_exa(
+        return self._search_with_tavily(
             point_name=point_name,
             student_mastery=student_mastery,
             existing_titles=existing_titles,
             course_name=course_name,
             count=count,
         )
-        if not exa_results:
-            return []
-
-        enriched_results: list[ExternalResourceCandidate] = []
-        firecrawl_limit = max(0, int(getattr(settings, "RESOURCE_MCP_FIRECRAWL_LIMIT", count)))
-        for index, candidate in enumerate(exa_results[:count]):
-            if self._firecrawl_enabled() and index < firecrawl_limit:
-                candidate = self._enrich_with_firecrawl(candidate)
-            enriched_results.append(candidate)
-        return enriched_results
 
     # 维护意图：判断外部 MCP 搜索是否具备必要配置
     # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
@@ -310,23 +300,10 @@ class LearningResourceMCPService:
 
         return bool(
             getattr(settings, "RESOURCE_MCP_ENABLED", True)
-            and getattr(settings, "RESOURCE_MCP_EXA_ENABLED", True)
-            and _coerce_text(getattr(settings, "EXA_API_KEY", ""))
+            and _coerce_text(getattr(settings, "TAVILY_API_KEY", ""))
         )
 
-    # 维护意图：判断 Firecrawl 摘要抓取是否可用
-    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
-    def _firecrawl_enabled(self) -> bool:
-        """判断 Firecrawl 摘要抓取是否可用。"""
-
-        return bool(
-            getattr(settings, "RESOURCE_MCP_ENABLED", True)
-            and getattr(settings, "RESOURCE_MCP_FIRECRAWL_ENABLED", True)
-            and _coerce_text(getattr(settings, "FIRECRAWL_API_KEY", ""))
-        )
-
-    # 维护意图：构造面向学习资源的 Exa 查询
+    # 维护意图：构造面向学习资源的 Tavily 查询
     # 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
     # 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
     def _build_search_query(
@@ -336,16 +313,16 @@ class LearningResourceMCPService:
         student_mastery: float | None,
         course_name: str | None,
     ) -> str:
-        """构造面向学习资源的 Exa 查询。"""
+        """构造面向学习资源的 Tavily 查询。"""
 
         stage = _mastery_stage(student_mastery)
         course_prefix = f"{course_name} " if course_name else ""
         return f"{course_prefix}{point_name} {stage} 学习资源 教程 示例 官方文档"
 
-    # 维护意图：调用 Exa search API 返回候选资源
+    # 维护意图：调用 Tavily Search API 返回候选资源
     # 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
     # 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
-    def _search_with_exa(
+    def _search_with_tavily(
         self,
         *,
         point_name: str,
@@ -354,31 +331,31 @@ class LearningResourceMCPService:
         course_name: str | None,
         count: int,
     ) -> list[ExternalResourceCandidate]:
-        """调用 Exa search API 返回候选资源。"""
+        """调用 Tavily Search API 返回候选资源。"""
 
         query = self._build_search_query(
             point_name=point_name,
             student_mastery=student_mastery,
             course_name=course_name,
         )
-        max_results = max(count, int(getattr(settings, "EXA_MAX_RESULTS", max(6, count * 2))))
+        max_results = max(count, int(getattr(settings, "TAVILY_MAX_RESULTS", max(6, count * 2))))
         payload = {
             "query": query,
-            "numResults": min(max_results, 20),
-            "type": _coerce_text(getattr(settings, "EXA_SEARCH_TYPE", "neural")) or "neural",
-            "contents": {
-                "highlights": {"maxCharacters": 800},
-                "text": {"maxCharacters": 1200},
-            },
+            "search_depth": _coerce_text(getattr(settings, "TAVILY_SEARCH_DEPTH", "basic")) or "basic",
+            "max_results": min(max_results, 20),
+            "include_answer": False,
+            "include_raw_content": False,
+            "include_images": False,
         }
         headers = {
             **EXTERNAL_REQUEST_HEADERS,
-            "x-api-key": _coerce_text(getattr(settings, "EXA_API_KEY", "")),
+            "Authorization": f"Bearer {_coerce_text(getattr(settings, 'TAVILY_API_KEY', ''))}",
         }
 
         try:
             response = self.session.post(
-                _coerce_text(getattr(settings, "EXA_SEARCH_URL", "https://api.exa.ai/search")) or "https://api.exa.ai/search",
+                _coerce_text(getattr(settings, "TAVILY_SEARCH_URL", "https://api.tavily.com/search"))
+                or "https://api.tavily.com/search",
                 headers=headers,
                 json=payload,
                 timeout=int(getattr(settings, "RESOURCE_MCP_TIMEOUT_SECONDS", 12)),
@@ -386,7 +363,7 @@ class LearningResourceMCPService:
             response.raise_for_status()
             response_payload = response.json()
         except Exception as exc:
-            logger.warning("Exa 学习资源搜索失败: point=%s error=%s", point_name, exc)
+            logger.warning("Tavily 学习资源搜索失败: point=%s error=%s", point_name, exc)
             return []
 
         raw_results = response_payload.get("results") if isinstance(response_payload, dict) else []
@@ -408,16 +385,16 @@ class LearningResourceMCPService:
             if normalized_url in seen_urls or _normalize_match_text(title) in existing_title_set:
                 continue
             seen_urls.add(normalized_url)
-            snippet = self._extract_exa_snippet(raw_item)
+            snippet = self._extract_tavily_snippet(raw_item)
             candidates.append(
                 ExternalResourceCandidate(
                     title=title,
                     url=normalized_url,
                     resource_type=_guess_resource_type(normalized_url, title),
                     source=_domain_from_url(normalized_url),
-                    provider="exa",
+                    provider="tavily",
                     snippet=snippet,
-                    reason=f"Exa 语义搜索命中该资源，内容与“{point_name}”相关，适合{stage}阶段补充学习。",
+                    reason=f"Tavily 搜索命中该资源，内容与“{point_name}”相关，适合{stage}阶段补充学习。",
                     learning_tips="建议先完成课程内资源，再打开该外部资料对照示例复习。",
                 )
             )
@@ -425,68 +402,13 @@ class LearningResourceMCPService:
                 break
         return candidates
 
-    # 维护意图：从 Exa 响应中提取高亮或正文摘要
+    # 维护意图：从 Tavily 响应中提取摘要
     # 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
     # 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
-    def _extract_exa_snippet(self, raw_item: dict[str, object]) -> str:
-        """从 Exa 响应中提取高亮或正文摘要。"""
+    def _extract_tavily_snippet(self, raw_item: dict[str, object]) -> str:
+        """从 Tavily 响应中提取摘要。"""
 
-        highlights = raw_item.get("highlights")
-        if isinstance(highlights, list):
-            highlight_text = " ".join(_coerce_text(item) for item in highlights if _coerce_text(item))
-            if highlight_text:
-                return _truncate_text(highlight_text)
-        return _truncate_text(_coerce_text(raw_item.get("text")))
-
-    # 维护意图：用 Firecrawl 抓取主正文，增强摘要可信度
-    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
-    def _enrich_with_firecrawl(self, candidate: ExternalResourceCandidate) -> ExternalResourceCandidate:
-        """用 Firecrawl 抓取主正文，增强摘要可信度。"""
-
-        payload = {
-            "url": candidate.url,
-            "onlyMainContent": True,
-            "formats": ["markdown"],
-            "timeout": int(getattr(settings, "FIRECRAWL_TIMEOUT_MILLISECONDS", 15000)),
-            "removeBase64Images": True,
-            "blockAds": True,
-        }
-        headers = {
-            **EXTERNAL_REQUEST_HEADERS,
-            "Authorization": f"Bearer {_coerce_text(getattr(settings, 'FIRECRAWL_API_KEY', ''))}",
-        }
-        try:
-            response = self.session.post(
-                _coerce_text(getattr(settings, "FIRECRAWL_SCRAPE_URL", "https://api.firecrawl.dev/v1/scrape"))
-                or "https://api.firecrawl.dev/v1/scrape",
-                headers=headers,
-                json=payload,
-                timeout=int(getattr(settings, "RESOURCE_MCP_TIMEOUT_SECONDS", 12)),
-            )
-            response.raise_for_status()
-            response_payload = response.json()
-        except Exception as exc:
-            logger.info("Firecrawl 资源摘要抓取失败: url=%s error=%s", candidate.url, exc)
-            return candidate
-
-        data = response_payload.get("data") if isinstance(response_payload, dict) else None
-        if not isinstance(data, dict):
-            return candidate
-        metadata = data.get("metadata") if isinstance(data.get("metadata"), dict) else {}
-        markdown = _coerce_text(data.get("markdown") or data.get("text"))
-        title = _coerce_text(metadata.get("title")) or candidate.title
-        description = _coerce_text(metadata.get("description")) or markdown or candidate.snippet
-        return ExternalResourceCandidate(
-            title=title,
-            url=candidate.url,
-            resource_type=candidate.resource_type,
-            source=candidate.source,
-            provider="exa_firecrawl",
-            snippet=_truncate_text(description),
-            reason=candidate.reason.replace("Exa 语义搜索命中", "Exa 语义搜索命中且 Firecrawl 已抓取正文摘要"),
-            learning_tips=candidate.learning_tips,
-        )
+        return _truncate_text(_coerce_text(raw_item.get("content") or raw_item.get("raw_content")))
 
 
 resource_mcp_service = LearningResourceMCPService()

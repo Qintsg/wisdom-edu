@@ -2,6 +2,12 @@
 
 ## 2026-05-11
 
+### Backend / AI — 学习资源 MCP 切换 Tavily
+
+- 学生端外部学习资源 MCP 从 Exa + Firecrawl 切换为 Tavily Search API，`.env` 只需填写 `TAVILY_API_KEY`。
+- Tavily 未配置、请求失败或没有返回有效结果时，会保持课程内资源推荐，并继续回退到当前模型提供方的联网推荐链路。
+- `backend/config.ini`、`backend/.env.example` 与大模型接入说明已同步删除 Exa / Firecrawl 配置口径。
+
 ### Docs / Repository Hygiene — 仓库整理与文档补全
 
 - 删除旧版 `docs/API.md`，API 契约统一收口到 `docs/api.yaml`。

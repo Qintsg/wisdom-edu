@@ -102,36 +102,15 @@ def _load_graph_and_resource_settings(
         "RESOURCE_MCP_ENABLED": env_config_bool(
             "RESOURCE_MCP_ENABLED", "resource_mcp", "enabled", True
         ),
-        "RESOURCE_MCP_EXA_ENABLED": env_config_bool(
-            "RESOURCE_MCP_EXA_ENABLED", "resource_mcp", "exa_enabled", True
-        ),
-        "RESOURCE_MCP_FIRECRAWL_ENABLED": env_config_bool(
-            "RESOURCE_MCP_FIRECRAWL_ENABLED", "resource_mcp", "firecrawl_enabled", True
-        ),
         "RESOURCE_MCP_TIMEOUT_SECONDS": _int_setting(
             "RESOURCE_MCP_TIMEOUT_SECONDS", "resource_mcp", "timeout_seconds", 12, config_int
         ),
-        "RESOURCE_MCP_FIRECRAWL_LIMIT": _int_setting(
-            "RESOURCE_MCP_FIRECRAWL_LIMIT", "resource_mcp", "firecrawl_limit", 2, config_int
+        "TAVILY_API_KEY": os.getenv("TAVILY_API_KEY", ""),
+        "TAVILY_SEARCH_DEPTH": os.getenv(
+            "TAVILY_SEARCH_DEPTH", config_value("resource_mcp", "tavily_search_depth", "basic")
         ),
-        "EXA_API_KEY": os.getenv("EXA_API_KEY", ""),
-        "EXA_SEARCH_URL": os.getenv("EXA_SEARCH_URL", "https://api.exa.ai/search"),
-        "EXA_SEARCH_TYPE": os.getenv(
-            "EXA_SEARCH_TYPE", config_value("resource_mcp", "exa_search_type", "neural")
-        ),
-        "EXA_MAX_RESULTS": _int_setting(
-            "EXA_MAX_RESULTS", "resource_mcp", "exa_max_results", 8, config_int
-        ),
-        "FIRECRAWL_API_KEY": os.getenv("FIRECRAWL_API_KEY", ""),
-        "FIRECRAWL_SCRAPE_URL": os.getenv(
-            "FIRECRAWL_SCRAPE_URL", "https://api.firecrawl.dev/v1/scrape"
-        ),
-        "FIRECRAWL_TIMEOUT_MILLISECONDS": _int_setting(
-            "FIRECRAWL_TIMEOUT_MILLISECONDS",
-            "resource_mcp",
-            "firecrawl_timeout_milliseconds",
-            15000,
-            config_int,
+        "TAVILY_MAX_RESULTS": _int_setting(
+            "TAVILY_MAX_RESULTS", "resource_mcp", "tavily_max_results", 8, config_int
         ),
     }
 

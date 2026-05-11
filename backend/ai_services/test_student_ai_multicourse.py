@@ -10,11 +10,6 @@ from django.test import SimpleTestCase, override_settings
 from rest_framework.test import APITestCase
 
 from ai_services.services.student_graph_rag_service import student_graph_rag_service
-from ai_services.services.web_search_service import (
-    SEARCH_PROVIDERS,
-    _search_with_provider,
-    search_learning_resources,
-)
 from courses.models import Course
 from typing import cast
 from types import SimpleNamespace
@@ -28,6 +23,7 @@ from platform_ai.rag.runtime import (
     TokenHashEmbedder,
     student_graphrag_runtime,
 )
+from platform_ai.search.providers import ExternalSearchProvider
 from tools.kt_synthetic import _build_kp_profiles, _simulate_student_sequence
 from users.models import User
 
@@ -255,71 +251,74 @@ class _MCPStubResponse:
         return self.payload
 
 
-# 维护意图：Capture Exa and Firecrawl requests without network access
+# 维护意图：Capture Tavily requests without network access
 # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
 # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class _MCPStubSession:
-    """Capture Exa and Firecrawl requests without network access."""
+    """Capture Tavily requests without network access."""
 
     def __init__(self) -> None:
         self.calls: list[dict[str, object]] = []
 
-    # 维护意图：Return deterministic Exa / Firecrawl payloads
+    # 维护意图：Return deterministic Tavily payloads
     # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
     # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def post(self, url: str, headers: dict[str, str], json: dict[str, object], timeout: int) -> _MCPStubResponse:
-        """Return deterministic Exa / Firecrawl payloads."""
+        """Return deterministic Tavily payloads."""
 
         self.calls.append({"url": url, "headers": headers, "json": json, "timeout": timeout})
-        if "firecrawl" in url:
-            return _MCPStubResponse(
-                {
-                    "success": True,
-                    "data": {
-                        "markdown": "数组基础讲解，包含索引访问、顺序遍历和示例代码。",
-                        "metadata": {"title": "数组基础官方教程", "description": "数组入门正文摘要"},
-                    },
-                }
-            )
         return _MCPStubResponse(
             {
                 "results": [
                     {
-                        "title": "数组基础教程",
+                        "title": "数组基础官方教程",
                         "url": "https://docs.example.com/array",
-                        "highlights": ["数组基础包含索引访问和遍历。"],
-                        "text": "数组基础长文本。",
+                        "content": "数组基础讲解，包含索引访问、顺序遍历和示例代码。",
+                        "score": 0.92,
                     }
                 ]
             }
         )
 
 
-# 维护意图：Cover Exa + Firecrawl resource MCP integration
+# 维护意图：模拟 Tavily 请求失败，验证外部 MCP 降级为上层 fallback
+# 边界说明：测试步骤保持显式，便于定位回归阶段和失败上下文。
+# 风险说明：调整测试断言时，需保留失败上下文和可复现实例。
+class _FailingMCPStubSession:
+    """模拟 Tavily 请求失败，验证外部 MCP 降级为上层 fallback。"""
+
+    def __init__(self) -> None:
+        self.calls = 0
+
+    # 维护意图：Raise deterministic Tavily transport failure
+    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
+    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
+    def post(self, url: str, headers: dict[str, str], json: dict[str, object], timeout: int) -> _MCPStubResponse:
+        """Raise deterministic Tavily transport failure."""
+
+        self.calls += 1
+        raise TimeoutError("tavily timeout")
+
+
+# 维护意图：Cover Tavily resource MCP integration
 # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
 # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class ResourceMCPServiceTests(SimpleTestCase):
-    """Cover Exa + Firecrawl resource MCP integration."""
+    """Cover Tavily resource MCP integration."""
 
-    # 维护意图：External resource MCP should call Exa first, then enrich the page body
+    # 维护意图：External resource MCP should call Tavily with one API key
     # 边界说明：测试步骤保持显式，便于定位回归阶段和失败上下文。
     # 风险说明：调整测试断言时，需保留失败上下文和可复现实例。
     @override_settings(
         RESOURCE_MCP_ENABLED=True,
-        RESOURCE_MCP_EXA_ENABLED=True,
-        RESOURCE_MCP_FIRECRAWL_ENABLED=True,
         RESOURCE_MCP_TIMEOUT_SECONDS=9,
-        RESOURCE_MCP_FIRECRAWL_LIMIT=1,
-        EXA_API_KEY="exa-demo-key",
-        EXA_SEARCH_URL="https://api.exa.ai/search",
-        EXA_SEARCH_TYPE="neural",
-        EXA_MAX_RESULTS=4,
-        FIRECRAWL_API_KEY="firecrawl-demo-key",
-        FIRECRAWL_SCRAPE_URL="https://api.firecrawl.dev/v1/scrape",
-        FIRECRAWL_TIMEOUT_MILLISECONDS=12000,
+        TAVILY_API_KEY="tvly-demo-key",
+        TAVILY_SEARCH_URL="https://api.tavily.com/search",
+        TAVILY_SEARCH_DEPTH="basic",
+        TAVILY_MAX_RESULTS=4,
     )
-    def test_external_resource_mcp_should_search_exa_and_enrich_with_firecrawl(self):
-        """External resource MCP should call Exa first, then enrich the page body."""
+    def test_external_resource_mcp_should_search_tavily_with_single_key(self):
+        """External resource MCP should call Tavily with one API key."""
 
         stub_session = _MCPStubSession()
         service = LearningResourceMCPService(session=stub_session)
@@ -333,13 +332,88 @@ class ResourceMCPServiceTests(SimpleTestCase):
         )
 
         self.assertEqual(len(resources), 1)
-        self.assertEqual(resources[0].provider, "exa_firecrawl")
+        self.assertEqual(resources[0].provider, "tavily")
         self.assertEqual(resources[0].title, "数组基础官方教程")
-        self.assertIn("数组入门正文摘要", resources[0].snippet)
-        self.assertEqual(stub_session.calls[0]["headers"]["x-api-key"], "exa-demo-key")
-        self.assertEqual(
-            stub_session.calls[1]["headers"]["Authorization"],
-            "Bearer firecrawl-demo-key",
+        self.assertIn("数组基础讲解", resources[0].snippet)
+        self.assertEqual(stub_session.calls[0]["headers"]["Authorization"], "Bearer tvly-demo-key")
+        self.assertEqual(stub_session.calls[0]["json"]["search_depth"], "basic")
+
+    # 维护意图：Missing Tavily key should leave fallback handling to the caller
+    # 边界说明：测试步骤保持显式，便于定位回归阶段和失败上下文。
+    # 风险说明：调整测试断言时，需保留失败上下文和可复现实例。
+    @override_settings(RESOURCE_MCP_ENABLED=True, TAVILY_API_KEY="")
+    def test_external_resource_mcp_should_skip_tavily_without_api_key(self):
+        """Missing Tavily key should leave fallback handling to the caller."""
+
+        stub_session = _MCPStubSession()
+        service = LearningResourceMCPService(session=stub_session)
+
+        resources = service.search_external_resources(
+            point_name="数组基础",
+            student_mastery=0.25,
+            existing_titles=[],
+            course_name="数据结构",
+            count=1,
+        )
+
+        self.assertEqual(resources, [])
+        self.assertEqual(stub_session.calls, [])
+
+    # 维护意图：Tavily transport errors should not break resource recommendation
+    # 边界说明：测试步骤保持显式，便于定位回归阶段和失败上下文。
+    # 风险说明：调整测试断言时，需保留失败上下文和可复现实例。
+    @override_settings(RESOURCE_MCP_ENABLED=True, TAVILY_API_KEY="tvly-demo-key")
+    def test_external_resource_mcp_should_return_empty_when_tavily_fails(self):
+        """Tavily transport errors should not break resource recommendation."""
+
+        stub_session = _FailingMCPStubSession()
+        service = LearningResourceMCPService(session=stub_session)
+
+        resources = service.search_external_resources(
+            point_name="数组基础",
+            student_mastery=0.25,
+            existing_titles=[],
+            course_name="数据结构",
+            count=1,
+        )
+
+        self.assertEqual(resources, [])
+        self.assertEqual(stub_session.calls, 1)
+
+    # 维护意图：External search provider should reuse the Tavily MCP path
+    # 边界说明：测试步骤保持显式，便于定位回归阶段和失败上下文。
+    # 风险说明：调整测试断言时，需保留失败上下文和可复现实例。
+    @patch("platform_ai.search.providers.resource_mcp_service.search_external_resources")
+    def test_external_search_provider_should_use_resource_mcp(self, mock_mcp_search):
+        """External search provider should reuse the Tavily MCP path."""
+
+        mock_mcp_search.return_value = [
+            ExternalResourceCandidate(
+                title="数组基础官方教程",
+                url="https://docs.example.com/array",
+                resource_type="document",
+                source="docs.example.com",
+                provider="tavily",
+                snippet="数组基础正文摘要",
+                reason="Tavily 确认该资源相关。",
+                learning_tips="先学课程内资源，再读外部教程。",
+            )
+        ]
+
+        results = ExternalSearchProvider().search_learning_resources(
+            point_name="数组基础",
+            course_name="数据结构",
+            count=1,
+        )
+
+        self.assertEqual(results[0]["provider"], "tavily")
+        self.assertEqual(results[0]["snippet"], "数组基础正文摘要")
+        mock_mcp_search.assert_called_once_with(
+            point_name="数组基础",
+            student_mastery=None,
+            existing_titles=[],
+            course_name="数据结构",
+            count=1,
         )
 
     # 维护意图：RAG resource recommendation should use MCP results before LLM web fallback
@@ -385,9 +459,9 @@ class ResourceMCPServiceTests(SimpleTestCase):
                 url="https://docs.example.com/array",
                 resource_type="document",
                 source="docs.example.com",
-                provider="exa_firecrawl",
+                provider="tavily",
                 snippet="数组基础正文摘要",
-                reason="Exa 与 Firecrawl 确认该资源相关。",
+                reason="Tavily 确认该资源相关。",
                 learning_tips="先学课程内资源，再读外部教程。",
             )
         ]
@@ -400,6 +474,6 @@ class ResourceMCPServiceTests(SimpleTestCase):
             external_count=1,
         )
 
-        self.assertEqual(recommendation["external_resources"][0]["provider"], "exa_firecrawl")
+        self.assertEqual(recommendation["external_resources"][0]["provider"], "tavily")
         self.assertEqual(recommendation["external_resources"][0]["source"], "docs.example.com")
         mock_llm_external.assert_not_called()
