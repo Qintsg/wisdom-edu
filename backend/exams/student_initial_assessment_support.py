@@ -366,20 +366,16 @@ def persist_kt_predictions(
     uses_mefkt: bool,
     knowledge_mastery: dict[int, float],
 ) -> None:
-    """持久化 KT 输出，并跳过无法转换的异常条目。"""
+    """持久化 KT 未测推断输出，并跳过无法转换的异常条目。"""
     direct_point_ids = set(knowledge_mastery)
     for knowledge_point_id, rate in kt_predictions.items():
         try:
             normalized_point_id = int(knowledge_point_id)
             normalized_rate = round(max(0.0, min(INITIAL_MASTERY_MAX, float(rate))), 4)
-            existing_rate = knowledge_mastery.get(normalized_point_id)
-            if existing_rate is None and not uses_mefkt:
+            if normalized_point_id in direct_point_ids:
                 continue
-            if normalized_point_id in direct_point_ids and existing_rate is not None:
-                normalized_rate = blend_initial_mastery(
-                    baseline=existing_rate,
-                    prediction=normalized_rate,
-                )
+            if not uses_mefkt:
+                continue
             KnowledgeMastery.objects.update_or_create(
                 user=user,
                 course=course,
@@ -422,15 +418,6 @@ def apply_initial_mastery_caps(
             defaults={"mastery_rate": round(float(capped_rate), 4)},
         )
         knowledge_mastery[knowledge_point_id] = round(float(capped_rate), 4)
-
-
-# 维护意图：融合直接初测证据和 KT 预测，避免小样本结果被模型单次覆盖。
-# 边界说明：直接作答点保留规则基线主导，未测点只在真实 MEFKT 下直接采用预测。
-# 风险说明：提高 KT 权重会放大模型回退误差，需同步回归测试和演示数据。
-def blend_initial_mastery(*, baseline: float, prediction: float) -> float:
-    """融合直接初测证据和 KT 预测，避免小样本结果被模型单次覆盖。"""
-    blended = float(baseline) * 0.72 + float(prediction) * 0.28
-    return round(max(0.0, min(INITIAL_MASTERY_MAX, blended)), 4)
 
 
 # 维护意图：标记课程初始评测已完成

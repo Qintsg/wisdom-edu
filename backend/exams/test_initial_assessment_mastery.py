@@ -206,6 +206,13 @@ class StudentInitialAssessmentMasteryTests(APITestCase):
         )
 
         self.assertEqual(response.status_code, 200)
+        pre_mastery = float(
+            KnowledgeMastery.objects.get(
+                user=self.student,
+                course=self.course,
+                knowledge_point=self.pre_point,
+            ).mastery_rate
+        )
         inferred_mastery = float(
             KnowledgeMastery.objects.get(
                 user=self.student,
@@ -213,4 +220,5 @@ class StudentInitialAssessmentMasteryTests(APITestCase):
                 knowledge_point=self.inferred_point,
             ).mastery_rate
         )
+        self.assertAlmostEqual(pre_mastery, calculate_initial_mastery_baseline(1, 1), places=3)
         self.assertAlmostEqual(inferred_mastery, 0.72, places=3)
