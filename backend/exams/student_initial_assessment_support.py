@@ -10,11 +10,21 @@ from decimal import InvalidOperation
 
 from django.db import DatabaseError
 
+from ai_services.services.kt_prediction_support import (
+    answered_point_ids,
+    is_mefkt_prediction,
+    normalize_prediction_map,
+)
+from assessments.assessment_helpers import (
+    INITIAL_MASTERY_MAX,
+    calculate_initial_mastery_baseline,
+)
 from assessments.models import AnswerHistory, AssessmentStatus, Question
 from common.logging_utils import build_log_message
 from common.utils import check_answer, extract_answer_value
 from courses.models import Course
 from knowledge.models import KnowledgeMastery, KnowledgePoint
+from learning.path_rules import apply_prerequisite_caps
 from users.models import User
 
 
@@ -216,10 +226,13 @@ def update_rule_based_mastery(
     course: Course,
     knowledge_point_stats: KnowledgePointStats,
 ) -> dict[int, float]:
-    """根据初始评测正确率更新规则掌握度。"""
+    """根据初始评测小样本弱先验更新规则掌握度。"""
     knowledge_mastery: dict[int, float] = {}
     for knowledge_point_id, stats in knowledge_point_stats.items():
-        mastery_rate = stats["correct"] / stats["total"] if stats["total"] > 0 else 0.0
+        mastery_rate = calculate_initial_mastery_baseline(
+            stats["correct"],
+            stats["total"],
+        )
         KnowledgeMastery.objects.update_or_create(
             user=user,
             course=course,
@@ -245,8 +258,12 @@ def apply_kt_initial_mastery(
         from ai_services.services.kt_service import kt_service
 
         kt_history = build_initial_kt_history(user=user, course=course)
-        knowledge_point_ids = list(knowledge_point_stats.keys())
+        knowledge_point_ids = load_initial_course_point_ids(
+            course=course,
+            measured_point_ids=set(knowledge_point_stats.keys()),
+        )
         if not kt_history or not knowledge_point_ids:
+            apply_initial_mastery_caps(user=user, course=course, knowledge_mastery=knowledge_mastery)
             return
         kt_result = kt_service.predict_mastery(
             user_id=user.id,
@@ -254,11 +271,15 @@ def apply_kt_initial_mastery(
             answer_history=kt_history,
             knowledge_points=knowledge_point_ids,
         )
-        kt_predictions = kt_result.get("predictions", {})
+        kt_predictions = normalize_initial_kt_predictions(
+            kt_result=kt_result,
+            kt_history=kt_history,
+        )
         persist_kt_predictions(
             user=user,
             course=course,
             kt_predictions=kt_predictions,
+            uses_mefkt=is_mefkt_prediction(kt_result),
             knowledge_mastery=knowledge_mastery,
         )
         logger.info(
@@ -269,6 +290,49 @@ def apply_kt_initial_mastery(
         )
     except Exception as error:
         logger.error("KT服务调用失败(初始评测): 用户=%s, 错误=%s", user.id, error)
+        apply_initial_mastery_caps(user=user, course=course, knowledge_mastery=knowledge_mastery)
+
+
+# 维护意图：为初始评测 KT/MEFKT 加载预测目标。
+# 边界说明：真实 MEFKT 可推断未测课程点，已测点即使未发布也必须保留。
+# 风险说明：读取失败时回退已测点，避免初测提交被图谱数据异常阻断。
+def load_initial_course_point_ids(
+    *,
+    course: Course,
+    measured_point_ids: set[int],
+) -> list[int]:
+    """为初始评测 KT/MEFKT 加载预测目标。"""
+    try:
+        published_point_ids = [
+            int(point_id)
+            for point_id in KnowledgePoint.objects.filter(course=course, is_published=True)
+            .order_by("order", "id")
+            .values_list("id", flat=True)
+        ]
+    except (TypeError, ValueError):
+        published_point_ids = []
+    return list(dict.fromkeys(published_point_ids + sorted(measured_point_ids)))
+
+
+# 维护意图：规整 KT 输出并限制统计回退的写回范围。
+# 边界说明：只有真实 MEFKT 结果可覆盖未直接作答的课程知识点。
+# 风险说明：放宽该规则会重新引入默认/统计回退批量写入固定值的问题。
+def normalize_initial_kt_predictions(
+    *,
+    kt_result: Mapping[str, object],
+    kt_history: Sequence[Mapping[str, object]],
+) -> dict[int, float]:
+    """规整 KT 输出并限制统计回退的写回范围。"""
+    kt_predictions = normalize_prediction_map(kt_result.get("predictions"))
+    if is_mefkt_prediction(kt_result):
+        return kt_predictions
+
+    evidence_points = answered_point_ids(kt_history)
+    return {
+        point_id: rate
+        for point_id, rate in kt_predictions.items()
+        if point_id in evidence_points
+    }
 
 
 # 维护意图：读取当前学生课程历史并转换为 KT 服务输入
@@ -298,20 +362,31 @@ def persist_kt_predictions(
     *,
     user: User,
     course: Course,
-    kt_predictions: Mapping[object, object],
+    kt_predictions: Mapping[int, float],
+    uses_mefkt: bool,
     knowledge_mastery: dict[int, float],
 ) -> None:
     """持久化 KT 输出，并跳过无法转换的异常条目。"""
+    direct_point_ids = set(knowledge_mastery)
     for knowledge_point_id, rate in kt_predictions.items():
         try:
-            normalized_rate = round(float(rate), 4)
+            normalized_point_id = int(knowledge_point_id)
+            normalized_rate = round(max(0.0, min(INITIAL_MASTERY_MAX, float(rate))), 4)
+            existing_rate = knowledge_mastery.get(normalized_point_id)
+            if existing_rate is None and not uses_mefkt:
+                continue
+            if normalized_point_id in direct_point_ids and existing_rate is not None:
+                normalized_rate = blend_initial_mastery(
+                    baseline=existing_rate,
+                    prediction=normalized_rate,
+                )
             KnowledgeMastery.objects.update_or_create(
                 user=user,
                 course=course,
-                knowledge_point_id=knowledge_point_id,
+                knowledge_point_id=normalized_point_id,
                 defaults={"mastery_rate": max(0.0, min(1.0, normalized_rate))},
             )
-            knowledge_mastery[int(knowledge_point_id)] = normalized_rate
+            knowledge_mastery[normalized_point_id] = normalized_rate
         except (DatabaseError, InvalidOperation, OverflowError, TypeError, ValueError) as error:
             logger.warning(
                 build_log_message(
@@ -322,6 +397,40 @@ def persist_kt_predictions(
                     error=error,
                 )
             )
+
+    apply_initial_mastery_caps(user=user, course=course, knowledge_mastery=knowledge_mastery)
+
+
+# 维护意图：对初测掌握度统一施加前置约束并写回变化项。
+# 边界说明：KT 成功、空预测与异常降级都必须走同一约束，避免后续链路读取脏状态。
+# 风险说明：约束规则变化会影响路径排序和画像薄弱点，应同步学习路径测试。
+def apply_initial_mastery_caps(
+    *,
+    user: User,
+    course: Course,
+    knowledge_mastery: dict[int, float],
+) -> None:
+    """对初测掌握度统一施加前置约束并写回变化项。"""
+    capped_mastery = apply_prerequisite_caps(knowledge_mastery, course.id)
+    for knowledge_point_id, capped_rate in capped_mastery.items():
+        if knowledge_mastery.get(knowledge_point_id) == capped_rate:
+            continue
+        KnowledgeMastery.objects.update_or_create(
+            user=user,
+            course=course,
+            knowledge_point_id=knowledge_point_id,
+            defaults={"mastery_rate": round(float(capped_rate), 4)},
+        )
+        knowledge_mastery[knowledge_point_id] = round(float(capped_rate), 4)
+
+
+# 维护意图：融合直接初测证据和 KT 预测，避免小样本结果被模型单次覆盖。
+# 边界说明：直接作答点保留规则基线主导，未测点只在真实 MEFKT 下直接采用预测。
+# 风险说明：提高 KT 权重会放大模型回退误差，需同步回归测试和演示数据。
+def blend_initial_mastery(*, baseline: float, prediction: float) -> float:
+    """融合直接初测证据和 KT 预测，避免小样本结果被模型单次覆盖。"""
+    blended = float(baseline) * 0.72 + float(prediction) * 0.28
+    return round(max(0.0, min(INITIAL_MASTERY_MAX, blended)), 4)
 
 
 # 维护意图：标记课程初始评测已完成

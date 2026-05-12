@@ -2,6 +2,12 @@
 
 ## 2026-05-12
 
+### Backend / KT — 学生端初始评测掌握度写回修复
+
+- 学生端 `/api/student/assessments/initial/submit` 初始评测提交入口改用统一弱先验基线，不再按裸正确率把小样本知识点压到少数固定掌握度。
+- 初始评测 KT 修正现在复用 MEFKT 来源判定：只有真实 MEFKT 输出可以写入未直接作答的已发布知识点，统计/default 回退只更新有答题证据的知识点。
+- 初始评测提交在 KT 空结果或异常降级时也会统一施加前置知识点约束，避免后续路径与画像读取到前置薄弱但后置过高的掌握度。
+
 ### Backend / Demo Data — 预置数据真实 URL 与链路记录
 
 - 测试数据与演示账号邮箱从 `example.com` 占位域切换到 `edu.qintsg.xyz`，课程种子资源补充 Hadoop、Spark、scikit-learn、D3、ECharts 与 Tableau 等真实文档入口。
