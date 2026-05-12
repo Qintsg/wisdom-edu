@@ -34,9 +34,6 @@ class StudentAIStreamPlan:
     metadata: dict[str, object]
 
 
-# 维护意图：为没有可用课程图谱证据的场景构造通用流式回答计划
-# 边界说明：不触发完整 LLM 调用，仅准备 prompt 与降级文本。
-# 风险说明：该路径缺少 GraphRAG 证据，回答必须明确上下文限制。
 def build_generic_stream_plan(
     *,
     question: str,
@@ -94,9 +91,6 @@ def build_generic_stream_plan(
     )
 
 
-# 维护意图：构造带课程 GraphRAG 证据的流式回答计划
-# 边界说明：证据准备仍为同步数据库/图谱流程，最终答案生成交给 LLM 流式入口。
-# 风险说明：如果证据准备失败，上层需回退到普通完整回答链路。
 def build_course_stream_plan(
     *,
     user,
@@ -163,9 +157,6 @@ def build_course_stream_plan(
     ), history)
 
 
-# 维护意图：构造学生端 AI 助手统一流式回答计划
-# 边界说明：保留无 course_id 的旧聊天场景，前端可统一走 WebSocket。
-# 风险说明：调整入参兼容字段时，需要同步 HTTP 与 WS 调用方。
 def build_student_ai_stream_plan(
     *,
     user,
@@ -203,9 +194,6 @@ def build_student_ai_stream_plan(
     )
 
 
-# 维护意图：执行 LLM 文本流式生成
-# 边界说明：这里不输出 fallback，调用方在没有真实 chunk 时统一回退。
-# 风险说明：保持生成器懒执行，避免 WebSocket 层拿不到首个 token 前被阻塞为完整响应。
 def iter_student_ai_stream_chunks(plan: StudentAIStreamPlan) -> Iterator[str]:
     """执行 LLM 文本流式生成。"""
     if not llm_facade.is_available:
@@ -221,9 +209,6 @@ def iter_student_ai_stream_chunks(plan: StudentAIStreamPlan) -> Iterator[str]:
         logger.error(build_log_message("student_ai.stream.init_fail", error=error))
 
 
-# 维护意图：合成 WebSocket done 事件载荷
-# 边界说明：保留旧元数据字段，并新增 reply / streamed。
-# 风险说明：前端依赖 reply 作为最终完整内容时，必须与 chunk 累积结果一致。
 def build_stream_done_payload(
     *,
     plan: StudentAIStreamPlan,

@@ -28,9 +28,6 @@ from .student_helpers import (
 )
 
 
-# 维护意图：提交考试答案
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["POST"])
 @permission_classes([IsAuthenticated, IsStudent])
 def exam_submit(request, exam_id):
@@ -118,9 +115,6 @@ def exam_submit(request, exam_id):
     )
 
 
-# 维护意图：获取考试结果
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def exam_result(request, exam_id):
@@ -153,9 +147,6 @@ def exam_result(request, exam_id):
     })
 
 
-# 维护意图：保存考试草稿
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def exam_save_draft(request, exam_id):
@@ -168,9 +159,6 @@ def exam_save_draft(request, exam_id):
     return success_response(data={"submission_id": submission.id, "saved": True}, msg="草稿已保存")
 
 
-# 维护意图：获取考试统计数据（学生视角）
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def exam_statistics(request, exam_id):

@@ -32,15 +32,9 @@ from platform_ai.rag.runtime import (
 from tools.kt_synthetic import _build_kp_profiles, _simulate_student_sequence
 from users.models import User
 
-# 维护意图：Validate multi-provider LLM configuration resolution
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class LLMProviderConfigTests(SimpleTestCase):
     """Validate multi-provider LLM configuration resolution."""
 
-    # 维护意图：Explicit provider settings should prefer provider-specific keys and URLs
-    # 边界说明：测试步骤保持显式，便于定位回归阶段和失败上下文。
-    # 风险说明：调整测试断言时，需保留失败上下文和可复现实例。
     @override_settings(
         LLM_PROVIDER="doubao",
         LLM_MODEL="ByteDance-Seed-1.8",
@@ -61,9 +55,6 @@ class LLMProviderConfigTests(SimpleTestCase):
         self.assertEqual(service.resolved_base_url, "https://ark.example.com/api/v3")
         self.assertEqual(service.api_format, "openai-compatible")
 
-    # 维护意图：Custom provider should use dedicated custom gateway credentials when shared fields are blank
-    # 边界说明：测试步骤保持显式，便于定位回归阶段和失败上下文。
-    # 风险说明：调整测试断言时，需保留失败上下文和可复现实例。
     @override_settings(
         LLM_PROVIDER="custom",
         LLM_MODEL="campus-private-chat",
@@ -84,9 +75,6 @@ class LLMProviderConfigTests(SimpleTestCase):
         self.assertEqual(service.resolved_base_url, "https://llm.example.edu/v1")
         self.assertEqual(service.api_format, "chat-completions")
 
-    # 维护意图：HTTPS model gateways should use the configured HTTPS proxy when initializing ChatOpenAI
-    # 边界说明：测试步骤保持显式，便于定位回归阶段和失败上下文。
-    # 风险说明：调整测试断言时，需保留失败上下文和可复现实例。
     @override_settings(
         LLM_PROVIDER="deepseek",
         LLM_MODEL="deepseek-chat",
@@ -114,9 +102,6 @@ class LLMProviderConfigTests(SimpleTestCase):
             "http://127.0.0.1:8443",
         )
 
-    # 维护意图：DeepSeek v4 default client should send the non-thinking gateway flag
-    # 边界说明：测试步骤保持显式，便于定位回归阶段和失败上下文。
-    # 风险说明：调整测试断言时，需保留失败上下文和可复现实例。
     @override_settings(
         LLM_PROVIDER="deepseek",
         LLM_MODEL="deepseek-v4-flash",
@@ -150,9 +135,6 @@ class LLMProviderConfigTests(SimpleTestCase):
         )
         self.assertNotIn("reasoning_effort", chat_openai_class.call_args.kwargs)
 
-    # 维护意图：External resource recommendations should use provider-native web search directly
-    # 边界说明：测试步骤保持显式，便于定位回归阶段和失败上下文。
-    # 风险说明：调整测试断言时，需保留失败上下文和可复现实例。
     @override_settings(
         LLM_PROVIDER="deepseek",
         LLM_MODEL="deepseek-v4-flash",
@@ -196,9 +178,6 @@ class LLMProviderConfigTests(SimpleTestCase):
             {"enable_thinking": False, "enable_search": True},
         )
 
-    # 维护意图：Reasoning traces should not prevent structured JSON parsing
-    # 边界说明：测试步骤保持显式，便于定位回归阶段和失败上下文。
-    # 风险说明：调整测试断言时，需保留失败上下文和可复现实例。
     def test_llm_json_parser_should_ignore_think_blocks(self):
         """Reasoning traces should not prevent structured JSON parsing."""
         from ai_services.services.llm_service import LLMService
@@ -210,15 +189,9 @@ class LLMProviderConfigTests(SimpleTestCase):
         self.assertEqual(result["summary"], "最终答案")
 
 
-# 维护意图：Guard against recursive agent routing in regular LLM calls
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class LLMServiceRoutingTests(SimpleTestCase):
     """Guard against recursive agent routing in regular LLM calls."""
 
-    # 维护意图：build service
-    # 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
-    # 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
     @staticmethod
     def _build_service():
         from ai_services.services.llm_service import LLMService
@@ -227,9 +200,6 @@ class LLMServiceRoutingTests(SimpleTestCase):
         service._api_key = "demo-key"
         return service
 
-    # 维护意图：Profile analysis should go straight to the LLM client instead of the agent
-    # 边界说明：测试步骤保持显式，便于定位回归阶段和失败上下文。
-    # 风险说明：调整测试断言时，需保留失败上下文和可复现实例。
     def test_call_with_fallback_should_skip_agent_for_profile_analysis(self):
         """Profile analysis should go straight to the LLM client instead of the agent."""
         service = self._build_service()
@@ -250,9 +220,6 @@ class LLMServiceRoutingTests(SimpleTestCase):
         mock_llm.invoke.assert_called_once()
         self.assertEqual(result["summary"], "直连LLM结果")
 
-    # 维护意图：Only explicitly agent-scoped call types should enter the orchestration layer
-    # 边界说明：测试步骤保持显式，便于定位回归阶段和失败上下文。
-    # 风险说明：调整测试断言时，需保留失败上下文和可复现实例。
     def test_call_with_fallback_should_only_use_agent_for_explicit_agent_calls(self):
         """Only explicitly agent-scoped call types should enter the orchestration layer."""
         service = self._build_service()
@@ -272,15 +239,9 @@ class LLMServiceRoutingTests(SimpleTestCase):
         self.assertEqual(result["summary"], "agent结果")
 
 
-# 维护意图：Ensure latency-sensitive AI routes fail fast instead of hanging behind the gateway
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class LLMServiceLatencyPolicyTests(SimpleTestCase):
     """Ensure latency-sensitive AI routes fail fast instead of hanging behind the gateway."""
 
-    # 维护意图：build service
-    # 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
-    # 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
     @staticmethod
     def _build_service():
         from ai_services.services.llm_service import LLMService
@@ -289,9 +250,6 @@ class LLMServiceLatencyPolicyTests(SimpleTestCase):
         service._api_key = "demo-key"
         return service
 
-    # 维护意图：GraphRAG answers should use a single attempt and skip JSON repair to stay within gateway budgets
-    # 边界说明：测试步骤保持显式，便于定位回归阶段和失败上下文。
-    # 风险说明：调整测试断言时，需保留失败上下文和可复现实例。
     def test_call_with_fallback_should_fast_fail_graph_rag_calls_without_repair(self):
         """GraphRAG answers should use a single attempt and skip JSON repair to stay within gateway budgets."""
         service = self._build_service()
@@ -318,9 +276,6 @@ class LLMServiceLatencyPolicyTests(SimpleTestCase):
             service._resolve_execution_policy("graph_rag_answer").max_prompt_chars,
         )
 
-    # 维护意图：Non-latency-sensitive calls should retain JSON repair to preserve richer AI output
-    # 边界说明：测试步骤保持显式，便于定位回归阶段和失败上下文。
-    # 风险说明：调整测试断言时，需保留失败上下文和可复现实例。
     def test_call_with_fallback_should_keep_repair_for_profile_analysis(self):
         """Non-latency-sensitive calls should retain JSON repair to preserve richer AI output."""
         service = self._build_service()
@@ -338,9 +293,6 @@ class LLMServiceLatencyPolicyTests(SimpleTestCase):
         service._repair_json_response.assert_called_once()
         self.assertEqual(result["summary"], "修复后的画像")
 
-    # 维护意图：Chat fallback should stay inside the gateway-safe timeout budget
-    # 边界说明：测试步骤保持显式，便于定位回归阶段和失败上下文。
-    # 风险说明：调整测试断言时，需保留失败上下文和可复现实例。
     def test_chat_policy_should_fast_fail_like_other_interactive_routes(self):
         """Chat fallback should stay inside the gateway-safe timeout budget."""
         service = self._build_service()
@@ -352,9 +304,6 @@ class LLMServiceLatencyPolicyTests(SimpleTestCase):
         self.assertEqual(policy.max_attempts, 1)
         self.assertFalse(policy.allow_repair)
 
-    # 维护意图：学生端流式聊天应逐块透传模型文本
-    # 边界说明：测试只覆盖 LLM 服务流式入口，不依赖真实网关。
-    # 风险说明：LangChain chunk 结构变化时，需要同步文本提取逻辑。
     def test_stream_text_with_fallback_should_yield_model_chunks(self):
         """学生端流式聊天应逐块透传模型文本。"""
         service = self._build_service()
@@ -375,9 +324,6 @@ class LLMServiceLatencyPolicyTests(SimpleTestCase):
         self.assertEqual(chunks, ["第一段", "第二段"])
         mock_llm.stream.assert_called_once()
 
-    # 维护意图：模型不可用时流式入口应输出降级文本，避免前端空白
-    # 边界说明：不初始化 ChatOpenAI，直接锁定服务层 fallback 行为。
-    # 风险说明：若上层改为自行兜底，需要同步该断言。
     def test_stream_text_with_fallback_should_yield_fallback_when_model_missing(self):
         """模型不可用时流式入口应输出降级文本，避免前端空白。"""
         service = self._build_service()
@@ -391,9 +337,6 @@ class LLMServiceLatencyPolicyTests(SimpleTestCase):
 
         self.assertEqual(chunks, ["fallback"])
 
-    # 维护意图：流式调用首块前失败时应输出降级文本
-    # 边界说明：已输出部分 chunk 后不追加 fallback，避免前端重复回答。
-    # 风险说明：网关抖动时该路径决定 WebSocket 是否能继续给出兼容响应。
     def test_stream_text_with_fallback_should_yield_fallback_when_stream_fails_early(self):
         """流式调用首块前失败时应输出降级文本。"""
         service = self._build_service()
@@ -410,15 +353,9 @@ class LLMServiceLatencyPolicyTests(SimpleTestCase):
         self.assertEqual(chunks, ["fallback"])
 
 
-# 维护意图：Ensure the thin agent wrapper reuses the same proxy settings as LLMService
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class LangChainAgentProxyTests(SimpleTestCase):
     """Ensure the thin agent wrapper reuses the same proxy settings as LLMService."""
 
-    # 维护意图：Agent ChatOpenAI client should receive the resolved gateway proxy
-    # 边界说明：测试步骤保持显式，便于定位回归阶段和失败上下文。
-    # 风险说明：调整测试断言时，需保留失败上下文和可复现实例。
     @override_settings(
         LLM_PROVIDER="deepseek",
         LLM_MODEL="deepseek-chat",
@@ -442,9 +379,6 @@ class LangChainAgentProxyTests(SimpleTestCase):
             "http://127.0.0.1:8443",
         )
 
-    # 维护意图：GraphRAG tool wiring should not reference the old private helper name
-    # 边界说明：测试步骤保持显式，便于定位回归阶段和失败上下文。
-    # 风险说明：调整测试断言时，需保留失败上下文和可复现实例。
     def test_agent_graphrag_tool_should_call_public_payload_builder(self):
         """GraphRAG tool wiring should not reference the old private helper name."""
         from platform_ai.llm.agent import LangChainAgentService
@@ -474,15 +408,9 @@ class LangChainAgentProxyTests(SimpleTestCase):
         )
 
 
-# 维护意图：Verify the custom GraphRAG adapter now targets the V2 LLM interface
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class FacadeGraphRAGLLMTests(SimpleTestCase):
     """Verify the custom GraphRAG adapter now targets the V2 LLM interface."""
 
-    # 维护意图：Instantiation should no longer trigger the deprecated LLMInterface warning
-    # 边界说明：测试步骤保持显式，便于定位回归阶段和失败上下文。
-    # 风险说明：调整测试断言时，需保留失败上下文和可复现实例。
     def test_facade_graphrag_llm_should_instantiate_without_legacy_warning(self):
         """Instantiation should no longer trigger the deprecated LLMInterface warning."""
         from neo4j_graphrag.llm import LLMInterfaceV2
@@ -494,9 +422,6 @@ class FacadeGraphRAGLLMTests(SimpleTestCase):
         self.assertIsInstance(llm, LLMInterfaceV2)
         mock_warning.assert_not_called()
 
-    # 维护意图：The adapter should support V2-style message arrays in addition to legacy string prompts
-    # 边界说明：测试步骤保持显式，便于定位回归阶段和失败上下文。
-    # 风险说明：调整测试断言时，需保留失败上下文和可复现实例。
     def test_facade_graphrag_llm_should_accept_v2_message_lists(self):
         """The adapter should support V2-style message arrays in addition to legacy string prompts."""
         from platform_ai.rag.runtime import FacadeGraphRAGLLM

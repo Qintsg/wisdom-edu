@@ -29,7 +29,6 @@ const normalizeSourceList = (value) => Array.isArray(value) ? value : []
 
 /**
  * 学生端 AI WebSocket 流式问答状态机。
- * 维护意图：AI助手页和学习节点抽屉共享连接、chunk 拼接、降级和清理逻辑。
  */
 export function useStudentAIStream(options = {}) {
   const messages = options.messages || ref([])

@@ -7,9 +7,6 @@ from __future__ import annotations
 from ai_services.services.mefkt_runtime_types import GraphStatisticsBundle, QuestionLike
 
 
-# 维护意图：计算两道题之间的图权重及重叠贡献
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def pairwise_graph_weight(
     *,
     left_points: set[int],
@@ -35,9 +32,6 @@ def pairwise_graph_weight(
     return weight, share_points, share_resources
 
 
-# 维护意图：当两题无直接知识点重叠时，检查相关关系是否形成桥接
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def compute_related_bridge_score(
     *,
     left_points: set[int],
@@ -52,9 +46,6 @@ def compute_related_bridge_score(
     return 1.0 if right_points & left_neighbors else 0.0
 
 
-# 维护意图：构造题目图邻接矩阵及衍生统计
-# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
-# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_graph_statistics(
     *,
     questions: list[QuestionLike],
@@ -92,9 +83,6 @@ def build_graph_statistics(
     )
 
 
-# 维护意图：累计指定左侧题目与后续题目的无向边权重
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def accumulate_left_question_edges(
     *,
     questions: list[QuestionLike],
@@ -132,9 +120,6 @@ def accumulate_left_question_edges(
     resource_overlap_scores[left_index] += shared_resource_total
 
 
-# 维护意图：计算每道题可经两跳到达的题目比例
-# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
-# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_two_hop_density(adjacency_matrix, degree_norm, question_count: int):
     """计算每道题可经两跳到达的题目比例。"""
     import torch

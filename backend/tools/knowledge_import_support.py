@@ -8,9 +8,6 @@ from typing import Any
 from tools.common import clean_nan, load_json, split_multi_values
 
 
-# 维护意图：加载并校验导入 JSON 结构
-# 边界说明：校验边界集中在这里，避免非法输入进入业务主流程。
-# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def validate_import_json_payload(file_path: str, schema: str) -> dict[str, Any]:
     """加载并校验导入 JSON 结构。"""
     data = load_json(file_path)
@@ -35,9 +32,6 @@ def validate_import_json_payload(file_path: str, schema: str) -> dict[str, Any]:
     return data
 
 
-# 维护意图：读取知识图谱导入源，兼容 JSON 与 Excel
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def read_knowledge_import_source(path: Path) -> dict[str, Any] | None:
     """读取知识图谱导入源，兼容 JSON 与 Excel。"""
     if path.suffix.lower() == ".json":
@@ -48,9 +42,6 @@ def read_knowledge_import_source(path: Path) -> dict[str, Any] | None:
     return None
 
 
-# 维护意图：解析 Excel 格式的知识图谱文件
-# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
-# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def parse_knowledge_excel(path: Path) -> dict[str, Any] | None:
     """解析 Excel 格式的知识图谱文件。"""
     try:
@@ -75,9 +66,6 @@ def parse_knowledge_excel(path: Path) -> dict[str, Any] | None:
     return parse_flat_knowledge_excel(path)
 
 
-# 维护意图：判断工作表是否使用层级知识点表头
-# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
-# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def resolve_hierarchical_header_row(raw_frame) -> int | None:
     """判断工作表是否使用层级知识点表头。"""
     for check_row in range(min(3, len(raw_frame))):
@@ -87,9 +75,6 @@ def resolve_hierarchical_header_row(raw_frame) -> int | None:
     return None
 
 
-# 维护意图：识别层级知识点表中的层级列、关系列与元数据列
-# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
-# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def resolve_hierarchical_columns(columns: list[str]) -> tuple[list[str], dict[str, str | None], dict[str, str | None]]:
     """识别层级知识点表中的层级列、关系列与元数据列。"""
     cn_num_order = {"一": 1, "二": 2, "三": 3, "四": 4, "五": 5, "六": 6, "七": 7, "八": 8, "九": 9}
@@ -115,9 +100,6 @@ def resolve_hierarchical_columns(columns: list[str]) -> tuple[list[str], dict[st
     return level_columns, relation_columns, metadata_columns
 
 
-# 维护意图：从层级列中解析当前行的知识点名称与层级
-# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
-# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def resolve_hierarchical_point(row, level_columns: list[str], current_parents: list[str]) -> tuple[str, int]:
     """从层级列中解析当前行的知识点名称与层级。"""
     for level_index, level_column in enumerate(level_columns):
@@ -131,9 +113,6 @@ def resolve_hierarchical_point(row, level_columns: list[str], current_parents: l
     return "", 0
 
 
-# 维护意图：构造层级 Excel 中的知识点节点载荷
-# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
-# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_hierarchical_node(
     *,
     row,
@@ -158,9 +137,6 @@ def build_hierarchical_node(
     }
 
 
-# 维护意图：为层级知识点追加父子包含关系
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def append_parent_edge(
     *,
     edges: list[dict[str, Any]],
@@ -177,9 +153,6 @@ def append_parent_edge(
         edges.append({"source": id_by_name[parent_name], "target": node_id, "relation": "includes"})
 
 
-# 维护意图：解析层级知识点 Excel
-# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
-# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def parse_hierarchical_knowledge_excel(path: Path, header_row: int) -> dict[str, Any]:
     """解析层级知识点 Excel。"""
     import pandas as pd
@@ -224,9 +197,6 @@ def parse_hierarchical_knowledge_excel(path: Path, header_row: int) -> dict[str,
     return {"nodes": nodes, "edges": edges}
 
 
-# 维护意图：按前置/后置/关联列补充边
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def append_relation_edges(
     edges: list[dict[str, Any]],
     row,
@@ -254,9 +224,6 @@ def append_relation_edges(
             edges.append({"source": source, "target": target, "relation": relation_type})
 
 
-# 维护意图：解析普通单 sheet 知识图谱 Excel
-# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
-# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def parse_flat_knowledge_excel(path: Path) -> dict[str, Any]:
     """解析普通单 sheet 知识图谱 Excel。"""
     import pandas as pd
@@ -269,9 +236,6 @@ def parse_flat_knowledge_excel(path: Path) -> dict[str, Any]:
     return {"nodes": nodes, "edges": edges}
 
 
-# 维护意图：识别普通知识点表的名称、章节、描述和前置列
-# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
-# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def resolve_flat_columns(columns: list[str]) -> dict[str, str | None]:
     """识别普通知识点表的名称、章节、描述和前置列。"""
     name_column = next(
@@ -298,9 +262,6 @@ def resolve_flat_columns(columns: list[str]) -> dict[str, str | None]:
     }
 
 
-# 维护意图：从普通表中收集知识点节点与名称索引
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def collect_flat_nodes(dataframe, column_map: dict[str, str | None]) -> tuple[list[dict[str, Any]], dict[str, str]]:
     """从普通表中收集知识点节点与名称索引。"""
     nodes: list[dict[str, Any]] = []
@@ -323,9 +284,6 @@ def collect_flat_nodes(dataframe, column_map: dict[str, str | None]) -> tuple[li
     return nodes, id_by_name
 
 
-# 维护意图：从普通表中收集先修关系边
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def collect_flat_prerequisite_edges(
     dataframe,
     column_map: dict[str, str | None],
@@ -348,9 +306,6 @@ def collect_flat_prerequisite_edges(
     return edges
 
 
-# 维护意图：为知识图谱导入构造课程内节点索引
-# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
-# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_course_point_maps(course) -> tuple[dict[str, Any], dict[str, Any]]:
     """为知识图谱导入构造课程内节点索引。"""
     name_to_point = {point.name: point for point in course.knowledgepoint_set.all()} if hasattr(course, "knowledgepoint_set") else {}
@@ -364,9 +319,6 @@ def build_course_point_maps(course) -> tuple[dict[str, Any], dict[str, Any]]:
     return name_to_point, id_to_point
 
 
-# 维护意图：将解析后的知识图谱写入临时 JSON 文件
-# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
-# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def write_tmp_knowledge_json(data: dict[str, Any]) -> Path:
     """将解析后的知识图谱写入临时 JSON 文件。"""
     from tools.common import BASE_DIR
@@ -377,9 +329,6 @@ def write_tmp_knowledge_json(data: dict[str, Any]) -> Path:
     return tmp_json
 
 
-# 维护意图：写入课程知识点节点并返回名称/ID 映射
-# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
-# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def upsert_course_knowledge_nodes(
     *,
     course,
@@ -420,9 +369,6 @@ def upsert_course_knowledge_nodes(
     return name_to_point, id_to_point
 
 
-# 维护意图：仅在字段为空时补齐已有知识点的扩展信息
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def patch_existing_point_from_node(point, node: dict[str, Any]) -> None:
     """仅在字段为空时补齐已有知识点的扩展信息。"""
     updated = False
@@ -439,9 +385,6 @@ def patch_existing_point_from_node(point, node: dict[str, Any]) -> None:
         point.save()
 
 
-# 维护意图：写入课程知识点关系，并返回新增或命中的边数量
-# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
-# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def upsert_course_knowledge_edges(
     *,
     course,
@@ -470,9 +413,6 @@ def upsert_course_knowledge_edges(
     return relation_count
 
 
-# 维护意图：在 PostgreSQL 写入后刷新 Neo4j 图副本
-# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
-# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def sync_knowledge_graph_copy(course) -> None:
     """在 PostgreSQL 写入后刷新 Neo4j 图副本。"""
     from common.neo4j_service import neo4j_service

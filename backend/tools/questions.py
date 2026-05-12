@@ -14,7 +14,7 @@ from django.db import transaction
 
 from assessments.models import Question
 from tools.common import get_course
-from tools.question_import_support import (
+from tools.question_import import (
     QuestionImportSummary,
     build_json_question_payload,
     build_question_import_context,
@@ -33,9 +33,6 @@ from tools.testing import _status_flag
 _strip_html = strip_import_text
 
 
-# 维护意图：构建供 CLI 与教师端接口复用的导入结果载荷
-# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
-# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_result_payload(
     *,
     course_id: int,
@@ -58,9 +55,6 @@ def build_result_payload(
     }
 
 
-# 维护意图：输出 JSON 导入摘要
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def print_json_import_summary(course_name: str, summary: QuestionImportSummary) -> None:
     """输出 JSON 导入摘要。"""
     message = f"题库JSON导入完成: 课程={course_name}, 新增题目={summary.imported_count}"
@@ -73,9 +67,6 @@ def print_json_import_summary(course_name: str, summary: QuestionImportSummary) 
     print(message)
 
 
-# 维护意图：输出 Excel 导入摘要
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def print_excel_import_summary(summary: QuestionImportSummary) -> None:
     """输出 Excel 导入摘要。"""
     message = f"题库导入完成：{summary.imported_count} 题"
@@ -88,9 +79,6 @@ def print_excel_import_summary(summary: QuestionImportSummary) -> None:
     print(message)
 
 
-# 维护意图：导入 JSON 格式题库。
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def import_questions_json(
     file: object,
     course_id: int,
@@ -167,9 +155,6 @@ def import_questions_json(
     )
 
 
-# 维护意图：导入 Excel 格式题库。
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def import_question_bank(
     file_path: object,
     course_id: int,

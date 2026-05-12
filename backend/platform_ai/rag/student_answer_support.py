@@ -25,17 +25,11 @@ SourceList: TypeAlias = list[dict[str, object]]
 SourceMerger: TypeAlias = Callable[[SourceList, SourceList], SourceList]
 
 
-# 维护意图：学生问答只依赖 LLM 门面的可用性和 fallback 调用能力
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class LLMAnswerFacade(Protocol):
     """学生问答只依赖 LLM 门面的可用性和 fallback 调用能力。"""
 
     is_available: bool
 
-    # 维护意图：调用 LLM，并在底层失败时返回 fallback 响应
-    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def call_with_fallback(
         self,
         *,
@@ -46,15 +40,9 @@ class LLMAnswerFacade(Protocol):
         """调用 LLM，并在底层失败时返回 fallback 响应。"""
 
 
-# 维护意图：学生问答只依赖运行时的结构化图查询能力
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class GraphQueryRuntime(Protocol):
     """学生问答只依赖运行时的结构化图查询能力。"""
 
-    # 维护意图：按课程、问题和可选知识点焦点查询图谱证据
-    # 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
-    # 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
     def query_graph(
         self,
         *,
@@ -67,9 +55,6 @@ class GraphQueryRuntime(Protocol):
         """按课程、问题和可选知识点焦点查询图谱证据。"""
 
 
-# 维护意图：课程级 GraphRAG 查询焦点
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @dataclass(frozen=True)
 class CourseGraphFocus:
     """课程级 GraphRAG 查询焦点。"""
@@ -80,9 +65,6 @@ class CourseGraphFocus:
     focus_point_name: str
 
 
-# 维护意图：课程级问答命中的知识点与候选展示名
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @dataclass(frozen=True)
 class CourseAnswerCandidates:
     """课程级问答命中的知识点与候选展示名。"""
@@ -91,9 +73,6 @@ class CourseAnswerCandidates:
     candidate_names: list[str]
 
 
-# 维护意图：LLM 答案生成前的证据、模式和降级内容
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @dataclass(frozen=True)
 class AnswerEvidenceBundle:
     """LLM 答案生成前的证据、模式和降级内容。"""
@@ -106,9 +85,6 @@ class AnswerEvidenceBundle:
     fallback_response: dict[str, object]
 
 
-# 维护意图：从课程索引实体中提取知识点 ID 到名称的映射
-# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
-# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_point_name_map(entities: Iterable[dict[str, object]]) -> dict[int, str]:
     """从课程索引实体中提取知识点 ID 到名称的映射。"""
     point_name_map: dict[int, str] = {}
@@ -122,9 +98,6 @@ def build_point_name_map(entities: Iterable[dict[str, object]]) -> dict[int, str
     return point_name_map
 
 
-# 维护意图：兼容 metadata 与 kp:<id> 两种索引实体主键来源
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _entity_knowledge_point_id(entity: dict[str, object]) -> int:
     """兼容 metadata 与 kp:<id> 两种索引实体主键来源。"""
     metadata = entity.get("metadata")
@@ -137,9 +110,6 @@ def _entity_knowledge_point_id(entity: dict[str, object]) -> int:
     return 0
 
 
-# 维护意图：将课程级问答种子知识点规整为 GraphRAG 查询焦点
-# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
-# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_course_graph_focus(
     *,
     seed_point_ids: Sequence[int],
@@ -156,9 +126,6 @@ def build_course_graph_focus(
     )
 
 
-# 维护意图：合并结构化图查询与 local/global/drift 证据上下文
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def combine_answer_context(
     graph_query_bundle: dict[str, object],
     context_bundle: dict[str, object],
@@ -174,9 +141,6 @@ def combine_answer_context(
     )
 
 
-# 维护意图：组装知识点级问答所需的证据和 fallback
-# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
-# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_graph_answer_evidence(
     *,
     graph_query_bundle: dict[str, object],
@@ -198,9 +162,6 @@ def build_graph_answer_evidence(
     )
 
 
-# 维护意图：组装课程级问答所需的证据、fallback 与候选知识点
-# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
-# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_course_answer_evidence(
     *,
     course_id: int,
@@ -234,9 +195,6 @@ def build_course_answer_evidence(
     return evidence, candidates
 
 
-# 维护意图：合并种子知识点与图查询命中，补齐候选知识点名称
-# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
-# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def resolve_course_answer_candidates(
     *,
     course_id: int,
@@ -258,9 +216,6 @@ def resolve_course_answer_candidates(
     )
 
 
-# 维护意图：从数据库补齐索引缺失的知识点名称
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _append_missing_point_names(
     course_id: int,
     candidate_names: list[str],
@@ -275,17 +230,11 @@ def _append_missing_point_names(
     return dedupe_strings(candidate_names + database_names)
 
 
-# 维护意图：提取前端证据标题并去重
-# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
-# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def extract_source_titles(sources: Iterable[dict[str, object]], *, limit: int) -> list[str]:
     """提取前端证据标题并去重。"""
     return dedupe_strings(str(source.get("title", "")).strip() for source in sources)[:limit]
 
 
-# 维护意图：调用结构化图查询，失败时返回空证据包并保留日志
-# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
-# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 def query_graph_bundle(
     runtime: GraphQueryRuntime,
     *,
@@ -309,9 +258,6 @@ def query_graph_bundle(
         return {}
 
 
-# 维护意图：构造知识点级无 LLM 或 LLM 失败时的图谱证据回答
-# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
-# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_graph_fallback_answer(point: KnowledgePoint, source_titles: Sequence[str]) -> str:
     """构造知识点级无 LLM 或 LLM 失败时的图谱证据回答。"""
     return sanitize_answer_text(
@@ -331,9 +277,6 @@ def build_graph_fallback_answer(point: KnowledgePoint, source_titles: Sequence[s
     )
 
 
-# 维护意图：构造课程级无 LLM 或 LLM 失败时的图谱证据回答
-# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
-# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_course_fallback_answer(candidate_names: Sequence[str], source_titles: Sequence[str]) -> str:
     """构造课程级无 LLM 或 LLM 失败时的图谱证据回答。"""
     return sanitize_answer_text(
@@ -356,9 +299,6 @@ def build_course_fallback_answer(candidate_names: Sequence[str], source_titles: 
     )
 
 
-# 维护意图：构造知识点级 GraphRAG 问答 prompt
-# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
-# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_graph_answer_prompt(
     *,
     point: KnowledgePoint,
@@ -394,9 +334,6 @@ def build_graph_answer_prompt(
 """
 
 
-# 维护意图：构造课程级 GraphRAG 问答 prompt
-# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
-# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_course_answer_prompt(
     *,
     question: str,
@@ -435,9 +372,6 @@ def build_course_answer_prompt(
 """
 
 
-# 维护意图：调用 LLM 门面，并把异常统一收敛到 fallback
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def call_llm_answer(
     llm: LLMAnswerFacade,
     *,
@@ -457,9 +391,6 @@ def call_llm_answer(
         return fallback_response
 
 
-# 维护意图：构造知识点级无 LLM 响应
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def graph_answer_without_llm(evidence: AnswerEvidenceBundle) -> dict[str, object]:
     """构造知识点级无 LLM 响应。"""
     return {
@@ -470,9 +401,6 @@ def graph_answer_without_llm(evidence: AnswerEvidenceBundle) -> dict[str, object
     }
 
 
-# 维护意图：构造课程级无 LLM 响应
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def course_answer_without_llm(
     evidence: AnswerEvidenceBundle,
     candidates: CourseAnswerCandidates,
@@ -488,9 +416,6 @@ def course_answer_without_llm(
     }
 
 
-# 维护意图：构造知识点级 LLM 响应并保留证据来源
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def graph_answer_with_llm(
     *,
     llm_result: dict[str, object],
@@ -506,9 +431,6 @@ def graph_answer_with_llm(
     }
 
 
-# 维护意图：构造课程级 LLM 响应并保留命中知识点
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def course_answer_with_llm(
     *,
     llm_result: dict[str, object],
@@ -526,9 +448,6 @@ def course_answer_with_llm(
     }
 
 
-# 维护意图：合并结构化图查询和上下文检索来源并限制前端展示数量
-# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
-# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def normalize_answer_sources(
     graph_query_bundle: dict[str, object],
     context_bundle: dict[str, object],

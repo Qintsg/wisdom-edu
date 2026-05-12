@@ -23,9 +23,6 @@ REPORT_SAVE_FIELDS = [
 ]
 
 
-# 维护意图：加载报告及其关键关联对象
-# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
-# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 def load_report_with_dependencies(report_id: int):
     """加载报告及其关键关联对象。"""
     from .models import FeedbackReport
@@ -37,9 +34,6 @@ def load_report_with_dependencies(report_id: int):
     )
 
 
-# 维护意图：按题目与知识点展开答题轨迹
-# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
-# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_answer_history_records(
     exam_questions,
     submission_answers: dict[str, Any],
@@ -67,9 +61,6 @@ def build_answer_history_records(
     return answer_history_records
 
 
-# 维护意图：将 KT 预测结果回写到课程知识点掌握度
-# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
-# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def persist_kt_predictions(
     *,
     report,
@@ -102,9 +93,6 @@ def persist_kt_predictions(
             )
 
 
-# 维护意图：刷新 KT 预测并回写掌握度
-# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
-# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def refresh_kt_analysis(
     report,
     exam,
@@ -156,9 +144,6 @@ def refresh_kt_analysis(
     return kt_analysis
 
 
-# 维护意图：将错题结果补全为 LLM 可消费的结构
-# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
-# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_detailed_mistakes(
     exam_questions,
     mistakes: list[dict[str, Any]],
@@ -190,9 +175,6 @@ def build_detailed_mistakes(
     return detailed_mistakes
 
 
-# 维护意图：获取用户学习习惯偏好
-# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
-# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def extract_habit_preferences(user) -> dict[str, str] | None:
     """获取用户学习习惯偏好。"""
     from users.models import HabitPreference
@@ -208,26 +190,17 @@ def extract_habit_preferences(user) -> dict[str, str] | None:
         return None
 
 
-# 维护意图：规范化 LLM 返回的列表字段
-# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
-# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def normalize_llm_list(llm_result: dict[str, Any], field_name: str) -> list[Any]:
     """规范化 LLM 返回的列表字段。"""
     field_value = llm_result.get(field_name)
     return field_value if isinstance(field_value, list) else []
 
 
-# 维护意图：读取 KT/LLM 中间结果字段并统一默认值语义
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def mapping_value(record: dict[str, Any], field_name: str, default_value: object = None) -> object:
     """读取 KT/LLM 中间结果字段并统一默认值语义。"""
     return record.get(field_name, default_value)
 
 
-# 维护意图：记录反馈报告相关的 LLM 调用摘要
-# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
-# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def save_llm_call_log(
     user,
     exam,
@@ -258,9 +231,6 @@ def save_llm_call_log(
         )
 
 
-# 维护意图：统一回写报告失败状态
-# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
-# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def persist_failed_report(report, error_message: str) -> dict[str, Any]:
     """统一回写报告失败状态。"""
     overview = dict(report.overview) if isinstance(report.overview, dict) else {}

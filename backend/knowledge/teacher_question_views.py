@@ -34,9 +34,6 @@ from .teacher_helpers import (
 )
 
 
-# 维护意图：获取题目列表
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["GET"])
 @permission_classes([IsAuthenticated, IsTeacherOrAdmin])
 def question_list(request: Request) -> Response:
@@ -70,9 +67,6 @@ def question_list(request: Request) -> Response:
     })
 
 
-# 维护意图：获取或更新题目
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["GET", "PUT"])
 @permission_classes([IsAuthenticated, IsTeacherOrAdmin])
 def question_detail(request: Request, question_id: int) -> Response:
@@ -95,9 +89,6 @@ def question_detail(request: Request, question_id: int) -> Response:
     return success_response(data=build_question_detail(question))
 
 
-# 维护意图：创建题目
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["POST"])
 @permission_classes([IsAuthenticated, IsTeacherOrAdmin])
 def question_create(request: Request) -> Response:
@@ -135,9 +126,6 @@ def question_create(request: Request) -> Response:
     return success_response(data={"question_id": question_identifier(question)}, msg="题目创建成功")
 
 
-# 维护意图：更新题目
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["PUT"])
 @permission_classes([IsAuthenticated, IsTeacherOrAdmin])
 def question_update(request: Request, question_id: int) -> Response:
@@ -161,9 +149,6 @@ def question_update(request: Request, question_id: int) -> Response:
     return success_response(data={"question_id": question_identifier(question)}, msg="题目更新成功")
 
 
-# 维护意图：删除题目
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["DELETE"])
 @permission_classes([IsAuthenticated, IsTeacherOrAdmin])
 def question_delete(request: Request, question_id: int) -> Response:
@@ -178,9 +163,6 @@ def question_delete(request: Request, question_id: int) -> Response:
         return error_response(msg="题目不存在", code=404)
 
 
-# 维护意图：批量删除题目
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["POST"])
 @permission_classes([IsAuthenticated, IsTeacherOrAdmin])
 def question_batch_delete(request: Request) -> Response:
@@ -198,9 +180,6 @@ def question_batch_delete(request: Request) -> Response:
     return success_response(data={"deleted_count": deleted_count}, msg=f"已删除 {deleted_count} 道题目")
 
 
-# 维护意图：批量导入题目，支持 JSON 和 Excel 文件
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["POST"])
 @permission_classes([IsAuthenticated, IsTeacherOrAdmin])
 def question_import(request: Request) -> Response:
@@ -231,9 +210,6 @@ def question_import(request: Request) -> Response:
     return success_response(data=result, msg="题目导入完成")
 
 
-# 维护意图：导出题目 CSV
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["GET"])
 @permission_classes([IsAuthenticated, IsTeacherOrAdmin])
 def question_export(request: Request):
@@ -263,9 +239,6 @@ def question_export(request: Request):
     return response
 
 
-# 维护意图：获取题目导入模板
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["GET"])
 @permission_classes([IsAuthenticated, IsTeacherOrAdmin])
 def question_template(request: Request):
@@ -300,9 +273,6 @@ def question_template(request: Request):
     return response
 
 
-# 维护意图：题目关联知识点
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["POST"])
 @permission_classes([IsAuthenticated, IsTeacherOrAdmin])
 def question_link_knowledge(request: Request, question_id: int) -> Response:

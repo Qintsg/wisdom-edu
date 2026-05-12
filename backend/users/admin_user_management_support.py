@@ -29,17 +29,11 @@ USER_TEMPLATE_ROWS = [
 ]
 
 
-# 维护意图：把可选唯一联系方式中的空值统一落为数据库 NULL
-# 边界说明：只规整 email/phone 这类可选唯一字段，避免空字符串占用唯一索引。
-# 风险说明：调整用户模型唯一约束时，需同步管理端创建、更新和导入链路。
 def normalize_optional_unique_text(value: object) -> str | None:
     """把可选唯一联系方式中的空值统一落为数据库 NULL。"""
     return normalize_optional_unique_contact(value)
 
 
-# 维护意图：在写入前检查可选唯一字段冲突并返回用户可读错误
-# 边界说明：数据库约束仍是最终保护，这里负责把可预期冲突转成 400。
-# 风险说明：新增唯一字段时，应复用该检查以避免 IntegrityError 泄漏为 500。
 def validate_optional_unique_contacts(
     *,
     email: str | None,
@@ -58,24 +52,15 @@ def validate_optional_unique_contacts(
     return None
 
 
-# 维护意图：用户导入文件只依赖文件名和二进制读取能力
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class UploadedUserFile(Protocol):
     """用户导入文件只依赖文件名和二进制读取能力。"""
 
     name: str
 
-    # 维护意图：读取上传文件内容
-    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def read(self) -> bytes:
         """读取上传文件内容。"""
 
 
-# 维护意图：按筛选条件读取用户列表并组装分页响应
-# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
-# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_admin_user_list_payload(query_params: Mapping[str, object], page: int, size: int) -> dict[str, object]:
     """按筛选条件读取用户列表并组装分页响应。"""
     users = filtered_admin_users(query_params)
@@ -89,9 +74,6 @@ def build_admin_user_list_payload(query_params: Mapping[str, object], page: int,
     }
 
 
-# 维护意图：构造管理员用户列表查询集，保留前端现有 query/size/status 参数契约
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def filtered_admin_users(query_params: Mapping[str, object]) -> QuerySet[User]:
     """构造管理员用户列表查询集，保留前端现有 query/size/status 参数契约。"""
     users = User.objects.all().order_by("-date_joined")
@@ -115,9 +97,6 @@ def filtered_admin_users(query_params: Mapping[str, object]) -> QuerySet[User]:
     return users
 
 
-# 维护意图：序列化管理员用户列表项
-# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
-# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_admin_user_list_item(user: User) -> dict[str, object]:
     """序列化管理员用户列表项。"""
     return {
@@ -132,17 +111,11 @@ def build_admin_user_list_item(user: User) -> dict[str, object]:
     }
 
 
-# 维护意图：按主键读取用户，供多个管理端动作复用统一的不存在处理
-# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
-# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 def get_admin_user(user_id: int) -> User | None:
     """按主键读取用户，供多个管理端动作复用统一的不存在处理。"""
     return User.objects.filter(id=user_id).first()
 
 
-# 维护意图：序列化管理员用户详情响应
-# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
-# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_admin_user_detail_payload(target_user: User) -> dict[str, object]:
     """序列化管理员用户详情响应。"""
     return {
@@ -160,9 +133,6 @@ def build_admin_user_detail_payload(target_user: User) -> dict[str, object]:
     }
 
 
-# 维护意图：校验并创建管理员指定的新用户
-# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
-# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def create_admin_user(data: Mapping[str, object]) -> tuple[dict[str, object] | None, str | None]:
     """校验并创建管理员指定的新用户。"""
     username = data.get("username")
@@ -192,9 +162,6 @@ def create_admin_user(data: Mapping[str, object]) -> tuple[dict[str, object] | N
     return {"user_id": new_user.id, "username": new_user.username, "role": new_user.role}, None
 
 
-# 维护意图：按白名单字段更新用户，避免 View 层堆叠字段循环与校验
-# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
-# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def update_admin_user(target_user: User, data: Mapping[str, object]) -> tuple[list[str] | None, str | None]:
     """按白名单字段更新用户，避免 View 层堆叠字段循环与校验。"""
     updated_fields: list[str] = []
@@ -230,9 +197,6 @@ def update_admin_user(target_user: User, data: Mapping[str, object]) -> tuple[li
     return updated_fields, None
 
 
-# 维护意图：删除用户并返回原用户名用于响应消息
-# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
-# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def delete_admin_user(target_user: User) -> str:
     """删除用户并返回原用户名用于响应消息。"""
     username = target_user.username
@@ -240,9 +204,6 @@ def delete_admin_user(target_user: User) -> str:
     return username
 
 
-# 维护意图：重置密码；未显式传入时生成一次性随机密码并回传给管理员
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def reset_admin_user_password(target_user: User, provided_password: object) -> dict[str, object]:
     """重置密码；未显式传入时生成一次性随机密码并回传给管理员。"""
     auto_generated = not provided_password
@@ -256,18 +217,12 @@ def reset_admin_user_password(target_user: User, provided_password: object) -> d
     return response_data
 
 
-# 维护意图：生成仅含字母和数字的临时密码，兼容原有重置密码输出
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def generate_random_password(length: int = 12) -> str:
     """生成仅含字母和数字的临时密码，兼容原有重置密码输出。"""
     alphabet = string.ascii_letters + string.digits
     return "".join(secrets.choice(alphabet) for _ in range(length))
 
 
-# 维护意图：切换用户启停状态并返回操作消息
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def set_admin_user_active(target_user: User, is_active: bool) -> str:
     """切换用户启停状态并返回操作消息。"""
     target_user.is_active = is_active
@@ -276,9 +231,6 @@ def set_admin_user_active(target_user: User, is_active: bool) -> str:
     return f"用户 {target_user.username} 已{action}"
 
 
-# 维护意图：批量删除用户，显式排除当前管理员账号
-# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
-# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def delete_admin_users(raw_user_ids: object, excluded_user_id: int) -> int:
     """批量删除用户，显式排除当前管理员账号。"""
     user_ids = normalize_delete_user_ids(raw_user_ids, excluded_user_id)
@@ -286,9 +238,6 @@ def delete_admin_users(raw_user_ids: object, excluded_user_id: int) -> int:
     return deleted_count
 
 
-# 维护意图：将批量删除入参规整为列表，同时避免误删当前管理员
-# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
-# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def normalize_delete_user_ids(raw_user_ids: object, excluded_user_id: int) -> list[object]:
     """将批量删除入参规整为列表，同时避免误删当前管理员。"""
     if isinstance(raw_user_ids, str):
@@ -300,9 +249,6 @@ def normalize_delete_user_ids(raw_user_ids: object, excluded_user_id: int) -> li
     return [user_id for user_id in candidate_ids if user_id != excluded_user_id]
 
 
-# 维护意图：读取 CSV/XLS/XLSX 导入文件，返回标准行字典或用户可读错误
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def read_user_import_rows(uploaded_file: UploadedUserFile) -> tuple[list[dict[str, str]], str | None]:
     """读取 CSV/XLS/XLSX 导入文件，返回标准行字典或用户可读错误。"""
     filename = uploaded_file.name.lower()
@@ -316,18 +262,12 @@ def read_user_import_rows(uploaded_file: UploadedUserFile) -> tuple[list[dict[st
         return [], f"文件解析失败: {exc}"
 
 
-# 维护意图：读取 UTF-8 BOM 兼容的 CSV 用户导入文件
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def read_user_csv_rows(uploaded_file: UploadedUserFile) -> list[dict[str, str]]:
     """读取 UTF-8 BOM 兼容的 CSV 用户导入文件。"""
     decoded = uploaded_file.read().decode("utf-8-sig")
     return list(csv.DictReader(io.StringIO(decoded)))
 
 
-# 维护意图：读取 Excel 用户导入文件，缺少 openpyxl 时返回明确部署错误
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def read_user_excel_rows(uploaded_file: UploadedUserFile) -> tuple[list[dict[str, str]], str | None]:
     """读取 Excel 用户导入文件，缺少 openpyxl 时返回明确部署错误。"""
     try:
@@ -350,9 +290,6 @@ def read_user_excel_rows(uploaded_file: UploadedUserFile) -> tuple[list[dict[str
         workbook.close()
 
 
-# 维护意图：批量创建导入用户，保持原有整批事务语义和最多 50 条跳过回传
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def import_admin_users(rows: Sequence[Mapping[str, str]]) -> tuple[int, list[str]]:
     """批量创建导入用户，保持原有整批事务语义和最多 50 条跳过回传。"""
     created_count = 0
@@ -367,9 +304,6 @@ def import_admin_users(rows: Sequence[Mapping[str, str]]) -> tuple[int, list[str
     return created_count, skipped[:50]
 
 
-# 维护意图：根据单行导入数据创建用户，兼容中英文字段名
-# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
-# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def create_user_from_import_row(row: Mapping[str, str], index: int) -> tuple[bool, str | None]:
     """根据单行导入数据创建用户，兼容中英文字段名。"""
     username = first_row_value(row, "username", "用户名")
@@ -396,9 +330,6 @@ def create_user_from_import_row(row: Mapping[str, str], index: int) -> tuple[boo
     return True, None
 
 
-# 维护意图：按字段别名读取导入行中的第一个非空值
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def first_row_value(row: Mapping[str, str], *keys: str) -> str:
     """按字段别名读取导入行中的第一个非空值。"""
     for key in keys:
@@ -408,9 +339,6 @@ def first_row_value(row: Mapping[str, str], *keys: str) -> str:
     return ""
 
 
-# 维护意图：导出管理员用户列表 CSV，限制最多 10000 行以控制响应体大小
-# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
-# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_user_export_response(query_params: Mapping[str, object]) -> HttpResponse:
     """导出管理员用户列表 CSV，限制最多 10000 行以控制响应体大小。"""
     role = query_params.get("role")
@@ -426,9 +354,6 @@ def build_user_export_response(query_params: Mapping[str, object]) -> HttpRespon
     return response
 
 
-# 维护意图：组装用户导出 CSV 的单行内容
-# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
-# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_user_export_row(user: User) -> list[object]:
     """组装用户导出 CSV 的单行内容。"""
     return [
@@ -444,9 +369,6 @@ def build_user_export_row(user: User) -> list[object]:
     ]
 
 
-# 维护意图：生成用户导入模板 CSV
-# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
-# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_user_import_template_response() -> HttpResponse:
     """生成用户导入模板 CSV。"""
     response = build_csv_response("user_import_template.csv")
@@ -456,9 +378,6 @@ def build_user_import_template_response() -> HttpResponse:
     return response
 
 
-# 维护意图：创建带 UTF-8 BOM 的 CSV 下载响应
-# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
-# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_csv_response(filename: str) -> HttpResponse:
     """创建带 UTF-8 BOM 的 CSV 下载响应。"""
     response = HttpResponse(content_type=CSV_CONTENT_TYPE)

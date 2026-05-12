@@ -17,9 +17,6 @@ from .student_utils import append_internal_resource, dedupe_strings, model_pk, t
 logger = logging.getLogger(__name__)
 
 
-# 维护意图：节点资源推荐所需上下文，避免在多个 helper 间传递长参数列表
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @dataclass(frozen=True)
 class NodeResourceRecommendationRequest:
     """节点资源推荐所需上下文，避免在多个 helper 间传递长参数列表。"""
@@ -32,15 +29,9 @@ class NodeResourceRecommendationRequest:
     external_count: int = 2
 
 
-# 维护意图：为学习路径节点推荐内部课程资源和外部补充材料
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class StudentResourceRecommendationMixin:
     """为学习路径节点推荐内部课程资源和外部补充材料。"""
 
-    # 维护意图：兼容历史调用形态的节点资源推荐入口
-    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def recommend_node_resources(self, **request_data: object) -> dict[str, object]:
         """兼容历史调用形态的节点资源推荐入口。"""
         request_context = NodeResourceRecommendationRequest(
@@ -53,9 +44,6 @@ class StudentResourceRecommendationMixin:
         )
         return self._recommend_node_resources(request_context)
 
-    # 维护意图：对外暴露稳定的节点资源推荐入口
-    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def recommend_resources_for_node(
         self,
         *,
@@ -75,9 +63,6 @@ class StudentResourceRecommendationMixin:
         )
         return self._recommend_node_resources(request_context)
 
-    # 维护意图：按知识点上下文生成内部和外部资源推荐
-    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def _recommend_node_resources(
         self,
         request_context: NodeResourceRecommendationRequest,
@@ -111,9 +96,6 @@ class StudentResourceRecommendationMixin:
             "external_resources": external_resources,
         }
 
-    # 维护意图：从 MCP 资源服务取项目内候选资源
-    # 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
-    # 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
     def _search_internal_candidates(
         self,
         request_context: NodeResourceRecommendationRequest,
@@ -127,9 +109,6 @@ class StudentResourceRecommendationMixin:
             limit=max(request_context.internal_count * 4, request_context.internal_count),
         )
 
-    # 维护意图：结合 LLM 选择结果或排序候选，生成内部资源响应
-    # 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
-    # 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
     def _build_internal_resources(
         self,
         request_context: NodeResourceRecommendationRequest,
@@ -163,9 +142,6 @@ class StudentResourceRecommendationMixin:
             )
         return internal_resources
 
-    # 维护意图：优先用 LLM 选择内部资源，失败时回退到图谱排序结果
-    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def _select_internal_resources(
         self,
         request_context: NodeResourceRecommendationRequest,
@@ -200,9 +176,6 @@ class StudentResourceRecommendationMixin:
             request_context.internal_count,
         )
 
-    # 维护意图：生成外部资源推荐，MCP 搜索为空时再调用 LLM 兜底
-    # 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
-    # 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
     def _build_external_resources(
         self,
         request_context: NodeResourceRecommendationRequest,
@@ -240,9 +213,6 @@ class StudentResourceRecommendationMixin:
         )
 
 
-# 维护意图：按资源 ID 去重候选资源
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _resource_map(
     internal_candidates: list[InternalResourceCandidate],
 ) -> dict[int, Resource]:
@@ -254,9 +224,6 @@ def _resource_map(
     }
 
 
-# 维护意图：保持 MCP 候选排序，同时过滤无效资源
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _ordered_resources(
     internal_candidates: list[InternalResourceCandidate],
     candidate_resources: Mapping[int, Resource],
@@ -269,9 +236,6 @@ def _ordered_resources(
     ]
 
 
-# 维护意图：序列化给 LLM 选择内部资源的候选摘要
-# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
-# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def _serialize_available_resources(
     point: KnowledgePoint,
     ordered_resources: list[Resource],
@@ -289,9 +253,6 @@ def _serialize_available_resources(
     ]
 
 
-# 维护意图：解析 LLM 内部资源推荐，剔除不在候选集内的资源 ID
-# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
-# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def _parse_internal_llm_result(
     internal_result: Mapping[str, object],
     point: KnowledgePoint,
@@ -318,9 +279,6 @@ def _parse_internal_llm_result(
     return selected_ids, selected_reason_map
 
 
-# 维护意图：LLM 不可用或未返回有效 ID 时，使用图谱排序候选兜底
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _fallback_internal_selection(
     point: KnowledgePoint,
     ordered_resources: list[Resource],
@@ -339,9 +297,6 @@ def _fallback_internal_selection(
     return selected_ids, selected_reason_map
 
 
-# 维护意图：将 LLM 外部资源推荐转换为统一响应结构
-# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
-# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def _parse_external_llm_result(
     external_result: Mapping[str, object],
     point_name: str,

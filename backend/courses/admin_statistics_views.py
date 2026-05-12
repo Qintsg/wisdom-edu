@@ -23,9 +23,6 @@ from users.models import User
 from .models import Class, ClassCourse, Course, Enrollment
 
 
-# 维护意图：管理端 - 获取系统统计概览
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(['GET'])
 @permission_classes([IsAuthenticated, IsAdmin])
 def admin_statistics_overview(_request):
@@ -52,9 +49,6 @@ def admin_statistics_overview(_request):
     })
 
 
-# 维护意图：用户增长趋势 / 活跃度统计
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(['GET'])
 @permission_classes([IsAuthenticated, IsAdmin])
 def admin_statistics_users(request):
@@ -78,9 +72,6 @@ def admin_statistics_users(request):
     })
 
 
-# 维护意图：课程使用情况统计
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(['GET'])
 @permission_classes([IsAuthenticated, IsAdmin])
 def admin_statistics_courses(_request):
@@ -102,9 +93,6 @@ def admin_statistics_courses(_request):
     })
 
 
-# 维护意图：整体学习统计
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(['GET'])
 @permission_classes([IsAuthenticated, IsAdmin])
 def admin_statistics_learning(_request):
@@ -121,9 +109,6 @@ def admin_statistics_learning(_request):
     })
 
 
-# 维护意图：考试统计
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(['GET'])
 @permission_classes([IsAuthenticated, IsAdmin])
 def admin_statistics_exams(_request):
@@ -139,9 +124,6 @@ def admin_statistics_exams(_request):
     })
 
 
-# 维护意图：活跃用户排行
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(['GET'])
 @permission_classes([IsAuthenticated, IsAdmin])
 def admin_statistics_active_users(request):
@@ -158,9 +140,6 @@ def admin_statistics_active_users(request):
     return success_response(data={'active_users': list(active), 'days': days})
 
 
-# 维护意图：系统运行综合报告
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(['GET'])
 @permission_classes([IsAuthenticated, IsAdmin])
 def admin_statistics_report(_request):
@@ -190,9 +169,6 @@ def admin_statistics_report(_request):
     })
 
 
-# 维护意图：导出统计数据为 CSV
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(['GET'])
 @permission_classes([IsAuthenticated, IsAdmin])
 def admin_statistics_export(_request):

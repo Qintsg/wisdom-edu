@@ -8,15 +8,9 @@ from typing import Dict, List
 logger = logging.getLogger(__name__)
 
 
-# 维护意图：知识点、关系与课程文档投影的增删同步能力
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class Neo4jCrudMixin:
     """知识点、关系与课程文档投影的增删同步能力。"""
 
-    # 维护意图：同步单个知识点到 Neo4j
-    # 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
-    # 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
     def sync_single_point(self, point) -> bool:
         """同步单个知识点到 Neo4j。"""
         if not self.is_available:
@@ -62,9 +56,6 @@ class Neo4jCrudMixin:
             logger.error("Neo4j同步知识点失败: %s", error)
             return False
 
-    # 维护意图：从 Neo4j 删除知识点及其关系
-    # 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
-    # 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
     def delete_point_neo4j(self, point_id: int) -> bool:
         """从 Neo4j 删除知识点及其关系。"""
         if not self.is_available:
@@ -85,9 +76,6 @@ class Neo4jCrudMixin:
             logger.error("Neo4j删除知识点失败: %s", error)
             return False
 
-    # 维护意图：同步单个知识关系到 Neo4j
-    # 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
-    # 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
     def sync_single_relation(self, relation) -> bool:
         """同步单个知识关系到 Neo4j。"""
         if not self.is_available:
@@ -122,9 +110,6 @@ class Neo4jCrudMixin:
             logger.error("Neo4j同步关系失败: %s", error)
             return False
 
-    # 维护意图：从 Neo4j 删除知识关系
-    # 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
-    # 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
     def delete_relation_neo4j(self, pre_point_id: int, post_point_id: int) -> bool:
         """从 Neo4j 删除知识关系。"""
         if not self.is_available:
@@ -149,9 +134,6 @@ class Neo4jCrudMixin:
             logger.error("Neo4j删除关系失败: %s", error)
             return False
 
-    # 维护意图：清除指定课程的 Neo4j 图数据与 GraphRAG 文档投影
-    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def clear_course_graph(self, course_id: int) -> bool:
         """清除指定课程的 Neo4j 图数据与 GraphRAG 文档投影。"""
         if not self.is_available:
@@ -182,9 +164,6 @@ class Neo4jCrudMixin:
             logger.error("Neo4j清除课程图数据失败: %s", error)
             return False
 
-    # 维护意图：检查课程级 GraphRAG 文档投影是否已存在
-    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def has_course_graphrag_projection(self, course_id: int) -> bool:
         """检查课程级 GraphRAG 文档投影是否已存在。"""
         if not self.is_available:
@@ -206,9 +185,6 @@ class Neo4jCrudMixin:
             logger.error("Neo4j检查 GraphRAG 投影失败: %s", error)
             return False
 
-    # 维护意图：同步课程级 GraphRAG 文档投影
-    # 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
-    # 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
     def sync_course_graphrag_projection(
         self,
         course_id: int,
@@ -223,9 +199,6 @@ class Neo4jCrudMixin:
         driver = self._get_driver()
         with driver.session() as session:
 
-            # 维护意图：sync projection tx
-            # 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
-            # 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
             def sync_projection_tx(tx):
                 clear_result = tx.run(
                     """

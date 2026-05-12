@@ -47,9 +47,6 @@ class MasteryChange:
     source: str
 
 
-# 维护意图：提供可重复的初测掌握度数据修复入口。
-# 边界说明：只修复 KnowledgeMastery，不改题库、作答历史和 schema。
-# 风险说明：执行 --apply 前应先 dry-run，确认影响范围。
 class Command(BaseCommand):
     """修复初始知识评测后异常聚集的掌握度数据。"""
 

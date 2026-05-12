@@ -24,8 +24,8 @@ from learning.node_progress_views import (
     start_learning_node,
 )
 from learning.path_views import adjust_learning_path, generate_initial_path, get_learning_path
-from learning.stage_test_get_views import get_stage_test
-from learning.stage_test_submit_views import submit_stage_test
+from learning.stage_test.get_views import get_stage_test
+from learning.stage_test.submit_views import submit_stage_test
 
 __all__ = [
     "adjust_learning_path",

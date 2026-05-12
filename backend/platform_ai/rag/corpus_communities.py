@@ -12,9 +12,6 @@ from .corpus_types import CorpusDocument, GraphEntity
 from .corpus_utils import _top_themes
 
 
-# 维护意图：Subset of GraphCorpusBuildState required for community reporting
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class CommunityBuildState(Protocol):
     """Subset of GraphCorpusBuildState required for community reporting."""
 
@@ -24,9 +21,6 @@ class CommunityBuildState(Protocol):
     entities: dict[str, GraphEntity]
 
 
-# 维护意图：Return deterministic graph communities for the current course graph
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def detect_communities(graph: nx.Graph) -> list[set[str]]:
     """Return deterministic graph communities for the current course graph."""
     if graph.number_of_nodes() == 0:
@@ -36,9 +30,6 @@ def detect_communities(graph: nx.Graph) -> list[set[str]]:
     return [set(group) for group in nx_community.greedy_modularity_communities(graph)]
 
 
-# 维护意图：Compute centrality with a stable single-node fallback
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def community_centrality(subgraph: nx.Graph) -> dict[str, float]:
     """Compute centrality with a stable single-node fallback."""
     if subgraph.number_of_nodes() <= 1:
@@ -46,9 +37,6 @@ def community_centrality(subgraph: nx.Graph) -> dict[str, float]:
     return {str(node_id): score for node_id, score in nx.degree_centrality(subgraph).items()}
 
 
-# 维护意图：Pick the highest-centrality entities for report highlights
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def select_top_node_ids(centrality: dict[str, float], limit: int = 6) -> list[str]:
     """Pick the highest-centrality entities for report highlights."""
     return [
@@ -61,9 +49,6 @@ def select_top_node_ids(centrality: dict[str, float], limit: int = 6) -> list[st
     ]
 
 
-# 维护意图：Count relationship types inside a detected community
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def relation_breakdown(subgraph: nx.Graph) -> Counter[str]:
     """Count relationship types inside a detected community."""
     return Counter(
@@ -72,9 +57,6 @@ def relation_breakdown(subgraph: nx.Graph) -> Counter[str]:
     )
 
 
-# 维护意图：Extract stable keywords from entity titles and summaries
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def community_themes(state: CommunityBuildState, community_nodes: set[str]) -> list[str]:
     """Extract stable keywords from entity titles and summaries."""
     return _top_themes(
@@ -86,9 +68,6 @@ def community_themes(state: CommunityBuildState, community_nodes: set[str]) -> l
     )
 
 
-# 维护意图：Render a compact Chinese community report summary
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def community_summary(
     *,
     top_titles: list[str],
@@ -103,9 +82,6 @@ def community_summary(
     )
 
 
-# 维护意图：Build the serializable community payload
-# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
-# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_community_payload(
     *,
     community_id: str,
@@ -123,9 +99,6 @@ def build_community_payload(
     }
 
 
-# 维护意图：Build the human-readable community report payload
-# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
-# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_community_report(
     *,
     state: CommunityBuildState,
@@ -155,9 +128,6 @@ def build_community_report(
     }
 
 
-# 维护意图：Append the synthetic community report document used by retrieval
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def append_community_document(
     *,
     state: CommunityBuildState,
@@ -185,9 +155,6 @@ def append_community_document(
     )
 
 
-# 维护意图：Build community payloads, reports, and synthetic report documents
-# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
-# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_community_records(state: CommunityBuildState) -> tuple[list[dict[str, object]], list[dict[str, object]]]:
     """Build community payloads, reports, and synthetic report documents."""
     community_payloads: list[dict[str, object]] = []

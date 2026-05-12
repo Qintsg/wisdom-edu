@@ -46,9 +46,6 @@ ENQUEUED_REPORT_IDS: set[int] = set()
 QUEUE_LOCK = Lock()
 
 
-# 维护意图：将报告生成任务加入后台队列。
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def enqueue_feedback_report(report_id: int, force: bool = False) -> bool:
     """
     将报告生成任务加入后台队列。
@@ -65,9 +62,6 @@ def enqueue_feedback_report(report_id: int, force: bool = False) -> bool:
     return True
 
 
-# 维护意图：在事务提交后调度报告生成。
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def enqueue_feedback_report_on_commit(report_id: int, force: bool = False) -> None:
     """
     在事务提交后调度报告生成。
@@ -78,9 +72,6 @@ def enqueue_feedback_report_on_commit(report_id: int, force: bool = False) -> No
     transaction.on_commit(lambda: enqueue_feedback_report(report_id, force=force))
 
 
-# 维护意图：在线程池中执行报告生成并回收连接。
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def run_feedback_generation(report_id: int, force: bool = False) -> None:
     """
     在线程池中执行报告生成并回收连接。
@@ -98,9 +89,6 @@ def run_feedback_generation(report_id: int, force: bool = False) -> None:
         close_old_connections()
 
 
-# 维护意图：同步生成单份考试反馈报告。
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def generate_feedback_report_sync(
     report_id: int, force: bool = False
 ) -> dict[str, Any] | None:

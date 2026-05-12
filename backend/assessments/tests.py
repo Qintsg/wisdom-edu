@@ -20,15 +20,9 @@ from tools.db_seed_support import _seed_survey_questions
 from users.models import User
 
 
-# 维护意图：Verify ability assessments only persist evidence-backed dimensions
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class AbilityAssessmentScoringTests(APITestCase):
     """Verify ability assessments only persist evidence-backed dimensions."""
 
-    # 维护意图：Create a minimal single-question ability assessment
-    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def setUp(self):
         """Create a minimal single-question ability assessment."""
         self.student = User.objects.create_user(
@@ -71,9 +65,6 @@ class AbilityAssessmentScoringTests(APITestCase):
         )
         self.client.force_authenticate(user=self.student)
 
-    # 维护意图：Submissions without dimension evidence should keep analysis dictionaries empty
-    # 边界说明：测试步骤保持显式，便于定位回归阶段和失败上下文。
-    # 风险说明：调整测试断言时，需保留失败上下文和可复现实例。
     def test_submit_ability_assessment_should_not_fabricate_dimension_scores(self):
         """Submissions without dimension evidence should keep analysis dictionaries empty."""
         response = self.client.post(
@@ -92,15 +83,9 @@ class AbilityAssessmentScoringTests(APITestCase):
         self.assertEqual(ability_score.scores, {})
 
 
-# 维护意图：验证基础测试数据会补齐内置能力与习惯问卷题
-# 边界说明：只调用问卷种子函数，不触碰课程资源和图谱导入链路。
-# 风险说明：内置问卷题结构变化时，需要同步导入映射字段。
 class SurveyQuestionSeedTests(APITestCase):
     """验证基础测试数据会补齐内置能力与习惯问卷题。"""
 
-    # 维护意图：空 survey_questions 配置也应生成默认问卷题
-    # 边界说明：对应 testdata.json5 中 habit/ability 为空数组的默认场景。
-    # 风险说明：若改为完全按配置驱动，需要同步 db-check 和演示数据说明。
     def test_seed_survey_questions_should_use_builtin_defaults_when_config_empty(self):
         """空 survey_questions 配置也应生成默认问卷题。"""
         _seed_survey_questions({"survey_questions": {"habit": [], "ability": []}}, [])
@@ -110,15 +95,9 @@ class SurveyQuestionSeedTests(APITestCase):
         self.assertFalse(SurveyQuestion.objects.filter(survey_type="ability", is_global=False).exists())
 
 
-# 维护意图：Check prerequisite-aware mastery updates for knowledge assessments
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class KnowledgeAssessmentMasteryTests(APITestCase):
     """Check prerequisite-aware mastery updates for knowledge assessments."""
 
-    # 维护意图：Build a prerequisite pair so conservative mastery rules are observable
-    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def setUp(self):
         """Build a prerequisite pair so conservative mastery rules are observable."""
         self.student = User.objects.create_user(
@@ -181,9 +160,6 @@ class KnowledgeAssessmentMasteryTests(APITestCase):
         AssessmentQuestion.objects.create(assessment=self.assessment, question=self.post_question, order=1)
         self.client.force_authenticate(user=self.student)
 
-    # 维护意图：A stronger downstream prediction should still be capped by prerequisite weakness
-    # 边界说明：测试步骤保持显式，便于定位回归阶段和失败上下文。
-    # 风险说明：调整测试断言时，需保留失败上下文和可复现实例。
     @patch('ai_services.services.kt_service.kt_service.predict_mastery')
     def test_knowledge_assessment_should_keep_mastery_conservative_and_respect_prerequisite(self, mock_predict_mastery):
         """A stronger downstream prediction should still be capped by prerequisite weakness."""
@@ -215,9 +191,6 @@ class KnowledgeAssessmentMasteryTests(APITestCase):
         self.assertLess(pre_mastery, 0.6)
         self.assertLessEqual(post_mastery, pre_mastery)
 
-    # 维护意图：初测提交本身应保留真实 MEFKT 对未测知识点的推断。
-    # 边界说明：统计/default 回退不具备此权限，只验证真实 MEFKT model_type。
-    # 风险说明：如果 MEFKT 顶层封装改成 fusion，应继续由白名单函数识别。
     @patch('assessments.knowledge_views.threading.Thread')
     @patch('ai_services.services.kt_service.kt_service.predict_mastery')
     def test_knowledge_assessment_should_persist_mefkt_unmeasured_inference(
@@ -266,9 +239,6 @@ class KnowledgeAssessmentMasteryTests(APITestCase):
             )
         )
 
-    # 维护意图：初测小样本掌握度应避开旧 25/30/50 尖峰。
-    # 边界说明：只验证提交链路的持久化结果，不触发异步报告断言。
-    # 风险说明：若初测先验重新调整，需要同步这些精确期望。
     @patch('assessments.knowledge_views.threading.Thread')
     @patch('ai_services.services.kt_service.kt_service.predict_mastery')
     def test_knowledge_assessment_should_spread_small_sample_mastery(self, mock_predict_mastery, _mock_thread):
@@ -300,9 +270,6 @@ class KnowledgeAssessmentMasteryTests(APITestCase):
         self.assertNotIn(round(pre_mastery, 2), {0.25, 0.30, 0.50})
 
 
-# 维护意图：验证现有初测掌握度修复命令。
-# 边界说明：只构造最小 answer_history / mastery 数据，不依赖外部模型文件。
-# 风险说明：修复策略变化时，应保留 dry-run 与 apply 的行为断言。
 class RepairInitialMasteryCommandTests(APITestCase):
     """验证现有初测掌握度修复命令。"""
 

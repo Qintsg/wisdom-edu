@@ -16,9 +16,6 @@ from .services.student_graph_rag_service import student_graph_rag_service
 logger = logging.getLogger(__name__)
 
 
-# 维护意图：统一生成 AI 助手回复，供 HTTP 与 WebSocket 共用
-# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
-# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_chat_response(
     *,
     user,
@@ -70,9 +67,6 @@ def build_chat_response(
     return fallback
 
 
-# 维护意图：Course-grounded chat with optional knowledge-point focus
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def ai_chat(request):
@@ -98,9 +92,6 @@ def ai_chat(request):
     return success_response(data=result)
 
 
-# 维护意图：Dedicated alias for graph-grounded student Q&A
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def ai_knowledge_graph_query(request):
@@ -108,9 +99,6 @@ def ai_knowledge_graph_query(request):
     return ai_chat(request)
 
 
-# 维护意图：Search graph knowledge points under the current course
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def ai_graph_rag_search(request):
@@ -131,9 +119,6 @@ def ai_graph_rag_search(request):
     return success_response(data=result)
 
 
-# 维护意图：Ask a graph-grounded question under the current course
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def ai_graph_rag_ask(request):

@@ -44,9 +44,6 @@ from platform_ai.rag.runtime_models import (
 )
 
 
-# 维护意图：让官方 GraphRAG 检索器复用仓库内现有的 LLM 门面
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class FacadeGraphRAGLLM(LLMInterfaceV2):
     """让官方 GraphRAG 检索器复用仓库内现有的 LLM 门面。"""
 
@@ -56,9 +53,6 @@ class FacadeGraphRAGLLM(LLMInterfaceV2):
             model_params={"temperature": 0},
         )
 
-    # 维护意图：兼容 V2 message list 与仓库内旧式字符串 prompt 调用
-    # 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
-    # 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
     @staticmethod
     def normalize_invoke_input(
         raw_input: list[LLMMessage] | str,
@@ -90,9 +84,6 @@ class FacadeGraphRAGLLM(LLMInterfaceV2):
             normalized_messages = [{"role": "user", "content": prompt_text}]
         return prompt_text, normalized_messages
 
-    # 维护意图：为 V2 structured output 参数生成可读提示
-    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     @staticmethod
     def response_format_hint(response_format: object | None) -> str:
         """为 V2 structured output 参数生成可读提示。"""
@@ -102,9 +93,6 @@ class FacadeGraphRAGLLM(LLMInterfaceV2):
             return json.dumps(response_format, ensure_ascii=False)
         return _coerce_string(getattr(response_format, "__name__", response_format)) or "无"
 
-    # 维护意图：在无模型或模型路由失败时，基于关键词选择检索工具
-    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     @staticmethod
     def heuristic_tool_calls(input_text: str, tools: list[Tool]) -> list[ToolCall]:
         """在无模型或模型路由失败时，基于关键词选择检索工具。"""
@@ -173,9 +161,6 @@ class FacadeGraphRAGLLM(LLMInterfaceV2):
             )
         return selected_calls
 
-    # 维护意图：将官方 Text2Cypher prompt 委托给仓库的 LLM 门面处理
-    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def invoke(
         self,
         input: list[LLMMessage] | str,
@@ -208,9 +193,6 @@ class FacadeGraphRAGLLM(LLMInterfaceV2):
         generated_cypher = _coerce_string(result.get("content")) or fallback_cypher
         return LLMResponse(content=generated_cypher)
 
-    # 维护意图：异步接口直接复用同步实现，保持与官方接口兼容
-    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     async def ainvoke(
         self,
         input: list[LLMMessage] | str,
@@ -224,9 +206,6 @@ class FacadeGraphRAGLLM(LLMInterfaceV2):
             **kwargs,
         )
 
-    # 维护意图：用结构化 JSON 路由官方 ToolsRetriever 所需的工具选择
-    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def invoke_with_tools(
         self,
         input: str,

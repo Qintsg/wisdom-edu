@@ -23,9 +23,6 @@ from .student_answer_support import (
 from .student_utils import model_pk
 
 
-# 维护意图：构造面向学生端 WebSocket 的纯文本流式回答 prompt
-# 边界说明：流式通道不要求 JSON，避免前端逐字展示结构化包裹文本。
-# 风险说明：约束需与 GraphRAG 证据边界一致，避免模型把无依据内容包装为事实。
 def build_stream_answer_prompt(
     *,
     question: str,
@@ -58,15 +55,9 @@ def build_stream_answer_prompt(
 """
 
 
-# 维护意图：提供知识点级和课程级 GraphRAG 问答
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class StudentAnswerMixin:
     """提供知识点级和课程级 GraphRAG 问答。"""
 
-    # 维护意图：准备知识点级 GraphRAG 流式回答所需证据，不直接调用 LLM
-    # 边界说明：WebSocket 层只消费 prompt、fallback 与元数据，不接触图谱查询细节。
-    # 风险说明：与 answer_graph_question 共用证据构造，改动时需保持 HTTP 与 WS 语义一致。
     def prepare_graph_answer_stream(
         self,
         *,
@@ -105,9 +96,6 @@ class StudentAnswerMixin:
             "candidate_names": [point.name],
         }
 
-    # 维护意图：准备课程级 GraphRAG 流式回答所需证据，不直接调用 LLM
-    # 边界说明：保留候选知识点 ID，便于学生端展示命中上下文。
-    # 风险说明：结构类问题和未指定知识点问题都依赖此方法的元数据完整性。
     def prepare_course_answer_stream(
         self,
         *,
@@ -152,9 +140,6 @@ class StudentAnswerMixin:
             "matched_point_ids": candidates.matched_point_ids,
         }
 
-    # 维护意图：使用三种 GraphRAG 查询模式回答学生问题
-    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def answer_graph_question(self, *, course_id: int, point: KnowledgePoint, question: str) -> dict[str, object]:
         """使用三种 GraphRAG 查询模式回答学生问题。"""
         point_pk = model_pk(point)
@@ -192,9 +177,6 @@ class StudentAnswerMixin:
         )
         return graph_answer_with_llm(llm_result=result, evidence=evidence)
 
-    # 维护意图：在未指定知识点时，使用课程级 GraphRAG 证据回答学生问题
-    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def answer_course_question(self, *, course_id: int, question: str, seed_point_ids: Sequence[int] = ()) -> dict[str, object]:
         """在未指定知识点时，使用课程级 GraphRAG 证据回答学生问题。"""
         payload = self._ensure_index(course_id)

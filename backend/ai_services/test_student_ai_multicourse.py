@@ -27,15 +27,9 @@ from platform_ai.search.providers import ExternalSearchProvider
 from tools.kt_synthetic import _build_kp_profiles, _simulate_student_sequence
 from users.models import User
 
-# 维护意图：Ensure AI endpoints keep student queries scoped to the chosen course
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class StudentAIMulticourseTests(APITestCase):
     """Ensure AI endpoints keep student queries scoped to the chosen course."""
 
-    # 维护意图：Create two courses that intentionally share the same point name
-    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def setUp(self):
         """Create two courses that intentionally share the same point name."""
         self.teacher = User.objects.create_user(
@@ -75,9 +69,6 @@ class StudentAIMulticourseTests(APITestCase):
         self.resource_a.knowledge_points.add(self.point_a)
         self.client.force_authenticate(user=self.student)
 
-    # 维护意图：Point search should not leak similarly named points from other courses
-    # 边界说明：测试步骤保持显式，便于定位回归阶段和失败上下文。
-    # 风险说明：调整测试断言时，需保留失败上下文和可复现实例。
     def test_graph_rag_search_should_only_return_points_from_selected_course(self):
         """Point search should not leak similarly named points from other courses."""
         result = student_graph_rag_service.search_points(
@@ -91,9 +82,6 @@ class StudentAIMulticourseTests(APITestCase):
         self.assertIn(self.point_a.id, matched_ids)
         self.assertNotIn(self.point_b.id, matched_ids)
 
-    # 维护意图：Hybrid GraphRAG matches should expose supporting source titles to the UI
-    # 边界说明：测试步骤保持显式，便于定位回归阶段和失败上下文。
-    # 风险说明：调整测试断言时，需保留失败上下文和可复现实例。
     @patch("ai_services.services.student_graph_rag_service.student_graphrag_runtime.search_points")
     def test_graph_rag_search_should_surface_runtime_supporting_sources(self, mock_runtime_search):
         """Hybrid GraphRAG matches should expose supporting source titles to the UI."""
@@ -117,9 +105,6 @@ class StudentAIMulticourseTests(APITestCase):
         self.assertEqual(result["retrieval_mode"], COURSE_RETRIEVAL_MODE)
         self.assertEqual(result["matched_points"][0]["supporting_sources"], ["课程A资源"])
 
-    # 维护意图：Full-sentence queries should still resolve explicit point names within the selected course
-    # 边界说明：测试步骤保持显式，便于定位回归阶段和失败上下文。
-    # 风险说明：调整测试断言时，需保留失败上下文和可复现实例。
     def test_graph_rag_search_should_match_point_names_inside_full_sentence(self):
         """Full-sentence queries should still resolve explicit point names within the selected course."""
         result = student_graph_rag_service.search_points(
@@ -132,9 +117,6 @@ class StudentAIMulticourseTests(APITestCase):
         self.assertEqual(result["retrieval_mode"], "name_match")
         self.assertEqual(result["matched_points"][0]["point_id"], self.point_a.id)
 
-    # 维护意图：Structure questions without point_id should use the course-level GraphRAG answer path first
-    # 边界说明：测试步骤保持显式，便于定位回归阶段和失败上下文。
-    # 风险说明：调整测试断言时，需保留失败上下文和可复现实例。
     @patch("ai_services.services.student_graph_rag_service.student_learning_rag.answer_course_question")
     def test_graph_rag_ask_should_route_structure_question_without_point(self, mock_answer_course_question):
         """Structure questions without point_id should use the course-level GraphRAG answer path first."""
@@ -168,9 +150,6 @@ class StudentAIMulticourseTests(APITestCase):
         self.assertEqual(result["matched_point"]["point_id"], self.point_a.id)
         self.assertEqual(result["query_modes"], ["local", "graph_tools"])
 
-    # 维护意图：The graph-rag ask endpoint should preserve the enhanced runtime mode metadata
-    # 边界说明：测试步骤保持显式，便于定位回归阶段和失败上下文。
-    # 风险说明：调整测试断言时，需保留失败上下文和可复现实例。
     @patch("ai_services.services.student_graph_rag_service.student_learning_rag.answer_graph_question")
     def test_graph_rag_ask_endpoint_should_surface_runtime_modes(self, mock_answer_graph_question):
         """The graph-rag ask endpoint should preserve the enhanced runtime mode metadata."""
@@ -208,9 +187,6 @@ class StudentAIMulticourseTests(APITestCase):
         self.assertEqual(payload["query_modes"], ["local", "graph_tools"])
         self.assertEqual(payload["key_points"], ["课程A基础"])
 
-    # 维护意图：Resource reasoning should reject mismatched course and point combinations
-    # 边界说明：测试步骤保持显式，便于定位回归阶段和失败上下文。
-    # 风险说明：调整测试断言时，需保留失败上下文和可复现实例。
     def test_ai_resource_reason_should_reject_cross_course_resource_requests(self):
         """Resource reasoning should reject mismatched course and point combinations."""
         response = self.client.post(
@@ -227,42 +203,27 @@ class StudentAIMulticourseTests(APITestCase):
         self.assertIn("不匹配", response.data["msg"])
 
 
-# 维护意图：Small response double for resource MCP HTTP calls
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class _MCPStubResponse:
     """Small response double for resource MCP HTTP calls."""
 
     def __init__(self, payload: dict[str, object]) -> None:
         self.payload = payload
 
-    # 维护意图：Mirror requests.Response without raising in success fixtures
-    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def raise_for_status(self) -> None:
         """Mirror requests.Response without raising in success fixtures."""
 
-    # 维护意图：Return the configured JSON payload
-    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def json(self) -> dict[str, object]:
         """Return the configured JSON payload."""
 
         return self.payload
 
 
-# 维护意图：Capture Tavily requests without network access
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class _MCPStubSession:
     """Capture Tavily requests without network access."""
 
     def __init__(self) -> None:
         self.calls: list[dict[str, object]] = []
 
-    # 维护意图：Return deterministic Tavily payloads
-    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def post(self, url: str, headers: dict[str, str], json: dict[str, object], timeout: int) -> _MCPStubResponse:
         """Return deterministic Tavily payloads."""
 
@@ -281,18 +242,12 @@ class _MCPStubSession:
         )
 
 
-# 维护意图：模拟 Tavily 请求失败，验证外部 MCP 降级为上层 fallback
-# 边界说明：测试步骤保持显式，便于定位回归阶段和失败上下文。
-# 风险说明：调整测试断言时，需保留失败上下文和可复现实例。
 class _FailingMCPStubSession:
     """模拟 Tavily 请求失败，验证外部 MCP 降级为上层 fallback。"""
 
     def __init__(self) -> None:
         self.calls = 0
 
-    # 维护意图：Raise deterministic Tavily transport failure
-    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def post(self, url: str, headers: dict[str, str], json: dict[str, object], timeout: int) -> _MCPStubResponse:
         """Raise deterministic Tavily transport failure."""
 
@@ -300,15 +255,9 @@ class _FailingMCPStubSession:
         raise TimeoutError("tavily timeout")
 
 
-# 维护意图：Cover Tavily resource MCP integration
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class ResourceMCPServiceTests(SimpleTestCase):
     """Cover Tavily resource MCP integration."""
 
-    # 维护意图：External resource MCP should call Tavily with one API key
-    # 边界说明：测试步骤保持显式，便于定位回归阶段和失败上下文。
-    # 风险说明：调整测试断言时，需保留失败上下文和可复现实例。
     @override_settings(
         RESOURCE_MCP_ENABLED=True,
         RESOURCE_MCP_TIMEOUT_SECONDS=9,
@@ -338,9 +287,6 @@ class ResourceMCPServiceTests(SimpleTestCase):
         self.assertEqual(stub_session.calls[0]["headers"]["Authorization"], "Bearer tvly-demo-key")
         self.assertEqual(stub_session.calls[0]["json"]["search_depth"], "basic")
 
-    # 维护意图：Missing Tavily key should leave fallback handling to the caller
-    # 边界说明：测试步骤保持显式，便于定位回归阶段和失败上下文。
-    # 风险说明：调整测试断言时，需保留失败上下文和可复现实例。
     @override_settings(RESOURCE_MCP_ENABLED=True, TAVILY_API_KEY="")
     def test_external_resource_mcp_should_skip_tavily_without_api_key(self):
         """Missing Tavily key should leave fallback handling to the caller."""
@@ -359,9 +305,6 @@ class ResourceMCPServiceTests(SimpleTestCase):
         self.assertEqual(resources, [])
         self.assertEqual(stub_session.calls, [])
 
-    # 维护意图：Tavily transport errors should not break resource recommendation
-    # 边界说明：测试步骤保持显式，便于定位回归阶段和失败上下文。
-    # 风险说明：调整测试断言时，需保留失败上下文和可复现实例。
     @override_settings(RESOURCE_MCP_ENABLED=True, TAVILY_API_KEY="tvly-demo-key")
     def test_external_resource_mcp_should_return_empty_when_tavily_fails(self):
         """Tavily transport errors should not break resource recommendation."""
@@ -380,9 +323,6 @@ class ResourceMCPServiceTests(SimpleTestCase):
         self.assertEqual(resources, [])
         self.assertEqual(stub_session.calls, 1)
 
-    # 维护意图：External search provider should reuse the Tavily MCP path
-    # 边界说明：测试步骤保持显式，便于定位回归阶段和失败上下文。
-    # 风险说明：调整测试断言时，需保留失败上下文和可复现实例。
     @patch("platform_ai.search.providers.resource_mcp_service.search_external_resources")
     def test_external_search_provider_should_use_resource_mcp(self, mock_mcp_search):
         """External search provider should reuse the Tavily MCP path."""
@@ -416,9 +356,6 @@ class ResourceMCPServiceTests(SimpleTestCase):
             count=1,
         )
 
-    # 维护意图：RAG resource recommendation should use MCP results before LLM web fallback
-    # 边界说明：测试步骤保持显式，便于定位回归阶段和失败上下文。
-    # 风险说明：调整测试断言时，需保留失败上下文和可复现实例。
     @patch("platform_ai.rag.student.llm_facade.recommend_external_resources")
     @patch("platform_ai.rag.student.resource_mcp_service.search_internal_resources")
     @patch("platform_ai.rag.student.resource_mcp_service.search_external_resources")

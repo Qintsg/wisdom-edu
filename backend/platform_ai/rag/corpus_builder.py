@@ -14,9 +14,6 @@ from .corpus_types import CorpusDocument, GraphEntity, GraphRelationship
 from .corpus_utils import _chapter_entity_id, _safe_resource_url
 
 
-# 维护意图：Shared mutable state while assembling a course GraphRAG payload
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 @dataclass
 class GraphCorpusBuildState:
     """Shared mutable state while assembling a course GraphRAG payload."""
@@ -28,9 +25,6 @@ class GraphCorpusBuildState:
     relationships: list[GraphRelationship] = field(default_factory=list)
     chapter_members: dict[str, list[str]] = field(default_factory=dict)
 
-    # 维护意图：Track which entities belong to a logical chapter bucket
-    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def remember_chapter_member(self, chapter_name: str, entity_id: str) -> tuple[str, str]:
         """Track which entities belong to a logical chapter bucket."""
         normalized_chapter = str(chapter_name or "").strip() or "未分章"
@@ -38,18 +32,12 @@ class GraphCorpusBuildState:
         self.chapter_members.setdefault(chapter_id, []).append(entity_id)
         return chapter_id, normalized_chapter
 
-    # 维护意图：Register an entity/document pair into the in-memory payload
-    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def add_entity(self, entity: GraphEntity, document: CorpusDocument) -> None:
         """Register an entity/document pair into the in-memory payload."""
         self.entities[entity.id] = entity
         self.documents.append(document)
         self.graph.add_node(entity.id, entity_type=entity.entity_type)
 
-    # 维护意图：Add a graph edge and the serialized relationship payload together
-    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def add_relationship(
         self,
         *,
@@ -72,17 +60,11 @@ class GraphCorpusBuildState:
         )
 
 
-# 维护意图：Join non-empty text fragments into a single multiline summary
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def join_nonempty(parts: list[str]) -> str:
     """Join non-empty text fragments into a single multiline summary."""
     return "\n".join(part for part in parts if part.strip())
 
 
-# 维护意图：Render the retrievable summary for a knowledge point entity
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def point_summary(point: KnowledgePoint, chapter_name: str) -> str:
     """Render the retrievable summary for a knowledge point entity."""
     tags = point.get_tags_list()
@@ -100,9 +82,6 @@ def point_summary(point: KnowledgePoint, chapter_name: str) -> str:
     )
 
 
-# 维护意图：Render the retrievable summary for a resource entity
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def resource_summary(resource: Resource, chapter_name: str, linked_points: list[KnowledgePoint]) -> str:
     """Render the retrievable summary for a resource entity."""
     return join_nonempty(
@@ -116,9 +95,6 @@ def resource_summary(resource: Resource, chapter_name: str, linked_points: list[
     )
 
 
-# 维护意图：Render the retrievable summary for a question entity
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def question_summary(question: Question, linked_points: list[KnowledgePoint]) -> str:
     """Render the retrievable summary for a question entity."""
     return join_nonempty(
@@ -132,9 +108,6 @@ def question_summary(question: Question, linked_points: list[KnowledgePoint]) ->
     )
 
 
-# 维护意图：Load the published knowledge points that can participate in GraphRAG
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def published_points(course_id: int) -> list[KnowledgePoint]:
     """Load the published knowledge points that can participate in GraphRAG."""
     return list(
@@ -142,17 +115,11 @@ def published_points(course_id: int) -> list[KnowledgePoint]:
     )
 
 
-# 维护意图：Load course resources with knowledge-point associations materialized
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def visible_resources(course_id: int) -> list[Resource]:
     """Load course resources with knowledge-point associations materialized."""
     return list(Resource.objects.filter(course_id=course_id, is_visible=True).prefetch_related("knowledge_points"))
 
 
-# 维护意图：Load recent visible course questions with their linked knowledge points
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def visible_questions(course_id: int) -> list[Question]:
     """Load recent visible course questions with their linked knowledge points."""
     return list(
@@ -162,9 +129,6 @@ def visible_questions(course_id: int) -> list[Question]:
     )
 
 
-# 维护意图：Create point entities and seed chapter membership information
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def populate_points(state: GraphCorpusBuildState, points: list[KnowledgePoint]) -> None:
     """Create point entities and seed chapter membership information."""
     for point in points:
@@ -201,9 +165,6 @@ def populate_points(state: GraphCorpusBuildState, points: list[KnowledgePoint]) 
         )
 
 
-# 维护意图：Materialize chapter entities after the knowledge-point phase
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def populate_chapters(state: GraphCorpusBuildState) -> None:
     """Materialize chapter entities after the knowledge-point phase."""
     for chapter_id, member_ids in state.chapter_members.items():
@@ -232,9 +193,6 @@ def populate_chapters(state: GraphCorpusBuildState) -> None:
         )
 
 
-# 维护意图：Connect prerequisite relationships between published knowledge points
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def populate_knowledge_relations(state: GraphCorpusBuildState) -> None:
     """Connect prerequisite relationships between published knowledge points."""
     relation_rows = KnowledgeRelation.objects.filter(course_id=state.course_id).values_list(
@@ -256,9 +214,6 @@ def populate_knowledge_relations(state: GraphCorpusBuildState) -> None:
         )
 
 
-# 维护意图：Create resource entities and connect them to knowledge points
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def populate_resources(state: GraphCorpusBuildState) -> None:
     """Create resource entities and connect them to knowledge points."""
     for resource in visible_resources(state.course_id):
@@ -308,9 +263,6 @@ def populate_resources(state: GraphCorpusBuildState) -> None:
             )
 
 
-# 维护意图：Create question entities and connect them to assessed knowledge points
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def populate_questions(state: GraphCorpusBuildState) -> None:
     """Create question entities and connect them to assessed knowledge points."""
     for question in visible_questions(state.course_id):
@@ -361,9 +313,6 @@ def populate_questions(state: GraphCorpusBuildState) -> None:
             )
 
 
-# 维护意图：Connect each chapter hub to all collected member entities
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def link_chapter_members(state: GraphCorpusBuildState) -> None:
     """Connect each chapter hub to all collected member entities."""
     for chapter_id, member_ids in state.chapter_members.items():
@@ -380,9 +329,6 @@ def link_chapter_members(state: GraphCorpusBuildState) -> None:
                 metadata={"course_id": state.course_id},
             )
 
-# 维护意图：Assemble the full serializable GraphRAG payload for a course
-# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
-# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_course_graph_payload(course_id: int) -> dict:
     """Assemble the full serializable GraphRAG payload for a course."""
     state = GraphCorpusBuildState(course_id=course_id)

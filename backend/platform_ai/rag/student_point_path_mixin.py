@@ -13,15 +13,9 @@ from .student_utils import bundle_mode, bundle_sources, dedupe_strings, model_pk
 logger = logging.getLogger(__name__)
 
 
-# 维护意图：提供知识点解释、详情页支撑证据和学习路径规划能力
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class StudentPointPathMixin:
     """提供知识点解释、详情页支撑证据和学习路径规划能力。"""
 
-    # 维护意图：按 point_id 或名称定位课程知识点
-    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def find_course_point(self, course_id: int, point_name: str = "", point_id: int | None = None) -> KnowledgePoint | None:
         """按 point_id 或名称定位课程知识点。"""
         # 所有学生端解释都限制在已发布知识点内，避免暴露教师草稿内容。
@@ -33,9 +27,6 @@ class StudentPointPathMixin:
             return None
         return queryset.filter(name__icontains=normalized_name).order_by("order", "id").first()
 
-    # 维护意图：根据知识点元数据估计学习难度
-    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def estimate_point_difficulty(self, point: KnowledgePoint) -> str:
         """根据知识点元数据估计学习难度。"""
         # level 是知识图谱维护侧的粗粒度层级，这里只映射为前端可读标签。
@@ -45,9 +36,6 @@ class StudentPointPathMixin:
             return "中等"
         return "进阶"
 
-    # 维护意图：为学习路径规划构建 GraphRAG 背景
-    # 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
-    # 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
     def build_path_context(self, *, course_id: int, target: str, pending_points: Sequence[KnowledgePoint]) -> dict[str, object]:
         """为学习路径规划构建 GraphRAG 背景。"""
         pending_names = [point.name for point in pending_points if point is not None]
@@ -66,9 +54,6 @@ class StudentPointPathMixin:
         )
         return {"retrieved_context": retrieved_context, "retrieved_sources": bundle_sources(context_bundle)[:10]}
 
-    # 维护意图：为知识图谱详情页生成可解释的 GraphRAG 证据摘要
-    # 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
-    # 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
     def build_point_support_payload(self, *, course_id: int, point: KnowledgePoint) -> dict[str, object]:
         """为知识图谱详情页生成可解释的 GraphRAG 证据摘要。"""
         point_pk = model_pk(point)
@@ -99,9 +84,6 @@ class StudentPointPathMixin:
         resolved_mode = bundle_mode(graph_query_bundle, "graph_rag")
         return {"summary": " ".join(context_lines[:4])[:280], "sources": merged_sources[:6], "mode": resolved_mode or "graph_rag"}
 
-    # 维护意图：基于 GraphRAG 解释知识点
-    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def explain_knowledge_point(
         self,
         *,
@@ -189,9 +171,6 @@ class StudentPointPathMixin:
         result["sources"] = fallback["sources"]
         return result
 
-    # 维护意图：将 GraphRAG 上下文注入 LLM 路径规划
-    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def plan_learning_path(
         self,
         *,
@@ -234,9 +213,6 @@ class StudentPointPathMixin:
         return result
 
 
-# 维护意图：读取 GraphRAG/LLM 字段并集中处理缺省值
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def mapping_value(record: Mapping[str, object], field_name: str, default_value: object = None) -> object:
     """读取 GraphRAG/LLM 字段并集中处理缺省值。"""
     return record.get(field_name, default_value)

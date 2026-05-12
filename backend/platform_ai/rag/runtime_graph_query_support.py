@@ -17,9 +17,6 @@ from platform_ai.rag.runtime_models import (
 )
 
 
-# 维护意图：把结构化 Cypher 结果转换为统一的检索条目
-# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
-# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_graph_record_item(record: object) -> RetrieverResultItem:
     """把结构化 Cypher 结果转换为统一的检索条目。"""
     get_value = getattr(record, "get")
@@ -61,9 +58,6 @@ def build_graph_record_item(record: object) -> RetrieverResultItem:
     )
 
 
-# 维护意图：把工具检索条目转换为简洁的上下文短句
-# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
-# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_tool_line(item: RetrieverResultItem) -> str:
     """把工具检索条目转换为简洁的上下文短句。"""
     metadata = item.metadata if isinstance(item.metadata, dict) else {}
@@ -88,9 +82,6 @@ def build_tool_line(item: RetrieverResultItem) -> str:
     return f"{title}：{excerpt}"
 
 
-# 维护意图：将 ToolsRetriever item 收敛为统一证据结构
-# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
-# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_tool_source(item: RetrieverResultItem) -> dict[str, object]:
     """将 ToolsRetriever item 收敛为统一证据结构。"""
     metadata = item.metadata if isinstance(item.metadata, dict) else {}
@@ -129,9 +120,6 @@ def build_tool_source(item: RetrieverResultItem) -> dict[str, object]:
     }
 
 
-# 维护意图：返回空查询上下文
-# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
-# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_empty_query_context() -> dict[str, object]:
     """返回空查询上下文。"""
     return GraphQueryContext(
@@ -145,9 +133,6 @@ def build_empty_query_context() -> dict[str, object]:
     ).as_dict()
 
 
-# 维护意图：将纯语义检索结果转换为稳定业务载荷
-# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
-# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_semantic_only_query_context(semantic_only, seed_point_ids: list[int]) -> dict[str, object]:
     """将纯语义检索结果转换为稳定业务载荷。"""
     semantic_sources = [build_tool_source(item) for item in semantic_only.items]
@@ -165,9 +150,6 @@ def build_semantic_only_query_context(semantic_only, seed_point_ids: list[int]) 
     ).as_dict()
 
 
-# 维护意图：将 ToolsRetriever 返回聚合成统一 GraphQueryContext 业务结构
-# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
-# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_tools_query_context(tool_result) -> dict[str, object]:
     """将 ToolsRetriever 返回聚合成统一 GraphQueryContext 业务结构。"""
     generated_cypher = ""

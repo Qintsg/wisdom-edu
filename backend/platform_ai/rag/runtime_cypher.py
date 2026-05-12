@@ -14,18 +14,12 @@ GRAPH_INTENT_KEYWORDS = {
 }
 
 
-# 维护意图：从结构化提示中提取单行键值
-# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
-# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def extract_line_value(prompt_text: str, key: str) -> str:
     """从结构化提示中提取单行键值。"""
     matched = re.search(rf"{re.escape(key)}\s*:\s*(.+)", prompt_text)
     return _coerce_string(matched.group(1)) if matched else ""
 
 
-# 维护意图：从 Text2Cypher 自定义提示中提取用户问题
-# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
-# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def extract_user_question(prompt_text: str) -> str:
     """从 Text2Cypher 自定义提示中提取用户问题。"""
     matched = re.search(r"User question:\s*(.*?)\n\nRules:", prompt_text, re.S)
@@ -34,9 +28,6 @@ def extract_user_question(prompt_text: str) -> str:
     return _coerce_string(prompt_text)
 
 
-# 维护意图：为启发式 Cypher 生成稳定的目标知识点匹配子句
-# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
-# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_target_match(
     *,
     course_id: int,
@@ -59,9 +50,6 @@ def build_target_match(
     )
 
 
-# 维护意图：构造前置知识点查询
-# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
-# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_prerequisite_query(target_match: str, course_id: int) -> str:
     """构造前置知识点查询。"""
     return (
@@ -81,9 +69,6 @@ def build_prerequisite_query(target_match: str, course_id: int) -> str:
     )
 
 
-# 维护意图：构造后续知识点查询
-# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
-# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_postrequisite_query(target_match: str, course_id: int) -> str:
     """构造后续知识点查询。"""
     return (
@@ -103,9 +88,6 @@ def build_postrequisite_query(target_match: str, course_id: int) -> str:
     )
 
 
-# 维护意图：构造局部知识链路查询
-# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
-# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_path_query(target_match: str, course_id: int) -> str:
     """构造局部知识链路查询。"""
     return (
@@ -130,9 +112,6 @@ def build_path_query(target_match: str, course_id: int) -> str:
     )
 
 
-# 维护意图：构造课程证据资源查询
-# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
-# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_resource_query(target_match: str, course_id: int) -> str:
     """构造课程证据资源查询。"""
     return (
@@ -151,9 +130,6 @@ def build_resource_query(target_match: str, course_id: int) -> str:
     )
 
 
-# 维护意图：在无可用模型时，为 Text2CypherRetriever 生成启发式 Cypher
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def fallback_cypher_from_prompt(prompt_text: str) -> str:
     """在无可用模型时，为 Text2CypherRetriever 生成启发式 Cypher。"""
     course_id = _coerce_int(extract_line_value(prompt_text, "course_id"), default=0)

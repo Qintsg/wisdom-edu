@@ -13,9 +13,6 @@ from knowledge.models import KnowledgeMastery, KnowledgePoint, KnowledgeRelation
 from users.models import User
 
 
-# 维护意图：验证学生端 /api/student/assessments/initial/submit 后的掌握度写回契约。
-# 边界说明：只构造最小课程、题目和知识点，不依赖外部 MEFKT 模型文件。
-# 风险说明：初测先验或 MEFKT 来源白名单变化时，需要同步这些断言。
 class StudentInitialAssessmentMasteryTests(APITestCase):
     """验证学生端初始评测掌握度写回契约。"""
 

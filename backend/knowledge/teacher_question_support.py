@@ -21,17 +21,11 @@ DETAIL_UPDATE_FIELDS = [
 ]
 
 
-# 维护意图：兼容真实模型与轻量测试对象的题目 ID 读取
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def question_identifier(question: Question) -> int | None:
     """兼容真实模型与轻量测试对象的题目 ID 读取。"""
     return getattr(question, "id", None) or getattr(question, "pk", None)
 
 
-# 维护意图：构造题库列表中的单题摘要
-# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
-# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_question_list_item(question: Question) -> dict[str, Any]:
     """构造题库列表中的单题摘要。"""
     content = question.content[:100] + "..." if len(question.content) > 100 else question.content
@@ -45,9 +39,6 @@ def build_question_list_item(question: Question) -> dict[str, Any]:
     }
 
 
-# 维护意图：构造题目详情响应，保持前端历史字段兼容
-# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
-# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_question_detail(question: Question) -> dict[str, Any]:
     """构造题目详情响应，保持前端历史字段兼容。"""
     question_points = cast(list[KnowledgePoint], list(question.knowledge_points.all()))
@@ -72,9 +63,6 @@ def build_question_detail(question: Question) -> dict[str, Any]:
     }
 
 
-# 维护意图：按白名单更新题目字段，避免 View 中散落字段分支
-# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
-# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def apply_question_update_fields(
     question: Question,
     payload,
@@ -93,9 +81,6 @@ def apply_question_update_fields(
         question.question_type = first_present(payload, "type", "question_type")
 
 
-# 维护意图：按兼容字段替换题目知识点关联
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def replace_question_points_from_payload(
     question: Question,
     payload,
@@ -118,9 +103,6 @@ def replace_question_points_from_payload(
         replace_knowledge_points(relation_manager, normalize_question_point_ids(payload))
 
 
-# 维护意图：判断请求是否包含任一知识点关联字段
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def has_question_point_payload(payload) -> bool:
     """判断请求是否包含任一知识点关联字段。"""
     return "points" in payload or "knowledge_point_ids" in payload

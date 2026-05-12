@@ -20,36 +20,21 @@ from .models import User
 logger = logging.getLogger(__name__)
 
 
-# 维护意图：画像生成依赖的服务方法集合，避免与主服务类形成导入环
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class LearnerProfileServiceProtocol(Protocol):
     """画像生成依赖的服务方法集合，避免与主服务类形成导入环。"""
 
     user: User
 
-    # 维护意图：获取知识掌握度
-    # 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
-    # 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
     def get_knowledge_mastery(self, course_id: int | None = None) -> List[Dict[str, Any]]:
         """获取知识掌握度。"""
 
-    # 维护意图：获取能力分
-    # 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
-    # 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
     def get_ability_scores(self, course_id: int | None = None) -> Dict[str, float]:
         """获取能力分。"""
 
-    # 维护意图：获取学习习惯偏好
-    # 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
-    # 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
     def get_habit_preferences(self) -> Dict[str, Any]:
         """获取学习习惯偏好。"""
 
 
-# 维护意图：为指定课程生成或刷新学习者画像
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def generate_profile_for_course(
     profile_service: LearnerProfileServiceProtocol,
     course_id: int,
@@ -175,9 +160,6 @@ def generate_profile_for_course(
         return {'success': False, 'error': str(exc)}
 
 
-# 维护意图：读取现有服务上的缓存画像结果，兼容旧私有方法名
-# 边界说明：读取边界集中在这里，避免调用方绕过筛选与权限约束。
-# 风险说明：调整筛选、权限或排序时，需同步接口契约和分页测试。
 def load_cached_profile_result(
     profile_service: LearnerProfileServiceProtocol,
     course_id: int,
@@ -189,9 +171,6 @@ def load_cached_profile_result(
     return cache_loader(course_id)
 
 
-# 维护意图：查询课程名；失败时返回 None，避免画像刷新中断
-# 边界说明：输入兼容性在这里收敛，避免上层重复处理旧字段。
-# 风险说明：调整兼容字段或校验规则时，需同步前端表单和导入样例。
 def resolve_course_name(course_id: int) -> str | None:
     """查询课程名；失败时返回 None，避免画像刷新中断。"""
     try:
@@ -202,9 +181,6 @@ def resolve_course_name(course_id: int) -> str | None:
         return None
 
 
-# 维护意图：调用 KT 服务预测掌握度，并将预测结果回写到知识掌握度表
-# 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
-# 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
 def refresh_mastery_with_kt(user: User, course_id: int) -> Dict[str, Any]:
     """调用 KT 服务预测掌握度，并将预测结果回写到知识掌握度表。"""
     from ai_services.services import kt_service
@@ -250,9 +226,6 @@ def refresh_mastery_with_kt(user: User, course_id: int) -> Dict[str, Any]:
     return kt_predictions
 
 
-# 维护意图：读取课程知识点作为 MEFKT 推断目标。
-# 边界说明：画像刷新应允许真实 MEFKT 基于课程题图推断未测点。
-# 风险说明：读取失败时返回空列表，让 KT 服务只处理答题历史覆盖点。
 def load_course_point_ids(course_id: int) -> list[int]:
     """读取课程知识点作为 MEFKT 推断目标。"""
     try:
@@ -268,9 +241,6 @@ def load_course_point_ids(course_id: int) -> list[int]:
         return []
 
 
-# 维护意图：优先使用 LLM 生成画像文案，失败时降级为规则摘要
-# 边界说明：构造逻辑集中在这里，调用方只消费稳定载荷结构。
-# 风险说明：调整返回结构时，需同步序列化契约和调用方断言。
 def build_profile_text(
     user: User,
     course_id: int,
@@ -325,9 +295,6 @@ def build_profile_text(
         return summary, weakness, suggestion, []
 
 
-# 维护意图：写入画像 LLM 调用日志；日志失败不影响主流程
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def record_profile_llm_log(
     user: User,
     course_id: int,

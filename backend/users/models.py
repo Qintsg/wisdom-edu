@@ -16,9 +16,6 @@ from django.utils import timezone
 from .managers import OptionalContactUserManager
 
 
-# 维护意图：用户模型 扩展Django默认用户，增加角色、头像、手机号等字段 角色类型：学生(student)、教师(teacher)、管理员(admin)
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class User(AbstractUser):
     """
     用户模型
@@ -74,9 +71,6 @@ class User(AbstractUser):
     )
     objects = OptionalContactUserManager()
     
-    # 维护意图：Meta
-    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     class Meta:
         db_table = 'users'
         verbose_name = '用户'
@@ -85,34 +79,22 @@ class User(AbstractUser):
     def __str__(self):
         return f"{self.username} ({self.get_role_display()})"
     
-    # 维护意图：判断是否为教师
-    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     @property
     def is_teacher(self):
         """判断是否为教师"""
         return self.role == 'teacher'
     
-    # 维护意图：判断是否为学生
-    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     @property
     def is_student(self):
         """判断是否为学生"""
         return self.role == 'student'
     
-    # 维护意图：判断是否为管理员
-    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     @property
     def is_admin(self):
         """判断是否为管理员"""
         return self.role == 'admin' or self.is_superuser
 
 
-# 维护意图：激活码模型 用于教师和管理员注册时的身份验证。
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class ActivationCode(models.Model):
     """
     激活码模型
@@ -175,9 +157,6 @@ class ActivationCode(models.Model):
     )
     created_at = models.DateTimeField('创建时间', auto_now_add=True)
     
-    # 维护意图：Meta
-    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     class Meta:
         db_table = 'activation_codes'
         verbose_name = '激活码'
@@ -188,17 +167,11 @@ class ActivationCode(models.Model):
         status = '已使用' if self.is_used else '未使用'
         return f"{self.code} ({self.get_code_type_display()}) - {status}"
     
-    # 维护意图：生成8位随机激活码
-    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     @staticmethod
     def generate_code():
         """生成8位随机激活码"""
         return secrets.token_hex(4).upper()  # 4字节 = 8个十六进制字符
     
-    # 维护意图：检查激活码是否有效
-    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def is_valid(self):
         """检查激活码是否有效"""
         if self.is_used:
@@ -207,9 +180,6 @@ class ActivationCode(models.Model):
             return False
         return True
     
-    # 维护意图：使用激活码
-    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def use(self, user):
         """使用激活码"""
         if not self.is_valid():
@@ -221,9 +191,6 @@ class ActivationCode(models.Model):
         return True
 
 
-# 维护意图：班级邀请码模型 由教师生成，用于学生加入班级。
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class ClassInvitation(models.Model):
     """
     班级邀请码模型
@@ -271,9 +238,6 @@ class ClassInvitation(models.Model):
     )
     created_at = models.DateTimeField('创建时间', auto_now_add=True)
     
-    # 维护意图：Meta
-    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     class Meta:
         db_table = 'class_invitations'
         verbose_name = '班级邀请码'
@@ -283,17 +247,11 @@ class ClassInvitation(models.Model):
     def __str__(self):
         return f"{self.code} - {self.class_obj.name}"
     
-    # 维护意图：生成6位随机邀请码
-    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     @staticmethod
     def generate_code():
         """生成6位随机邀请码"""
         return secrets.token_hex(3).upper()  # 3字节 = 6个十六进制字符
     
-    # 维护意图：检查邀请码是否有效
-    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def is_valid(self):
         """检查邀请码是否有效"""
         if not self.is_active:
@@ -306,9 +264,6 @@ class ClassInvitation(models.Model):
             return False
         return True
     
-    # 维护意图：使用邀请码（增加使用次数）
-    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def use(self):
         """使用邀请码（增加使用次数）"""
         self.use_count += 1
@@ -316,9 +271,6 @@ class ClassInvitation(models.Model):
 
 
 
-# 维护意图：学习习惯偏好模型 记录用户的学习偏好设置，包括： - 偏好的资源类型（视频/文档/练习等） - 高效学习时间段 - 学习节奏偏好 - 学习环境偏好 - 复习频率偏好 - 其他个性化偏好设置
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class HabitPreference(models.Model):
     """
     学习习惯偏好模型
@@ -437,9 +389,6 @@ class HabitPreference(models.Model):
     )
     updated_at = models.DateTimeField('更新时间', auto_now=True)
     
-    # 维护意图：Meta
-    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     class Meta:
         db_table = 'habit_preferences'
         verbose_name = '学习习惯偏好'
@@ -449,9 +398,6 @@ class HabitPreference(models.Model):
         return f"{self.user.username} 的学习偏好"
 
 
-# 维护意图：用户当前课程上下文 记录用户当前选择的课程和班级， 用于前端展示和API数据筛选
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class UserCourseContext(models.Model):
     """
     用户当前课程上下文
@@ -483,9 +429,6 @@ class UserCourseContext(models.Model):
     )
     updated_at = models.DateTimeField('更新时间', auto_now=True)
     
-    # 维护意图：Meta
-    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     class Meta:
         db_table = 'user_course_context'
         verbose_name = '用户课程上下文'

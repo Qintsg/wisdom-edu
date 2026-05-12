@@ -11,9 +11,6 @@ from learning.models import LearningPath, PathNode
 from users.models import User
 
 
-# 维护意图：验证路径刷新写回掌握度时区分真实 MEFKT 与统计回退。
-# 边界说明：通过学生端 AI 刷新 API 覆盖 PathService 主链路。
-# 风险说明：若新增真实 MEFKT model_type，需要同步 KT 白名单。
 class LearningPathMasteryRefreshTests(APITestCase):
     """验证路径刷新写回掌握度时区分真实 MEFKT 与统计回退。"""
 
@@ -103,9 +100,6 @@ class LearningPathMasteryRefreshTests(APITestCase):
         )
         self.client.force_authenticate(user=self.student)
 
-    # 维护意图：真实 MEFKT 输出可以推断未直接测到的未来知识点。
-    # 边界说明：真实模型输出的未测点应写回，供路径排序和画像复用。
-    # 风险说明：如果前置约束压低该值，需要同步构造先修关系的测试。
     @patch("ai_services.services.kt_service.kt_service.predict_mastery")
     def test_refresh_learning_path_should_keep_mefkt_inferred_unmeasured_mastery(
         self,
@@ -136,9 +130,6 @@ class LearningPathMasteryRefreshTests(APITestCase):
         )
         self.assertAlmostEqual(float(future_mastery.mastery_rate), 0.74, places=3)
 
-    # 维护意图：统计回退不能把未测知识点覆盖成默认或低置信预测。
-    # 边界说明：已有未测点掌握度应被保留，防止刷新再制造旧尖峰。
-    # 风险说明：如果 fallback 具备真实跨点推断能力，需要重新定义白名单。
     @patch("ai_services.services.kt_service.kt_service.predict_mastery")
     def test_refresh_learning_path_should_ignore_builtin_unmeasured_mastery(
         self,

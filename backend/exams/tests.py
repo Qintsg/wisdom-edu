@@ -17,17 +17,11 @@ from common.utils import build_answer_display, decorate_question_options
 from knowledge.models import KnowledgePoint
 
 
-# 维护意图：返回带 DRF 类型信息的测试客户端
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _api_client(test_case: APITestCase) -> APIClient:
     """返回带 DRF 类型信息的测试客户端。"""
     return cast(APIClient, test_case.client)
 
 
-# 维护意图：统一读取测试模型主键
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 def _model_id(instance: Exam | Question | FeedbackReport | KnowledgePoint) -> int:
     """统一读取测试模型主键。"""
     model_id = getattr(instance, 'id', None) or getattr(instance, 'pk', None)
@@ -36,15 +30,9 @@ def _model_id(instance: Exam | Question | FeedbackReport | KnowledgePoint) -> in
     return int(model_id)
 
 
-# 维护意图：教师端考试创建载荷兼容性回归测试
-# 边界说明：不触碰数据库，只验证请求规范化和序列化器字段语义。
-# 风险说明：调整教师端考试创建契约时，需同步回归脚本与 API 文档。
 class ExamCreatePayloadContractTests(SimpleTestCase):
     """教师端考试创建载荷兼容性回归测试。"""
 
-    # 维护意图：缺省时间和班级字段不应被规整为 None 后触发 DRF 校验错误
-    # 边界说明：覆盖前端或脚本省略可选字段的兼容入口。
-    # 风险说明：若这些字段改为必填，需要同步此测试和公开接口契约。
     def test_optional_schedule_and_class_fields_should_remain_absent(self):
         """缺省时间和班级字段不应被规整为 None 后触发 DRF 校验错误。"""
         raw_payload = {
@@ -62,13 +50,7 @@ class ExamCreatePayloadContractTests(SimpleTestCase):
         self.assertTrue(serializer.is_valid(), serializer.errors)
 
 
-# 维护意图：ExamPassLogicTests
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class ExamPassLogicTests(APITestCase):
-    # 维护意图：构造考试通过逻辑所需的基础题目与用户数据
-    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def setUp(self):
         """构造考试通过逻辑所需的基础题目与用户数据。"""
         self.student = User.objects.create_user(
@@ -100,9 +82,6 @@ class ExamPassLogicTests(APITestCase):
             created_by=self.teacher,
         )
 
-    # 维护意图：create exam
-    # 边界说明：写入边界集中在这里，便于控制事务、审计和失败语义。
-    # 风险说明：改动副作用、事务或审计字段时，需同步调用方和回归测试。
     def _create_exam(self, pass_score=60, total_score=100):
         exam = Exam.objects.create(
             course=self.course,
@@ -121,9 +100,6 @@ class ExamPassLogicTests(APITestCase):
         )
         return exam
 
-    # 维护意图：低于及格线时必须判定为未通过
-    # 边界说明：测试步骤保持显式，便于定位回归阶段和失败上下文。
-    # 风险说明：调整测试断言时，需保留失败上下文和可复现实例。
     def test_exam_submit_low_score_should_not_pass(self):
         """低于及格线时必须判定为未通过。"""
         exam = self._create_exam()
@@ -142,9 +118,6 @@ class ExamPassLogicTests(APITestCase):
         submission = ExamSubmission.objects.get(exam=exam, user=self.student)
         self.assertFalse(submission.is_passed)
 
-    # 维护意图：pass_score 无效(<=0)时，结果页应使用兜底阈值，不能恒通过
-    # 边界说明：测试步骤保持显式，便于定位回归阶段和失败上下文。
-    # 风险说明：调整测试断言时，需保留失败上下文和可复现实例。
     def test_exam_result_should_use_fallback_threshold_when_pass_score_invalid(self):
         """pass_score 无效(<=0)时，结果页应使用兜底阈值，不能恒通过。"""
         exam = self._create_exam(pass_score=0)
@@ -164,9 +137,6 @@ class ExamPassLogicTests(APITestCase):
         self.assertEqual(resp.data['data']['pass_score'], 60.0)
         self.assertFalse(resp.data['data']['passed'])
 
-    # 维护意图：test exam submit should use question accuracy and normalized score
-    # 边界说明：测试步骤保持显式，便于定位回归阶段和失败上下文。
-    # 风险说明：调整测试断言时，需保留失败上下文和可复现实例。
     def test_exam_submit_should_use_question_accuracy_and_normalized_score(self):
         exam = Exam.objects.create(
             course=self.course,
@@ -215,13 +185,7 @@ class ExamPassLogicTests(APITestCase):
         self.assertEqual(len(result_resp.data['data']['question_details']), 8)
 
 
-# 维护意图：AnswerDisplayTests
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class AnswerDisplayTests(APITestCase):
-    # 维护意图：test true false answer display should be human readable
-    # 边界说明：测试步骤保持显式，便于定位回归阶段和失败上下文。
-    # 风险说明：调整测试断言时，需保留失败上下文和可复现实例。
     def test_true_false_answer_display_should_be_human_readable(self):
         options = decorate_question_options(
             None,
@@ -234,15 +198,9 @@ class AnswerDisplayTests(APITestCase):
         self.assertEqual(build_answer_display(True, 'true_false', options), 'A. 正确')
 
 
-# 维护意图：验证教师端考试创建兼容公开文档中的载荷字段
-# 边界说明：只覆盖请求契约归一，不依赖回归脚本或浏览器流程。
-# 风险说明：教师端作业字段调整时，需要同步 OpenAPI、前端与回归脚本。
 class TeacherExamCreateContractTests(APITestCase):
     """验证教师端考试创建兼容公开文档中的载荷字段。"""
 
-    # 维护意图：构造教师、课程与可加入试卷的题目
-    # 边界说明：创建接口本身负责写入 Exam 与 ExamQuestion。
-    # 风险说明：权限或题库模型变化时，需要同步测试数据构造。
     def setUp(self):
         """构造教师、课程与可加入试卷的题目。"""
         self.teacher = User.objects.create_user(
@@ -269,9 +227,6 @@ class TeacherExamCreateContractTests(APITestCase):
         )
         _api_client(self).force_authenticate(user=self.teacher)
 
-    # 维护意图：question_ids/class_id 兼容字段不应被 None 可选字段阻断
-    # 边界说明：省略 start_time/end_time/class_id 是教师端快速创建作业的合法形态。
-    # 风险说明：若未来要求发布时间必填，应同步回归脚本和文档。
     def test_create_exam_should_accept_documented_question_ids_without_optional_times(self):
         """question_ids 兼容字段不应被 None 可选字段阻断。"""
         response = cast(Response, _api_client(self).post(
@@ -291,13 +246,7 @@ class TeacherExamCreateContractTests(APITestCase):
         self.assertTrue(ExamQuestion.objects.filter(exam=exam, question=self.question).exists())
 
 
-# 维护意图：ExamAsyncFeedbackTests
-# 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-# 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
 class ExamAsyncFeedbackTests(APITestCase):
-    # 维护意图：构造异步反馈测试所需的课程、题目与考试上下文
-    # 边界说明：调用契约在这里保持稳定，避免业务分支扩散到调用方。
-    # 风险说明：调整调用契约时，需同步调用方、文档和回归测试。
     def setUp(self):
         """构造异步反馈测试所需的课程、题目与考试上下文。"""
         self.student = User.objects.create_user(
@@ -349,9 +298,6 @@ class ExamAsyncFeedbackTests(APITestCase):
         )
         _api_client(self).force_authenticate(user=self.student)
 
-    # 维护意图：test submit should create pending report and enqueue worker
-    # 边界说明：测试步骤保持显式，便于定位回归阶段和失败上下文。
-    # 风险说明：调整测试断言时，需保留失败上下文和可复现实例。
     @patch('exams.report_service.enqueue_feedback_report_on_commit')
     @patch('ai_services.services.kt_service.kt_service.predict_mastery')
     def test_submit_should_create_pending_report_and_enqueue_worker(self, mock_predict_mastery, mock_enqueue):
@@ -376,9 +322,6 @@ class ExamAsyncFeedbackTests(APITestCase):
         self.assertEqual(report.overview['kt_analysis']['answer_count'], 1)
         mock_enqueue.assert_called_once_with(_model_id(report), force=True)
 
-    # 维护意图：test get feedback should return pending state
-    # 边界说明：测试步骤保持显式，便于定位回归阶段和失败上下文。
-    # 风险说明：调整测试断言时，需保留失败上下文和可复现实例。
     def test_get_feedback_should_return_pending_state(self):
         submission = ExamSubmission.objects.create(
             exam=self.exam,
