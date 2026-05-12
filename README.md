@@ -36,7 +36,7 @@
   - Qdrant、Neo4j GraphRAG、LangChain、DeepSeek / 通义千问兼容客户端支撑 AI 能力。
   - `backend/platform_ai` 汇聚 RAG、LLM、KT、搜索与 Agent 边界实现。
 - 文档与契约：`docs/`
-  - API 契约以 `docs/api.yaml` 为准，旧 Markdown API 文档已移除。
+  - API 契约源以 `docs/openapi/openapi.yaml` 为准，`docs/api.yaml` 为 Redocly CLI 打包产物，旧 Markdown API 文档已移除。
   - 维护、安装、使用、部署、GraphRAG、MEFKT、LangChain 与大模型接入文档集中维护。
 
 ## 快速启动
@@ -124,7 +124,8 @@ docs/      安装、使用、部署、维护、API YAML 与 AI/KT 实现说明
 - `docs/MEFKT实现说明.md`：MEFKT 训练、部署与 KT 服务接入。
 - `docs/LangChain智能体说明.md`：LangChain agent 边界与工具集。
 - `docs/大模型接入说明.md`：LLM 提供方配置、非思考模式与排障。
-- `docs/api.yaml`：OpenAPI 契约源文件。
+- `docs/openapi/openapi.yaml`：模块化 OpenAPI 契约源文件。
+- `docs/api.yaml`：Redocly CLI 打包后的单文件 OpenAPI 产物。
 - `STYLE.md`：代码、文档、API 与前端界面风格约定。
 - `LICENSE`：MIT License。
 
@@ -133,7 +134,7 @@ docs/      安装、使用、部署、维护、API YAML 与 AI/KT 实现说明
 - 运行配置、密钥、缓存、依赖目录、Playwright 产物和本地代理状态不进入版本库。
 - 后端依赖以 `backend/pyproject.toml` 与 `backend/uv.lock` 为准，不再维护 `requirements.txt`。
 - 前端依赖以 `frontend/package.json` 与 `frontend/package-lock.json` 为准，`node_modules/` 仅本地生成。
-- API 契约以 `docs/api.yaml` 为准；接口变化后同步更新该文件、相关说明和 `docs/CHANGELOG.md`。
+- API 契约源以 `docs/openapi/openapi.yaml` 为准；接口变化后优先更新 `docs/openapi/`，再打包生成 `docs/api.yaml` 并同步相关说明和 `docs/CHANGELOG.md`。
 - 涉及 RAG / KT / KG / LLM / Agent、数据库结构、配置、部署或关键交互的改动必须同步文档并完成验证。
 
 ## 许可证
