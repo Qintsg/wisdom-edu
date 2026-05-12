@@ -13,7 +13,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.utils import timezone
 
-from .managers import OptionalContactUserManager
+from users.authentication.managers import OptionalContactUserManager
 
 
 class User(AbstractUser):

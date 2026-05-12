@@ -145,7 +145,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     # 操作日志中间件（记录API操作日志）
-    "logs.middleware.OperationLogMiddleware",
+    "logs.runtime.middleware.OperationLogMiddleware",
 ]
 
 ROOT_URLCONF = "wisdom_edu_api.urls"
@@ -277,7 +277,7 @@ REST_FRAMEWORK = {
     "DEFAULT_RENDERER_CLASSES": [
         "rest_framework.renderers.JSONRenderer",
     ],
-    "EXCEPTION_HANDLER": "common.utils.custom_exception_handler",
+    "EXCEPTION_HANDLER": "common.domain.utils.custom_exception_handler",
 }
 
 # JWT settings
@@ -294,7 +294,7 @@ SIMPLE_JWT = {
 # Authentication backends
 # 支持用户名、邮箱或手机号登录
 AUTHENTICATION_BACKENDS = [
-    "users.backends.MultiFieldAuthBackend",
+    "users.authentication.backends.MultiFieldAuthBackend",
 ]
 
 # DRF Spectacular settings

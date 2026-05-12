@@ -7,7 +7,7 @@ from common.defense_demo import (
     ensure_defense_demo_accounts,
     ensure_defense_demo_environment,
 )
-from common.neo4j_service import neo4j_service
+from common.neo4j.service import neo4j_service
 from tools.bootstrap import bootstrap_course_assets
 from tools.db_management import pg_bootstrap
 from tools.rebuild_demo.support import (

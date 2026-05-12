@@ -16,7 +16,7 @@ from django.db import transaction
 from assessments.models import Question
 from courses.models import Course
 from exams.models import Exam, ExamQuestion
-from exams.score_policy import sync_exam_totals
+from exams.services.score_policy import sync_exam_totals
 from knowledge.models import KnowledgePoint
 from tools.common import clean_nan, split_multi_values
 from tools.questions import _strip_html

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from functools import lru_cache
 
-from ai_services.services.llm_service import LLMService
+from ai_services.services.llm.service import LLMService
 
 
 @lru_cache(maxsize=1)

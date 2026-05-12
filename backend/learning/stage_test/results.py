@@ -6,7 +6,7 @@ from django.utils import timezone
 
 from learning.models import NodeProgress, PathNode
 from learning.stage_test.models import PASS_THRESHOLD, TOTAL_SCORE, StageTestEvaluation
-from learning.view_helpers import (
+from learning.api.helpers import (
     _average_mastery,
     _build_mastery_change_payload,
     _snapshot_mastery_for_points,

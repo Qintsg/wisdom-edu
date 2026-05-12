@@ -7,7 +7,9 @@ API命名规范：
 """
 
 from django.urls import path
-from . import kt_views, student_ai_views, student_rag_views
+from ai_services.api import kt as kt_views
+from ai_services.api import student as student_ai_views
+from ai_services.api.student import rag as student_rag_views
 
 app_name = "ai"
 

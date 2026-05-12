@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 
-from common.logging_utils import build_log_message
+from common.core.logging_utils import build_log_message
 from learning.models import PathNode
 from learning.stage_test.models import StageTestEvaluation, TOTAL_SCORE
 from users.models import User

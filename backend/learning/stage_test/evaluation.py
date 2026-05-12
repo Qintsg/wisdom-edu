@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 
 from assessments.models import AnswerHistory, Question
-from common.utils import (
+from common.domain.utils import (
     build_answer_display,
     build_normalized_score_map,
     check_answer,

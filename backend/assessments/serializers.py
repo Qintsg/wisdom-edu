@@ -6,7 +6,7 @@
 import re
 from django.utils.html import strip_tags
 from rest_framework import serializers
-from .models import Question, Assessment, SurveyQuestion
+from assessments.models import Question, Assessment, SurveyQuestion
 
 
 def _clean_html(value):

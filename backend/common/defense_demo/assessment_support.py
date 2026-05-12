@@ -19,7 +19,7 @@ from users.models import HabitPreference, User
 
 from common.defense_demo.config import _get_demo_assessment_preset
 from common.defense_demo.progress import _question_knowledge_points
-from common.utils import extract_answer_value, serialize_answer_payload
+from common.domain.utils import extract_answer_value, serialize_answer_payload
 
 
 @dataclass(frozen=True)

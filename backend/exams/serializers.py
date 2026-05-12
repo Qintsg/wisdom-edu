@@ -7,7 +7,7 @@ from decimal import Decimal
 
 from rest_framework import serializers
 from application.teacher.contracts import normalize_exam_payload
-from .models import Exam, ExamQuestion, ExamSubmission, FeedbackReport
+from exams.models import Exam, ExamQuestion, ExamSubmission, FeedbackReport
 
 
 class ExamSerializer(serializers.ModelSerializer):

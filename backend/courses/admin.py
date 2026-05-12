@@ -2,7 +2,7 @@
 课程模块 - Admin配置
 """
 from django.contrib import admin
-from .models import Course, Class, Enrollment, Announcement
+from courses.models import Course, Class, Enrollment, Announcement
 
 
 @admin.register(Course)

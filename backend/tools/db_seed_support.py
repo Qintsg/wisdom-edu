@@ -5,10 +5,10 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, cast
 
-from assessments.ability_survey_defaults import DEFAULT_ABILITY_QUESTIONS
-from assessments.habit_survey_defaults import DEFAULT_HABIT_QUESTIONS
+from assessments.defaults.ability_survey import DEFAULT_ABILITY_QUESTIONS
+from assessments.defaults.habit_survey import DEFAULT_HABIT_QUESTIONS
 from assessments.models import Question, SurveyQuestion
-from common.neo4j_service import neo4j_service
+from common.neo4j.service import neo4j_service
 from courses.models import Class, ClassCourse, Course, Enrollment
 from knowledge.models import KnowledgePoint, KnowledgeRelation, Resource
 from tools.common import User

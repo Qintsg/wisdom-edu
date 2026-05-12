@@ -11,9 +11,9 @@
 
 from __future__ import annotations
 
-from learning.dashboard_views import student_dashboard
-from learning.node_detail_views import complete_node_resource, get_path_node_detail, submit_node_exam
-from learning.node_progress_views import (
+from learning.api.dashboard import student_dashboard
+from learning.api.nodes.detail import complete_node_resource, get_path_node_detail, submit_node_exam
+from learning.api.nodes.progress import (
     complete_path_node,
     get_ai_resources,
     get_learning_progress,
@@ -23,7 +23,7 @@ from learning.node_progress_views import (
     skip_path_node,
     start_learning_node,
 )
-from learning.path_views import adjust_learning_path, generate_initial_path, get_learning_path
+from learning.api.paths import adjust_learning_path, generate_initial_path, get_learning_path
 from learning.stage_test.get_views import get_stage_test
 from learning.stage_test.submit_views import submit_stage_test
 

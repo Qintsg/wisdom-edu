@@ -16,7 +16,7 @@ from common.defense_demo.stage import (
     grade_stage_exam,
     load_stage_exam_questions,
 )
-from common.utils import (
+from common.domain.utils import (
     build_answer_display,
     decorate_question_options,
     extract_answer_value,

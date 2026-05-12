@@ -7,10 +7,10 @@ ScoringService: 评分计算服务
 PathService: 学习路径服务
 KnowledgeTracingService: 知识追踪服务（支持 MEFKT 预测与统计降级）
 """
-from ai_services.services.llm_service import LLMService, llm_service
-from ai_services.services.scoring_service import ScoringService
-from ai_services.services.path_service import PathService
-from ai_services.services.kt_service import KnowledgeTracingService, kt_service
+from ai_services.services.llm.service import LLMService, llm_service
+from ai_services.services.scoring.service import ScoringService
+from ai_services.services.path.service import PathService
+from ai_services.services.kt.service import KnowledgeTracingService, kt_service
 
 __all__ = [
     'LLMService', 

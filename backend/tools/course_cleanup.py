@@ -4,7 +4,7 @@
 
 from __future__ import annotations
 
-from courses.course_cleanup import cleanup_course_runtime_artifacts
+from courses.services.cleanup import cleanup_course_runtime_artifacts
 from courses.models import Course
 
 

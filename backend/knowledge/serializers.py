@@ -5,7 +5,7 @@
 """
 from rest_framework import serializers
 
-from .models import KnowledgePoint, KnowledgeRelation, Resource, KnowledgeMastery
+from knowledge.models import KnowledgePoint, KnowledgeRelation, Resource, KnowledgeMastery
 
 
 class KnowledgePointSerializer(serializers.ModelSerializer):

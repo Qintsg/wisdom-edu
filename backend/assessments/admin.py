@@ -2,7 +2,7 @@
 测评模块 - Admin配置
 """
 from django.contrib import admin
-from .models import (
+from assessments.models import (
     Question, Assessment, AssessmentQuestion, SurveyQuestion, 
     AbilityScore, AssessmentStatus, AssessmentResult
 )

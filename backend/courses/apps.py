@@ -17,4 +17,4 @@ class CoursesConfig(AppConfig):
     def ready(self) -> None:
         """注册课程删除后的外部资产清理信号。"""
         # 确保应用启动时注册 signal receiver。
-        from . import signals  # noqa: F401
+        from courses.lifecycle import signals  # noqa: F401

@@ -13,7 +13,7 @@ from common.defense_demo.progress import (
     _question_options,
     _set_related_knowledge_points,
 )
-from common.utils import build_answer_display, decorate_question_options, extract_answer_value
+from common.domain.utils import build_answer_display, decorate_question_options, extract_answer_value
 
 def _ensure_demo_assessment_questions(
     course: Course, teacher: User, points: list[KnowledgePoint],

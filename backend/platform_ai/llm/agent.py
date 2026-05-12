@@ -239,7 +239,7 @@ def get_agent_service(
 
 def get_default_agent_service() -> LangChainAgentService:
     """Resolve the default provider credentials from Django settings."""
-    from ai_services.services.llm_service import LLMService, resolve_llm_proxy_for_base_url
+    from ai_services.services.llm.service import LLMService, resolve_llm_proxy_for_base_url
 
     llm_service = LLMService()
     return get_agent_service(

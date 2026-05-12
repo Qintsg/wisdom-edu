@@ -6,7 +6,7 @@
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.contrib.auth.password_validation import validate_password
-from .models import User, HabitPreference, ActivationCode, ClassInvitation
+from users.models import User, HabitPreference, ActivationCode, ClassInvitation
 
 
 class UserSerializer(serializers.ModelSerializer):

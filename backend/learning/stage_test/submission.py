@@ -10,7 +10,7 @@ from learning.models import NodeProgress, PathNode
 from learning.stage_test.demo_submission import submit_demo_stage_test
 from learning.stage_test.evaluation import evaluate_stage_test
 from learning.stage_test.standard_submission import submit_standard_stage_test
-from learning.view_helpers import _snapshot_mastery_for_points
+from learning.api.helpers import _snapshot_mastery_for_points
 from users.models import User
 
 

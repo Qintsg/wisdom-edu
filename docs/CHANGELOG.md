@@ -6,6 +6,9 @@
 
 - 删除代码文件中批量生成的 `维护意图`、`边界说明`、`风险说明` 模板注释，保留实际业务注释和文档变更记录。
 - 将大解耦后平铺的同前缀模块收口为包目录，包括 `common/defense_demo/`、`tools/api_regression/`、`tools/question_import/`、`tools/kt_synthetic/`、`tools/db_demo_preset/`、`tools/mefkt/`、`tools/exam_sets/`、`tools/rebuild_demo/` 与 `learning/stage_test/`。
+- 继续按业务边界整合各后端模块：`assessments` 收口到 `api/`、`entities/`、`services/`、`defaults/`，`courses`、`exams`、`knowledge`、`learning`、`users` 按角色 API、领域服务、报告、路径、画像和认证子包拆分实现文件。
+- `ai_services`、`platform_ai/rag`、`common` 与 `logs` 的横铺实现文件收口到 KT、LLM、MEFKT、Path、Student GraphRAG、Neo4j、HTTP、domain、runtime 等子包，原公共导入路径保留轻量兼容入口。
+- `ai_services/tests` 按 KT、LLM、search、student 与 Student GraphRAG 夹具继续收口，纯测试夹具不再使用 `test_*.py` 文件名，减少 Django 测试发现噪声。
 - 保留原有聚合入口和学生端阶段测试路由导出，避免上层 API、CLI 与测试调用方感知内部目录调整。
 
 ### Backend / KT — 学生端初始评测掌握度写回修复

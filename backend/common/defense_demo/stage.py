@@ -8,7 +8,7 @@ from django.utils import timezone
 
 from assessments.models import Question
 from common.defense_demo.progress import _as_object_dict, _coerce_mastery_after_map
-from common.utils import (
+from common.domain.utils import (
     build_normalized_score_map,
     extract_answer_value,
     score_questions,

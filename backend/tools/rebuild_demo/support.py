@@ -12,10 +12,10 @@ from common.defense_demo import (
     DEFENSE_DEMO_TEACHER_USERNAME,
     DEFENSE_DEMO_WARMUP_STUDENT_USERNAME,
 )
-from common.neo4j_service import neo4j_service
+from common.neo4j.service import neo4j_service
 from courses.models import Course
 from exams.models import FeedbackReport
-from exams.score_policy import sync_course_exam_totals
+from exams.services.score_policy import sync_course_exam_totals
 from knowledge.models import ProfileSummary
 from learning.models import LearningPath
 from users.models import User

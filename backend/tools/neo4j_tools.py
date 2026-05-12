@@ -7,7 +7,7 @@ Neo4j 图数据库操作模块
 
 from typing import Optional
 
-from common.neo4j_service import neo4j_service
+from common.neo4j.service import neo4j_service
 from courses.models import Course
 
 

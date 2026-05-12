@@ -8,7 +8,7 @@ API命名规范：
 
 from django.urls import path
 from . import views
-from . import teacher_views
+from knowledge.api import teacher as teacher_views
 
 app_name = "knowledge"
 

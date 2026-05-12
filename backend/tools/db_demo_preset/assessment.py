@@ -102,7 +102,7 @@ def persist_student1_question_answer(
 ) -> dict[str, object]:
     """写入单题预置答题历史并返回题目详情。"""
     from assessments.models import AnswerHistory
-    from common.utils import check_answer, extract_answer_value, serialize_answer_payload
+    from common.domain.utils import check_answer, extract_answer_value, serialize_answer_payload
 
     student_answer = build_student1_answer_value(question, intended_correct)
     correct_answer = extract_answer_value(question.answer)
@@ -170,7 +170,7 @@ def build_student1_mastery_map(
     prior_strength: float,
 ) -> dict[int, float]:
     """根据答题统计和先修约束构造演示掌握度。"""
-    from learning.path_rules import apply_prerequisite_caps
+    from learning.paths.rules import apply_prerequisite_caps
 
     mastery_map = {point.id: float(prior_mean) for point in points}
     for point_id, stats in point_stats.items():

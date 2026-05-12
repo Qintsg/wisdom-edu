@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from ai_services.services.kt_service import kt_service
+from ai_services.services.kt.service import kt_service
 
 from .datasets import DEFAULT_PUBLIC_DATASET, list_public_datasets
 

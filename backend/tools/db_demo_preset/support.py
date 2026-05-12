@@ -155,7 +155,7 @@ def sync_student1_initial_assessment(course, selected_questions: list[object]):
 
 def build_student1_answer_value(question, force_correct: bool) -> object:
     """按题型生成可用于预置答题历史的原始答案值。"""
-    from common.utils import extract_answer_value
+    from common.domain.utils import extract_answer_value
 
     correct_raw = extract_answer_value(question.answer)
     if force_correct:

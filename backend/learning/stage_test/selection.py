@@ -6,11 +6,11 @@ import logging
 import random
 
 from assessments.models import Question
-from common.utils import build_normalized_score_map, normalize_question_options
+from common.domain.utils import build_normalized_score_map, normalize_question_options
 from exams.models import Exam, ExamQuestion
 from knowledge.models import KnowledgePoint
 from learning.models import NodeProgress, PathNode
-from learning.view_helpers import _clean_text_for_llm
+from learning.api.helpers import _clean_text_for_llm
 
 
 logger = logging.getLogger(__name__)

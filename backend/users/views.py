@@ -7,7 +7,7 @@
 - teacher_views: 教师查看/刷新学生画像
 - admin_views: 用户CRUD、激活码管理、学生画像管理
 """
-from .auth_views import *  # noqa: F401,F403
-from .student_views import *  # noqa: F401,F403
-from .teacher_views import *  # noqa: F401,F403
-from .admin_views import *  # noqa: F401,F403
+from users.api.auth.views import *  # noqa: F401,F403
+from users.api.student import *  # noqa: F401,F403
+from users.api.teacher import *  # noqa: F401,F403
+from users.api.admin import *  # noqa: F401,F403

@@ -8,18 +8,18 @@ from typing import cast
 from django.core.management.base import BaseCommand, CommandParser
 from django.db import transaction
 
-from assessments.assessment_helpers import (
+from assessments.services.assessment_helpers import (
     INITIAL_MASTERY_MAX,
     calculate_initial_mastery_baseline,
 )
 from assessments.models import AnswerHistory
-from ai_services.services.kt_prediction_support import (
+from ai_services.services.kt.prediction_support import (
     answered_point_ids,
     is_mefkt_prediction,
     normalize_prediction_map,
 )
 from knowledge.models import KnowledgeMastery, KnowledgePoint
-from learning.path_rules import apply_prerequisite_caps
+from learning.paths.rules import apply_prerequisite_caps
 
 
 ABNORMAL_OLD_VALUES = (0.25, 0.30, 0.333, 0.50)

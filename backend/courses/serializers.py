@@ -4,7 +4,7 @@
 提供课程、班级、选课相关的序列化器
 """
 from rest_framework import serializers
-from .models import Course, Class, Enrollment, Announcement
+from courses.models import Course, Class, Enrollment, Announcement
 
 
 class CourseSerializer(serializers.ModelSerializer):

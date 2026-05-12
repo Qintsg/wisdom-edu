@@ -3,12 +3,12 @@
 
 公开 URL 仍通过 assessments.views 绑定；具体实现按职责拆分到相邻模块。
 """
-from .ability_views import (
+from assessments.api.ability import (
     get_ability_assessment,
     retake_ability_assessment,
     submit_ability_assessment,
 )
-from .assessment_helpers import (
+from assessments.services.assessment_helpers import (
     ABILITY_ASSESSMENT_FIXED_ID,
     HABIT_SURVEY_FIXED_ID,
     answer_tokens_for as _answer_tokens,
@@ -24,14 +24,14 @@ from .assessment_helpers import (
     persist_mastery_snapshot as _persist_mastery_snapshot,
     upsert_knowledge_assessment_result as _upsert_knowledge_assessment_result,
 )
-from .habit_views import get_habit_survey, submit_habit_survey
-from .knowledge_generation import async_generate_after_assessment as _async_generate_after_assessment
-from .knowledge_views import (
+from assessments.api.habit import get_habit_survey, submit_habit_survey
+from assessments.services.knowledge_generation import async_generate_after_assessment as _async_generate_after_assessment
+from assessments.api.knowledge import (
     get_knowledge_assessment,
     get_knowledge_result,
     submit_knowledge_assessment,
 )
-from .status_profile_views import generate_course_profile, get_assessment_status
+from assessments.api.status_profile import generate_course_profile, get_assessment_status
 
 
 __all__ = [

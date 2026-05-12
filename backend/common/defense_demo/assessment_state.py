@@ -29,7 +29,7 @@ from common.defense_demo.assessment_support import (
     _upsert_demo_assessment_result,
 )
 from common.defense_demo.progress import _question_options
-from common.utils import extract_answer_value, serialize_answer_payload
+from common.domain.utils import extract_answer_value, serialize_answer_payload
 
 def _ensure_demo_assessment_state(
     course: Course,

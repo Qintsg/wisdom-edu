@@ -2,7 +2,7 @@
 学习路径模块 - Admin配置
 """
 from django.contrib import admin
-from .models import LearningPath, PathNode, NodeProgress
+from learning.models import LearningPath, PathNode, NodeProgress
 
 
 @admin.register(LearningPath)

@@ -2,7 +2,7 @@
 知识图谱模块 - Admin配置
 """
 from django.contrib import admin
-from .models import KnowledgePoint, KnowledgeRelation, Resource, KnowledgeMastery, ProfileSummary
+from knowledge.models import KnowledgePoint, KnowledgeRelation, Resource, KnowledgeMastery, ProfileSummary
 
 
 @admin.register(KnowledgePoint)

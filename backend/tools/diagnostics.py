@@ -11,7 +11,7 @@ import os
 from collections.abc import Iterable
 from io import StringIO
 
-from common.neo4j_service import neo4j_service
+from common.neo4j.service import neo4j_service
 from tools.common import BASE_DIR, COURSE_RESOURCES_DIR
 
 

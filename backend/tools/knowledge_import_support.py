@@ -415,7 +415,7 @@ def upsert_course_knowledge_edges(
 
 def sync_knowledge_graph_copy(course) -> None:
     """在 PostgreSQL 写入后刷新 Neo4j 图副本。"""
-    from common.neo4j_service import neo4j_service
+    from common.neo4j.service import neo4j_service
     from tools.testing import _status_flag
 
     try:

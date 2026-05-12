@@ -4,7 +4,7 @@
 提供学习路径、节点、进度相关的序列化器
 """
 from rest_framework import serializers
-from .models import LearningPath, PathNode, NodeProgress
+from learning.models import LearningPath, PathNode, NodeProgress
 
 
 class PathNodeSerializer(serializers.ModelSerializer):

@@ -2,7 +2,7 @@
 考试模块 - Admin配置
 """
 from django.contrib import admin
-from .models import Exam, ExamQuestion, ExamSubmission, FeedbackReport
+from exams.models import Exam, ExamQuestion, ExamSubmission, FeedbackReport
 
 
 @admin.register(Exam)

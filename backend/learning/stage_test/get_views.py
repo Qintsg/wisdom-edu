@@ -3,10 +3,10 @@ from __future__ import annotations
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 
-from common.responses import error_response, success_response
+from common.http.responses import error_response, success_response
 from learning.models import PathNode
 from learning.stage_test.selection import build_stage_test_payload
-from learning.view_helpers import _get_authenticated_user
+from learning.api.helpers import _get_authenticated_user
 
 
 @api_view(["GET"])

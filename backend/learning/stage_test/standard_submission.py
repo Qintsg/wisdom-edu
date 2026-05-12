@@ -7,7 +7,7 @@ import logging
 from django.db import transaction
 
 from assessments.models import AnswerHistory
-from common.logging_utils import build_log_message
+from common.core.logging_utils import build_log_message
 from knowledge.models import KnowledgeMastery
 from learning.models import NodeProgress, PathNode
 from learning.stage_test.feedback import build_feedback_report
@@ -100,7 +100,7 @@ def predict_stage_mastery(
     point_stats: dict[int, dict[str, object]],
 ) -> dict[object, object]:
     """汇总课程作答历史并调用 KT 服务。"""
-    from ai_services.services.kt_service import kt_service
+    from ai_services.services.kt.service import kt_service
 
     kt_history = [
         {
@@ -190,6 +190,6 @@ def fallback_mastery_update(
 
 def refresh_learning_path(user: User, node: PathNode) -> None:
     """阶段测试通过后触发路径刷新。"""
-    from ai_services.services.path_service import PathService
+    from ai_services.services.path.service import PathService
 
     PathService().generate_path(user, node.path.course)

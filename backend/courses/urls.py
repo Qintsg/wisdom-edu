@@ -3,7 +3,7 @@
 """
 from django.urls import path
 from . import views
-from . import teacher_workspace_views
+from courses.api.teacher import workspace as teacher_workspace_views
 
 app_name = 'courses'
 
