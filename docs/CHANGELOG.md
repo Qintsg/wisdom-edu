@@ -10,6 +10,8 @@
 - `ai_services`、`platform_ai/rag`、`common` 与 `logs` 的横铺实现文件收口到 KT、LLM、MEFKT、Path、Student GraphRAG、Neo4j、HTTP、domain、runtime 等子包，原公共导入路径保留轻量兼容入口。
 - `ai_services/tests` 按 KT、LLM、search、student 与 Student GraphRAG 夹具继续收口，纯测试夹具不再使用 `test_*.py` 文件名，减少 Django 测试发现噪声。
 - 保留原有聚合入口和学生端阶段测试路由导出，避免上层 API、CLI 与测试调用方感知内部目录调整。
+- 删除后端各 Django app 根目录下已废弃的 `views.py` 兼容入口和旧 support 兼容文件，URL 层改为直接引用实际 API / service 子模块。
+- 将 `logs` 应用的 `0001_initial` 与 `0002_alter_operationlog_module` 合并为 squashed 初始迁移，保留 `replaces` 映射以兼容已应用旧迁移的数据库。
 
 ### Backend / KT — 学生端初始评测掌握度写回修复
 
