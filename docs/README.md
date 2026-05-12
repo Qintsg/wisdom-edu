@@ -2,38 +2,24 @@
 
 > 最后更新：2026-05-12
 
-本文档目录面向开发、答辩演示、部署运维和后续维护。文档内容以当前仓库真实实现为准，API 契约源文件统一维护在 `docs/openapi/openapi.yaml`，`docs/api.yaml` 为 Redocly CLI 打包后的单文件产物。
+本文档目录面向开发、答辩演示、接口契约维护和项目材料归档。文档内容以当前仓库真实实现为准，API 契约源文件统一维护在 `docs/openapi/openapi.yaml`，`docs/api.yaml` 为 Redocly CLI 打包后的单文件产物。
 
 ## 推荐阅读顺序
 
-1. `安装说明.md`：本地开发环境、uv 后端依赖同步、前端依赖安装与首次验证。
-2. `使用说明.md`：学生、教师、管理员三端页面和主要业务流程。
-3. `演示数据导入说明.md`：答辩账号、演示课程、数据重建与浏览器巡检。
-4. `服务器部署说明.md`：前后端分离部署、Daphne、Nginx / OpenResty 与静态资源托管。
-5. `维护说明.md`：日常维护、依赖更新、API 契约、数据迁移和发布检查。
-6. `openapi/openapi.yaml`：模块化 OpenAPI 契约入口；`api.yaml` 为打包产物。
-7. `GraphRAG实现说明.md`：课程级 GraphRAG、Qdrant 和 Neo4j 投影。
-8. `MEFKT实现说明.md`：MEFKT 训练、在线部署与 KT 服务接入。
-9. `LangChain智能体说明.md`：LangChain agent 的职责边界与工具集。
-10. `大模型接入说明.md`：通义千问 / DeepSeek / 兼容网关接入与排障。
+1. `使用说明.md`：学生、教师、管理员三端页面、主要业务流程和常用命令。
+2. `演示数据导入说明.md`：答辩账号、演示课程、数据重建与浏览器巡检。
+3. `openapi/openapi.yaml`：模块化 OpenAPI 契约入口；`api.yaml` 为打包产物。
+4. `CHANGELOG.md`：项目变更记录。
 
 ## 文档索引
 
 - `README.md`：当前文档总导航。
-- `安装说明.md`：本地安装、开发启动与验证命令。
 - `使用说明.md`：三端页面、典型流程和常用接口入口。
-- `维护说明.md`：维护职责、依赖、配置、API、数据、验证和发布流程。
 - `演示数据导入说明.md`：演示账号、课程与答辩环境数据导入说明。
-- `服务器部署说明.md`：双机分离部署与生产 / 演示环境部署。
-- `GraphRAG实现说明.md`：GraphRAG 实现细节。
-- `MEFKT实现说明.md`：MEFKT 与 KT 实现细节。
-- `LangChain智能体说明.md`：LangChain agent 说明。
-- `大模型接入说明.md`：LLM 提供方配置与排障。
 - `openapi/openapi.yaml`：模块化 OpenAPI 描述文件和接口契约源，入口只保留全局信息和 `$ref`。
 - `api.yaml`：由 Redocly CLI 从 `docs/openapi/openapi.yaml` 打包生成的单文件 OpenAPI 描述。
 - `CHANGELOG.md`：项目变更记录。
 - `论文.pdf`：项目论文材料。
-- `饶弘玮 25网工A2 个性化自适应学习系统 AI赋能方案.pptx`：项目方案材料。
 - `../STYLE.md`：代码、文档、API 与界面风格约定。
 - `../LICENSE`：MIT License。
 
@@ -113,6 +99,6 @@ uv run python tools.py browser-audit --scenario audit --frontend-url http://127.
 
 1. 只引用当前仓库中真实存在的文件。
 2. 只写当前代码已实现的能力，不用文档承诺未接线功能。
-3. 接口变化时优先更新 `docs/openapi/` 下的模块化源文件，再用 Redocly CLI 校验并打包 `docs/api.yaml`，最后同步使用说明、维护说明和 `docs/CHANGELOG.md`。
-4. 路径、命令、环境变量变更时同步根 `README.md`、`docs/README.md`、`docs/安装说明.md`、`backend/.env.example` 与相关部署说明。
+3. 接口变化时优先更新 `docs/openapi/` 下的模块化源文件，再用 Redocly CLI 校验并打包 `docs/api.yaml`，最后同步使用说明和 `docs/CHANGELOG.md`。
+4. 路径、命令、环境变量变更时同步根 `README.md`、`docs/README.md`、`docs/使用说明.md`、`backend/.env.example` 与相关说明。
 5. 缓存、依赖目录、测试输出、代理状态和私有配置只进入 `.gitignore`，不进入版本库。

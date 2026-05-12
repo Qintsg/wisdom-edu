@@ -3,7 +3,6 @@
 ## 1. 适用范围
 
 - 本文件适用于 `backend/` 目录；工作时必须同时遵守根目录 `AGENTS.md`。
-- 权限只看根目录中的 `AI_PERMISSION_LEVEL: DANGEROUS`。
 
 ---
 
@@ -37,5 +36,5 @@
 
 ## 5. 验证与结果说明
 
-- 提交前自查：API 契约是否稳定、分页与批量查询是否合理、是否存在循环查库、PostgreSQL / Neo4j 职责是否混淆、是否需要同步更新 `docs/API.md`、`docs/CHANGELOG.md` 或其他说明文档。
+- 提交前自查：API 契约是否稳定、分页与批量查询是否合理、是否存在循环查库、PostgreSQL / Neo4j 职责是否混淆、是否需要同步更新 API文档、`docs/CHANGELOG.md` 或其他说明文档。
 - 完成后端任务时，说明中必须指出：改了哪些 Model / Serializer / View / Service / Query / RAG / LLM / KT / KG / Agent 模块，是否影响 API / 数据库 / 智能服务行为，做了哪些验证，当前块 commit 与剩余风险是什么。

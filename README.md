@@ -37,7 +37,7 @@
   - `backend/platform_ai` 汇聚 RAG、LLM、KT、搜索与 Agent 边界实现。
 - 文档与契约：`docs/`
   - API 契约源以 `docs/openapi/openapi.yaml` 为准，`docs/api.yaml` 为 Redocly CLI 打包产物，旧 Markdown API 文档已移除。
-  - 维护、安装、使用、部署、GraphRAG、MEFKT、LangChain 与大模型接入文档集中维护。
+  - 使用说明、演示数据、OpenAPI 契约、变更记录和项目材料集中维护；旧专题说明文档已清理。
 
 ## 快速启动
 
@@ -110,22 +110,17 @@ uv run python tools.py browser-audit --scenario audit --frontend-url http://127.
 ```text
 backend/   Django + DRF + Channels + GraphRAG + MEFKT + LLM 服务
 frontend/  Vue 3 + Vite + TypeScript + Fluent 2 风格界面
-docs/      安装、使用、部署、维护、API YAML 与 AI/KT 实现说明
+docs/      使用说明、演示数据、OpenAPI 契约、变更记录与项目材料
 ```
 
 ## 文档导航
 
 - `docs/README.md`：文档总览和推荐阅读顺序。
-- `docs/安装说明.md`：本地开发环境准备、依赖同步与启动验证。
 - `docs/使用说明.md`：学生、教师、管理员三端使用路径。
-- `docs/维护说明.md`：日常维护、依赖、API、数据、验证和发布要求。
-- `docs/服务器部署说明.md`：生产 / 演示环境部署说明。
-- `docs/GraphRAG实现说明.md`：课程级 GraphRAG、Qdrant 与 Neo4j 查询增强。
-- `docs/MEFKT实现说明.md`：MEFKT 训练、部署与 KT 服务接入。
-- `docs/LangChain智能体说明.md`：LangChain agent 边界与工具集。
-- `docs/大模型接入说明.md`：LLM 提供方配置、非思考模式与排障。
+- `docs/演示数据导入说明.md`：演示账号、课程与答辩环境数据导入说明。
 - `docs/openapi/openapi.yaml`：模块化 OpenAPI 契约源文件。
 - `docs/api.yaml`：Redocly CLI 打包后的单文件 OpenAPI 产物。
+- `docs/CHANGELOG.md`：项目变更记录。
 - `STYLE.md`：代码、文档、API 与前端界面风格约定。
 - `LICENSE`：MIT License。
 

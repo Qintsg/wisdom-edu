@@ -3,7 +3,6 @@
 ## 1. 适用范围
 
 - 本文件适用于 `frontend/` 目录；工作时必须同时遵守根目录 `AGENTS.md`。
-- 权限只看根目录中的 `AI_PERMISSION_LEVEL: DANGEROUS`。
 
 ---
 

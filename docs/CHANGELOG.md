@@ -2,6 +2,11 @@
 
 ## 2026-05-12
 
+### Docs / Repository Hygiene — 清理旧专题文档
+
+- 删除已不再维护的安装、部署、维护、GraphRAG、MEFKT、LangChain、大模型接入、答辩执行清单和旧 PPT 专题材料，文档目录收口到使用说明、演示数据、OpenAPI 契约、变更记录和论文材料。
+- 根 `README.md`、`docs/README.md` 与 `docs/使用说明.md` 同步移除已删除文档入口，避免保留导航指向不存在的旧文件。
+
 ### Docs / API — 模块化 OpenAPI 契约重构
 
 - 新增 `docs/openapi/` 模块化 OpenAPI 文档树，入口 `docs/openapi/openapi.yaml` 仅保留全局信息、tag、security 与 `$ref` 汇总。
