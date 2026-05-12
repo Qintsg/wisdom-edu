@@ -76,7 +76,7 @@ def _seed_course_content(
             resource_type=resource_cfg.get("type", "document"),
             defaults={
                 "url": resource_cfg.get("url")
-                or f"https://example.com/{int(target_course.pk)}/{index}",
+                or f"https://edu.qintsg.xyz/resources/{int(target_course.pk)}/{index}",
                 "description": resource_cfg.get("description", ""),
                 "chapter_number": resource_cfg.get("chapter_number", str(index)),
                 "sort_order": index,

@@ -18,7 +18,7 @@
         "admin": {
             "username": "admin",
             "password": "Admin123456",
-            "email": "admin@example.com",
+            "email": "admin@edu.qintsg.xyz",
             "role": "admin",
             "description": "系统管理员账号"
         },
@@ -28,7 +28,7 @@
             {
                 "username": "teacher1",
                 "password": "Test123456",
-                "email": "teacher@example.com",
+                "email": "teacher@edu.qintsg.xyz",
                 "role": "teacher",
                 "real_name": "张老师",
                 "description": "大数据课程主讲教师"
@@ -36,7 +36,7 @@
             {
                 "username": "teacher2",
                 "password": "Test123456",
-                "email": "teacher2@example.com",
+                "email": "teacher2@edu.qintsg.xyz",
                 "role": "teacher",
                 "real_name": "李老师",
                 "description": "机器学习课程主讲教师"
@@ -48,7 +48,7 @@
             {
                 "username": "student1",
                 "password": "Test123456",
-                "email": "student1@example.com",
+                "email": "student1@edu.qintsg.xyz",
                 "role": "student",
                 "real_name": "学生1",
                 "student_id": "20240001"
@@ -56,7 +56,7 @@
             {
                 "username": "student2",
                 "password": "Test123456",
-                "email": "student2@example.com",
+                "email": "student2@edu.qintsg.xyz",
                 "role": "student",
                 "real_name": "学生2",
                 "student_id": "20240002"
@@ -64,7 +64,7 @@
             {
                 "username": "student3",
                 "password": "Test123456",
-                "email": "student3@example.com",
+                "email": "student3@edu.qintsg.xyz",
                 "role": "student",
                 "real_name": "学生3",
                 "student_id": "20240003"
@@ -72,7 +72,7 @@
             {
                 "username": "student4",
                 "password": "Test123456",
-                "email": "student4@example.com",
+                "email": "student4@edu.qintsg.xyz",
                 "role": "student",
                 "real_name": "学生4",
                 "student_id": "20240004"
@@ -80,7 +80,7 @@
             {
                 "username": "student5",
                 "password": "Test123456",
-                "email": "student5@example.com",
+                "email": "student5@edu.qintsg.xyz",
                 "role": "student",
                 "real_name": "学生5",
                 "student_id": "20240005"
@@ -254,9 +254,9 @@
                 {"pre": "bd_hadoop", "post": "bd_spark"}
             ],
             "resources": [
-                {"title": "大数据课程导读", "type": "document", "point_keys": ["bd_intro"], "chapter_number": "1.1", "description": "课程整体导读资料"},
-                {"title": "Hadoop 架构概览", "type": "document", "point_keys": ["bd_hadoop"], "chapter_number": "2.1", "description": "Hadoop 架构与组件说明"},
-                {"title": "Spark 入门视频", "type": "video", "point_keys": ["bd_spark"], "chapter_number": "3.1", "description": "Spark 基础快速入门视频"}
+                {"title": "大数据课程导读", "type": "document", "point_keys": ["bd_intro"], "chapter_number": "1.1", "url": "https://hadoop.apache.org/docs/stable/", "description": "课程整体导读资料"},
+                {"title": "Hadoop 架构概览", "type": "document", "point_keys": ["bd_hadoop"], "chapter_number": "2.1", "url": "https://hadoop.apache.org/docs/stable/hadoop-project-dist/hadoop-common/ClusterSetup.html", "description": "Hadoop 架构与组件说明"},
+                {"title": "Spark 入门视频", "type": "video", "point_keys": ["bd_spark"], "chapter_number": "3.1", "url": "https://spark.apache.org/docs/latest/quick-start.html", "description": "Spark 基础快速入门视频"}
             ],
             "questions": [
                 {"content": "以下哪一项最符合大数据的特征？", "point_keys": ["bd_intro"], "options": [{"label": "A", "content": "容量大"}, {"label": "B", "content": "速度快"}, {"label": "C", "content": "多样性"}, {"label": "D", "content": "以上都是"}], "answer": {"answer": "D"}, "analysis": "大数据通常强调 4V 等特征。"},
@@ -275,9 +275,9 @@
                 {"pre": "ml_supervised", "post": "ml_eval"}
             ],
             "resources": [
-                {"title": "机器学习课程导论", "type": "document", "point_keys": ["ml_intro"], "chapter_number": "1.1", "description": "机器学习问题分类导读"},
-                {"title": "监督学习案例解析", "type": "document", "point_keys": ["ml_supervised"], "chapter_number": "2.1", "description": "监督学习基础案例"},
-                {"title": "模型评估指标说明", "type": "link", "point_keys": ["ml_eval"], "chapter_number": "3.1", "description": "模型评估相关外部资料"}
+                {"title": "机器学习课程导论", "type": "document", "point_keys": ["ml_intro"], "chapter_number": "1.1", "url": "https://scikit-learn.org/stable/tutorial/basic/tutorial.html", "description": "机器学习问题分类导读"},
+                {"title": "监督学习案例解析", "type": "document", "point_keys": ["ml_supervised"], "chapter_number": "2.1", "url": "https://scikit-learn.org/stable/supervised_learning.html", "description": "监督学习基础案例"},
+                {"title": "模型评估指标说明", "type": "link", "point_keys": ["ml_eval"], "chapter_number": "3.1", "url": "https://scikit-learn.org/stable/modules/model_evaluation.html", "description": "模型评估相关外部资料"}
             ],
             "questions": [
                 {"content": "监督学习通常需要什么样的数据？", "point_keys": ["ml_supervised"], "options": [{"label": "A", "content": "带标签数据"}, {"label": "B", "content": "无标签数据"}, {"label": "C", "content": "仅图像数据"}, {"label": "D", "content": "仅文本数据"}], "answer": {"answer": "A"}, "analysis": "监督学习依赖带标签样本。"},
@@ -295,9 +295,9 @@
                 {"pre": "viz_chart", "post": "viz_story"}
             ],
             "resources": [
-                {"title": "可视化原则速览", "type": "document", "point_keys": ["viz_principle"], "chapter_number": "1.1", "description": "可视化设计原则简介"},
-                {"title": "基础图表实战", "type": "video", "point_keys": ["viz_chart"], "chapter_number": "2.1", "description": "常用图表制作示例"},
-                {"title": "数据叙事案例", "type": "document", "point_keys": ["viz_story"], "chapter_number": "3.1", "description": "典型数据叙事结构案例"}
+                {"title": "可视化原则速览", "type": "document", "point_keys": ["viz_principle"], "chapter_number": "1.1", "url": "https://observablehq.com/@d3/learn-d3", "description": "可视化设计原则简介"},
+                {"title": "基础图表实战", "type": "video", "point_keys": ["viz_chart"], "chapter_number": "2.1", "url": "https://echarts.apache.org/handbook/en/get-started/", "description": "常用图表制作示例"},
+                {"title": "数据叙事案例", "type": "document", "point_keys": ["viz_story"], "chapter_number": "3.1", "url": "https://www.tableau.com/learn/articles/data-storytelling", "description": "典型数据叙事结构案例"}
             ],
             "questions": [
                 {"content": "以下哪类图表更适合展示时间趋势？", "point_keys": ["viz_chart"], "options": [{"label": "A", "content": "折线图"}, {"label": "B", "content": "饼图"}, {"label": "C", "content": "词云"}, {"label": "D", "content": "矩阵图"}], "answer": {"answer": "A"}, "analysis": "折线图适合表示随时间变化的趋势。"}

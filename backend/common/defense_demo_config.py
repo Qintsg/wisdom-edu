@@ -7,25 +7,25 @@ DEFENSE_DEMO_PRIMARY_STUDENT_USERNAME = "student"
 DEFENSE_DEMO_COURSE_ONLY_STUDENT_SPECS: tuple[dict[str, str], ...] = (
     {
         "username": "student2",
-        "email": "student2@example.com",
+        "email": "student2@edu.qintsg.xyz",
         "real_name": "学生2",
         "student_id": "20240002",
     },
     {
         "username": "student3",
-        "email": "student3@example.com",
+        "email": "student3@edu.qintsg.xyz",
         "real_name": "学生3",
         "student_id": "20240003",
     },
     {
         "username": "student4",
-        "email": "student4@example.com",
+        "email": "student4@edu.qintsg.xyz",
         "real_name": "学生4",
         "student_id": "20240004",
     },
     {
         "username": "student5",
-        "email": "student5@example.com",
+        "email": "student5@edu.qintsg.xyz",
         "real_name": "学生5",
         "student_id": "20240005",
     },

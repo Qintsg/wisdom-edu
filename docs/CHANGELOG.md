@@ -2,6 +2,12 @@
 
 ## 2026-05-12
 
+### Backend / Demo Data — 预置数据真实 URL 与链路记录
+
+- 测试数据与演示账号邮箱从 `example.com` 占位域切换到 `edu.qintsg.xyz`，课程种子资源补充 Hadoop、Spark、scikit-learn、D3、ECharts 与 Tableau 等真实文档入口。
+- `create-test-data` 的课程资源兜底 URL 改为 `https://edu.qintsg.xyz/resources/...`，避免重新导入时继续生成 `example.com` 占位资源。
+- 重新全量导入开发库并使用空学生账号完成大数据课程初始评测、学习路径推进与 GraphRAG 问答，链路记录和数据库快照保存在本地 `output/` 目录。
+
 ### Docs / Repository Hygiene — 清理旧专题文档
 
 - 删除已不再维护的安装、部署、维护、GraphRAG、MEFKT、LangChain、大模型接入、答辩执行清单和旧 PPT 专题材料，文档目录收口到使用说明、演示数据、OpenAPI 契约、变更记录和论文材料。

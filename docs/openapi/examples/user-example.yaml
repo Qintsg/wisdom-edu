@@ -3,7 +3,7 @@ value:
   user_id: 1
   username: student1
   role: student
-  email: student1@example.com
+  email: student1@edu.qintsg.xyz
   real_name: 学生一
   student_id: "20260001"
   classes:
