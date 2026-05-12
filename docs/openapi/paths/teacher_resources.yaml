@@ -1,0 +1,151 @@
+/api/teacher/resources:
+  get:
+    tags: [Knowledge]
+    operationId: listTeacherResources
+    summary: 教师查询课程资源
+    parameters:
+      - $ref: ../components/parameters/CourseId.yaml
+      - name: keyword
+        in: query
+        schema:
+          type: string
+      - name: type
+        in: query
+        schema:
+          type: string
+      - name: resource_type
+        in: query
+        schema:
+          type: string
+      - name: point_id
+        in: query
+        schema:
+          type: integer
+      - $ref: ../components/parameters/Page.yaml
+      - $ref: ../components/parameters/PageSize.yaml
+    responses:
+      "200":
+        description: data 包含 total、resources[]。
+        content:
+          application/json:
+            schema:
+              $ref: ../components/schemas/ApiEnvelope.yaml
+
+
+/api/teacher/resources/create:
+  post:
+    tags: [Knowledge]
+    operationId: createTeacherResource
+    summary: 教师创建课程资源
+    requestBody:
+      required: true
+      content:
+        multipart/form-data:
+          schema:
+            $ref: ../components/schemas/ResourceWriteRequest.yaml
+        application/json:
+          schema:
+            $ref: ../components/schemas/ResourceWriteRequest.yaml
+    responses:
+      "201":
+        $ref: ../components/responses/Created.yaml
+      "400":
+        $ref: ../components/responses/BadRequest.yaml
+
+
+/api/teacher/resources/upload:
+  post:
+    tags: [Knowledge]
+    operationId: uploadTeacherResource
+    summary: 上传课程资源文件
+    requestBody:
+      required: true
+      content:
+        multipart/form-data:
+          schema:
+            type: object
+            required: [file, course_id]
+            properties:
+              file:
+                type: string
+                format: binary
+              course_id:
+                type: integer
+              title:
+                type: string
+              resource_type:
+                type: string
+              description:
+                type: string
+    responses:
+      "201":
+        $ref: ../components/responses/Created.yaml
+
+
+/api/teacher/resources/{resource_id}:
+  get:
+    tags: [Knowledge]
+    operationId: getTeacherResource
+    summary: 获取教师资源详情
+    parameters:
+      - $ref: ../components/parameters/ResourceIdPath.yaml
+    responses:
+      "200":
+        $ref: ../components/responses/Success.yaml
+      "404":
+        $ref: ../components/responses/NotFound.yaml
+  put:
+    tags: [Knowledge]
+    operationId: updateTeacherResource
+    summary: 更新教师资源
+    parameters:
+      - $ref: ../components/parameters/ResourceIdPath.yaml
+    requestBody:
+      required: true
+      content:
+        multipart/form-data:
+          schema:
+            $ref: ../components/schemas/ResourceWriteRequest.yaml
+        application/json:
+          schema:
+            $ref: ../components/schemas/ResourceWriteRequest.yaml
+    responses:
+      "200":
+        $ref: ../components/responses/Success.yaml
+
+
+/api/teacher/resources/{resource_id}/delete:
+  delete:
+    tags: [Knowledge]
+    operationId: deleteTeacherResource
+    summary: 删除教师资源
+    parameters:
+      - $ref: ../components/parameters/ResourceIdPath.yaml
+    responses:
+      "200":
+        $ref: ../components/responses/Success.yaml
+
+
+/api/teacher/resources/{resource_id}/link-knowledge:
+  post:
+    tags: [Knowledge]
+    operationId: linkTeacherResourceKnowledge
+    summary: 关联资源到知识点
+    parameters:
+      - $ref: ../components/parameters/ResourceIdPath.yaml
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [knowledge_point_ids]
+            properties:
+              knowledge_point_ids:
+                type: array
+                items:
+                  type: integer
+    responses:
+      "200":
+        $ref: ../components/responses/Success.yaml
+

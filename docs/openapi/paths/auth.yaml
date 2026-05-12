@@ -1,0 +1,282 @@
+/health/:
+  get:
+    tags: [Health]
+    operationId: healthCheck
+    summary: 健康检查
+    security: []
+    responses:
+      "200":
+        $ref: ../components/responses/Success.yaml
+
+
+/api/auth/register:
+  post:
+    tags: [Auth]
+    operationId: register
+    summary: 注册学生、教师或管理员账号
+    description: 学生可直接注册；教师和管理员需要提交有效激活码。
+    security: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [username, password]
+            properties:
+              username:
+                type: string
+              password:
+                type: string
+                format: password
+              email:
+                type: string
+              role:
+                type: string
+                enum: [student, teacher, admin]
+                default: student
+              real_name:
+                type: string
+              student_id:
+                type: string
+              activation_code:
+                type: string
+                description: 教师和管理员注册必填。
+    responses:
+      "200":
+        description: 注册成功，data 包含 user_id、username、role、token、refresh。
+        content:
+          application/json:
+            schema:
+              $ref: ../components/schemas/ApiEnvelope.yaml
+      "400":
+        $ref: ../components/responses/BadRequest.yaml
+
+
+/api/auth/login:
+  post:
+    tags: [Auth]
+    operationId: login
+    summary: 登录
+    security: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [password]
+            properties:
+              username:
+                type: string
+                description: 登录账号；也兼容 `account` 字段。
+              account:
+                type: string
+              password:
+                type: string
+                format: password
+    responses:
+      "200":
+        description: 登录成功，data 包含 user_id、username、role、token、refresh。
+        content:
+          application/json:
+            schema:
+              $ref: ../components/schemas/ApiEnvelope.yaml
+      "400":
+        $ref: ../components/responses/BadRequest.yaml
+
+
+/api/auth/logout:
+  post:
+    tags: [Auth]
+    operationId: logout
+    summary: 登出并尝试加入 refresh token 黑名单
+    requestBody:
+      required: false
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              refresh:
+                type: string
+    responses:
+      "200":
+        $ref: ../components/responses/Success.yaml
+      "401":
+        $ref: ../components/responses/Unauthorized.yaml
+
+
+/api/auth/userinfo:
+  get:
+    tags: [Auth]
+    operationId: getUserInfo
+    summary: 获取当前用户信息
+    responses:
+      "200":
+        description: data 包含用户基础信息、班级列表与课程列表。
+        content:
+          application/json:
+            schema:
+              $ref: ../components/schemas/ApiEnvelope.yaml
+      "401":
+        $ref: ../components/responses/Unauthorized.yaml
+
+
+/api/auth/userinfo/update:
+  put:
+    tags: [Auth]
+    operationId: updateUserInfo
+    summary: 更新当前用户信息和头像
+    requestBody:
+      required: false
+      content:
+        multipart/form-data:
+          schema:
+            type: object
+            properties:
+              username:
+                type: string
+              email:
+                type: string
+              phone:
+                type: string
+              real_name:
+                type: string
+              student_id:
+                type: string
+              avatar:
+                type: string
+                format: binary
+        application/json:
+          schema:
+            type: object
+            properties:
+              username:
+                type: string
+              email:
+                type: string
+              phone:
+                type: string
+              real_name:
+                type: string
+              student_id:
+                type: string
+    responses:
+      "200":
+        description: data 包含 updated_fields 与 avatar。
+        content:
+          application/json:
+            schema:
+              $ref: ../components/schemas/ApiEnvelope.yaml
+      "400":
+        $ref: ../components/responses/BadRequest.yaml
+
+
+/api/auth/token/refresh:
+  post:
+    tags: [Auth]
+    operationId: refreshToken
+    summary: 刷新 JWT
+    security: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [refresh]
+            properties:
+              refresh:
+                type: string
+    responses:
+      "200":
+        description: data 包含新的 token 与 refresh。
+        content:
+          application/json:
+            schema:
+              $ref: ../components/schemas/ApiEnvelope.yaml
+      "400":
+        $ref: ../components/responses/BadRequest.yaml
+
+
+/api/auth/password/change:
+  post:
+    tags: [Auth]
+    operationId: changePassword
+    summary: 修改当前用户密码
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [old_password, new_password]
+            properties:
+              old_password:
+                type: string
+                format: password
+              new_password:
+                type: string
+                format: password
+                minLength: 8
+    responses:
+      "200":
+        $ref: ../components/responses/Success.yaml
+      "400":
+        $ref: ../components/responses/BadRequest.yaml
+
+
+/api/auth/password/reset/send:
+  post:
+    tags: [Auth]
+    operationId: sendPasswordResetCode
+    summary: 发送密码重置验证码
+    security: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [email]
+            properties:
+              email:
+                type: string
+                format: email
+    responses:
+      "200":
+        $ref: ../components/responses/Success.yaml
+      "400":
+        $ref: ../components/responses/BadRequest.yaml
+
+
+/api/auth/password/reset:
+  post:
+    tags: [Auth]
+    operationId: resetPassword
+    summary: 使用验证码重置密码
+    security: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [email, code, new_password]
+            properties:
+              email:
+                type: string
+                format: email
+              code:
+                type: string
+              new_password:
+                type: string
+                format: password
+                minLength: 6
+    responses:
+      "200":
+        $ref: ../components/responses/Success.yaml
+      "400":
+        $ref: ../components/responses/BadRequest.yaml
+

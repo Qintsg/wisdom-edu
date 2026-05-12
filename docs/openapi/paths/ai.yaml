@@ -1,0 +1,467 @@
+/api/student/ai/profile-analysis:
+  post:
+    tags: [AI, Profile]
+    operationId: aiProfileAnalysis
+    summary: 生成或刷新课程学习者画像分析
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [course_id]
+            properties:
+              course_id:
+                type: integer
+              refresh:
+                type: boolean
+                default: false
+    responses:
+      "200":
+        $ref: ../components/responses/Success.yaml
+      "400":
+        $ref: ../components/responses/BadRequest.yaml
+      "500":
+        $ref: ../components/responses/ServerError.yaml
+
+/api/student/ai/path-planning:
+  post:
+    tags: [AI, Learning]
+    operationId: aiPathPlanning
+    summary: 基于掌握度与 RAG 证据生成路径规划建议
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [course_id]
+            properties:
+              course_id:
+                type: integer
+              target:
+                type: string
+              constraints:
+                type: object
+                additionalProperties: true
+    responses:
+      "200":
+        description: data 包含路径规划建议、证据和约束。
+        content:
+          application/json:
+            schema:
+              $ref: ../components/schemas/ApiEnvelope.yaml
+
+/api/student/ai/resource-reason:
+  post:
+    tags: [AI]
+    operationId: aiResourceReason
+    summary: 生成推荐资源理由
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [resource_id]
+            properties:
+              resource_id:
+                type: integer
+              course_id:
+                type: integer
+              point_id:
+                type: integer
+    responses:
+      "200":
+        description: data 包含 reason、learning_tips。
+        content:
+          application/json:
+            schema:
+              $ref: ../components/schemas/ApiEnvelope.yaml
+
+/api/student/ai/feedback-report:
+  post:
+    tags: [AI, Exams]
+    operationId: aiFeedbackReport
+    summary: 获取或生成作业 AI 反馈摘要
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [exam_id]
+            properties:
+              exam_id:
+                type: integer
+    responses:
+      "200":
+        $ref: ../components/responses/Success.yaml
+      "404":
+        $ref: ../components/responses/NotFound.yaml
+
+/api/student/ai/learning-advice:
+  post:
+    tags: [AI]
+    operationId: aiLearningAdvice
+    summary: 生成当前课程学习建议
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [course_id]
+            properties:
+              course_id:
+                type: integer
+    responses:
+      "200":
+        description: data 包含 summary、weakness、strength、suggestion。
+        content:
+          application/json:
+            schema:
+              $ref: ../components/schemas/ApiEnvelope.yaml
+
+/api/student/ai/refresh-profile:
+  post:
+    tags: [AI, Profile]
+    operationId: aiRefreshProfile
+    summary: 强制刷新课程画像
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [course_id]
+            properties:
+              course_id:
+                type: integer
+    responses:
+      "200":
+        $ref: ../components/responses/Success.yaml
+
+/api/student/ai/refresh-learning-path:
+  post:
+    tags: [AI, Learning]
+    operationId: aiRefreshLearningPath
+    summary: 重建当前学生课程学习路径
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [course_id]
+            properties:
+              course_id:
+                type: integer
+    responses:
+      "200":
+        description: data 包含 path_id、nodes、ai_reason、preserved_count、new_count、change_summary。
+        content:
+          application/json:
+            schema:
+              $ref: ../components/schemas/ApiEnvelope.yaml
+
+/api/student/ai/key-points-reminder:
+  post:
+    tags: [AI, Knowledge]
+    operationId: aiKeyPointsReminder
+    summary: 获取薄弱知识点复习提醒
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [course_id]
+            properties:
+              course_id:
+                type: integer
+    responses:
+      "200":
+        description: data.reminders[] 包含 knowledge_point_id、name、mastery_rate、suggestion。
+        content:
+          application/json:
+            schema:
+              $ref: ../components/schemas/ApiEnvelope.yaml
+
+/api/student/ai/time-scheduling:
+  post:
+    tags: [AI]
+    operationId: aiTimeScheduling
+    summary: 根据薄弱点分配可用学习时间
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [course_id]
+            properties:
+              course_id:
+                type: integer
+              available_hours:
+                type: number
+                format: float
+                default: 2
+    responses:
+      "200":
+        description: data 包含 total_hours、schedule[]。
+        content:
+          application/json:
+            schema:
+              $ref: ../components/schemas/ApiEnvelope.yaml
+
+/api/student/ai/analysis-compare:
+  get:
+    tags: [AI, Profile]
+    operationId: aiAnalysisCompare
+    summary: 对比两个日期前的画像快照
+    parameters:
+      - name: date1
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date
+      - name: date2
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date
+    responses:
+      "200":
+        $ref: ../components/responses/Success.yaml
+
+/api/student/ai/chat:
+  post:
+    tags: [AI]
+    operationId: aiChat
+    summary: 学生 AI 问答
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              question:
+                type: string
+                maxLength: 1000
+              message:
+                type: string
+                maxLength: 1000
+              course_id:
+                type: integer
+              point_id:
+                type: integer
+              knowledge_point:
+                type: string
+              course_name:
+                type: string
+    responses:
+      "200":
+        description: data 包含 reply、sources、mode。
+        content:
+          application/json:
+            schema:
+              $ref: ../components/schemas/ApiEnvelope.yaml
+      "400":
+        $ref: ../components/responses/BadRequest.yaml
+
+/api/student/ai/node-intro:
+  post:
+    tags: [AI, Knowledge]
+    operationId: aiNodeIntro
+    summary: 生成知识点介绍
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [course_id]
+            properties:
+              course_id:
+                type: integer
+              point_id:
+                type: integer
+              point_name:
+                type: string
+              course_name:
+                type: string
+    responses:
+      "200":
+        $ref: ../components/responses/Success.yaml
+      "404":
+        $ref: ../components/responses/NotFound.yaml
+
+/api/student/ai/knowledge-query:
+  post:
+    tags: [AI, Knowledge]
+    operationId: aiKnowledgeGraphQuery
+    summary: 图谱问答兼容路径
+    description: 行为与 `/api/student/ai/chat` 相同。
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            additionalProperties: true
+    responses:
+      "200":
+        $ref: ../components/responses/Success.yaml
+
+/api/student/ai/graph-rag/search:
+  post:
+    tags: [AI, Knowledge]
+    operationId: aiGraphRagSearch
+    summary: 在课程图谱中检索知识点
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [course_id]
+            properties:
+              course_id:
+                type: integer
+              query:
+                type: string
+              keyword:
+                type: string
+              limit:
+                type: integer
+                default: 8
+                maximum: 20
+    responses:
+      "200":
+        $ref: ../components/responses/Success.yaml
+
+/api/student/ai/graph-rag/ask:
+  post:
+    tags: [AI, Knowledge]
+    operationId: aiGraphRagAsk
+    summary: 基于课程图谱回答问题
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [course_id]
+            properties:
+              course_id:
+                type: integer
+              question:
+                type: string
+              message:
+                type: string
+              point_id:
+                type: integer
+    responses:
+      "200":
+        $ref: ../components/responses/Success.yaml
+
+/api/ai/kt/predict:
+  post:
+    tags: [AI]
+    operationId: ktPredict
+    summary: 单学生知识追踪预测
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [course_id]
+            properties:
+              course_id:
+                type: integer
+              answer_history:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: true
+              knowledge_points:
+                type: array
+                items:
+                  type: integer
+    responses:
+      "200":
+        $ref: ../components/responses/Success.yaml
+      "500":
+        $ref: ../components/responses/ServerError.yaml
+
+/api/ai/kt/model-info:
+  get:
+    tags: [AI]
+    operationId: ktModelInfo
+    summary: 获取当前 KT 模型信息
+    responses:
+      "200":
+        $ref: ../components/responses/Success.yaml
+
+/api/ai/kt/batch-predict:
+  post:
+    tags: [AI]
+    operationId: ktBatchPredict
+    summary: 教师批量知识追踪预测
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [user_histories]
+            properties:
+              user_histories:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: true
+    responses:
+      "200":
+        description: data.results 为批量预测结果。
+        content:
+          application/json:
+            schema:
+              $ref: ../components/schemas/ApiEnvelope.yaml
+      "403":
+        $ref: ../components/responses/Forbidden.yaml
+
+/api/ai/kt/recommendations:
+  post:
+    tags: [AI]
+    operationId: ktRecommendations
+    summary: 根据 KT 预测生成学习建议
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [course_id, predictions]
+            properties:
+              course_id:
+                type: integer
+              predictions:
+                type: object
+                additionalProperties: true
+              threshold:
+                type: number
+                format: float
+                default: 0.6
+    responses:
+      "200":
+        description: data.recommendations 为学习建议。
+        content:
+          application/json:
+            schema:
+              $ref: ../components/schemas/ApiEnvelope.yaml

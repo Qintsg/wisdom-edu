@@ -1,0 +1,10 @@
+summary: 统一错误响应示例
+value:
+  code: 400
+  msg: 缺少课程ID
+  data: null
+  error:
+    type: validation_error
+    details:
+      course_id:
+        - 该字段为必填项。

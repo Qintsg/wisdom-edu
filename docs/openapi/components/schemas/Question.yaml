@@ -1,0 +1,37 @@
+type: object
+properties:
+  question_id:
+    type: integer
+  id:
+    type: integer
+  content:
+    type: string
+  title:
+    type: string
+  type:
+    type: string
+    enum: [single_choice, multiple_choice, true_false, fill_blank, short_answer]
+  question_type:
+    type: string
+  options:
+    type: array
+    items:
+      type: object
+      additionalProperties: true
+  answer:
+    description: 标准答案，结构随题型变化。
+  correct_answer:
+    description: 展示用标准答案，结构随题型变化。
+  score:
+    type: number
+    format: float
+  difficulty:
+    type: string
+    nullable: true
+  analysis:
+    type: string
+    nullable: true
+  knowledge_points:
+    type: array
+    items:
+      $ref: ./KnowledgePoint.yaml

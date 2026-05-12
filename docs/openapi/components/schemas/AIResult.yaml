@@ -1,0 +1,18 @@
+type: object
+additionalProperties: true
+description: AI/RAG/KT 接口返回结构随调用类型变化，字段在各接口 data 描述中进一步列出。
+properties:
+  reply:
+    type: string
+  sources:
+    type: array
+    items:
+      type: object
+      additionalProperties: true
+  mode:
+    type: string
+  recommendations:
+    type: array
+    items:
+      type: object
+      additionalProperties: true

@@ -1,0 +1,10 @@
+extends:
+  - minimal
+
+apis:
+  wisdomedu@v1:
+    root: docs/openapi/openapi.yaml
+    output: docs/api.yaml
+
+rules:
+  no-path-trailing-slash: off

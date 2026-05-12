@@ -1,0 +1,14 @@
+/api/common/menu:
+  get:
+    tags: [Common]
+    operationId: getMenu
+    summary: 获取当前用户菜单树
+    responses:
+      "200":
+        description: data 为按角色过滤后的菜单树。
+        content:
+          application/json:
+            schema:
+              $ref: ../components/schemas/ApiEnvelope.yaml
+      "401":
+        $ref: ../components/responses/Unauthorized.yaml

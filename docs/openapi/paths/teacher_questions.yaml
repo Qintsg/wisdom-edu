@@ -1,0 +1,205 @@
+/api/teacher/questions:
+  get:
+    tags: [Knowledge]
+    operationId: listTeacherQuestions
+    summary: 教师查询题库
+    parameters:
+      - $ref: ../components/parameters/CourseId.yaml
+      - name: keyword
+        in: query
+        schema:
+          type: string
+      - name: question_type
+        in: query
+        schema:
+          type: string
+      - name: difficulty
+        in: query
+        schema:
+          type: string
+      - name: point_id
+        in: query
+        schema:
+          type: integer
+      - $ref: ../components/parameters/Page.yaml
+      - $ref: ../components/parameters/PageSize.yaml
+    responses:
+      "200":
+        description: data 包含 total、questions[]。
+        content:
+          application/json:
+            schema:
+              $ref: ../components/schemas/ApiEnvelope.yaml
+
+
+/api/teacher/questions/create:
+  post:
+    tags: [Knowledge]
+    operationId: createTeacherQuestion
+    summary: 教师创建题目
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/QuestionWriteRequest.yaml
+    responses:
+      "201":
+        $ref: ../components/responses/Created.yaml
+
+
+/api/teacher/questions/batch-delete:
+  post:
+    tags: [Knowledge]
+    operationId: batchDeleteTeacherQuestions
+    summary: 批量删除题目
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [question_ids]
+            properties:
+              question_ids:
+                type: array
+                items:
+                  type: integer
+    responses:
+      "200":
+        description: data.deleted_count 为删除数量。
+        content:
+          application/json:
+            schema:
+              $ref: ../components/schemas/ApiEnvelope.yaml
+
+
+/api/teacher/questions/import:
+  post:
+    tags: [Knowledge]
+    operationId: importTeacherQuestions
+    summary: 导入题库文件
+    requestBody:
+      required: true
+      content:
+        multipart/form-data:
+          schema:
+            type: object
+            required: [file, course_id]
+            properties:
+              file:
+                type: string
+                format: binary
+              course_id:
+                type: integer
+    responses:
+      "200":
+        description: data 包含 imported_count 与 skipped/errors。
+        content:
+          application/json:
+            schema:
+              $ref: ../components/schemas/ApiEnvelope.yaml
+
+
+/api/teacher/questions/export:
+  get:
+    tags: [Knowledge]
+    operationId: exportTeacherQuestions
+    summary: 导出题库 CSV
+    parameters:
+      - $ref: ../components/parameters/CourseId.yaml
+    responses:
+      "200":
+        $ref: ../components/responses/CsvDownload.yaml
+
+
+/api/teacher/questions/template:
+  get:
+    tags: [Knowledge]
+    operationId: downloadTeacherQuestionTemplate
+    summary: 下载题库导入模板
+    responses:
+      "200":
+        $ref: ../components/responses/CsvDownload.yaml
+
+
+/api/teacher/questions/{question_id}:
+  get:
+    tags: [Knowledge]
+    operationId: getTeacherQuestion
+    summary: 获取题目详情
+    parameters:
+      - $ref: ../components/parameters/QuestionIdPath.yaml
+    responses:
+      "200":
+        $ref: ../components/responses/Success.yaml
+  put:
+    tags: [Knowledge]
+    operationId: replaceTeacherQuestion
+    summary: 更新题目
+    parameters:
+      - $ref: ../components/parameters/QuestionIdPath.yaml
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/QuestionWriteRequest.yaml
+    responses:
+      "200":
+        $ref: ../components/responses/Success.yaml
+
+
+/api/teacher/questions/{question_id}/update:
+  put:
+    tags: [Knowledge]
+    operationId: updateTeacherQuestion
+    summary: 更新题目兼容路径
+    parameters:
+      - $ref: ../components/parameters/QuestionIdPath.yaml
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/QuestionWriteRequest.yaml
+    responses:
+      "200":
+        $ref: ../components/responses/Success.yaml
+
+
+/api/teacher/questions/{question_id}/delete:
+  delete:
+    tags: [Knowledge]
+    operationId: deleteTeacherQuestion
+    summary: 删除题目
+    parameters:
+      - $ref: ../components/parameters/QuestionIdPath.yaml
+    responses:
+      "200":
+        $ref: ../components/responses/Success.yaml
+
+
+/api/teacher/questions/{question_id}/link-knowledge:
+  post:
+    tags: [Knowledge]
+    operationId: linkTeacherQuestionKnowledge
+    summary: 关联题目到知识点
+    parameters:
+      - $ref: ../components/parameters/QuestionIdPath.yaml
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [knowledge_point_ids]
+            properties:
+              knowledge_point_ids:
+                type: array
+                items:
+                  type: integer
+    responses:
+      "200":
+        $ref: ../components/responses/Success.yaml
+

@@ -1,0 +1,10 @@
+description: 创建成功。
+content:
+  application/json:
+    schema:
+      allOf:
+        - $ref: ../schemas/ApiEnvelope.yaml
+        - type: object
+          properties:
+            code:
+              example: 201

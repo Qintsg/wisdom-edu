@@ -1,0 +1,5 @@
+description: JSON 文件下载。
+content:
+  application/json:
+    schema:
+      $ref: ../schemas/FileDownload.yaml

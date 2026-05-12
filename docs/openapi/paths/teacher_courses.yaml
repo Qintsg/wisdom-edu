@@ -1,0 +1,234 @@
+/api/teacher/courses/create:
+  post:
+    tags: [Courses]
+    operationId: createTeacherCourse
+    summary: 教师创建课程
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [name]
+            properties:
+              name:
+                type: string
+              course_name:
+                type: string
+              description:
+                type: string
+              category:
+                type: string
+              cover:
+                type: string
+              is_published:
+                type: boolean
+              target_class_id:
+                type: integer
+                description: 兼容创建后发布到班级的旧字段。
+    responses:
+      "201":
+        description: data 为新课程摘要。
+        content:
+          application/json:
+            schema:
+              $ref: ../components/schemas/ApiEnvelope.yaml
+      "400":
+        $ref: ../components/responses/BadRequest.yaml
+
+
+/api/teacher/courses/my:
+  get:
+    tags: [Courses]
+    operationId: listMyTeacherCourses
+    summary: 获取教师创建的课程
+    responses:
+      "200":
+        $ref: ../components/responses/Success.yaml
+
+
+/api/teacher/courses/{course_id}:
+  get:
+    tags: [Courses]
+    operationId: getTeacherCourse
+    summary: 获取教师课程详情
+    parameters:
+      - name: course_id
+        in: path
+        required: true
+        schema:
+          type: integer
+    responses:
+      "200":
+        $ref: ../components/responses/Success.yaml
+      "404":
+        $ref: ../components/responses/NotFound.yaml
+  put:
+    tags: [Courses]
+    operationId: updateTeacherCourse
+    summary: 更新教师课程
+    parameters:
+      - name: course_id
+        in: path
+        required: true
+        schema:
+          type: integer
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+              course_name:
+                type: string
+              description:
+                type: string
+              category:
+                type: string
+              is_published:
+                type: boolean
+    responses:
+      "200":
+        description: data 包含 course_id 与 updated_fields。
+        content:
+          application/json:
+            schema:
+              $ref: ../components/schemas/ApiEnvelope.yaml
+
+
+/api/teacher/courses/{course_id}/workspace:
+  get:
+    tags: [Courses]
+    operationId: getTeacherCourseWorkspace
+    summary: 获取教师课程工作台聚合数据
+    parameters:
+      - name: course_id
+        in: path
+        required: true
+        schema:
+          type: integer
+    responses:
+      "200":
+        $ref: ../components/responses/Success.yaml
+
+
+/api/teacher/courses/{course_id}/delete:
+  delete:
+    tags: [Courses]
+    operationId: deleteTeacherCourse
+    summary: 删除教师课程
+    parameters:
+      - name: course_id
+        in: path
+        required: true
+        schema:
+          type: integer
+    responses:
+      "200":
+        $ref: ../components/responses/Success.yaml
+      "400":
+        $ref: ../components/responses/BadRequest.yaml
+
+
+/api/teacher/courses/{course_id}/cover/upload:
+  post:
+    tags: [Courses]
+    operationId: uploadTeacherCourseCover
+    summary: 上传课程封面
+    parameters:
+      - name: course_id
+        in: path
+        required: true
+        schema:
+          type: integer
+    requestBody:
+      required: true
+      content:
+        multipart/form-data:
+          schema:
+            type: object
+            properties:
+              cover:
+                type: string
+                format: binary
+              file:
+                type: string
+                format: binary
+    responses:
+      "200":
+        description: data 包含 cover_url。
+        content:
+          application/json:
+            schema:
+              $ref: ../components/schemas/ApiEnvelope.yaml
+      "400":
+        $ref: ../components/responses/BadRequest.yaml
+
+
+/api/teacher/courses/{course_id}/statistics:
+  get:
+    tags: [Courses]
+    operationId: getTeacherCourseStatistics
+    summary: 获取教师课程统计
+    parameters:
+      - name: course_id
+        in: path
+        required: true
+        schema:
+          type: integer
+    responses:
+      "200":
+        $ref: ../components/responses/Success.yaml
+
+
+/api/teacher/courses/{course_id}/settings:
+  get:
+    tags: [Courses]
+    operationId: getTeacherCourseSettings
+    summary: 获取课程设置
+    parameters:
+      - name: course_id
+        in: path
+        required: true
+        schema:
+          type: integer
+    responses:
+      "200":
+        description: data 包含 merged config。
+        content:
+          application/json:
+            schema:
+              $ref: ../components/schemas/ApiEnvelope.yaml
+
+
+/api/teacher/courses/{course_id}/settings/update:
+  put:
+    tags: [Courses]
+    operationId: updateTeacherCourseSettings
+    summary: 更新课程设置
+    parameters:
+      - name: course_id
+        in: path
+        required: true
+        schema:
+          type: integer
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [config]
+            properties:
+              config:
+                type: object
+                additionalProperties: true
+    responses:
+      "200":
+        $ref: ../components/responses/Success.yaml
+      "400":
+        $ref: ../components/responses/BadRequest.yaml
+

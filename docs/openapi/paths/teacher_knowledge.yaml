@@ -1,0 +1,275 @@
+/api/teacher/knowledge-relations:
+  get:
+    tags: [Knowledge]
+    operationId: listTeacherKnowledgeRelations
+    summary: 教师查询知识关系
+    parameters:
+      - $ref: ../components/parameters/CourseId.yaml
+    responses:
+      "200":
+        $ref: ../components/responses/Success.yaml
+
+
+/api/teacher/knowledge-relations/create:
+  post:
+    tags: [Knowledge]
+    operationId: createTeacherKnowledgeRelation
+    summary: 创建知识点关系
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [course_id, from_point_id, to_point_id, relation_type]
+            properties:
+              course_id:
+                type: integer
+              from_point_id:
+                type: integer
+              to_point_id:
+                type: integer
+              relation_type:
+                type: string
+    responses:
+      "201":
+        $ref: ../components/responses/Created.yaml
+
+
+/api/teacher/knowledge-relations/{relation_id}:
+  delete:
+    tags: [Knowledge]
+    operationId: deleteTeacherKnowledgeRelation
+    summary: 删除知识点关系
+    parameters:
+      - name: relation_id
+        in: path
+        required: true
+        schema:
+          type: integer
+    responses:
+      "200":
+        $ref: ../components/responses/Success.yaml
+
+
+/api/teacher/knowledge-points:
+  get:
+    tags: [Knowledge]
+    operationId: listTeacherKnowledgePoints
+    summary: 教师查询知识点
+    parameters:
+      - $ref: ../components/parameters/CourseId.yaml
+    responses:
+      "200":
+        $ref: ../components/responses/Success.yaml
+
+
+/api/teacher/knowledge-points/create:
+  post:
+    tags: [Knowledge]
+    operationId: createTeacherKnowledgePoint
+    summary: 创建知识点
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [course_id, point_name]
+            properties:
+              course_id:
+                type: integer
+              point_name:
+                type: string
+              name:
+                type: string
+              description:
+                type: string
+              prerequisites:
+                oneOf:
+                  - type: array
+                    items:
+                      type: integer
+                  - type: string
+              chapter:
+                type: string
+    responses:
+      "201":
+        $ref: ../components/responses/Created.yaml
+
+
+/api/teacher/knowledge-points/{point_id}:
+  get:
+    tags: [Knowledge]
+    operationId: getTeacherKnowledgePoint
+    summary: 获取教师知识点详情
+    parameters:
+      - $ref: ../components/parameters/PointIdPath.yaml
+    responses:
+      "200":
+        $ref: ../components/responses/Success.yaml
+  put:
+    tags: [Knowledge]
+    operationId: updateTeacherKnowledgePoint
+    summary: 更新知识点
+    parameters:
+      - $ref: ../components/parameters/PointIdPath.yaml
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              point_name:
+                type: string
+              name:
+                type: string
+              description:
+                type: string
+              chapter:
+                type: string
+              order:
+                type: integer
+              is_published:
+                type: boolean
+    responses:
+      "200":
+        $ref: ../components/responses/Success.yaml
+
+
+/api/teacher/knowledge-points/{point_id}/delete:
+  delete:
+    tags: [Knowledge]
+    operationId: deleteTeacherKnowledgePoint
+    summary: 删除知识点
+    parameters:
+      - $ref: ../components/parameters/PointIdPath.yaml
+    responses:
+      "200":
+        $ref: ../components/responses/Success.yaml
+
+
+/api/teacher/knowledge-map/import:
+  post:
+    tags: [Knowledge]
+    operationId: importTeacherKnowledgeMap
+    summary: 导入知识图谱
+    requestBody:
+      required: true
+      content:
+        multipart/form-data:
+          schema:
+            type: object
+            required: [file, course_id]
+            properties:
+              file:
+                type: string
+                format: binary
+                description: 支持 .json、.xlsx、.xls，最大 10MB。
+              course_id:
+                type: integer
+    responses:
+      "200":
+        $ref: ../components/responses/Success.yaml
+
+
+/api/teacher/knowledge-map/save:
+  post:
+    tags: [Knowledge]
+    operationId: saveTeacherKnowledgeMap
+    summary: 保存课程知识图谱草稿
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [course_id, nodes, edges]
+            properties:
+              course_id:
+                type: integer
+              nodes:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: true
+              edges:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: true
+    responses:
+      "200":
+        $ref: ../components/responses/Success.yaml
+
+
+/api/teacher/knowledge-map/publish:
+  post:
+    tags: [Knowledge]
+    operationId: publishTeacherKnowledgeMap
+    summary: 发布课程知识图谱
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [course_id]
+            properties:
+              course_id:
+                type: integer
+              confirm:
+                type: boolean
+    responses:
+      "200":
+        $ref: ../components/responses/Success.yaml
+
+
+/api/teacher/knowledge-map/build-rag-index:
+  post:
+    tags: [Knowledge]
+    operationId: buildTeacherKnowledgeMapRagIndex
+    summary: 构建课程 GraphRAG 索引
+    parameters:
+      - $ref: ../components/parameters/CourseId.yaml
+    requestBody:
+      required: false
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              course_id:
+                type: integer
+    responses:
+      "200":
+        $ref: ../components/responses/Success.yaml
+      "400":
+        $ref: ../components/responses/BadRequest.yaml
+
+
+/api/teacher/knowledge-map/export:
+  get:
+    tags: [Knowledge]
+    operationId: exportTeacherKnowledgeMap
+    summary: 导出课程知识图谱 JSON
+    parameters:
+      - name: course_id
+        in: query
+        required: true
+        schema:
+          type: integer
+    responses:
+      "200":
+        $ref: ../components/responses/JsonDownload.yaml
+
+
+/api/teacher/knowledge-map/template:
+  get:
+    tags: [Knowledge]
+    operationId: downloadTeacherKnowledgeMapTemplate
+    summary: 下载知识图谱导入模板
+    responses:
+      "200":
+        $ref: ../components/responses/JsonDownload.yaml

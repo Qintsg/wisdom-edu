@@ -1,0 +1,125 @@
+openapi: 3.0.3
+info:
+  title: WisdomEdu API
+  version: 2026.05.12
+  description: 知识图谱驱动的个性化自适应学习系统后端接口契约。本文档依据后端路由、视图、support 与 serializer 逐项人工整理。
+servers:
+  - url: http://127.0.0.1:8000
+    description: 本地 Django 开发服务
+  - url: /
+    description: 同源生产或反向代理入口
+tags:
+  - name: Health
+    description: 服务可用性检查。
+  - name: Auth
+    description: 注册、登录、JWT、用户信息和密码管理。
+  - name: Profile
+    description: 学生学习者画像、习惯偏好和教师/管理员画像查看。
+  - name: Courses
+    description: 课程、班级、邀请码、公告和课程统计。
+  - name: Knowledge
+    description: 知识图谱、知识点、关系、资源和题库。
+  - name: Assessments
+    description: 初始知识测评、能力评测、习惯问卷和画像生成。
+  - name: Learning
+    description: 个性化学习路径、节点进度、阶段测试和仪表盘。
+  - name: Exams
+    description: 作业考试、提交、反馈报告、成绩和分析。
+  - name: AI
+    description: LLM、GraphRAG、学习建议、路径规划和 KT 兼容接口。
+  - name: Admin
+    description: 管理端用户、课程、班级、激活码和统计接口。
+  - name: Logs
+    description: 管理端操作日志查询、统计、导出和清理。
+  - name: Common
+    description: 前端公共元数据接口。
+security:
+  - jwtAuth: []
+paths:
+  $ref: ./paths/index.yaml
+components:
+  securitySchemes:
+    $ref: ./components/securitySchemes.yaml
+  schemas:
+    ApiEnvelope:
+      $ref: ./components/schemas/ApiEnvelope.yaml
+    ErrorResponse:
+      $ref: ./components/schemas/ErrorResponse.yaml
+    FileDownload:
+      $ref: ./components/schemas/FileDownload.yaml
+    IdListRequest:
+      $ref: ./components/schemas/IdListRequest.yaml
+    Pagination:
+      $ref: ./components/schemas/Pagination.yaml
+    User:
+      $ref: ./components/schemas/User.yaml
+    Course:
+      $ref: ./components/schemas/Course.yaml
+    Class:
+      $ref: ./components/schemas/Class.yaml
+    KnowledgePoint:
+      $ref: ./components/schemas/KnowledgePoint.yaml
+    KnowledgeRelation:
+      $ref: ./components/schemas/KnowledgeRelation.yaml
+    Resource:
+      $ref: ./components/schemas/Resource.yaml
+    ResourceWriteRequest:
+      $ref: ./components/schemas/ResourceWriteRequest.yaml
+    Question:
+      $ref: ./components/schemas/Question.yaml
+    QuestionWriteRequest:
+      $ref: ./components/schemas/QuestionWriteRequest.yaml
+    Assessment:
+      $ref: ./components/schemas/Assessment.yaml
+    LearningPath:
+      $ref: ./components/schemas/LearningPath.yaml
+    Exam:
+      $ref: ./components/schemas/Exam.yaml
+    FeedbackReport:
+      $ref: ./components/schemas/FeedbackReport.yaml
+    AIResult:
+      $ref: ./components/schemas/AIResult.yaml
+    OperationLog:
+      $ref: ./components/schemas/OperationLog.yaml
+  parameters:
+    Page:
+      $ref: ./components/parameters/Page.yaml
+    PageSize:
+      $ref: ./components/parameters/PageSize.yaml
+    CourseId:
+      $ref: ./components/parameters/CourseId.yaml
+    ClassIdPath:
+      $ref: ./components/parameters/ClassIdPath.yaml
+    UserIdPath:
+      $ref: ./components/parameters/UserIdPath.yaml
+    PointIdPath:
+      $ref: ./components/parameters/PointIdPath.yaml
+    ResourceIdPath:
+      $ref: ./components/parameters/ResourceIdPath.yaml
+    QuestionIdPath:
+      $ref: ./components/parameters/QuestionIdPath.yaml
+    NodeIdPath:
+      $ref: ./components/parameters/NodeIdPath.yaml
+    ExamIdPath:
+      $ref: ./components/parameters/ExamIdPath.yaml
+  responses:
+    Success:
+      $ref: ./components/responses/Success.yaml
+    Created:
+      $ref: ./components/responses/Created.yaml
+    BadRequest:
+      $ref: ./components/responses/BadRequest.yaml
+    Unauthorized:
+      $ref: ./components/responses/Unauthorized.yaml
+    Forbidden:
+      $ref: ./components/responses/Forbidden.yaml
+    NotFound:
+      $ref: ./components/responses/NotFound.yaml
+    Conflict:
+      $ref: ./components/responses/Conflict.yaml
+    ServerError:
+      $ref: ./components/responses/ServerError.yaml
+    CsvDownload:
+      $ref: ./components/responses/CsvDownload.yaml
+    JsonDownload:
+      $ref: ./components/responses/JsonDownload.yaml

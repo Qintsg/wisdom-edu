@@ -1,0 +1,5 @@
+description: 请求参数错误或业务校验失败。
+content:
+  application/json:
+    schema:
+      $ref: ../schemas/ErrorResponse.yaml

@@ -1,0 +1,10 @@
+type: object
+properties:
+  total:
+    type: integer
+  page:
+    type: integer
+  page_size:
+    type: integer
+  size:
+    type: integer

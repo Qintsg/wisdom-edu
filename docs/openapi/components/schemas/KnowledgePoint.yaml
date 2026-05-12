@@ -1,0 +1,28 @@
+type: object
+properties:
+  point_id:
+    type: integer
+  id:
+    type: integer
+  name:
+    type: string
+  point_name:
+    type: string
+  description:
+    type: string
+    nullable: true
+  chapter:
+    type: string
+    nullable: true
+  category:
+    type: string
+    nullable: true
+  order:
+    type: integer
+    nullable: true
+  is_published:
+    type: boolean
+  mastery_rate:
+    type: number
+    format: float
+    nullable: true

@@ -1,0 +1,5 @@
+description: CSV 文件下载。
+content:
+  text/csv:
+    schema:
+      $ref: ../schemas/FileDownload.yaml

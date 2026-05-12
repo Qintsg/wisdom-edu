@@ -1,0 +1,38 @@
+type: object
+properties:
+  exam_id:
+    type: integer
+  id:
+    type: integer
+  title:
+    type: string
+  description:
+    type: string
+    nullable: true
+  type:
+    type: string
+  exam_type:
+    type: string
+  status:
+    type: string
+    enum: [draft, published, archived]
+  total_score:
+    type: number
+    format: float
+  pass_score:
+    type: number
+    format: float
+  duration:
+    type: integer
+  start_time:
+    type: string
+    format: date-time
+    nullable: true
+  end_time:
+    type: string
+    format: date-time
+    nullable: true
+  questions:
+    type: array
+    items:
+      $ref: ./Question.yaml

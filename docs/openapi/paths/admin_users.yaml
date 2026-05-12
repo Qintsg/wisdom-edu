@@ -1,0 +1,426 @@
+/api/admin/activation-codes:
+  get:
+    tags: [Admin]
+    operationId: listActivationCodes
+    summary: 管理员分页查询激活码
+    parameters:
+      - name: code_type
+        in: query
+        schema:
+          type: string
+          enum: [teacher, admin]
+      - name: is_used
+        in: query
+        schema:
+          type: boolean
+      - $ref: ../components/parameters/Page.yaml
+      - $ref: ../components/parameters/PageSize.yaml
+    responses:
+      "200":
+        description: data 包含 total、page、page_size、codes[]。
+        content:
+          application/json:
+            schema:
+              $ref: ../components/schemas/ApiEnvelope.yaml
+      "403":
+        $ref: ../components/responses/Forbidden.yaml
+
+
+/api/admin/activation-codes/generate:
+  post:
+    tags: [Admin]
+    operationId: generateActivationCodes
+    summary: 批量生成激活码
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              code_type:
+                type: string
+                enum: [teacher, admin]
+                default: teacher
+              count:
+                type: integer
+                minimum: 1
+                maximum: 50
+              expires_days:
+                type: integer
+              remark:
+                type: string
+    responses:
+      "201":
+        description: data.codes[] 包含 id、code、code_type、expires_at。
+        content:
+          application/json:
+            schema:
+              $ref: ../components/schemas/ApiEnvelope.yaml
+      "400":
+        $ref: ../components/responses/BadRequest.yaml
+
+
+/api/admin/activation-codes/batch-delete:
+  post:
+    tags: [Admin]
+    operationId: batchDeleteActivationCodes
+    summary: 批量删除未使用激活码
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [code_ids]
+            properties:
+              code_ids:
+                type: array
+                items:
+                  type: integer
+    responses:
+      "200":
+        description: data.deleted_count 为删除数量。
+        content:
+          application/json:
+            schema:
+              $ref: ../components/schemas/ApiEnvelope.yaml
+      "400":
+        $ref: ../components/responses/BadRequest.yaml
+
+
+/api/admin/activation-codes/validate:
+  post:
+    tags: [Admin]
+    operationId: validateActivationCode
+    summary: 校验激活码可用性
+    security: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [code]
+            properties:
+              code:
+                type: string
+    responses:
+      "200":
+        description: data 包含 code、code_type、is_valid、is_used、expires_at。
+        content:
+          application/json:
+            schema:
+              $ref: ../components/schemas/ApiEnvelope.yaml
+
+
+/api/admin/activation-codes/export:
+  get:
+    tags: [Admin]
+    operationId: exportActivationCodes
+    summary: 导出激活码 CSV
+    parameters:
+      - name: code_type
+        in: query
+        schema:
+          type: string
+          enum: [teacher, admin]
+    responses:
+      "200":
+        $ref: ../components/responses/CsvDownload.yaml
+
+
+/api/admin/activation-codes/{code_id}:
+  get:
+    tags: [Admin]
+    operationId: getActivationCode
+    summary: 获取单个激活码详情
+    parameters:
+      - name: code_id
+        in: path
+        required: true
+        schema:
+          type: integer
+    responses:
+      "200":
+        $ref: ../components/responses/Success.yaml
+      "404":
+        $ref: ../components/responses/NotFound.yaml
+  delete:
+    tags: [Admin]
+    operationId: deleteActivationCode
+    summary: 删除未使用激活码
+    parameters:
+      - name: code_id
+        in: path
+        required: true
+        schema:
+          type: integer
+    responses:
+      "200":
+        $ref: ../components/responses/Success.yaml
+      "400":
+        $ref: ../components/responses/BadRequest.yaml
+      "404":
+        $ref: ../components/responses/NotFound.yaml
+
+
+/api/admin/users:
+  get:
+    tags: [Admin]
+    operationId: listAdminUsers
+    summary: 管理员分页查询用户
+    parameters:
+      - $ref: ../components/parameters/Page.yaml
+      - name: size
+        in: query
+        schema:
+          type: integer
+          default: 20
+      - name: role
+        in: query
+        schema:
+          type: string
+          enum: [student, teacher, admin]
+      - name: query
+        in: query
+        schema:
+          type: string
+      - name: status
+        in: query
+        schema:
+          type: string
+          enum: [active, inactive]
+    responses:
+      "200":
+        description: data 包含 total、page、size、users[]。
+        content:
+          application/json:
+            schema:
+              $ref: ../components/schemas/ApiEnvelope.yaml
+
+
+/api/admin/users/create:
+  post:
+    tags: [Admin]
+    operationId: createAdminUser
+    summary: 管理员创建用户
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [username, password, role]
+            properties:
+              username:
+                type: string
+              password:
+                type: string
+                format: password
+              role:
+                type: string
+                enum: [student, teacher, admin]
+              email:
+                type: string
+              phone:
+                type: string
+              real_name:
+                type: string
+    responses:
+      "201":
+        $ref: ../components/responses/Created.yaml
+      "400":
+        $ref: ../components/responses/BadRequest.yaml
+
+
+/api/admin/users/batch-delete:
+  post:
+    tags: [Admin]
+    operationId: batchDeleteAdminUsers
+    summary: 批量删除用户
+    description: 当前管理员账号会被排除，不允许删除自己。
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [user_ids]
+            properties:
+              user_ids:
+                type: array
+                items:
+                  type: integer
+    responses:
+      "200":
+        $ref: ../components/responses/Success.yaml
+      "400":
+        $ref: ../components/responses/BadRequest.yaml
+
+
+/api/admin/users/import:
+  post:
+    tags: [Admin]
+    operationId: importAdminUsers
+    summary: 导入用户 CSV 或 Excel
+    requestBody:
+      required: true
+      content:
+        multipart/form-data:
+          schema:
+            type: object
+            required: [file]
+            properties:
+              file:
+                type: string
+                format: binary
+                description: 支持 .csv、.xlsx、.xls。
+    responses:
+      "200":
+        description: data 包含 created_count 与 skipped[]。
+        content:
+          application/json:
+            schema:
+              $ref: ../components/schemas/ApiEnvelope.yaml
+
+
+/api/admin/users/export:
+  get:
+    tags: [Admin]
+    operationId: exportAdminUsers
+    summary: 导出用户 CSV
+    parameters:
+      - name: role
+        in: query
+        schema:
+          type: string
+          enum: [student, teacher, admin]
+    responses:
+      "200":
+        $ref: ../components/responses/CsvDownload.yaml
+
+
+/api/admin/users/template:
+  get:
+    tags: [Admin]
+    operationId: downloadAdminUserImportTemplate
+    summary: 下载用户导入模板 CSV
+    responses:
+      "200":
+        $ref: ../components/responses/CsvDownload.yaml
+
+
+/api/admin/users/{user_id}:
+  get:
+    tags: [Admin]
+    operationId: getAdminUserDetail
+    summary: 获取用户详情
+    parameters:
+      - $ref: ../components/parameters/UserIdPath.yaml
+    responses:
+      "200":
+        $ref: ../components/responses/Success.yaml
+      "404":
+        $ref: ../components/responses/NotFound.yaml
+
+
+/api/admin/users/{user_id}/update:
+  put:
+    tags: [Admin]
+    operationId: updateAdminUser
+    summary: 管理员更新用户资料
+    description: 不允许管理员修改自己的角色。
+    parameters:
+      - $ref: ../components/parameters/UserIdPath.yaml
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              email:
+                type: string
+              phone:
+                type: string
+              real_name:
+                type: string
+              role:
+                type: string
+                enum: [student, teacher, admin]
+    responses:
+      "200":
+        description: data 包含 user_id 与 updated_fields。
+        content:
+          application/json:
+            schema:
+              $ref: ../components/schemas/ApiEnvelope.yaml
+      "400":
+        $ref: ../components/responses/BadRequest.yaml
+
+
+/api/admin/users/{user_id}/delete:
+  delete:
+    tags: [Admin]
+    operationId: deleteAdminUser
+    summary: 删除用户
+    description: 不允许删除当前管理员自己。
+    parameters:
+      - $ref: ../components/parameters/UserIdPath.yaml
+    responses:
+      "200":
+        $ref: ../components/responses/Success.yaml
+      "400":
+        $ref: ../components/responses/BadRequest.yaml
+
+
+/api/admin/users/{user_id}/reset-password:
+  post:
+    tags: [Admin]
+    operationId: resetAdminUserPassword
+    summary: 重置用户密码
+    parameters:
+      - $ref: ../components/parameters/UserIdPath.yaml
+    requestBody:
+      required: false
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              new_password:
+                type: string
+                description: 省略时后端生成随机密码并返回。
+    responses:
+      "200":
+        description: data 可能包含生成的 new_password。
+        content:
+          application/json:
+            schema:
+              $ref: ../components/schemas/ApiEnvelope.yaml
+
+
+/api/admin/users/{user_id}/disable:
+  post:
+    tags: [Admin]
+    operationId: disableAdminUser
+    summary: 禁用用户
+    parameters:
+      - $ref: ../components/parameters/UserIdPath.yaml
+    responses:
+      "200":
+        $ref: ../components/responses/Success.yaml
+
+
+/api/admin/users/{user_id}/enable:
+  post:
+    tags: [Admin]
+    operationId: enableAdminUser
+    summary: 启用用户
+    parameters:
+      - $ref: ../components/parameters/UserIdPath.yaml
+    responses:
+      "200":
+        $ref: ../components/responses/Success.yaml
+

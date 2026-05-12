@@ -1,0 +1,313 @@
+/api/teacher/classes/create:
+  post:
+    tags: [Courses]
+    operationId: createTeacherClass
+    summary: 教师创建班级
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+              class_name:
+                type: string
+              description:
+                type: string
+              semester:
+                type: string
+              course_id:
+                type: integer
+    responses:
+      "201":
+        $ref: ../components/responses/Created.yaml
+      "400":
+        $ref: ../components/responses/BadRequest.yaml
+
+
+/api/teacher/classes/my:
+  get:
+    tags: [Courses]
+    operationId: listMyTeacherClasses
+    summary: 获取教师班级列表
+    parameters:
+      - $ref: ../components/parameters/CourseId.yaml
+    responses:
+      "200":
+        $ref: ../components/responses/Success.yaml
+
+
+/api/teacher/classes/{class_id}:
+  get:
+    tags: [Courses]
+    operationId: getTeacherClass
+    summary: 获取教师班级详情
+    parameters:
+      - $ref: ../components/parameters/ClassIdPath.yaml
+    responses:
+      "200":
+        $ref: ../components/responses/Success.yaml
+  put:
+    tags: [Courses]
+    operationId: updateTeacherClass
+    summary: 更新教师班级
+    parameters:
+      - $ref: ../components/parameters/ClassIdPath.yaml
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+              description:
+                type: string
+              semester:
+                type: string
+              is_active:
+                type: boolean
+    responses:
+      "200":
+        $ref: ../components/responses/Success.yaml
+
+
+/api/teacher/classes/{class_id}/delete:
+  delete:
+    tags: [Courses]
+    operationId: deleteTeacherClass
+    summary: 删除教师班级
+    parameters:
+      - $ref: ../components/parameters/ClassIdPath.yaml
+    responses:
+      "200":
+        $ref: ../components/responses/Success.yaml
+
+
+/api/teacher/classes/{class_id}/progress:
+  get:
+    tags: [Courses]
+    operationId: getTeacherClassProgress
+    summary: 获取班级学习进度
+    parameters:
+      - $ref: ../components/parameters/ClassIdPath.yaml
+    responses:
+      "200":
+        $ref: ../components/responses/Success.yaml
+
+
+/api/teacher/classes/{class_id}/courses:
+  get:
+    tags: [Courses]
+    operationId: listTeacherClassCourses
+    summary: 获取班级已发布课程
+    parameters:
+      - $ref: ../components/parameters/ClassIdPath.yaml
+    responses:
+      "200":
+        $ref: ../components/responses/Success.yaml
+
+
+/api/teacher/classes/{class_id}/publish-course:
+  post:
+    tags: [Courses]
+    operationId: publishCourseToClass
+    summary: 向班级发布课程
+    parameters:
+      - $ref: ../components/parameters/ClassIdPath.yaml
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [course_id]
+            properties:
+              course_id:
+                type: integer
+    responses:
+      "200":
+        $ref: ../components/responses/Success.yaml
+
+
+/api/teacher/classes/{class_id}/courses/{course_id}:
+  delete:
+    tags: [Courses]
+    operationId: unpublishCourseFromClass
+    summary: 从班级取消发布课程
+    parameters:
+      - $ref: ../components/parameters/ClassIdPath.yaml
+      - name: course_id
+        in: path
+        required: true
+        schema:
+          type: integer
+    responses:
+      "200":
+        $ref: ../components/responses/Success.yaml
+
+
+/api/teacher/classes/{class_id}/invitations:
+  get:
+    tags: [Courses]
+    operationId: listClassInvitations
+    summary: 获取班级邀请码列表
+    parameters:
+      - $ref: ../components/parameters/ClassIdPath.yaml
+    responses:
+      "200":
+        $ref: ../components/responses/Success.yaml
+
+
+/api/teacher/invitations/generate:
+  post:
+    tags: [Courses]
+    operationId: generateClassInvitation
+    summary: 生成班级邀请码
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [class_id]
+            properties:
+              class_id:
+                type: integer
+              max_uses:
+                type: integer
+              expires_days:
+                type: integer
+    responses:
+      "201":
+        $ref: ../components/responses/Created.yaml
+
+
+/api/teacher/invitations/{invitation_id}:
+  delete:
+    tags: [Courses]
+    operationId: deleteClassInvitation
+    summary: 删除班级邀请码
+    parameters:
+      - name: invitation_id
+        in: path
+        required: true
+        schema:
+          type: integer
+    responses:
+      "200":
+        $ref: ../components/responses/Success.yaml
+
+
+/api/teacher/classes/{class_id}/students:
+  get:
+    tags: [Courses]
+    operationId: listTeacherClassStudents
+    summary: 获取班级学生列表
+    parameters:
+      - $ref: ../components/parameters/ClassIdPath.yaml
+    responses:
+      "200":
+        $ref: ../components/responses/Success.yaml
+
+
+/api/teacher/classes/{class_id}/students/{user_id}:
+  delete:
+    tags: [Courses]
+    operationId: removeStudentFromTeacherClass
+    summary: 从班级移除学生
+    parameters:
+      - $ref: ../components/parameters/ClassIdPath.yaml
+      - $ref: ../components/parameters/UserIdPath.yaml
+    responses:
+      "200":
+        $ref: ../components/responses/Success.yaml
+
+
+/api/teacher/classes/{class_id}/student-profiles:
+  get:
+    tags: [Courses, Profile]
+    operationId: listTeacherClassStudentProfiles
+    summary: 获取班级学生画像摘要
+    parameters:
+      - $ref: ../components/parameters/ClassIdPath.yaml
+    responses:
+      "200":
+        $ref: ../components/responses/Success.yaml
+
+
+/api/teacher/classes/{class_id}/announcements:
+  get:
+    tags: [Courses]
+    operationId: listClassAnnouncements
+    summary: 获取班级公告
+    parameters:
+      - $ref: ../components/parameters/ClassIdPath.yaml
+    responses:
+      "200":
+        $ref: ../components/responses/Success.yaml
+  post:
+    tags: [Courses]
+    operationId: createClassAnnouncement
+    summary: 发布班级公告
+    parameters:
+      - $ref: ../components/parameters/ClassIdPath.yaml
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [title, content]
+            properties:
+              title:
+                type: string
+              content:
+                type: string
+    responses:
+      "201":
+        $ref: ../components/responses/Created.yaml
+
+
+/api/teacher/announcements/{announcement_id}:
+  put:
+    tags: [Courses]
+    operationId: updateClassAnnouncement
+    summary: 更新班级公告
+    parameters:
+      - name: announcement_id
+        in: path
+        required: true
+        schema:
+          type: integer
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              title:
+                type: string
+              content:
+                type: string
+    responses:
+      "200":
+        $ref: ../components/responses/Success.yaml
+  delete:
+    tags: [Courses]
+    operationId: deleteClassAnnouncement
+    summary: 删除班级公告
+    parameters:
+      - name: announcement_id
+        in: path
+        required: true
+        schema:
+          type: integer
+    responses:
+      "200":
+        $ref: ../components/responses/Success.yaml
+

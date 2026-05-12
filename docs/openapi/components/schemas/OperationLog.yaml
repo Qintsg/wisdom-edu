@@ -1,0 +1,29 @@
+type: object
+properties:
+  id:
+    type: integer
+  user_id:
+    type: integer
+    nullable: true
+  username:
+    type: string
+    nullable: true
+  module:
+    type: string
+  action:
+    type: string
+  method:
+    type: string
+  path:
+    type: string
+  status_code:
+    type: integer
+  ip_address:
+    type: string
+    nullable: true
+  description:
+    type: string
+    nullable: true
+  created_at:
+    type: string
+    format: date-time

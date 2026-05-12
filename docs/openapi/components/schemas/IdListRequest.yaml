@@ -1,0 +1,9 @@
+type: object
+required:
+  - ids
+properties:
+  ids:
+    type: array
+    items:
+      type: integer
+    minItems: 1

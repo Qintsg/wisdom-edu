@@ -1,0 +1,39 @@
+type: object
+required:
+  - course_id
+  - content
+  - question_type
+properties:
+  course_id:
+    type: integer
+  content:
+    type: string
+  question_type:
+    type: string
+    enum: [single_choice, multiple_choice, true_false, fill_blank, short_answer]
+  type:
+    type: string
+  options:
+    type: array
+    items:
+      type: object
+      additionalProperties: true
+  answer:
+    description: 标准答案，结构随题型变化。
+  correct_answer:
+    description: 兼容字段，结构随题型变化。
+  score:
+    type: number
+    format: float
+  difficulty:
+    type: string
+  analysis:
+    type: string
+  knowledge_point_ids:
+    type: array
+    items:
+      type: integer
+  for_initial_assessment:
+    type: boolean
+  is_visible:
+    type: boolean

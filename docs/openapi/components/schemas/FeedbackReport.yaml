@@ -1,0 +1,25 @@
+type: object
+properties:
+  status:
+    type: string
+  overview:
+    type: object
+    additionalProperties: true
+  analysis:
+    description: 分析内容，可能是字符串、对象或数组。
+  recommendations:
+    type: array
+    items:
+      type: string
+  next_tasks:
+    type: array
+    items:
+      type: string
+  conclusion:
+    type: string
+    nullable: true
+  question_details:
+    type: array
+    items:
+      type: object
+      additionalProperties: true

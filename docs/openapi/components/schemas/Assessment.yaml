@@ -1,0 +1,18 @@
+type: object
+properties:
+  assessment_id:
+    type: integer
+  survey_id:
+    type: integer
+  title:
+    type: string
+  questions:
+    type: array
+    items:
+      $ref: ./Question.yaml
+  completed:
+    type: boolean
+  score:
+    type: number
+    format: float
+    nullable: true

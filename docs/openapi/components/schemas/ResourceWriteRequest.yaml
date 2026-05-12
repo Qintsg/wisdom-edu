@@ -1,0 +1,32 @@
+type: object
+required:
+  - course_id
+  - title
+properties:
+  course_id:
+    type: integer
+  title:
+    type: string
+  resource_type:
+    type: string
+  type:
+    type: string
+  description:
+    type: string
+  url:
+    type: string
+  file:
+    type: string
+    format: binary
+  knowledge_point_ids:
+    type: array
+    items:
+      type: integer
+  knowledge_points:
+    type: array
+    items:
+      type: integer
+  chapter_number:
+    type: string
+  duration:
+    type: integer

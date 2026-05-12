@@ -1,0 +1,235 @@
+/api/student/profile:
+  get:
+    tags: [Profile]
+    operationId: getStudentProfile
+    summary: 获取当前学生画像
+    parameters:
+      - $ref: ../components/parameters/CourseId.yaml
+    responses:
+      "200":
+        description: data 包含 knowledge_mastery、ability_scores、habit_preferences、learner_tags、profile_summary、weakness、suggestion、strength、last_update。
+        content:
+          application/json:
+            schema:
+              $ref: ../components/schemas/ApiEnvelope.yaml
+
+
+/api/student/profile/habit:
+  put:
+    tags: [Profile]
+    operationId: updateHabitPreference
+    summary: 更新学习习惯偏好
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              preferred_resource:
+                type: string
+              preferred_study_time:
+                type: string
+              study_pace:
+                type: string
+              study_duration:
+                type: string
+              review_frequency:
+                type: string
+              learning_style:
+                type: string
+              accept_challenge:
+                type: boolean
+              daily_goal_minutes:
+                type: integer
+              weekly_goal_days:
+                type: integer
+              preferences:
+                type: object
+                additionalProperties: true
+    responses:
+      "200":
+        $ref: ../components/responses/Success.yaml
+      "400":
+        $ref: ../components/responses/BadRequest.yaml
+
+
+/api/student/profile/update:
+  post:
+    tags: [Profile]
+    operationId: refreshStudentProfile
+    summary: 重新生成当前学生课程画像
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [course_id]
+            properties:
+              course_id:
+                type: integer
+    responses:
+      "200":
+        description: data 包含 course_id、summary、weakness、suggestion、strength、kt_enhanced。
+        content:
+          application/json:
+            schema:
+              $ref: ../components/schemas/ApiEnvelope.yaml
+      "400":
+        $ref: ../components/responses/BadRequest.yaml
+
+
+/api/student/profile/history:
+  get:
+    tags: [Profile]
+    operationId: getStudentProfileHistory
+    summary: 获取学生画像历史
+    parameters:
+      - name: course_id
+        in: query
+        required: true
+        schema:
+          type: integer
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          default: 10
+          minimum: 1
+          maximum: 100
+    responses:
+      "200":
+        description: data 包含 course_id 与 history[]。
+        content:
+          application/json:
+            schema:
+              $ref: ../components/schemas/ApiEnvelope.yaml
+      "400":
+        $ref: ../components/responses/BadRequest.yaml
+
+
+/api/student/profile/compare:
+  get:
+    tags: [Profile]
+    operationId: compareStudentProfile
+    summary: 按日期对比学生画像快照
+    parameters:
+      - name: date1
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date
+      - name: date2
+        in: query
+        required: true
+        schema:
+          type: string
+          format: date
+    responses:
+      "200":
+        $ref: ../components/responses/Success.yaml
+      "400":
+        $ref: ../components/responses/BadRequest.yaml
+
+
+/api/student/profile/export:
+  post:
+    tags: [Profile]
+    operationId: exportStudentProfile
+    summary: 导出学生画像 JSON 文件
+    responses:
+      "200":
+        $ref: ../components/responses/JsonDownload.yaml
+
+
+/api/admin/student-profiles:
+  get:
+    tags: [Admin, Profile]
+    operationId: listAdminStudentProfiles
+    summary: 管理员分页查看学生画像摘要
+    parameters:
+      - $ref: ../components/parameters/CourseId.yaml
+      - name: user_id
+        in: query
+        schema:
+          type: integer
+      - $ref: ../components/parameters/Page.yaml
+      - $ref: ../components/parameters/PageSize.yaml
+    responses:
+      "200":
+        description: data 包含 total、page、page_size、profiles[]。
+        content:
+          application/json:
+            schema:
+              $ref: ../components/schemas/ApiEnvelope.yaml
+
+
+/api/admin/student-profiles/{student_id}:
+  get:
+    tags: [Admin, Profile]
+    operationId: getAdminStudentProfileDetail
+    summary: 管理员查看学生画像详情
+    parameters:
+      - name: student_id
+        in: path
+        required: true
+        schema:
+          type: integer
+      - $ref: ../components/parameters/CourseId.yaml
+    responses:
+      "200":
+        description: data 包含画像、习惯、能力、答题统计等。
+        content:
+          application/json:
+            schema:
+              $ref: ../components/schemas/ApiEnvelope.yaml
+
+
+/api/teacher/students/{user_id}/profile:
+  get:
+    tags: [Profile]
+    operationId: getTeacherStudentProfile
+    summary: 教师查看学生画像详情
+    parameters:
+      - $ref: ../components/parameters/UserIdPath.yaml
+      - $ref: ../components/parameters/CourseId.yaml
+    responses:
+      "200":
+        description: data 包含 user_id、course_id、knowledge_mastery、answer_stats、profile_history 等。
+        content:
+          application/json:
+            schema:
+              $ref: ../components/schemas/ApiEnvelope.yaml
+      "403":
+        $ref: ../components/responses/Forbidden.yaml
+
+
+/api/teacher/students/{user_id}/refresh-profile:
+  post:
+    tags: [Profile]
+    operationId: refreshTeacherStudentProfile
+    summary: 教师刷新指定学生课程画像
+    parameters:
+      - $ref: ../components/parameters/UserIdPath.yaml
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [course_id]
+            properties:
+              course_id:
+                type: integer
+    responses:
+      "200":
+        description: data 包含 summary、weakness、suggestion。
+        content:
+          application/json:
+            schema:
+              $ref: ../components/schemas/ApiEnvelope.yaml
+      "400":
+        $ref: ../components/responses/BadRequest.yaml

@@ -1,0 +1,14 @@
+summary: 用户信息示例
+value:
+  user_id: 1
+  username: student1
+  role: student
+  email: student1@example.com
+  real_name: 学生一
+  student_id: "20260001"
+  classes:
+    - class_id: 1
+      class_name: 大数据技术与应用 25A
+  courses:
+    - course_id: 1
+      course_name: 大数据技术与应用

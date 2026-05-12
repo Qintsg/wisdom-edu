@@ -1,0 +1,320 @@
+/api/teacher/exams:
+  get:
+    tags: [Exams]
+    operationId: listTeacherExams
+    summary: 教师获取课程作业列表
+    parameters:
+      - name: course_id
+        in: query
+        required: true
+        schema:
+          type: integer
+      - $ref: ../components/parameters/Page.yaml
+      - $ref: ../components/parameters/PageSize.yaml
+    responses:
+      "200":
+        description: data 包含 total、exams[]。
+        content:
+          application/json:
+            schema:
+              $ref: ../components/schemas/ApiEnvelope.yaml
+
+
+/api/teacher/exams/create:
+  post:
+    tags: [Exams]
+    operationId: createTeacherExam
+    summary: 教师创建作业
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [course_id, title, questions]
+            properties:
+              course_id:
+                type: integer
+              title:
+                type: string
+              description:
+                type: string
+              exam_type:
+                type: string
+                default: chapter
+              duration:
+                type: integer
+              start_time:
+                type: string
+                format: date-time
+              end_time:
+                type: string
+                format: date-time
+              target_class:
+                type: integer
+              questions:
+                type: array
+                items:
+                  type: integer
+    responses:
+      "200":
+        description: data 包含 exam_id、title。
+        content:
+          application/json:
+            schema:
+              $ref: ../components/schemas/ApiEnvelope.yaml
+      "400":
+        $ref: ../components/responses/BadRequest.yaml
+
+
+/api/teacher/exams/{exam_id}:
+  get:
+    tags: [Exams]
+    operationId: getTeacherExamDetail
+    summary: 教师获取作业详情
+    parameters:
+      - $ref: ../components/parameters/ExamIdPath.yaml
+    responses:
+      "200":
+        description: data 包含作业信息、题目标准答案和 statistics。
+        content:
+          application/json:
+            schema:
+              $ref: ../components/schemas/ApiEnvelope.yaml
+
+
+/api/teacher/exams/{exam_id}/update:
+  put:
+    tags: [Exams]
+    operationId: updateTeacherExam
+    summary: 教师更新作业
+    description: 已发布作业仅允许更新 end_time；未发布作业可更新题目、目标班级和基础信息。
+    parameters:
+      - $ref: ../components/parameters/ExamIdPath.yaml
+    requestBody:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              title:
+                type: string
+              description:
+                type: string
+              exam_type:
+                type: string
+              duration:
+                type: integer
+              total_score:
+                type: number
+              pass_score:
+                type: number
+              start_time:
+                type: string
+                format: date-time
+              end_time:
+                type: string
+                format: date-time
+              target_class:
+                type: integer
+                nullable: true
+              questions:
+                type: array
+                items:
+                  type: integer
+    responses:
+      "200":
+        description: data 包含 exam_id、updated_fields。
+        content:
+          application/json:
+            schema:
+              $ref: ../components/schemas/ApiEnvelope.yaml
+
+
+/api/teacher/exams/{exam_id}/delete:
+  delete:
+    tags: [Exams]
+    operationId: deleteTeacherExam
+    summary: 教师删除作业
+    description: 已发布或已有提交记录的作业不能删除。
+    parameters:
+      - $ref: ../components/parameters/ExamIdPath.yaml
+    responses:
+      "200":
+        $ref: ../components/responses/Success.yaml
+      "400":
+        $ref: ../components/responses/BadRequest.yaml
+
+
+/api/teacher/exams/{exam_id}/publish:
+  post:
+    tags: [Exams]
+    operationId: publishTeacherExam
+    summary: 发布作业
+    parameters:
+      - $ref: ../components/parameters/ExamIdPath.yaml
+    requestBody:
+      required: false
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              class_id:
+                type: integer
+              start_time:
+                type: string
+                format: date-time
+              end_time:
+                type: string
+                format: date-time
+    responses:
+      "200":
+        description: data 包含 exam_id、status。
+        content:
+          application/json:
+            schema:
+              $ref: ../components/schemas/ApiEnvelope.yaml
+
+
+/api/teacher/exams/{exam_id}/unpublish:
+  post:
+    tags: [Exams]
+    operationId: unpublishTeacherExam
+    summary: 取消发布作业
+    description: 已有提交记录时不能取消发布。
+    parameters:
+      - $ref: ../components/parameters/ExamIdPath.yaml
+    responses:
+      "200":
+        $ref: ../components/responses/Success.yaml
+      "400":
+        $ref: ../components/responses/BadRequest.yaml
+
+
+/api/teacher/exams/{exam_id}/results:
+  get:
+    tags: [Exams]
+    operationId: listTeacherExamResults
+    summary: 获取作业成绩列表
+    parameters:
+      - $ref: ../components/parameters/ExamIdPath.yaml
+      - $ref: ../components/parameters/Page.yaml
+      - name: size
+        in: query
+        schema:
+          type: integer
+    responses:
+      "200":
+        description: data 包含 exam_id、exam_title、total、page、size、results[]。
+        content:
+          application/json:
+            schema:
+              $ref: ../components/schemas/ApiEnvelope.yaml
+
+
+/api/teacher/exams/{exam_id}/export:
+  get:
+    tags: [Exams]
+    operationId: exportTeacherExamResults
+    summary: 导出作业成绩 CSV
+    parameters:
+      - $ref: ../components/parameters/ExamIdPath.yaml
+    responses:
+      "200":
+        $ref: ../components/responses/CsvDownload.yaml
+
+
+/api/teacher/exams/{exam_id}/questions/add:
+  post:
+    tags: [Exams]
+    operationId: addTeacherExamQuestions
+    summary: 向作业追加题目
+    parameters:
+      - $ref: ../components/parameters/ExamIdPath.yaml
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [question_ids]
+            properties:
+              question_ids:
+                type: array
+                items:
+                  type: integer
+    responses:
+      "200":
+        description: data.added_count 为新增题目数量。
+        content:
+          application/json:
+            schema:
+              $ref: ../components/schemas/ApiEnvelope.yaml
+
+
+/api/teacher/exams/{exam_id}/questions/remove:
+  post:
+    tags: [Exams]
+    operationId: removeTeacherExamQuestions
+    summary: 从作业移除题目
+    parameters:
+      - $ref: ../components/parameters/ExamIdPath.yaml
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [question_ids]
+            properties:
+              question_ids:
+                type: array
+                items:
+                  type: integer
+    responses:
+      "200":
+        description: data.removed_count 为移除题目数量。
+        content:
+          application/json:
+            schema:
+              $ref: ../components/schemas/ApiEnvelope.yaml
+
+
+/api/teacher/exams/{exam_id}/students/{student_id}:
+  get:
+    tags: [Exams]
+    operationId: getTeacherExamStudentDetail
+    summary: 获取某学生作业详情
+    parameters:
+      - $ref: ../components/parameters/ExamIdPath.yaml
+      - name: student_id
+        in: path
+        required: true
+        schema:
+          type: integer
+    responses:
+      "200":
+        description: data 包含 student、score、questions[]。
+        content:
+          application/json:
+            schema:
+              $ref: ../components/schemas/ApiEnvelope.yaml
+      "404":
+        $ref: ../components/responses/NotFound.yaml
+
+
+/api/teacher/exams/{exam_id}/analysis:
+  get:
+    tags: [Exams]
+    operationId: getTeacherExamAnalysis
+    summary: 获取作业统计分析
+    parameters:
+      - $ref: ../components/parameters/ExamIdPath.yaml
+    responses:
+      "200":
+        description: data 包含 statistics、score_distribution、question_analysis。
+        content:
+          application/json:
+            schema:
+              $ref: ../components/schemas/ApiEnvelope.yaml

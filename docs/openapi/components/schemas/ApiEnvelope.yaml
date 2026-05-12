@@ -1,0 +1,16 @@
+type: object
+required:
+  - code
+  - msg
+  - data
+properties:
+  code:
+    type: integer
+    description: 业务状态码，成功通常为 200，创建成功为 201。
+    example: 200
+  msg:
+    type: string
+    description: 用户可读消息。
+    example: 操作成功
+  data:
+    description: 业务数据。不同接口返回结构不同，详见各接口说明。

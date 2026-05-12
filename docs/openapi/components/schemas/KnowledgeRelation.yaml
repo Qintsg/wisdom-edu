@@ -1,0 +1,17 @@
+type: object
+properties:
+  relation_id:
+    type: integer
+  id:
+    type: integer
+  from_point_id:
+    type: integer
+  from_point_name:
+    type: string
+  to_point_id:
+    type: integer
+  to_point_name:
+    type: string
+  relation_type:
+    type: string
+    enum: [prerequisite, related, contains, advanced, same_level]

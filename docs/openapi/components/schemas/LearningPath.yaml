@@ -1,0 +1,31 @@
+type: object
+properties:
+  path_id:
+    type: integer
+    nullable: true
+  dynamic:
+    type: boolean
+  generating:
+    type: boolean
+  need_assessment:
+    type: boolean
+  nodes:
+    type: array
+    items:
+      type: object
+      properties:
+        node_id:
+          type: integer
+        title:
+          type: string
+        node_type:
+          type: string
+        status:
+          type: string
+          enum: [locked, active, completed, skipped, failed]
+        knowledge_point_id:
+          type: integer
+          nullable: true
+        suggestion:
+          type: string
+          nullable: true

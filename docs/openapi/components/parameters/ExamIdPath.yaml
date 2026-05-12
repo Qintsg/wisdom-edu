@@ -1,0 +1,6 @@
+name: exam_id
+in: path
+required: true
+schema:
+  type: integer
+description: 作业/考试 ID。

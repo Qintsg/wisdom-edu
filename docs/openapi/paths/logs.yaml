@@ -1,0 +1,160 @@
+/api/admin/logs:
+  get:
+    tags: [Logs, Admin]
+    operationId: listOperationLogs
+    summary: 管理员查询操作日志
+    parameters:
+      - $ref: ../components/parameters/Page.yaml
+      - $ref: ../components/parameters/PageSize.yaml
+      - name: module
+        in: query
+        schema:
+          type: string
+      - name: action
+        in: query
+        schema:
+          type: string
+      - name: user_id
+        in: query
+        schema:
+          type: integer
+      - name: username
+        in: query
+        schema:
+          type: string
+      - name: start_time
+        in: query
+        schema:
+          type: string
+          format: date-time
+      - name: end_time
+        in: query
+        schema:
+          type: string
+          format: date-time
+      - name: status_code
+        in: query
+        schema:
+          type: integer
+      - name: keyword
+        in: query
+        schema:
+          type: string
+    responses:
+      "200":
+        description: data 包含 total、page、page_size、logs[]。
+        content:
+          application/json:
+            schema:
+              $ref: ../components/schemas/ApiEnvelope.yaml
+      "403":
+        $ref: ../components/responses/Forbidden.yaml
+
+/api/admin/logs/{log_id}:
+  get:
+    tags: [Logs, Admin]
+    operationId: getOperationLogDetail
+    summary: 获取操作日志详情
+    parameters:
+      - name: log_id
+        in: path
+        required: true
+        schema:
+          type: integer
+    responses:
+      "200":
+        $ref: ../components/responses/Success.yaml
+      "404":
+        $ref: ../components/responses/NotFound.yaml
+
+/api/admin/logs/statistics:
+  get:
+    tags: [Logs, Admin]
+    operationId: getLogStatistics
+    summary: 获取日志统计
+    parameters:
+      - name: days
+        in: query
+        schema:
+          type: integer
+    responses:
+      "200":
+        $ref: ../components/responses/Success.yaml
+
+/api/admin/logs/options:
+  get:
+    tags: [Logs, Admin]
+    operationId: getLogFilterOptions
+    summary: 获取日志筛选选项
+    responses:
+      "200":
+        $ref: ../components/responses/Success.yaml
+
+/api/admin/logs/modules:
+  get:
+    tags: [Logs, Admin]
+    operationId: getLogModules
+    summary: 获取日志模块列表
+    responses:
+      "200":
+        $ref: ../components/responses/Success.yaml
+
+/api/admin/logs/actions:
+  get:
+    tags: [Logs, Admin]
+    operationId: getLogActions
+    summary: 获取日志操作类型列表
+    responses:
+      "200":
+        $ref: ../components/responses/Success.yaml
+
+/api/admin/logs/export:
+  get:
+    tags: [Logs, Admin]
+    operationId: exportOperationLogs
+    summary: 导出操作日志 CSV
+    parameters:
+      - name: module
+        in: query
+        schema:
+          type: string
+      - name: action
+        in: query
+        schema:
+          type: string
+      - name: start_time
+        in: query
+        schema:
+          type: string
+      - name: end_time
+        in: query
+        schema:
+          type: string
+    responses:
+      "200":
+        $ref: ../components/responses/CsvDownload.yaml
+
+/api/admin/logs/clean:
+  delete:
+    tags: [Logs, Admin]
+    operationId: cleanExpiredLogs
+    summary: 清理过期日志
+    requestBody:
+      required: false
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              days:
+                type: integer
+                description: 保留最近多少天日志，删除更早数据。
+    responses:
+      "200":
+        description: data.deleted_count 为清理数量。
+        content:
+          application/json:
+            schema:
+              $ref: ../components/schemas/ApiEnvelope.yaml
+      "403":
+        $ref: ../components/responses/Forbidden.yaml

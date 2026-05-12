@@ -1,0 +1,23 @@
+type: object
+required:
+  - code
+  - msg
+  - data
+properties:
+  code:
+    type: integer
+    example: 400
+  msg:
+    type: string
+    example: 缺少必要参数
+  data:
+    description: 错误响应通常为 null，部分接口可能附带调试或校验上下文。
+  error:
+    type: object
+    nullable: true
+    properties:
+      type:
+        type: string
+        example: validation_error
+      details:
+        description: DRF 校验错误或后端补充的错误详情。

@@ -1,0 +1,83 @@
+/api/admin/statistics/overview:
+  get:
+    tags: [Admin]
+    operationId: getAdminStatisticsOverview
+    summary: 管理员仪表盘总览统计
+    responses:
+      "200":
+        $ref: ../components/responses/Success.yaml
+
+
+/api/admin/statistics/users:
+  get:
+    tags: [Admin]
+    operationId: getAdminUserStatistics
+    summary: 用户统计
+    responses:
+      "200":
+        $ref: ../components/responses/Success.yaml
+
+
+/api/admin/statistics/courses:
+  get:
+    tags: [Admin]
+    operationId: getAdminCourseStatisticsList
+    summary: 课程统计
+    responses:
+      "200":
+        $ref: ../components/responses/Success.yaml
+
+
+/api/admin/statistics/learning:
+  get:
+    tags: [Admin]
+    operationId: getAdminLearningStatistics
+    summary: 学习统计
+    responses:
+      "200":
+        $ref: ../components/responses/Success.yaml
+
+
+/api/admin/statistics/exams:
+  get:
+    tags: [Admin]
+    operationId: getAdminExamStatistics
+    summary: 作业考试统计
+    responses:
+      "200":
+        $ref: ../components/responses/Success.yaml
+
+
+/api/admin/statistics/active-users:
+  get:
+    tags: [Admin]
+    operationId: getAdminActiveUserStatistics
+    summary: 活跃用户统计
+    responses:
+      "200":
+        $ref: ../components/responses/Success.yaml
+
+
+/api/admin/statistics/report:
+  get:
+    tags: [Admin]
+    operationId: getAdminStatisticsReport
+    summary: 管理端统计报告
+    responses:
+      "200":
+        $ref: ../components/responses/Success.yaml
+
+
+/api/admin/statistics/export:
+  get:
+    tags: [Admin]
+    operationId: exportAdminStatistics
+    summary: 导出管理端统计
+    parameters:
+      - name: type
+        in: query
+        schema:
+          type: string
+    responses:
+      "200":
+        $ref: ../components/responses/CsvDownload.yaml

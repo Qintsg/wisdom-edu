@@ -1,0 +1,5 @@
+jwtAuth:
+  type: http
+  scheme: bearer
+  bearerFormat: JWT
+  description: "使用登录或刷新接口返回的 `token`，请求头格式为 `Authorization: Bearer <token>`。"

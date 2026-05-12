@@ -1,0 +1,32 @@
+type: object
+properties:
+  resource_id:
+    type: integer
+  id:
+    type: integer
+  title:
+    type: string
+  resource_type:
+    type: string
+  type:
+    type: string
+  description:
+    type: string
+    nullable: true
+  url:
+    type: string
+    nullable: true
+  file:
+    type: string
+    nullable: true
+  duration:
+    type: integer
+    nullable: true
+  knowledge_points:
+    type: array
+    items:
+      $ref: ./KnowledgePoint.yaml
+  created_at:
+    type: string
+    format: date-time
+    nullable: true

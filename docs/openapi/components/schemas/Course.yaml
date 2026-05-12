@@ -1,0 +1,30 @@
+type: object
+properties:
+  course_id:
+    type: integer
+  id:
+    type: integer
+  name:
+    type: string
+  course_name:
+    type: string
+  description:
+    type: string
+    nullable: true
+  cover:
+    type: string
+    nullable: true
+  teacher:
+    type: string
+    nullable: true
+  teacher_id:
+    type: integer
+    nullable: true
+  is_active:
+    type: boolean
+  is_published:
+    type: boolean
+  created_at:
+    type: string
+    format: date-time
+    nullable: true

@@ -1,0 +1,140 @@
+/api/courses:
+  get:
+    tags: [Courses]
+    operationId: listCourses
+    summary: 获取当前用户可访问课程
+    description: 学生返回已加入班级发布的课程；教师和管理员返回自己可管理或已发布的课程。
+    responses:
+      "200":
+        description: data 包含 courses[] 与 current_course_id。
+        content:
+          application/json:
+            schema:
+              $ref: ../components/schemas/ApiEnvelope.yaml
+
+
+/api/courses/select:
+  post:
+    tags: [Courses]
+    operationId: selectCourse
+    summary: 选择当前课程上下文
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [course_id]
+            properties:
+              course_id:
+                type: integer
+              class_id:
+                type: integer
+                nullable: true
+    responses:
+      "200":
+        description: data 包含 course_id、course_name、class_id、class_name。
+        content:
+          application/json:
+            schema:
+              $ref: ../components/schemas/ApiEnvelope.yaml
+      "400":
+        $ref: ../components/responses/BadRequest.yaml
+      "403":
+        $ref: ../components/responses/Forbidden.yaml
+
+
+/api/courses/search:
+  get:
+    tags: [Courses]
+    operationId: searchCourses
+    summary: 搜索课程
+    parameters:
+      - name: keyword
+        in: query
+        schema:
+          type: string
+      - name: q
+        in: query
+        schema:
+          type: string
+      - $ref: ../components/parameters/Page.yaml
+      - $ref: ../components/parameters/PageSize.yaml
+    responses:
+      "200":
+        description: data 包含 total、page、page_size、courses[]。
+        content:
+          application/json:
+            schema:
+              $ref: ../components/schemas/ApiEnvelope.yaml
+
+
+/api/student/classes:
+  get:
+    tags: [Courses]
+    operationId: listStudentClasses
+    summary: 获取学生加入的班级
+    responses:
+      "200":
+        description: data 为班级列表，包含已发布课程摘要。
+        content:
+          application/json:
+            schema:
+              $ref: ../components/schemas/ApiEnvelope.yaml
+
+
+/api/student/classes/{class_id}:
+  get:
+    tags: [Courses]
+    operationId: getStudentClassDetail
+    summary: 获取学生班级详情
+    parameters:
+      - $ref: ../components/parameters/ClassIdPath.yaml
+    responses:
+      "200":
+        $ref: ../components/responses/Success.yaml
+      "403":
+        $ref: ../components/responses/Forbidden.yaml
+      "404":
+        $ref: ../components/responses/NotFound.yaml
+
+
+/api/student/classes/join:
+  post:
+    tags: [Courses]
+    operationId: joinStudentClass
+    summary: 使用邀请码加入班级
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [code]
+            properties:
+              code:
+                type: string
+    responses:
+      "200":
+        description: data 包含 class 与 courses 信息。
+        content:
+          application/json:
+            schema:
+              $ref: ../components/schemas/ApiEnvelope.yaml
+      "400":
+        $ref: ../components/responses/BadRequest.yaml
+
+
+/api/student/classes/{class_id}/leave:
+  delete:
+    tags: [Courses]
+    operationId: leaveStudentClass
+    summary: 退出班级
+    parameters:
+      - $ref: ../components/parameters/ClassIdPath.yaml
+    responses:
+      "200":
+        $ref: ../components/responses/Success.yaml
+      "404":
+        $ref: ../components/responses/NotFound.yaml
+

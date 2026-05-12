@@ -1,0 +1,28 @@
+type: object
+properties:
+  class_id:
+    type: integer
+  id:
+    type: integer
+  name:
+    type: string
+  class_name:
+    type: string
+  description:
+    type: string
+    nullable: true
+  semester:
+    type: string
+    nullable: true
+  teacher_id:
+    type: integer
+    nullable: true
+  teacher_name:
+    type: string
+    nullable: true
+  student_count:
+    type: integer
+  courses:
+    type: array
+    items:
+      $ref: ./Course.yaml

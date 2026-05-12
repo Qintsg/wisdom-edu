@@ -1,0 +1,30 @@
+type: object
+properties:
+  user_id:
+    type: integer
+  username:
+    type: string
+  role:
+    type: string
+    enum: [student, teacher, admin]
+  email:
+    type: string
+    nullable: true
+  phone:
+    type: string
+    nullable: true
+  real_name:
+    type: string
+    nullable: true
+  student_id:
+    type: string
+    nullable: true
+  avatar:
+    type: string
+    nullable: true
+  is_active:
+    type: boolean
+  created_at:
+    type: string
+    format: date-time
+    nullable: true

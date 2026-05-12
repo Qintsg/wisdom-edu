@@ -1,0 +1,3 @@
+type: string
+format: binary
+description: 文件下载响应，实际 Content-Type 由接口决定。

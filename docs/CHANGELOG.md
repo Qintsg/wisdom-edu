@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-05-12
+
+### Docs / API — 模块化 OpenAPI 契约重构
+
+- 新增 `docs/openapi/` 模块化 OpenAPI 文档树，入口 `docs/openapi/openapi.yaml` 仅保留全局信息、tag、security 与 `$ref` 汇总。
+- 按后端 `urls.py`、view、support、serializer 与 model 人工逐项整理认证、用户画像、课程班级、知识图谱、测评、学习路径、作业考试、AI / KT、日志和公共菜单接口，不复用旧 `docs/api.yaml` 或已删除的 Markdown API 文档作为接口来源。
+- 新增 `redocly.yaml`，使用 Redocly CLI 校验模块化契约并打包生成 `docs/api.yaml`。
+- `docs/README.md` 与 `docs/维护说明.md` 同步更新 API 契约源、打包产物和维护命令。
+
 ## 2026-05-11
 
 ### Backend / KT — 初始评测掌握度异常聚集修复

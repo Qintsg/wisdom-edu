@@ -1,0 +1,6 @@
+name: course_id
+in: query
+required: false
+schema:
+  type: integer
+description: 课程 ID。
