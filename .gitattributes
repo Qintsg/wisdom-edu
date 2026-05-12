@@ -1,41 +1,41 @@
-# 行尾约定：仓库内所有文本文件统一使用 LF，避免 Windows checkout 时被 autocrlf 转成 CRLF。
+# 行尾约定：仓库内所有文本文件统一使用 CRLF，匹配 Windows 开发环境。
 # 注意：此文件覆盖 core.autocrlf 设置，优先级最高。
 
-* text=auto eol=lf
+* text=auto eol=crlf
 
 # --- 源代码与配置（显式声明，避免被 git 误判为二进制） ---
-*.py        text eol=lf
-*.pyi       text eol=lf
-*.ts        text eol=lf
-*.tsx       text eol=lf
-*.js        text eol=lf
-*.jsx       text eol=lf
-*.mjs       text eol=lf
-*.cjs       text eol=lf
-*.vue       text eol=lf
-*.html      text eol=lf
-*.css       text eol=lf
-*.scss      text eol=lf
-*.json      text eol=lf
-*.json5     text eol=lf
-*.yaml      text eol=lf
-*.yml       text eol=lf
-*.toml      text eol=lf
-*.ini       text eol=lf
-*.cfg       text eol=lf
-*.conf      text eol=lf
-*.md        text eol=lf
-*.txt       text eol=lf
-*.sh        text eol=lf
-*.svg       text eol=lf
-*.xml       text eol=lf
-.gitignore  text eol=lf
-.gitattributes text eol=lf
-.editorconfig  text eol=lf
-Dockerfile  text eol=lf
-Makefile    text eol=lf
-LICENSE     text eol=lf
-*.env*      text eol=lf
+*.py        text eol=crlf
+*.pyi       text eol=crlf
+*.ts        text eol=crlf
+*.tsx       text eol=crlf
+*.js        text eol=crlf
+*.jsx       text eol=crlf
+*.mjs       text eol=crlf
+*.cjs       text eol=crlf
+*.vue       text eol=crlf
+*.html      text eol=crlf
+*.css       text eol=crlf
+*.scss      text eol=crlf
+*.json      text eol=crlf
+*.json5     text eol=crlf
+*.yaml      text eol=crlf
+*.yml       text eol=crlf
+*.toml      text eol=crlf
+*.ini       text eol=crlf
+*.cfg       text eol=crlf
+*.conf      text eol=crlf
+*.md        text eol=crlf
+*.txt       text eol=crlf
+*.sh        text eol=crlf
+*.svg       text eol=crlf
+*.xml       text eol=crlf
+.gitignore  text eol=crlf
+.gitattributes text eol=crlf
+.editorconfig  text eol=crlf
+Dockerfile  text eol=crlf
+Makefile    text eol=crlf
+LICENSE     text eol=crlf
+*.env*      text eol=crlf
 
 # --- 已知二进制：禁用文本处理 ---
 *.png       binary
