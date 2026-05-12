@@ -1,4 +1,4 @@
-"""Neo4j 图数据库服务兼容入口。"""
+"""Neo4j 图数据库服务入口。"""
 
 from __future__ import annotations
 

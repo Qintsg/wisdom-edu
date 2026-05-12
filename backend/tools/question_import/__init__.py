@@ -1,10 +1,10 @@
 #!/user/bin/env python
 # -*- coding: UTF-8 -*-
 """
-题库导入辅助工具兼容门面。
+题库导入辅助工具入口。
 
 具体清洗、答案归一化、Excel/JSON 适配、知识点绑定与持久化实现已拆分到
-`question_import_*` 模块；本文件保留历史导入路径，避免影响 tools.questions。
+同目录领域模块。
 """
 from __future__ import annotations
 

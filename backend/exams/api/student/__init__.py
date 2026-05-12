@@ -1,9 +1,9 @@
 #!/user/bin/env python
 # -*- coding: UTF-8 -*-
 """
-考试模块学生接口兼容入口。
+考试模块学生接口入口。
 
-公开 URL 仍通过 exams.views -> exams.student_views 暴露；实现按考试、提交、报告、初始评测和班级职责拆分。
+实现按考试、提交、报告、初始评测和班级职责拆分。
 """
 import logging
 

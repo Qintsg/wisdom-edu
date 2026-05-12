@@ -1,6 +1,6 @@
 #!/user/bin/env python
 # -*- coding: UTF-8 -*-
-"""GraphRAG 运行时兼容入口。
+"""GraphRAG 运行时公共入口。
 
 @Project : wisdom-edu
 @File : runtime.py
@@ -57,7 +57,7 @@ class FacadeGraphRAGLLM(LLMInterfaceV2):
     def normalize_invoke_input(
         raw_input: list[LLMMessage] | str,
     ) -> tuple[str, list[LLMMessage]]:
-        """兼容 V2 message list 与仓库内旧式字符串 prompt 调用。"""
+        """Normalize V2 message lists and string prompts into one prompt payload."""
         if isinstance(raw_input, str):
             prompt_text = _coerce_string(raw_input)
             return prompt_text, [{"role": "user", "content": prompt_text}]

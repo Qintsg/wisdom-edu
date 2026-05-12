@@ -35,8 +35,8 @@ class KnowledgeMapFallbackTests(APITestCase):
         )
         self.client.force_authenticate(user=self.student)
 
-    @patch('knowledge.views.neo4j_service.get_knowledge_map', return_value=None)
-    @patch('knowledge.views.neo4j_service.__class__.is_available', new_callable=PropertyMock, return_value=True)
+    @patch('knowledge.api.map.neo4j_service.get_knowledge_map', return_value=None)
+    @patch('knowledge.api.map.neo4j_service.__class__.is_available', new_callable=PropertyMock, return_value=True)
     def test_knowledge_map_should_fallback_to_postgresql_when_neo4j_graph_missing(self, *_mocks):
         """Neo4j 空图时应回退 PostgreSQL，保证学生端图谱可用。"""
         response = self.client.get(f'/api/student/knowledge-map?course_id={self.course.id}')
@@ -44,8 +44,8 @@ class KnowledgeMapFallbackTests(APITestCase):
         self.assertEqual(response.data['data']['stats']['data_source'], 'postgresql')
         self.assertEqual(response.data['data']['stats']['node_count'], 1)
 
-    @patch('knowledge.views.neo4j_service.get_knowledge_map')
-    @patch('knowledge.views.neo4j_service.__class__.is_available', new_callable=PropertyMock, return_value=True)
+    @patch('knowledge.api.map.neo4j_service.get_knowledge_map')
+    @patch('knowledge.api.map.neo4j_service.__class__.is_available', new_callable=PropertyMock, return_value=True)
     def test_knowledge_map_should_mark_data_source_as_neo4j(self, _available, mock_get_map):
         """Successful payloads should explicitly identify Neo4j as the data source."""
         mock_get_map.return_value = {

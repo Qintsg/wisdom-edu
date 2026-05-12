@@ -1,8 +1,8 @@
 """
-考试模块 - 教师接口兼容层。
+考试模块 - 教师接口入口。
 
 具体实现已按职责拆分到教师考试管理、题库管理、结果分析与共享 helper 模块；
-本文件保留旧导入路径，供 urls、tests 和外部 patch 继续使用。
+本文件作为教师端接口包入口。
 """
 
 from exams.api.teacher.exam_management import (

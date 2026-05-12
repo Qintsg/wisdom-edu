@@ -1,7 +1,7 @@
 #!/user/bin/env python
 # -*- coding: UTF-8 -*-
 """
-演示环境预置能力兼容入口。
+演示环境预置能力入口。
 @Project : wisdom-edu
 @File : defense_demo.py
 @Author : Qintsg

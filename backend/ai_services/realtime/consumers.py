@@ -14,7 +14,7 @@ from ai_services.services.student.ai_streaming import (
     build_student_ai_stream_plan,
     iter_student_ai_stream_chunks,
 )
-from ai_services.api.student import build_chat_response
+from ai_services.api.student.chat import build_chat_response
 
 logger = logging.getLogger(__name__)
 _STREAM_END = object()

@@ -15,12 +15,48 @@
 
 ---
 
-## 3. Python 与实现规范
+- ## 3. Python专项注释要求
 
-- 优先遵循 `PEP 8`、Django / DRF 官方实践与仓库既有约定。
-- 所有函数参数与返回值都应显式标注类型；非必要禁止 `Any`、过宽泛的 `object` 与无语义命名。
-- Python 文件头与函数注释沿用仓库当前模板；注释除遵守根目录注释率要求外，还要写清目的、参数语义、返回语义与必要异常。
-- 默认不保留 `pass`、空 service / chain / agent、假召回、假推理或未接线逻辑；确需保留时只能使用 `TODO:` / `FIXME:` 并说明原因与影响。
+  - 使用PEP8标准完成注释，所有函数、类均需要有文档注释，所有.py文件均需要有文件头注释，Author固定为Qintsg
+
+  ### 3.1 Python 函数注释
+
+  默认模板：
+
+  ```python
+  def fun_name(var1: int, var2: List[double]) -> None | str:
+      """
+      函数功能描述
+      :param var1: 变量1描述
+      :param var2: 变量2描述
+      :return: 返回值描述
+      """
+      pass
+  ```
+
+  要求：
+
+  - 所有参数必须写类型注释
+  - 所有返回值必须写类型注释
+  - `-> None` 必须显式写出
+  - 注释说明目的、参数语义、返回语义，必要时说明异常
+
+  ### 3.2 Python 文件头
+
+  默认模板：
+
+  ```python
+  #!/user/bin/env python
+  # -*- coding: UTF-8 -*-
+  '''
+  文件内容描述
+  @Project : ${PROJECT_NAME}
+  @File : ${NAME}.py
+  @Author : Qintsg
+  @Date : ${DATE} ${TIME}
+  '''
+  ```
+
 
 ---
 

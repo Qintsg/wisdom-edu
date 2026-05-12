@@ -1,4 +1,4 @@
-"""学生端 GraphRAG 编排服务兼容入口。"""
+"""学生端 GraphRAG 编排服务入口。"""
 from __future__ import annotations
 
 import logging

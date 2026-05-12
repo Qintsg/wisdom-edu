@@ -1,6 +1,6 @@
 #!/user/bin/env python
 # -*- coding: UTF-8 -*-
-"""KT 合成学习轨迹画像辅助工具兼容导出。"""
+"""KT 合成学习轨迹画像辅助工具。"""
 
 from __future__ import annotations
 

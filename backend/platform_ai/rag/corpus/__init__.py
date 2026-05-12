@@ -1,4 +1,4 @@
-"""GraphRAG 索引构建兼容入口。"""
+"""GraphRAG 索引构建公共入口。"""
 
 from __future__ import annotations
 
@@ -14,7 +14,7 @@ def build_course_graph_index(course_id: int) -> dict:
 
 
 def build_course_corpus(course_id: int) -> list[CorpusDocument]:
-    """Build a backwards-compatible corpus list from the GraphRAG index."""
+    """Build corpus documents from the current GraphRAG index payload."""
     payload = build_course_graph_index(course_id)
     return [CorpusDocument(**document) for document in payload.get("documents", [])]
 

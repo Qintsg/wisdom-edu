@@ -6,9 +6,9 @@ grouped under the `common` app namespace.
 
 from django.urls import path
 
-from . import views
+from common.api.views import get_menu
 
 urlpatterns = [
     # Frontend shells request the menu tree from a stable, app-local endpoint.
-    path('menu', views.get_menu, name='get_menu'),
+    path('menu', get_menu, name='get_menu'),
 ]

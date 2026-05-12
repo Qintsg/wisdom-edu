@@ -9,11 +9,13 @@ import logging
 from django.conf import settings
 
 from knowledge.models import KnowledgeMastery
-from platform_ai.llm.agent_support import (
+from platform_ai.llm.agent_graphrag import (
     build_course_graphrag_payload,
     build_lookup_course_context_payload,
+)
+from platform_ai.llm.agent_json import parse_json_payload
+from platform_ai.llm.agent_message import (
     extract_agent_message_text,
-    parse_json_payload,
 )
 
 logger = logging.getLogger(__name__)

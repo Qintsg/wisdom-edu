@@ -1,6 +1,6 @@
 #!/user/bin/env python
 # -*- coding: UTF-8 -*-
-"""MEFKT 共享模型组件兼容导出入口。"""
+"""MEFKT 共享模型组件入口。"""
 
 from __future__ import annotations
 

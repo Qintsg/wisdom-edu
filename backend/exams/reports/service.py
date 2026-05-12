@@ -19,7 +19,7 @@ from typing import Any
 from django.db import close_old_connections, transaction
 
 from common.core.logging_utils import build_log_message
-from exams.report_generation_support import (
+from exams.reports.generation_support import (
     REPORT_SAVE_FIELDS,
     build_answer_history_records,
     build_detailed_mistakes,
@@ -99,7 +99,7 @@ def generate_feedback_report_sync(
     :return: 更新后的概要字典，报告不存在时返回 None。
     """
     from ai_services.services import llm_service
-    from exams.api.student import (
+    from exams.api.student.helpers import (
         _build_exam_question_details,
         _build_exam_score_map,
         _resolve_pass_threshold,

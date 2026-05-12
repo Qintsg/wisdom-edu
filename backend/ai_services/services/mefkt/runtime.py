@@ -8,12 +8,12 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import TYPE_CHECKING, cast
 
-from ai_services.services.mefkt.runtime_support import (
+from ai_services.services.mefkt.runtime_features import prepare_question_features
+from ai_services.services.mefkt.runtime_graph import build_graph_statistics
+from ai_services.services.mefkt.runtime_rows import build_runtime_feature_rows
+from ai_services.services.mefkt.runtime_sources import (
     build_feature_sources,
-    build_graph_statistics,
-    build_runtime_feature_rows,
     load_runtime_source_data,
-    prepare_question_features,
 )
 
 if TYPE_CHECKING:
