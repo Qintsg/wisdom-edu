@@ -41,7 +41,7 @@ export const useAssessmentStore = defineStore('assessment', () => {
   const loading = ref(false)
   /** 提交状态 */
   const submitting = ref(false)
-  // DEMO_EMBED: 简易缓存，避免短时间内重复请求测评状态
+  // 简易缓存，避免短时间内重复请求测评状态
   let _statusCacheTime = 0
   let _statusCacheCourseId: number | null = null
   const STATUS_CACHE_TTL = 10000 // 10秒缓存有效期
@@ -84,7 +84,7 @@ export const useAssessmentStore = defineStore('assessment', () => {
    * @returns {Promise<Object|null>} 测评状态
    */
   async function fetchStatus(courseId?: number | null): Promise<AssessmentStatusPayload | null> {
-    // DEMO_EMBED: 同一课程短时间内缓存命中直接返回
+    // 同一课程短时间内缓存命中直接返回
     if (
       _statusCacheTime &&
       _statusCacheCourseId === courseId &&
@@ -97,8 +97,8 @@ export const useAssessmentStore = defineStore('assessment', () => {
     try {
       const data = await getAssessmentStatus(courseId)
       status.value = data
-      _statusCacheTime = Date.now() // DEMO_EMBED
-      _statusCacheCourseId = courseId ?? null // DEMO_EMBED
+      _statusCacheTime = Date.now()
+      _statusCacheCourseId = courseId ?? null
       return data
     } catch (error) {
       console.error('获取测评状态失败:', error)

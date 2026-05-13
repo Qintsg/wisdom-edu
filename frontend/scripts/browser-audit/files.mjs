@@ -18,13 +18,3 @@ export async function readJson(filePath) {
     return null
   }
 }
-
-export function resolveDefenseDemoArchivePath(args) {
-  return path.resolve(args.outputDir, '..', '答辩演示课程导入包.zip')
-}
-
-export async function ensureDefenseArchiveExists(args) {
-  const archivePath = resolveDefenseDemoArchivePath(args)
-  await fs.access(archivePath)
-  return archivePath
-}

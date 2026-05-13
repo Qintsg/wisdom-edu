@@ -21,7 +21,6 @@ from tools.db_management import (
     django_check,
     pg_bootstrap,
 )
-from tools.demo_course_archive import generate_demo_course_archive
 from tools.diagnostics import diagnose_env
 from tools.exam_sets import import_exam_sets
 from tools.excel_templates import generate_template
@@ -35,7 +34,6 @@ from tools.mefkt_training import mefkt_status, train_mefkt_v2
 from tools.neo4j_tools import neo4j_clear, neo4j_status, neo4j_sync_all, sync_neo4j
 from tools.questions import import_question_bank, import_questions_json
 from tools.rag_index import build_rag_index, refresh_rag_corpus
-from tools.rebuild_demo import rebuild_demo_data
 from tools.resources import delete_link_resources, import_resources_json
 from tools.survey import import_ability_scale, import_survey_questions
 
@@ -98,10 +96,6 @@ def build_parser() -> argparse.ArgumentParser:
 
     template_parser = sub.add_parser("generate-template", help="生成Excel导入模板")
     template_parser.add_argument("type", choices=["ability", "habit", "questions"])
-
-    demo_archive_parser = sub.add_parser("generate-demo-course-archive", help="生成答辩演示课程导入包")
-    demo_archive_parser.add_argument("--course-name", default="大数据技术与应用")
-    demo_archive_parser.add_argument("--output", default="../output/答辩演示课程导入包.zip")
 
     code_parser = sub.add_parser("generate-codes", help="生成激活码")
     code_parser.add_argument("type", choices=["teacher", "admin"])
@@ -171,18 +165,13 @@ def build_parser() -> argparse.ArgumentParser:
     browser_parser.add_argument("--output-dir", default=None)
     browser_parser.add_argument(
         "--scenario",
-        choices=["audit", "prepare-demo", "simulate-demo", "prepare-defense-demo", "simulate-defense-demo"],
+        choices=["audit", "prepare-demo", "simulate-demo"],
         default="audit",
     )
     browser_parser.add_argument("--headed", action="store_true")
     sub.add_parser("test-kt-service", help="测试KT服务")
     sub.add_parser("test-llm-service", help="测试LLM服务")
     sub.add_parser("diagnose", help="环境诊断")
-
-    rebuild_parser = sub.add_parser("rebuild-demo-data", help="全库重建并导入演示数据")
-    rebuild_parser.add_argument("--course-name", default="大数据技术与应用")
-    rebuild_parser.add_argument("--teacher", default="teacher1")
-    rebuild_parser.add_argument("--resources-root", default=None)
 
     sub.add_parser("mefkt-status", help="MEFKT模型状态")
     mefkt_parser = sub.add_parser("train-mefkt", help="训练MEFKT模型")
@@ -239,8 +228,6 @@ def _dispatch_import_commands(args: argparse.Namespace) -> bool:
         bootstrap_course_assets(args.course_name, args.teacher, args.replace, args.sync_neo4j, args.dry_run, args.resources_root)
     elif args.cmd == "generate-template":
         generate_template(args.type)
-    elif args.cmd == "generate-demo-course-archive":
-        generate_demo_course_archive(course_name=args.course_name, output_path=args.output)
     elif args.cmd == "generate-codes":
         generate_activation_codes(args.type, args.count, args.creator)
     elif args.cmd == "validate-json":
@@ -282,7 +269,7 @@ def _dispatch_data_admin_commands(args: argparse.Namespace) -> bool:
 
 
 def _dispatch_test_commands(args: argparse.Namespace) -> bool:
-    """处理测试、巡检和演示重建命令。"""
+    """处理测试、巡检和环境诊断命令。"""
     if args.cmd == "api-smoke":
         api_smoke(args.base_url, args.username, args.password, strict=args.strict, as_json=getattr(args, "json", False))
     elif args.cmd == "student-flow-smoke":
@@ -299,8 +286,6 @@ def _dispatch_test_commands(args: argparse.Namespace) -> bool:
         test_llm_service()
     elif args.cmd == "diagnose":
         diagnose_env()
-    elif args.cmd == "rebuild-demo-data":
-        rebuild_demo_data(args.course_name, args.teacher, args.resources_root)
     else:
         return False
     return True

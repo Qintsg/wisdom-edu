@@ -18,8 +18,6 @@
 - api_smoke: API烟雾测试
 - ai_services_test: AI服务测试
 - browser_audit: 浏览器巡检
-- demo_course_archive: 答辩演示课程导入包生成
-- rebuild_demo: 演示数据全量重建
 - excel_templates: Excel模板生成
 - mefkt_training: MEFKT模型训练与管理
 - rag_index: GraphRAG索引构建与刷新
@@ -34,7 +32,6 @@ from tools.common import (
 from tools.bootstrap import bootstrap_course_assets, import_course_resources
 from tools.browser_audit import browser_audit
 from tools.cli import main
-from tools.demo_course_archive import generate_demo_course_archive
 from tools.testing import (
     CheckResult,
     _print_checks,
@@ -77,7 +74,6 @@ from tools.activation import generate_activation_codes
 from tools.diagnostics import diagnose_env
 from tools.mefkt_training import train_mefkt_v2, mefkt_status
 from tools.rag_index import build_rag_index, refresh_rag_corpus
-from tools.rebuild_demo import rebuild_demo_data
 
 __all__ = [
     # common
@@ -89,7 +85,6 @@ __all__ = [
     'import_course_resources',
     'browser_audit',
     'main',
-    'generate_demo_course_archive',
     # testing infrastructure
     'CheckResult',
     '_print_checks',
@@ -147,5 +142,4 @@ __all__ = [
     # demo & rag
     'build_rag_index',
     'refresh_rag_corpus',
-    'rebuild_demo_data',
 ]

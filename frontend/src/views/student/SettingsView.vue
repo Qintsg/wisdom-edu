@@ -51,6 +51,8 @@
       </el-form>
     </el-card>
 
+    <JoinClassCard />
+
     <el-card class="settings-card" shadow="hover">
       <template #header>
         <span>学习偏好</span>
@@ -168,6 +170,7 @@ import { useCourseStore } from '@/stores/course'
 import { toBackendAbsoluteUrl } from '@/api/backend'
 import { ElMessage } from 'element-plus'
 import { InfoFilled } from '@element-plus/icons-vue'
+import JoinClassCard from './settings/JoinClassCard.vue'
 
 // 常量定义
 const MIN_PASSWORD_LENGTH = 8

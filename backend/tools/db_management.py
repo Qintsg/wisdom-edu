@@ -6,10 +6,6 @@
 from typing import List, Optional
 
 from tools.common import User
-from tools.db_demo_preset import (
-    DEFAULT_BOOTSTRAP_COURSE_NAME,
-    preset_student1_demo_course_state,
-)
 from tools.db_seed_support import seed_database_from_testdata, sync_seeded_courses
 from tools.testing import CheckResult, _load_testdata, _print_checks, _status_flag
 
@@ -163,14 +159,13 @@ def pg_bootstrap(
 ):
     """初始化 PostgreSQL 测试环境。
 
-    默认执行：迁移 → 清空 → 创建基础数据 → 导入课程资源/同步 Neo4j/刷新 GraphRAG
-    → 重新修正 student1 的真实初测态预置。
+    默认执行：迁移 → 清空 → 创建基础账号/课程/班级 → 导入课程资源/同步 Neo4j/刷新 GraphRAG。
 
     Args:
         run_migrate (bool): 是否执行数据库迁移
         clear_first (bool): 是否先清空数据库
         import_course_assets (bool): 是否额外导入课程资源并同步图谱
-        course_name (str | None): 指定需要优先重建 student1 预置的课程名
+        course_name (str | None): 指定需要导入课程资源的课程名
     """
     from django.core.management import call_command
     from tools.bootstrap import import_course_resources
@@ -192,9 +187,5 @@ def pg_bootstrap(
             import_course_resources(target_course_name)
         except Exception as error:
             print(f"  {_status_flag(False)} 课程资源自动导入失败: {error}")
-
-        preset_student1_demo_course_state(
-            target_course_name or DEFAULT_BOOTSTRAP_COURSE_NAME
-        )
 
     print("PostgreSQL 测试样例初始化完成。")

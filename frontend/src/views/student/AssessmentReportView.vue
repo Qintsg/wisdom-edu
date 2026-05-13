@@ -183,7 +183,6 @@ const generating = ref(false)
 const generationError = ref(null)
 const pollTimer = ref(null)
 
-// --- DEMO_EMBED: 答辩演示伪进度（评测报告场景定制阶段文字） ---
 const aiProgress = useAIProgress({
   maxDuration: 180_000,
   stages: [
@@ -197,7 +196,6 @@ const aiProgress = useAIProgress({
   ],
 })
 
-// 轮询间隔（DEMO_EMBED: 缩短至 1.5 秒提升演示响应感知；生产环境应恢复 3000）
 const POLL_INTERVAL = 1500
 
 // 评测结果结构来自多个后端阶段，先统一成页面内部稳定字段，避免模板散落 snake_case 访问。
@@ -327,7 +325,7 @@ const goToLearningPath = () => router.push('/student/learning-path')
  * 轮询获取异步生成结果
  */
 const startPolling = (courseId) => {
-  aiProgress.start() // DEMO_EMBED: 启动伪进度
+  aiProgress.start()
 
   const doPoll = async () => {
     // 超时保护依赖 aiProgress 内部 maxDuration
@@ -348,7 +346,7 @@ const startPolling = (courseId) => {
         if (!result?.['generating']) {
           // 生成完成
           stopPolling()
-          aiProgress.complete() // DEMO_EMBED: 完成伪进度
+          aiProgress.complete()
           generationError.value = result?.['generation_error'] || null
           if (!result?.['generation_error']) {
             ElMessage.success('学习建议已生成')

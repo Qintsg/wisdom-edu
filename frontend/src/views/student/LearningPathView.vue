@@ -38,7 +38,7 @@
 
     <!-- 路径主内容区 -->
     <el-card class="path-content" shadow="hover">
-      <!-- 路径生成中 —— DEMO_EMBED: 答辩演示伪进度条 -->
+      <!-- 路径生成中 -->
       <div v-if="showRefreshingAnimation" class="generating-container">
         <el-icon class="is-loading" :size="48" color="#667eea">
           <Loading />

@@ -108,7 +108,7 @@ const loadCourses = async () => {
  */
 const createCourse = () => router.push('/teacher/courses/create')
 const openImportCoursePage = () => {
-  const targetRoute = router.resolve({ path: '/teacher/courses/create', query: { entry: 'demo-import' } })
+  const targetRoute = router.resolve({ path: '/teacher/courses/create' })
   window.open(targetRoute.href, '_blank', 'noopener')
 }
 const viewCourse = (course) => router.push(`/teacher/courses/${course.id}`)

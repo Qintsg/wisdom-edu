@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import logging
 
-from common.defense_demo import get_defense_demo_resource_payload, is_defense_demo_student
 from common.core.logging_utils import build_log_message
 from learning.models import NodeProgress, PathNode
 from platform_ai.rag import student_learning_rag
@@ -28,10 +27,6 @@ def build_ai_resource_payload(user: object, node: PathNode) -> dict[str, object]
         return empty_resource_payload()
 
     progress = NodeProgress.objects.filter(node=node, user=user).first()
-    preset_payload = defense_demo_resource_payload(user, node, progress)
-    if preset_payload is not None:
-        return preset_payload
-
     completed_resource_ids = completed_resource_id_set(progress)
     recommendation = recommend_node_resources(
         user=user,
@@ -48,22 +43,6 @@ def build_ai_resource_payload(user: object, node: PathNode) -> dict[str, object]
 def empty_resource_payload() -> dict[str, object]:
     """返回空资源推荐载荷。"""
     return {"internal_resources": [], "external_resources": []}
-
-
-def defense_demo_resource_payload(
-    user: object,
-    node: PathNode,
-    progress: NodeProgress | None,
-) -> dict[str, object] | None:
-    """答辩演示账号命中时返回预置资源推荐。"""
-    preset_payload = get_defense_demo_resource_payload(progress)
-    if not preset_payload or not is_defense_demo_student(user, node.path.course):
-        return None
-    return {
-        "internal_resources": preset_payload.get("internal_resources", []),
-        "external_resources": preset_payload.get("external_resources", []),
-        "service_status": "preset",
-    }
 
 
 def completed_resource_id_set(progress: NodeProgress | None) -> set[str]:

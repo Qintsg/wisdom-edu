@@ -5,19 +5,13 @@ import { parseArgs } from './browser-audit/args.mjs'
 import { ensureBackendReady } from './browser-audit/api.mjs'
 import { runAuditScenario } from './browser-audit/audit-scenario.mjs'
 import {
-  prepareDefenseDemoScenario,
-  simulateDefenseDemoScenario
-} from './browser-audit/defense-scenario.mjs'
-import {
   prepareDemoScenario,
   simulateDemoScenario
 } from './browser-audit/demo-scenario.mjs'
 
 const SCENARIO_HANDLERS = {
   'prepare-demo': prepareDemoScenario,
-  'prepare-defense-demo': prepareDefenseDemoScenario,
   'simulate-demo': simulateDemoScenario,
-  'simulate-defense-demo': simulateDefenseDemoScenario,
   audit: (_apiBaseUrl, browser, args) => runAuditScenario(browser, args)
 }
 

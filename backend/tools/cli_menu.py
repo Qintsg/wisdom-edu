@@ -16,7 +16,6 @@ from tools.db_management import (
     django_check,
     pg_bootstrap,
 )
-from tools.demo_course_archive import generate_demo_course_archive
 from tools.exam_sets import import_exam_sets
 from tools.excel_templates import generate_template
 from tools.knowledge import export_knowledge_map, import_knowledge_map
@@ -31,7 +30,6 @@ from tools.neo4j_tools import (
 )
 from tools.questions import import_question_bank
 from tools.rag_index import build_rag_index, refresh_rag_corpus
-from tools.rebuild_demo import rebuild_demo_data
 from tools.survey import import_survey_questions
 
 
@@ -74,12 +72,10 @@ MENU_SECTIONS = (
     "[25] MEFKT模型状态",
     "[26] 训练MEFKT模型",
     "",
-    "── GraphRAG / 演示验证 ──",
+    "── GraphRAG / 浏览器验证 ──",
     "[27] 构建GraphRAG索引",
     "[28] 刷新GraphRAG语料",
-    "[29] 重建演示数据",
-    "[30] 生成答辩演示导入包",
-    "[31] 浏览器巡检",
+    "[29] 浏览器巡检",
     "",
     "[0]  退出",
 )
@@ -253,7 +249,7 @@ def _handle_kt_menu_choice(choice: str) -> bool | None:
 
 
 def _handle_graphrag_and_demo_menu_choice(choice: str) -> bool | None:
-    """处理 GraphRAG 与演示验证菜单选项。"""
+    """处理 GraphRAG 与浏览器验证菜单选项。"""
     if choice == "27":
         print("\n".join(build_rag_index(course_id=_parse_optional_course_id("课程ID(留空全部): "))))
         return True
@@ -261,19 +257,8 @@ def _handle_graphrag_and_demo_menu_choice(choice: str) -> bool | None:
         print("\n".join(refresh_rag_corpus(course_id=_parse_optional_course_id("课程ID(留空全部): "))))
         return True
     if choice == "29":
-        course_name = input("课程名(默认大数据技术与应用): ").strip() or "大数据技术与应用"
-        teacher = input("教师账号(默认teacher1): ").strip() or "teacher1"
-        resources_root = input("资源根目录(留空默认): ").strip() or None
-        rebuild_demo_data(course_name=course_name, teacher=teacher, resources_root=resources_root)
-        return True
-    if choice == "30":
-        course_name = input("课程名(默认大数据技术与应用): ").strip() or "大数据技术与应用"
-        output_path = input("输出路径(默认../output/答辩演示课程导入包.zip): ").strip() or "../output/答辩演示课程导入包.zip"
-        generate_demo_course_archive(course_name=course_name, output_path=output_path)
-        return True
-    if choice == "31":
-        scenario = input("场景(audit/prepare-demo/simulate-demo/prepare-defense-demo/simulate-defense-demo): ").strip() or "audit"
-        if scenario not in {"audit", "prepare-demo", "simulate-demo", "prepare-defense-demo", "simulate-defense-demo"}:
+        scenario = input("场景(audit/prepare-demo/simulate-demo): ").strip() or "audit"
+        if scenario not in {"audit", "prepare-demo", "simulate-demo"}:
             print("无效场景")
             return True
         frontend_url = input("前端地址(默认http://127.0.0.1:3000): ").strip() or "http://127.0.0.1:3000"

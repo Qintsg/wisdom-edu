@@ -7,7 +7,6 @@
  * 用法：
  *   const { progress, stageText, start, complete, reset, isRunning } = useAIProgress(options)
  *
- * --- DEMO_EMBED: 答辩演示专用，后续可删除本文件中标记行 ---
  */
 import { ref, computed, onUnmounted } from 'vue'
 
@@ -98,14 +97,14 @@ export function useAIProgress(options: AIProgressOptions = {}) {
     }
   }
 
-  /** 启动伪进度 */
+/** 启动虚拟进度 */
   const start = () => {
-    stop() // 幂等：先清旧定时器
+    stop()
     progress.value = 0
     isRunning.value = true
     startTs = Date.now()
     timer = setInterval(tick, tickInterval)
-    tick() // 立即执行一次，避免首帧空白
+    tick()
   }
 
   /** 标记完成：进度跳到 100 并停止 */

@@ -13,7 +13,6 @@ from ai_services.api.student.rag_support import (
     build_path_constraints,
     cache_node_intro,
     cached_node_intro,
-    demo_intro_payload,
     node_intro_cache_key,
     plan_student_path,
     resolve_course,
@@ -64,10 +63,6 @@ def ai_node_intro(request: Request) -> Response:
     point = resolve_intro_point(course_id=course_id, point_id=point_id, point_name=point_name)
     if point is None:
         return error_response(msg="知识点不存在", code=404)
-
-    preset_payload = demo_intro_payload(request.user, point)
-    if preset_payload:
-        return success_response(data=preset_payload)
 
     resolved_point_name = point.name
     cache_key = node_intro_cache_key(

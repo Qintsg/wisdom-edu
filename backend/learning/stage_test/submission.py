@@ -2,12 +2,7 @@
 
 from __future__ import annotations
 
-from common.defense_demo import (
-    get_defense_demo_stage_test_payload,
-    is_defense_demo_student,
-)
 from learning.models import NodeProgress, PathNode
-from learning.stage_test.demo_submission import submit_demo_stage_test
 from learning.stage_test.evaluation import evaluate_stage_test
 from learning.stage_test.standard_submission import submit_standard_stage_test
 from learning.api.helpers import _snapshot_mastery_for_points
@@ -29,19 +24,6 @@ def submit_stage_test_answers(
         node.path.course_id,
         tracked_point_ids,
     )
-    demo_stage_payload = get_defense_demo_stage_test_payload(progress)
-
-    if demo_stage_payload and is_defense_demo_student(user, node.path.course):
-        return submit_demo_stage_test(
-            node=node,
-            user=user,
-            progress=progress,
-            evaluation=evaluation,
-            demo_stage_payload=demo_stage_payload,
-            mastery_before_snapshot=mastery_before_snapshot,
-            tracked_point_ids=tracked_point_ids,
-        )
-
     return submit_standard_stage_test(
         node=node,
         user=user,

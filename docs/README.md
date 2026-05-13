@@ -1,13 +1,13 @@
 # 知识图谱驱动的个性化自适应学习系统文档总览
 
-> 最后更新：2026-05-12
+> 最后更新：2026-05-13
 
-本文档目录面向开发、答辩演示、接口契约维护和项目材料归档。文档内容以当前仓库真实实现为准，API 契约源文件统一维护在 `docs/openapi/openapi.yaml`，`docs/api.yaml` 为 Redocly CLI 打包后的单文件产物。
+本文档目录面向开发、验收、接口契约维护和项目材料归档。文档内容以当前仓库真实实现为准，API 契约源文件统一维护在 `docs/openapi/openapi.yaml`，`docs/api.yaml` 为 Redocly CLI 打包后的单文件产物。
 
 ## 推荐阅读顺序
 
 1. `使用说明.md`：学生、教师、管理员三端页面、主要业务流程和常用命令。
-2. `演示数据导入说明.md`：答辩账号、演示课程、数据重建与浏览器巡检。
+2. `演示数据导入说明.md`：基础账号、默认入班、课程资产导入与浏览器巡检。
 3. `openapi/openapi.yaml`：模块化 OpenAPI 契约入口；`api.yaml` 为打包产物。
 4. `CHANGELOG.md`：项目变更记录。
 
@@ -15,7 +15,7 @@
 
 - `README.md`：当前文档总导航。
 - `使用说明.md`：三端页面、典型流程和常用接口入口。
-- `演示数据导入说明.md`：演示账号、课程与答辩环境数据导入说明。
+- `演示数据导入说明.md`：基础账号、课程资产、默认入班与浏览器巡检说明。
 - `openapi/openapi.yaml`：模块化 OpenAPI 描述文件和接口契约源，入口只保留全局信息和 `$ref`。
 - `api.yaml`：由 Redocly CLI 从 `docs/openapi/openapi.yaml` 打包生成的单文件 OpenAPI 描述。
 - `CHANGELOG.md`：项目变更记录。
@@ -87,11 +87,12 @@ npm run typecheck
 npm run build
 ```
 
-### 演示数据与浏览器巡检
+### 测试数据与浏览器巡检
 
 ```bash
 cd backend
-uv run python tools.py rebuild-demo-data --course-name "大数据技术与应用"
+uv run python tools.py create-test-data
+uv run python tools.py bootstrap-course-assets --course-name "大数据技术与应用"
 uv run python tools.py browser-audit --scenario audit --frontend-url http://127.0.0.1:3000 --api-base-url http://127.0.0.1:8000
 ```
 

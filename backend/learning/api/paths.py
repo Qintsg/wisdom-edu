@@ -4,10 +4,6 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 
 from assessments.models import AssessmentStatus
-from common.defense_demo import (
-    get_defense_demo_visible_order,
-    is_defense_demo_student,
-)
 from common.http.responses import error_response, success_response
 from common.domain.utils import validate_course_exists
 from learning.models import LearningPath
@@ -70,16 +66,10 @@ def get_learning_path(request):
     if not path:
         path = generate_initial_path(user, course_id)
 
-    visible_order = (
-        get_defense_demo_visible_order(path, user)
-        if is_defense_demo_student(user, path.course)
-        else None
-    )
-
     return success_response(
         data={
             "path_id": path.id,
-            "nodes": _serialize_path_nodes(path, max_visible_order=visible_order),
+            "nodes": _serialize_path_nodes(path),
             "dynamic": path.is_dynamic,
             "generating": False,
         }

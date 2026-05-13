@@ -7,7 +7,6 @@ import logging
 from django.core.cache import cache
 
 from assessments.models import AbilityScore
-from common.defense_demo import get_defense_demo_intro_payload, is_defense_demo_student
 from common.core.logging_utils import build_log_message
 from courses.models import Course
 from knowledge.models import KnowledgeMastery, KnowledgePoint
@@ -120,14 +119,6 @@ def resolve_intro_point(*, course_id: object, point_id: object, point_name: str)
     if point_id:
         return point_queryset.filter(id=point_id).first()
     return point_queryset.filter(name=point_name).order_by("order", "id").first()
-
-
-def demo_intro_payload(user, point: KnowledgePoint) -> dict[str, object] | None:
-    """读取答辩演示固定知识点介绍。"""
-    preset_payload = get_defense_demo_intro_payload(point.course, point.id)
-    if preset_payload and is_defense_demo_student(user, point.course):
-        return preset_payload
-    return None
 
 
 def node_intro_cache_key(*, user_id: int, course_id: object, point_id: object, point_name: str) -> str:

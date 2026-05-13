@@ -45,7 +45,7 @@ export async function resolveStudentContext(apiBaseUrl, token) {
   }
 }
 
-export async function resolveDefenseCourseContext(apiBaseUrl, token) {
+export async function resolvePreferredCourseContext(apiBaseUrl, token) {
   const context = await resolveStudentContext(apiBaseUrl, token)
   if (context.currentCourse?.course_name === '大数据技术与应用') {
     return context

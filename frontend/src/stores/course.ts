@@ -81,7 +81,7 @@ export const useCourseStore = defineStore('course', () => {
   const currentClass = ref<SelectedClassInfo | null>(null)
   /** 加载状态 */
   const loading = ref(false)
-  // DEMO_EMBED: 简易缓存，避免短时间内重复请求课程列表
+  // 简易缓存，避免短时间内重复请求课程列表
   let _coursesCacheTime = 0
   const COURSES_CACHE_TTL = 15000 // 15秒缓存有效期
 
@@ -111,7 +111,7 @@ export const useCourseStore = defineStore('course', () => {
    * @returns {Promise<Array>} 课程列表
    */
   async function fetchCourses(params: Record<string, unknown> = {}): Promise<NormalizedCourse[]> {
-    // DEMO_EMBED: 缓存命中时直接返回，避免冗余请求
+    // 缓存命中时直接返回，避免冗余请求
     if (_coursesCacheTime && Date.now() - _coursesCacheTime < COURSES_CACHE_TTL && courses.value.length > 0) {
       return courses.value
     }
@@ -122,7 +122,7 @@ export const useCourseStore = defineStore('course', () => {
       courses.value = Array.isArray(rawCourses)
         ? rawCourses.map(normalizeCourse).filter((course): course is NormalizedCourse => course !== null)
         : []
-      _coursesCacheTime = Date.now() // DEMO_EMBED: 更新缓存时间戳
+      _coursesCacheTime = Date.now()
 
       // 如果有课程但未选择，默认选择第一个
       if (courses.value.length > 0 && !currentCourse.value) {

@@ -70,7 +70,7 @@ def _build_exam_score_map(exam, exam_questions):
     )
 
 
-def _serialize_path_nodes(path, max_visible_order: int | None = None) -> list[dict[str, object]]:
+def _serialize_path_nodes(path) -> list[dict[str, object]]:
     """
     统一序列化学习路径节点。
     :param path: 学习路径对象。
@@ -78,8 +78,6 @@ def _serialize_path_nodes(path, max_visible_order: int | None = None) -> list[di
     """
 
     query = path.nodes.select_related("knowledge_point").prefetch_related("resources")
-    if max_visible_order is not None:
-        query = query.filter(order_index__lte=max_visible_order)
     ordered_nodes = list(query.order_by("order_index", "id"))
     return [
         {

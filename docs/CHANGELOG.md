@@ -2,9 +2,23 @@
 
 ## 2026-05-13
 
+### Backend / Tools — 删除答辩预置代码与命令入口
+
+- 删除 `common/defense_demo/`、`tools/rebuild_demo/`、`tools/db_demo_preset/`、答辩阶段测试提交流程、答辩预置测试和答辩课程导入包生成工具。
+- `tools.py` 不再提供 `rebuild-demo-data`、`generate-demo-course-archive`、`prepare-defense-demo` 或 `simulate-defense-demo`；普通 `create-test-data`、`pg-bootstrap`、`bootstrap-course-assets` 与 `browser-audit --scenario audit` 保留。
+- 学习路径、节点完成/跳过、知识点介绍、资源推荐和阶段测试提交均移除固定答辩分支，回到基于掌握度、知识点关系、GraphRAG/RAG 和标准阶段测试的真实链路。
+- 基础账号、班级、邀请码和学生默认入班关系继续由 `backend/tools/testdata.json5` 创建；`student1` 默认加入所有基础班级的行为保留。
+- `大数据技术与应用` 的知识点、题库和资源统一通过 `backend/tools/自适应学习系统-课程资源` 导入，基础种子不再为该课程额外写入内联课程内容。
+
+### Frontend — 学生设置页新增邀请码入班
+
+- `/student/settings` 新增“加入班级”卡片，复用 `POST /api/student/classes/join`。
+- 加入成功后刷新用户信息、课程列表和课程缓存，保证课程选择、我的班级和顶部课程上下文立即读取最新班级关系。
+- 前端浏览器巡检入口移除答辩专用场景，保留普通 `audit`、`prepare-demo` 和 `simulate-demo` 场景。
+
 ### Frontend / Backend — 学生端 AI 流式降级兜底
 
-- `/ws/student/ai/chat` 在已完成 GraphRAG 计划构建但模型流式无输出或生成异常时，会直接发送计划内 `fallback_reply` 的 `done(streamed=false)`，保留来源、命中知识点和模式元数据；只有计划构建失败才复用 HTTP 完整回答链路。
+- `/ws/student/ai/chat` 在已完成 GraphRAG 计划构建但模型流式无输出或生成异常时，会发送计划内 `fallback_reply` 的 `chunk` 与 `done(streamed=false)`，保留来源、命中知识点和模式元数据；只有计划构建失败才复用 HTTP 完整回答链路。
 - 学生端 AI 助手页与学习节点侧边 AI 问答在 WebSocket 建连、发送或异常关闭且尚未收到有效回答时，会自动切换到 `/api/student/ai/chat` HTTP 降级，不再优先展示泛化连接失败文案。
 
 ## 2026-05-12

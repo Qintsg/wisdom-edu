@@ -6,7 +6,7 @@ const ANSWER_VARIANTS = {
   falseValue: 'false'
 }
 
-export async function buildDefenseStageTestAnswers(client, nodeId) {
+export async function buildStageTestAnswers(client, nodeId) {
   const payload = await apiJson(client, 'GET', `/api/student/path-nodes/${nodeId}/stage-test`)
   const questions = payload.questions || []
   const answers = {}

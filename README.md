@@ -21,7 +21,7 @@
 - 个性化学习路径、任务学习、初始测评、阶段测试、在线作业与反馈报告闭环。
 - 学习画像、资源推荐、课程问答、图谱增强解释和 GraphRAG 证据召回。
 - MEFKT 知识追踪与规则兜底并行，输出掌握度、薄弱点和学习建议。
-- 演示数据重建、API 回归、浏览器巡检和部署说明覆盖答辩与验收场景。
+- 基础测试数据、课程资产导入、API 回归、浏览器巡检和部署说明覆盖开发与验收场景。
 
 ## 技术架构
 
@@ -97,11 +97,12 @@ npm run typecheck
 npm run build
 ```
 
-### 演示数据与浏览器巡检
+### 测试数据、课程资产与浏览器巡检
 
 ```bash
 cd backend
-uv run python tools.py rebuild-demo-data --course-name "大数据技术与应用"
+uv run python tools.py create-test-data
+uv run python tools.py bootstrap-course-assets --course-name "大数据技术与应用"
 uv run python tools.py browser-audit --scenario audit --frontend-url http://127.0.0.1:3000 --api-base-url http://127.0.0.1:8000
 ```
 
@@ -117,7 +118,7 @@ docs/      使用说明、演示数据、OpenAPI 契约、变更记录与项目�
 
 - `docs/README.md`：文档总览和推荐阅读顺序。
 - `docs/使用说明.md`：学生、教师、管理员三端使用路径。
-- `docs/演示数据导入说明.md`：演示账号、课程与答辩环境数据导入说明。
+- `docs/演示数据导入说明.md`：基础账号、默认入班、课程资产与浏览器巡检说明。
 - `docs/openapi/openapi.yaml`：模块化 OpenAPI 契约源文件。
 - `docs/api.yaml`：Redocly CLI 打包后的单文件 OpenAPI 产物。
 - `docs/CHANGELOG.md`：项目变更记录。

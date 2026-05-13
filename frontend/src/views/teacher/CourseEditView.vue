@@ -10,8 +10,6 @@
           <div class="card-title">基础信息</div>
         </template>
         <el-form :model="form" label-width="100px">
-          <el-alert v-if="demoImportEntry && !isEdit" type="info" :closable="false" style="margin-bottom: 16px;"
-            title="当前页适合用于答辩演示：可直接上传课程压缩包，并在创建后立即发布到班级。" />
           <el-form-item label="课程名称" required>
             <el-input v-model="form.name" placeholder="请输入课程名称" />
           </el-form-item>
@@ -86,7 +84,6 @@ const loading = ref(false)
 const saving = ref(false)
 const classLoading = ref(false)
 const isEdit = computed(() => Boolean(currentCourseId.value))
-const demoImportEntry = computed(() => route.query['entry'] === 'demo-import')
 
 const classOptions = ref([])
 

@@ -4,7 +4,6 @@ from django.db import DatabaseError
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 
-from common.defense_demo import advance_defense_demo_path, is_defense_demo_student
 from common.http.responses import error_response, success_response
 from learning.models import LearningPath, NodeProgress, PathNode
 from learning.api.helpers import _coerce_string_list, _get_authenticated_user
@@ -109,27 +108,22 @@ def complete_path_node(request, node_id):
     except PathNode.DoesNotExist:
         return error_response(msg="节点不存在", code=404)
 
-    # DEFENSE_DEMO_PRESET: 答辩链路需要固定节点顺序，学习节点完成时只推进到
-    # 下一个预置节点，避免调用完整路径重排后破坏现场讲稿和截图顺序。
-    if is_defense_demo_student(user, node.path.course):
-        advance_defense_demo_path(node, user)
-    else:
-        node.status = "completed"
-        try:
-            node.save(update_fields=["status"])
-        except DatabaseError:
-            return error_response(msg="节点已被刷新，请重新加载路径", code=409)
+    node.status = "completed"
+    try:
+        node.save(update_fields=["status"])
+    except DatabaseError:
+        return error_response(msg="节点已被刷新，请重新加载路径", code=409)
 
-        # 只解锁下一个节点，不重新生成全量路径，避免过早插入补强节点
-        from ai_services.services.path.service import PathService
+    # 只解锁下一个节点，不重新生成全量路径，避免过早插入补强节点
+    from ai_services.services.path.service import PathService
 
-        PathService().unlock_next_node(node)
+    PathService().unlock_next_node(node)
 
     return success_response(
         data={
             "node_id": node.id,
             "status": node.status,
-            "path_refreshed": not is_defense_demo_student(user, node.path.course),
+            "path_refreshed": True,
         },
         msg="节点已完成",
     )
@@ -148,22 +142,19 @@ def skip_path_node(request, node_id):
     except PathNode.DoesNotExist:
         return error_response(msg="节点不存在", code=404)
 
-    if is_defense_demo_student(user, node.path.course):
-        advance_defense_demo_path(node, user, mark_skipped=True)
-    else:
-        node.status = "skipped"
-        node.save(update_fields=["status"])
+    node.status = "skipped"
+    node.save(update_fields=["status"])
 
-        # 只解锁下一个节点，不重新生成全量路径
-        from ai_services.services.path.service import PathService
+    # 只解锁下一个节点，不重新生成全量路径
+    from ai_services.services.path.service import PathService
 
-        PathService().unlock_next_node(node)
+    PathService().unlock_next_node(node)
 
     return success_response(
         data={
             "node_id": node.id,
             "status": node.status,
-            "path_refreshed": not is_defense_demo_student(user, node.path.course),
+            "path_refreshed": True,
         },
         msg="节点已跳过",
     )

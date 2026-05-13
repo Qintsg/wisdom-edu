@@ -12,10 +12,11 @@ from common.neo4j.service import neo4j_service
 from courses.models import Class, ClassCourse, Course, Enrollment
 from knowledge.models import KnowledgePoint, KnowledgeRelation, Resource
 from tools.common import User
-from tools.db_demo_preset import _preset_student1_demo_data
 from tools.rag_index import refresh_rag_corpus
 from tools.testing import _status_flag
 from users.models import ActivationCode, ClassInvitation, UserCourseContext
+
+COURSE_ASSET_ONLY_NAMES = {"大数据技术与应用"}
 
 
 @dataclass
@@ -171,7 +172,7 @@ def _seed_courses(
     teachers: list[User],
     admin_user: User,
 ) -> list[Course]:
-    """写入课程和最小课程内容。"""
+    """写入课程，并仅为非资产目录课程创建最小课程内容。"""
     courses: list[Course] = []
     for course_cfg in data.get("courses", []):
         teacher_index = course_cfg.get("teacher_index", 0)
@@ -188,7 +189,7 @@ def _seed_courses(
         courses.append(course)
 
         seed_cfg = (data.get("course_seed_content") or {}).get(course_cfg["name"])
-        if seed_cfg:
+        if seed_cfg and course_cfg["name"] not in COURSE_ASSET_ONLY_NAMES:
             _seed_course_content(course, teacher, seed_cfg)
     return courses
 
@@ -277,22 +278,14 @@ def _attach_students_to_classes(
             },
         )
 
-    demo_student = next((student for student in students if student.username == "student1"), None)
-    if demo_student:
+    primary_student = next((student for student in students if student.username == "student1"), None)
+    if primary_student:
         for class_obj in classes:
             Enrollment.objects.get_or_create(
-                user=demo_student,
+                user=primary_student,
                 class_obj=class_obj,
                 role="student",
             )
-
-
-def _seed_student_demo_state(students: list[User], big_data_course: Course | None) -> None:
-    """为 student1 预置演示用大数据课程状态。"""
-    if not big_data_course or not students:
-        return
-    demo_student = next((student for student in students if student.username == "student1"), None)
-    _preset_student1_demo_data(demo_student, big_data_course)
 
 
 def _seed_class_invitations(
@@ -359,7 +352,6 @@ def seed_database_from_testdata(data: dict[str, Any]) -> SeededTestDataState:
     classes = _seed_classes(data, teachers, admin_user, courses)
     big_data_course, big_data_class = _resolve_big_data_context(courses, classes)
     _attach_students_to_classes(students, classes, big_data_course, big_data_class)
-    _seed_student_demo_state(students, big_data_course)
     _seed_class_invitations(data, classes, admin_user)
     _seed_survey_questions(data, courses)
     return SeededTestDataState(
