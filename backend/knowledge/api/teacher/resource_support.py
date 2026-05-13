@@ -24,6 +24,8 @@ class ResourceWritePayload:
     sort_order: int | None
     description: object
     is_visible: object | None = None
+    processing_status: object | None = None
+    processing_message: object | None = None
 
 
 def filtered_teacher_resources(course_id: object, query_params: object):
@@ -57,6 +59,8 @@ def resource_list_payload(resource: Resource) -> dict[str, object]:
         "points": [{"id": point.id, "name": point.name} for point in knowledge_points],
         "description": getattr(resource, "description", "") or "",
         "visible": resource.is_visible,
+        "processing_status": resource.processing_status,
+        "processing_message": resource.processing_message or "",
         "created_at": resource.created_at.isoformat(),
         "duration": resource.duration,
         "duration_display": resource_duration_display(resource.duration),
@@ -97,6 +101,8 @@ def resource_detail_payload(resource: Resource) -> dict[str, object]:
         "chapter_number": resource.chapter_number or "",
         "sort_order": resource.sort_order,
         "is_visible": resource.is_visible,
+        "processing_status": resource.processing_status,
+        "processing_message": resource.processing_message or "",
         "knowledge_points": list(resource.knowledge_points.values_list("id", flat=True)),
         "course_id": resource.course_id,
     }
@@ -115,6 +121,8 @@ def parse_resource_write_payload(data: object, *, partial: bool) -> ResourceWrit
         sort_order=parse_optional_int(default_sort),
         description=data.get("description", "" if not partial else None),
         is_visible=first_present(data, "visible", "is_visible") if partial else None,
+        processing_status=first_present(data, "processing_status", "status"),
+        processing_message=data.get("processing_message"),
     )
 
 
@@ -150,6 +158,10 @@ def create_resource_from_payload(
     user: object,
 ) -> Resource:
     """创建资源并按需关联知识点。"""
+    processing_status = normalize_resource_processing_status(
+        payload.processing_status,
+        has_resource=bool(file or payload.url),
+    )
     resource = Resource.objects.create(
         course_id=course_id,
         title=payload.title,
@@ -160,6 +172,8 @@ def create_resource_from_payload(
         duration=payload.duration,
         chapter_number=payload.chapter_number if payload.chapter_number else None,
         sort_order=payload.sort_order or 0,
+        processing_status=processing_status,
+        processing_message=payload.processing_message or "",
         uploaded_by=user,
     )
     replace_resource_points(resource, payload.points)
@@ -184,6 +198,13 @@ def update_resource_from_payload(resource: Resource, payload: ResourceWritePaylo
         resource.chapter_number = payload.chapter_number
     if payload.sort_order is not None:
         resource.sort_order = payload.sort_order
+    if payload.processing_status:
+        resource.processing_status = normalize_resource_processing_status(
+            payload.processing_status,
+            has_resource=bool(resource.file or resource.url),
+        )
+    if payload.processing_message is not None:
+        resource.processing_message = payload.processing_message
     resource.save()
     replace_resource_points(resource, payload.points)
 
@@ -200,4 +221,15 @@ def resource_create_result(resource: Resource) -> dict[str, object]:
         "resource_id": getattr(resource, "id", None) or getattr(resource, "pk", None),
         "title": resource.title,
         "url": resource.url or (resource.file.url if resource.file else None),
+        "processing_status": resource.processing_status,
+        "processing_message": resource.processing_message or "",
     }
+
+
+def normalize_resource_processing_status(raw_status: object, *, has_resource: bool) -> str:
+    """规范化资源导入状态，避免旧调用方缺省时只能看到 uploaded。"""
+    status_text = str(raw_status or "").strip().lower()
+    allowed_statuses = {choice[0] for choice in Resource.PROCESSING_STATUS_CHOICES}
+    if status_text in allowed_statuses:
+        return status_text
+    return "ready" if has_resource else "uploaded"

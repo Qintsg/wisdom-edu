@@ -201,6 +201,12 @@ class Resource(models.Model):
         ("link", "外部链接"),
         ("exercise", "练习"),
     ]
+    PROCESSING_STATUS_CHOICES = [
+        ("uploaded", "已上传"),
+        ("running", "处理中"),
+        ("ready", "可用"),
+        ("failed", "处理失败"),
+    ]
 
     course = models.ForeignKey(
         "courses.Course",
@@ -222,6 +228,19 @@ class Resource(models.Model):
         help_text="资源对应的章节编号，如 1.1、1.2",
     )
     sort_order = models.IntegerField("排序序号", default=0, help_text="用于控制资源的显示顺序")
+    processing_status = models.CharField(
+        "处理状态",
+        max_length=20,
+        choices=PROCESSING_STATUS_CHOICES,
+        default="uploaded",
+        help_text="资源导入、解析或索引构建状态：uploaded/running/ready/failed",
+    )
+    processing_message = models.TextField(
+        "处理说明",
+        blank=True,
+        null=True,
+        help_text="记录资源处理失败原因或最近一次导入说明",
+    )
     knowledge_points = models.ManyToManyField(
         KnowledgePoint,
         blank=True,
