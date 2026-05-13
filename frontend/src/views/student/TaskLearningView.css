@@ -170,15 +170,9 @@
 }
 
 .resource-info h4 {
-  margin: 0 0 4px;
+  margin: 0;
   font-size: 15px;
   color: #303133;
-}
-
-.resource-info p {
-  margin: 0;
-  font-size: 13px;
-  color: #909399;
 }
 
 .resource-arrow {

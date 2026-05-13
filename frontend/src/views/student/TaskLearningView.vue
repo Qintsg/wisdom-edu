@@ -82,7 +82,6 @@
               </div>
               <div class="resource-info">
                 <h4>{{ resourceRecord.titleText }}</h4>
-                <p>{{ resourceRecord.descriptionText || resourceRecord.durationText }}</p>
               </div>
               <el-tag v-if="!resourceRecord.isRequired" size="small" type="warning" effect="plain">选修</el-tag>
               <el-tag v-if="resourceRecord.isServerHosted" size="small" type="success" effect="plain">本地</el-tag>

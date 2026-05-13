@@ -173,7 +173,7 @@ export const normalizeResourcePayload = (rawPayload) => {
     resourceId: normalizeIdentifier(payload.resource_id ?? payload.id),
     titleText: normalizeText(payload.title) || '未命名资源',
     resourceType: normalizeResourceType(payload.type ?? payload.resource_type),
-    descriptionText: normalizeText(payload.description) || (!isServerHosted ? '外部扩展学习资源' : ''),
+    descriptionText: '',
     durationText: formatDuration(payload.duration),
     isCompleted: normalizeBoolean(payload.completed),
     isRequired: payload.required === undefined ? true : normalizeBoolean(payload.required, true),
