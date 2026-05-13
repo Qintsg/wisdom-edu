@@ -172,6 +172,7 @@
 }
 
 .profile-analysis-grid {
+  --profile-feature-card-height: 520px;
   display: grid;
   grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
   gap: 16px;
@@ -183,6 +184,16 @@
 .summary-card,
 .ai-card {
   width: 100%;
+  min-width: 0;
+}
+
+.ability-card,
+.mastery-card {
+  display: flex;
+  flex-direction: column;
+  height: var(--profile-feature-card-height);
+  min-height: var(--profile-feature-card-height);
+  overflow: hidden;
 }
 
 .summary-card,
@@ -197,11 +208,46 @@
   padding: 18px;
 }
 
-.ability-chart-wrapper {
-  min-height: 210px;
+.ability-card :deep(.el-card__header),
+.mastery-card :deep(.el-card__header) {
+  flex: 0 0 auto;
+}
+
+.ability-card :deep(.el-card__body),
+.mastery-card :deep(.el-card__body) {
+  flex: 1 1 auto;
+  min-height: 0;
   display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.ability-chart-wrapper {
+  display: flex;
+  flex: 1 1 auto;
   align-items: center;
   justify-content: center;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.ability-chart-wrapper > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.ability-card :deep(.radar-chart-wrapper) {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.ability-card :deep(.chart-container) {
+  max-width: 100%;
+  min-width: 0;
 }
 
 .ability-insights {
@@ -212,6 +258,7 @@
 }
 
 .insight-pill {
+  min-width: 0;
   padding: 14px;
   border-radius: 18px;
   background: var(--bg-soft-alt);
@@ -238,6 +285,7 @@
   margin: 4px 0;
   color: var(--text-primary);
   font-size: 16px;
+  overflow-wrap: anywhere;
 }
 
 .chart-placeholder {
@@ -270,5 +318,18 @@
   .hero-side {
     grid-template-columns: minmax(0, 1fr) auto;
     align-items: end;
+  }
+}
+
+@media (max-width: 1200px) {
+  .ability-card,
+  .mastery-card {
+    height: auto;
+    min-height: 0;
+  }
+
+  .ability-card :deep(.el-card__body),
+  .mastery-card :deep(.el-card__body) {
+    overflow: visible;
   }
 }

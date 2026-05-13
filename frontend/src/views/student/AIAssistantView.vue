@@ -1,19 +1,5 @@
 <template>
   <div class="ai-assistant-view">
-    <section class="assistant-command-bar">
-      <div>
-        <span class="assistant-eyebrow">GraphRAG Assistant</span>
-        <h2>AI助手</h2>
-        <p>围绕当前课程证据、知识图谱关系和学习状态进行追问。</p>
-      </div>
-      <div class="assistant-status-strip">
-        <el-tag v-if="courseStore.courseName" effect="plain">{{ courseStore.courseName }}</el-tag>
-        <el-tag :type="isGraphEnhancedMode(lastMode) ? 'success' : 'warning'" effect="plain">
-          {{ isGraphEnhancedMode(lastMode) ? '图谱增强' : '课程级回答' }}
-        </el-tag>
-      </div>
-    </section>
-
     <div class="assistant-layout">
       <el-card class="search-panel" shadow="hover">
         <template #header>
@@ -105,7 +91,7 @@
         <template #header>
           <div class="panel-header">
             <span>图谱增强问答</span>
-            <span class="stream-status">{{ chatLoading ? chatStageText : '流式输出就绪' }}</span>
+            <span v-if="chatLoading" class="chat-stage-status">{{ chatStageText }}</span>
           </div>
         </template>
 
@@ -188,11 +174,6 @@ const chatMessages = ref([
     matchedPoint: null
   }
 ])
-
-const isGraphEnhancedMode = (mode) => {
-  const normalizedMode = String(mode || '').trim()
-  return normalizedMode !== '' && normalizedMode !== 'llm_fallback' && normalizedMode !== 'error'
-}
 
 const ensureCourseSelected = () => {
   if (!courseStore.courseId) {
