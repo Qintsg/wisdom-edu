@@ -16,6 +16,7 @@ from assessments.models import Question
 from courses.models import Course
 from knowledge.models import KnowledgePoint, Resource
 from knowledge.services.content_binding import CourseContentBindingService
+from tools.bootstrap_support import bind_imported_course_content
 from users.models import User
 
 
@@ -201,4 +202,24 @@ class CourseContentBindingServiceTests(TestCase):
         self.assertEqual(
             list(self.resource.knowledge_points.values_list("name", flat=True)),
             ["Spark SQL基本操作"],
+        )
+
+    def test_bootstrap_should_bind_imported_course_content(self) -> None:
+        """课程资源导入收尾应自动写入题目和资源知识点绑定。"""
+        bind_imported_course_content(course=self.course, dry_run=False)
+
+        self.question.refresh_from_db()
+        self.resource.refresh_from_db()
+        self.combo_resource.refresh_from_db()
+        self.assertEqual(
+            list(self.question.knowledge_points.values_list("name", flat=True)),
+            ["PySpark文本处理应用"],
+        )
+        self.assertEqual(
+            list(self.resource.knowledge_points.values_list("name", flat=True)),
+            ["Spark SQL基本操作"],
+        )
+        self.assertEqual(
+            list(self.combo_resource.knowledge_points.values_list("name", flat=True)),
+            ["PySpark推荐应用", "PySpark文本处理应用"],
         )

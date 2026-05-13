@@ -256,6 +256,33 @@ def import_bundle_media_assets(
         print(f"  {label}资源导入: {imported_count} 个文件")
 
 
+def bind_imported_course_content(
+    *,
+    course: Course,
+    dry_run: bool,
+) -> None:
+    """为导入后的课程题目和资源补齐知识点绑定。"""
+    from knowledge.services.content_binding import CourseContentBindingService
+
+    service = CourseContentBindingService(course_id=int(course.pk))
+    plan = service.build_plan(replace_existing=True)
+    total_changes = len(plan.question_changes) + len(plan.resource_changes)
+    if dry_run:
+        print(
+            f"[DRY-RUN] 将自动绑定课程内容: 课程={course.name}, "
+            f"题目={len(plan.question_changes)}, 资源={len(plan.resource_changes)}"
+        )
+        return
+    if not total_changes:
+        print("  课程内容知识点绑定: 无需变更")
+        return
+    service.apply_plan(plan)
+    print(
+        f"  课程内容知识点绑定: 题目={len(plan.question_changes)}, "
+        f"资源={len(plan.resource_changes)}"
+    )
+
+
 def finalize_bootstrap_course(
     *,
     course: Course,

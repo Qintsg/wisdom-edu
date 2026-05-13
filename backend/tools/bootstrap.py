@@ -19,6 +19,7 @@ from tools.bootstrap_support import (
     ensure_course_record,
     ensure_teacher,
     finalize_bootstrap_course,
+    bind_imported_course_content,
     import_bundle_knowledge_assets,
     import_bundle_media_assets,
     import_bundle_question_assets,
@@ -81,6 +82,10 @@ def bootstrap_course_assets(
         bundle=bundle,
         course=course,
         teacher_obj=teacher_obj,
+        dry_run=dry_run,
+    )
+    bind_imported_course_content(
+        course=course,
         dry_run=dry_run,
     )
     finalize_bootstrap_course(
