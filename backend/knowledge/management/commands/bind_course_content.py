@@ -15,6 +15,8 @@ from typing import cast
 from django.core.management.base import BaseCommand, CommandParser
 from django.db import transaction
 
+from assessments.models import AssessmentResult
+from assessments.services.knowledge_result_refresh import refresh_course_knowledge_result_snapshots
 from courses.models import Course
 from knowledge.services.content_binding import (
     ContentBindingChange,
@@ -44,6 +46,11 @@ class Command(BaseCommand):
             action="store_true",
             help="同步历史时先删除目标用户课程下既有 source=initial 历史再重建",
         )
+        parser.add_argument(
+            "--refresh-assessment-results",
+            action="store_true",
+            help="写回绑定后同步重算既有知识测评结果快照",
+        )
 
     def handle(self, *args: object, **options: object) -> None:
         """执行课程内容绑定。"""
@@ -55,6 +62,7 @@ class Command(BaseCommand):
         sync_initial_history = bool(options.get("sync_initial_history"))
         replace_existing = bool(options.get("replace_existing"))
         replace_initial_history = bool(options.get("replace_initial_history"))
+        refresh_assessment_results = bool(options.get("refresh_assessment_results"))
 
         service = CourseContentBindingService(course_id=int(course.id))
         plan = service.build_plan(
@@ -62,17 +70,26 @@ class Command(BaseCommand):
             replace_existing=replace_existing,
             replace_initial_history=replace_initial_history,
         )
-        self._write_plan_summary(course=course, plan=plan, apply_changes=apply_changes)
+        self._write_plan_summary(
+            course=course,
+            plan=plan,
+            apply_changes=apply_changes,
+            refresh_assessment_results=refresh_assessment_results,
+        )
         if not apply_changes:
             self.stdout.write(self.style.WARNING("dry-run 完成；添加 --apply 后才会写回数据库。"))
             return
 
         with transaction.atomic():
             service.apply_plan(plan, replace_initial_history=replace_initial_history)
+        refresh_count = 0
+        if refresh_assessment_results:
+            refresh_count = len(refresh_course_knowledge_result_snapshots(int(course.id)))
         total_changes = (
             len(plan.question_changes)
             + len(plan.resource_changes)
             + len(plan.history_changes)
+            + refresh_count
         )
         self.stdout.write(self.style.SUCCESS(f"已写回 {total_changes} 项绑定/历史变更。"))
 
@@ -90,6 +107,7 @@ class Command(BaseCommand):
         course: Course,
         plan: CourseContentBindingPlan,
         apply_changes: bool,
+        refresh_assessment_results: bool,
     ) -> None:
         """输出绑定计划摘要。"""
         mode_label = "apply" if apply_changes else "dry-run"
@@ -98,6 +116,12 @@ class Command(BaseCommand):
         self.stdout.write(f"待绑定题目: {len(plan.question_changes)}")
         self.stdout.write(f"待绑定资源: {len(plan.resource_changes)}")
         self.stdout.write(f"待补齐初始评测历史: {len(plan.history_changes)}")
+        if refresh_assessment_results:
+            result_count = AssessmentResult.objects.filter(
+                course=course,
+                assessment__assessment_type="knowledge",
+            ).count()
+            self.stdout.write(f"待刷新知识测评结果快照: {result_count}")
         self._write_change_preview("题目", plan.question_changes)
         self._write_change_preview("资源", plan.resource_changes)
 

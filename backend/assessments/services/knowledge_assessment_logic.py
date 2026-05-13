@@ -291,11 +291,27 @@ def blend_mastery_with_kt(
             continue
         point_total = max(int(point_stats.get(normalized_point_id, {}).get('total', 0)), 0)
         baseline = float(mastery_map.get(normalized_point_id, INITIAL_MASTERY_PRIOR_MEAN))
-        kt_weight = min(0.35, 0.1 + point_total * 0.08)
+        kt_weight = resolve_initial_kt_weight(
+            point_total=point_total,
+            uses_mefkt=uses_mefkt,
+        )
         blended = baseline * (1 - kt_weight) + normalized_rate * kt_weight
         blended = min(blended, baseline + 0.12)
         blended_mastery_map[normalized_point_id] = round(max(0.0, min(INITIAL_MASTERY_MAX, blended)), 4)
     return apply_prerequisite_caps(blended_mastery_map, int(course_id))
+
+
+def resolve_initial_kt_weight(*, point_total: int, uses_mefkt: bool) -> float:
+    """
+    计算初测融合中 KT 预测权重。
+    :param point_total: 当前知识点直接作答证据数量。
+    :param uses_mefkt: 本次 KT 输出是否来自真实 MEFKT。
+    :return: KT 融合权重。
+    """
+    normalized_total = max(point_total, 0)
+    if uses_mefkt:
+        return max(0.25, min(0.52, 0.55 - normalized_total * 0.08))
+    return min(0.35, 0.1 + normalized_total * 0.08)
 
 
 def load_initial_course_point_ids(
@@ -366,6 +382,7 @@ __all__ = [
     'build_answer_history_models',
     'evaluate_knowledge_answers',
     'blend_mastery_with_kt',
+    'resolve_initial_kt_weight',
     'load_initial_course_point_ids',
     'build_feedback_report_payload',
     'build_empty_knowledge_result',
