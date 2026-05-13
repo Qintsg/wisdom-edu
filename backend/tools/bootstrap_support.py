@@ -290,8 +290,32 @@ def finalize_bootstrap_course(
     dry_run: bool,
 ) -> None:
     """执行图谱同步与 RAG 刷新收尾动作。"""
+    from tools.demo_student1_snapshot import preset_student1_big_data_snapshot
     from tools.neo4j_tools import sync_neo4j
     from tools.rag_index import refresh_rag_corpus
+
+    preset_summary = preset_student1_big_data_snapshot(
+        course_name=course.name,
+        dry_run=dry_run,
+    )
+    if preset_summary.applied:
+        print(
+            "  student1 桌面演示快照: "
+            f"掌握度={preset_summary.mastery_count}, "
+            f"初测题={preset_summary.question_count}, "
+            f"路径节点={preset_summary.path_node_count}, "
+            f"资源文件={preset_summary.asset_count}"
+        )
+    elif dry_run and preset_summary.mastery_count:
+        print(
+            "[DRY-RUN] 将写入 student1 桌面演示快照: "
+            f"掌握度={preset_summary.mastery_count}, "
+            f"初测题={preset_summary.question_count}, "
+            f"路径节点={preset_summary.path_node_count}, "
+            f"资源文件={preset_summary.asset_count}"
+        )
+    elif preset_summary.skipped_reason and course.name == "大数据技术与应用":
+        print(f"  student1 桌面演示快照跳过: {preset_summary.skipped_reason}")
 
     if sync_graph and not dry_run:
         result = sync_neo4j(int(course.pk))

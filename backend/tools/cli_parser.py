@@ -24,6 +24,7 @@ from tools.db_management import (
 from tools.diagnostics import diagnose_env
 from tools.exam_sets import import_exam_sets
 from tools.excel_templates import generate_template
+from tools.demo_student1_snapshot import preset_student1_big_data_snapshot
 from tools.knowledge import (
     export_knowledge_map,
     import_knowledge,
@@ -130,6 +131,16 @@ def build_parser() -> argparse.ArgumentParser:
     pg_parser.add_argument("--no-clear", action="store_true")
     pg_parser.add_argument("--no-course-assets", action="store_true")
     pg_parser.add_argument("--course-name", default=None)
+
+    preset_parser = sub.add_parser(
+        "preset-student1-demo-snapshot",
+        help="按桌面导出页面预置 student1 大数据演示状态",
+    )
+    preset_parser.add_argument("--course-name", default="大数据技术与应用")
+    preset_parser.add_argument("--username", default="student1")
+    preset_parser.add_argument("--desktop-root", default=None)
+    preset_parser.add_argument("--dry-run", action="store_true")
+    preset_parser.add_argument("--fail-on-missing", action="store_true")
 
     sub.add_parser("neo4j-status", help="查看Neo4j状态")
     sync_parser = sub.add_parser("sync-neo4j", help="同步到Neo4j")
@@ -255,6 +266,34 @@ def _dispatch_data_admin_commands(args: argparse.Namespace) -> bool:
         create_test_data()
     elif args.cmd in {"pg-bootstrap", "pg_bootstrap"}:
         pg_bootstrap(not args.no_migrate, not args.no_clear, not args.no_course_assets, args.course_name)
+    elif args.cmd == "preset-student1-demo-snapshot":
+        result = preset_student1_big_data_snapshot(
+            course_name=args.course_name,
+            username=args.username,
+            desktop_root=args.desktop_root,
+            dry_run=args.dry_run,
+            fail_on_missing=args.fail_on_missing,
+        )
+        if result.applied:
+            print(
+                "student1 桌面演示快照预置完成: "
+                f"course_id={result.course_id}, "
+                f"掌握度={result.mastery_count}, "
+                f"初测题={result.question_count}, "
+                f"路径节点={result.path_node_count}, "
+                f"资源文件={result.asset_count}"
+            )
+        elif result.skipped_reason == "dry-run":
+            print(
+                "student1 桌面演示快照 dry-run: "
+                f"course_id={result.course_id}, "
+                f"掌握度={result.mastery_count}, "
+                f"初测题={result.question_count}, "
+                f"路径节点={result.path_node_count}, "
+                f"资源文件={result.asset_count}"
+            )
+        else:
+            print(f"student1 桌面演示快照未写入: {result.skipped_reason}")
     elif args.cmd == "neo4j-status":
         neo4j_status()
     elif args.cmd == "sync-neo4j":

@@ -93,6 +93,7 @@ npm run build
 cd backend
 uv run python tools.py create-test-data
 uv run python tools.py bootstrap-course-assets --course-name "大数据技术与应用"
+uv run python tools.py preset-student1-demo-snapshot
 uv run python tools.py browser-audit --scenario audit --frontend-url http://127.0.0.1:3000 --api-base-url http://127.0.0.1:8000
 ```
 
