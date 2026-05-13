@@ -4,7 +4,7 @@
 
 - 本仓库为“知识图谱驱动的个性化自适应学习系统”，后端为 `Python + Django + DRF + LangChain`，前端为 `Vue3 + Fluent 2`，数据层使用 `PostgreSQL + Neo4j`。
 - 所有代理都必须遵守本文件；进入 `backend/`、`frontend/` 时还要遵守对应子目录 `AGENTS.md`。
-- 规则优先级：用户要求 > `AGENT_TODO.md` > 子目录 `AGENTS.md` > 根目录 `AGENTS.md` > 仓库约定 > 官方标准。
+- 规则优先级：用户要求 > 子目录 `AGENTS.md` > 根目录 `AGENTS.md` > 仓库约定 > 官方标准。
 
 ---
 
