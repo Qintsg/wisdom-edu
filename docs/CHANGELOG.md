@@ -1,5 +1,12 @@
 # Changelog
 
+## 2026-05-13
+
+### Frontend / Backend — 学生端 AI 流式降级兜底
+
+- `/ws/student/ai/chat` 在已完成 GraphRAG 计划构建但模型流式无输出或生成异常时，会直接发送计划内 `fallback_reply` 的 `done(streamed=false)`，保留来源、命中知识点和模式元数据；只有计划构建失败才复用 HTTP 完整回答链路。
+- 学生端 AI 助手页与学习节点侧边 AI 问答在 WebSocket 建连、发送或异常关闭且尚未收到有效回答时，会自动切换到 `/api/student/ai/chat` HTTP 降级，不再优先展示泛化连接失败文案。
+
 ## 2026-05-12
 
 ### Backend / Repository Hygiene — 代码目录结构收口

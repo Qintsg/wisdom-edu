@@ -147,17 +147,9 @@ class StudentAIStreamingConsumerTests(SimpleTestCase):
         self.assertTrue(events[5]["streamed"])
         self.assertEqual(events[5]["matched_point"]["point_name"], "数组")
 
-    def test_websocket_should_use_compatible_fallback_when_stream_has_no_chunks(self):
-        """模型不可用或流式无输出时应复用旧完整回答链路。"""
+    def test_websocket_should_use_plan_fallback_when_stream_has_no_chunks(self):
+        """模型不可用或流式无输出时应直接输出计划内降级回复。"""
         plan = self._build_plan()
-        fallback_result = {
-            "reply": "完整回答",
-            "mode": "graph_rag",
-            "sources": [{"title": "旧链路证据"}],
-            "matched_point": {"point_id": 2, "point_name": "链表"},
-            "query_modes": ["local"],
-            "key_points": ["链表"],
-        }
 
         async def run_case():
             communicator = await self._connect_communicator()
@@ -174,25 +166,116 @@ class StudentAIStreamingConsumerTests(SimpleTestCase):
                     ),
                     patch(
                         "ai_services.realtime.consumers.build_chat_response",
-                        return_value=fallback_result,
-                    ),
+                    ) as fallback_mock,
                 ):
                     await communicator.send_json_to(
                         {"question": "链表怎么学", "course_id": 7}
                     )
-                    events = [await communicator.receive_json_from() for _ in range(5)]
+                    events = [await communicator.receive_json_from() for _ in range(4)]
             finally:
                 await communicator.disconnect()
-            return ready_event, events
+            return ready_event, events, fallback_mock.call_count
 
-        ready_event, events = async_to_sync(run_case)()
+        ready_event, events, fallback_call_count = async_to_sync(run_case)()
 
         self.assertEqual(ready_event["type"], "ready")
         self.assertEqual(
             [event["type"] for event in events],
-            ["start", "stage", "stage", "chunk", "done"],
+            ["start", "stage", "stage", "done"],
         )
-        self.assertEqual(events[3]["content"], "完整回答")
-        self.assertEqual(events[4]["reply"], "完整回答")
-        self.assertFalse(events[4]["streamed"])
-        self.assertEqual(events[4]["matched_point"]["point_name"], "链表")
+        self.assertEqual(events[3]["reply"], "fallback answer")
+        self.assertFalse(events[3]["streamed"])
+        self.assertEqual(events[3]["matched_point"]["point_name"], "数组")
+        self.assertEqual(fallback_call_count, 0)
+
+    def test_websocket_should_use_compatible_fallback_when_plan_build_fails(self):
+        """计划构建失败时仍应复用 HTTP 完整回答链路。"""
+        fallback_result = {
+            "reply": "完整回答",
+            "mode": "graph_rag",
+            "sources": [{"title": "旧链路证据"}],
+            "matched_point": {"point_id": 2, "point_name": "链表"},
+            "query_modes": ["local"],
+            "key_points": ["链表"],
+        }
+
+        async def run_case():
+            communicator = await self._connect_communicator()
+            try:
+                ready_event = await communicator.receive_json_from()
+                with (
+                    patch(
+                        "ai_services.realtime.consumers.build_student_ai_stream_plan",
+                        side_effect=RuntimeError("plan failed"),
+                    ),
+                    patch(
+                        "ai_services.realtime.consumers.build_chat_response",
+                        return_value=fallback_result,
+                    ) as fallback_mock,
+                ):
+                    await communicator.send_json_to(
+                        {"question": "链表怎么学", "course_id": 7}
+                    )
+                    events = [await communicator.receive_json_from() for _ in range(4)]
+            finally:
+                await communicator.disconnect()
+            return ready_event, events, fallback_mock.call_count
+
+        ready_event, events, fallback_call_count = async_to_sync(run_case)()
+
+        self.assertEqual(ready_event["type"], "ready")
+        self.assertEqual(
+            [event["type"] for event in events],
+            ["start", "stage", "chunk", "done"],
+        )
+        self.assertEqual(events[2]["content"], "完整回答")
+        self.assertEqual(events[3]["reply"], "完整回答")
+        self.assertFalse(events[3]["streamed"])
+        self.assertEqual(events[3]["matched_point"]["point_name"], "链表")
+        self.assertEqual(fallback_call_count, 1)
+
+    def test_websocket_should_use_plan_fallback_when_stream_raises(self):
+        """流式生成器异常时应保留已检索到的计划元数据。"""
+        plan = self._build_plan()
+
+        def broken_chunks():
+            """模拟底层模型流在首块前抛出异常。"""
+            raise RuntimeError("stream failed")
+            yield "unreachable"
+
+        async def run_case():
+            communicator = await self._connect_communicator()
+            try:
+                ready_event = await communicator.receive_json_from()
+                with (
+                    patch(
+                        "ai_services.realtime.consumers.build_student_ai_stream_plan",
+                        return_value=plan,
+                    ),
+                    patch(
+                        "ai_services.realtime.consumers.iter_student_ai_stream_chunks",
+                        return_value=broken_chunks(),
+                    ),
+                    patch(
+                        "ai_services.realtime.consumers.build_chat_response",
+                    ) as fallback_mock,
+                ):
+                    await communicator.send_json_to(
+                        {"question": "数组怎么学", "course_id": 7}
+                    )
+                    events = [await communicator.receive_json_from() for _ in range(4)]
+            finally:
+                await communicator.disconnect()
+            return ready_event, events, fallback_mock.call_count
+
+        ready_event, events, fallback_call_count = async_to_sync(run_case)()
+
+        self.assertEqual(ready_event["type"], "ready")
+        self.assertEqual(
+            [event["type"] for event in events],
+            ["start", "stage", "stage", "done"],
+        )
+        self.assertEqual(events[3]["reply"], "fallback answer")
+        self.assertFalse(events[3]["streamed"])
+        self.assertEqual(events[3]["sources"][0]["title"], "数组图谱")
+        self.assertEqual(fallback_call_count, 0)

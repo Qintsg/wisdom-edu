@@ -1,7 +1,8 @@
 import { nextTick, onUnmounted, ref } from 'vue'
-import { createStudentAIChatSocket } from '@/api/student/ai'
+import { aiChat, createStudentAIChatSocket } from '@/api/student/ai'
 
 const DEFAULT_STAGE_TEXT = '正在连接 AI 助手'
+const HTTP_FALLBACK_STAGE_TEXT = '正在切换 HTTP 问答链路'
 const FALLBACK_ERROR_TEXT = '抱歉，AI助手暂时无法回复，请稍后重试。'
 
 const normalizeText = (value) => {
@@ -27,6 +28,8 @@ const createAssistantMessage = () => ({
 
 const normalizeSourceList = (value) => Array.isArray(value) ? value : []
 
+const hasMeaningfulReply = (assistantMessage) => normalizeText(assistantMessage.content) !== ''
+
 /**
  * 学生端 AI WebSocket 流式问答状态机。
  */
@@ -37,11 +40,57 @@ export function useStudentAIStream(options = {}) {
   const activeSocket = ref(null)
   const lastMode = ref('graph_rag')
   const shouldInlineErrorFallback = options.inlineErrorFallback !== false
+  const httpFallback = options.httpFallback || aiChat
 
   const applyErrorFallback = (assistantMessage, message = FALLBACK_ERROR_TEXT) => {
     if (shouldInlineErrorFallback) {
       assistantMessage.content = normalizeText(message) || FALLBACK_ERROR_TEXT
     }
+  }
+
+  const applyFinalErrorFallback = (assistantMessage, message = FALLBACK_ERROR_TEXT) => {
+    assistantMessage.content = normalizeText(message) || FALLBACK_ERROR_TEXT
+  }
+
+  const applyChatResult = async (assistantMessage, resultPayload, onDone) => {
+    const streamPayload = {
+      type: 'done',
+      reply: normalizeText(resultPayload?.reply ?? resultPayload?.answer) || '暂无回复',
+      sources: normalizeSourceList(resultPayload?.sources),
+      matched_point: resultPayload?.matched_point || null,
+      mode: normalizeText(resultPayload?.mode) || 'llm_fallback',
+      query_modes: normalizeSourceList(resultPayload?.query_modes),
+      key_points: normalizeSourceList(resultPayload?.key_points),
+      streamed: false
+    }
+    assistantMessage.content = streamPayload.reply
+    assistantMessage.sources = streamPayload.sources
+    assistantMessage.matchedPoint = streamPayload.matched_point
+    assistantMessage.mode = streamPayload.mode
+    assistantMessage.queryModes = streamPayload.query_modes
+    assistantMessage.keyPoints = streamPayload.key_points
+    assistantMessage.streamed = false
+    lastMode.value = assistantMessage.mode
+    if (typeof onDone === 'function') await onDone(streamPayload, assistantMessage)
+  }
+
+  const runHttpFallback = async ({
+    questionText,
+    payload,
+    history,
+    assistantMessage,
+    onDone
+  }) => {
+    if (!httpFallback || hasMeaningfulReply(assistantMessage)) return false
+    stageText.value = HTTP_FALLBACK_STAGE_TEXT
+    const resultPayload = await httpFallback({
+      ...payload,
+      question: questionText,
+      message: questionText,
+      history
+    })
+    await applyChatResult(assistantMessage, resultPayload, onDone)
+    return true
   }
 
   const scrollToBottom = async () => {
@@ -79,10 +128,20 @@ export function useStudentAIStream(options = {}) {
     let socket = null
     try {
       socket = createStudentAIChatSocket()
-    } catch {
-      applyErrorFallback(assistantMessage)
+    } catch (error) {
+      try {
+        await runHttpFallback({ questionText, payload, history, assistantMessage, onDone })
+      } catch (fallbackError) {
+        applyFinalErrorFallback(assistantMessage)
+        if (typeof onError === 'function') {
+          onError({
+            type: 'error',
+            message: assistantMessage.content,
+            error: fallbackError || error
+          })
+        }
+      }
       loading.value = false
-      if (typeof onError === 'function') onError({ type: 'error', message: assistantMessage.content || FALLBACK_ERROR_TEXT })
       await scrollToBottom()
       return assistantMessage
     }
@@ -90,6 +149,7 @@ export function useStudentAIStream(options = {}) {
     activeSocket.value = socket
     let settled = false
     let receivedChunk = false
+    let handlingTransportFailure = false
 
     return new Promise((resolve) => {
       const finish = async () => {
@@ -101,13 +161,49 @@ export function useStudentAIStream(options = {}) {
         resolve(assistantMessage)
       }
 
-      socket.onopen = () => {
-        socket.send(JSON.stringify({
-          ...payload,
-          question: questionText,
-          message: questionText,
-          history
-        }))
+      const finishWithTransportFallback = async (fallbackMessage = FALLBACK_ERROR_TEXT, error = null) => {
+        if (settled || handlingTransportFailure) return
+        handlingTransportFailure = true
+        try {
+          if (activeSocket.value === socket) activeSocket.value = null
+          try {
+            socket.close()
+          } catch {
+            // WebSocket 已处于关闭态时无需额外处理。
+          }
+          if (!receivedChunk && !hasMeaningfulReply(assistantMessage)) {
+            try {
+              await runHttpFallback({ questionText, payload, history, assistantMessage, onDone })
+            } catch (fallbackError) {
+              applyFinalErrorFallback(assistantMessage, fallbackMessage)
+              if (typeof onError === 'function') {
+                onError({
+                  type: 'error',
+                  message: assistantMessage.content,
+                  error: fallbackError || error
+                })
+              }
+            }
+          } else if (!hasMeaningfulReply(assistantMessage)) {
+            applyErrorFallback(assistantMessage, fallbackMessage)
+            if (typeof onError === 'function') onError({ type: 'error', message: assistantMessage.content || fallbackMessage, error })
+          }
+        } finally {
+          await finish()
+        }
+      }
+
+      socket.onopen = async () => {
+        try {
+          socket.send(JSON.stringify({
+            ...payload,
+            question: questionText,
+            message: questionText,
+            history
+          }))
+        } catch (error) {
+          await finishWithTransportFallback(FALLBACK_ERROR_TEXT, error)
+        }
       }
 
       socket.onmessage = async (event) => {
@@ -151,26 +247,21 @@ export function useStudentAIStream(options = {}) {
         }
 
         if (streamPayload.type === 'error') {
-          applyErrorFallback(assistantMessage, streamPayload.message)
-          if (typeof onError === 'function') onError(streamPayload)
-          socket.close()
-          await finish()
+          await finishWithTransportFallback(normalizeText(streamPayload.message) || FALLBACK_ERROR_TEXT, streamPayload)
         }
       }
 
-      socket.onerror = async () => {
-        if (!receivedChunk && !assistantMessage.content) {
-          applyErrorFallback(assistantMessage)
+      socket.onerror = async (event) => {
+        await finishWithTransportFallback(FALLBACK_ERROR_TEXT, event)
+      }
+
+      socket.onclose = async (event) => {
+        if (settled || handlingTransportFailure) return
+        if (!receivedChunk && !hasMeaningfulReply(assistantMessage)) {
+          await finishWithTransportFallback(normalizeText(event?.reason) || FALLBACK_ERROR_TEXT, event)
+          return
         }
-        if (typeof onError === 'function') onError({ type: 'error', message: assistantMessage.content || FALLBACK_ERROR_TEXT })
         await finish()
-      }
-
-      socket.onclose = async () => {
-        if (!settled) {
-          if (!receivedChunk && !assistantMessage.content) applyErrorFallback(assistantMessage)
-          await finish()
-        }
       }
     })
   }

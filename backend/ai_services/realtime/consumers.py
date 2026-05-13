@@ -10,6 +10,7 @@ from channels.generic.websocket import AsyncJsonWebsocketConsumer
 
 from common.core.logging_utils import build_log_message
 from ai_services.services.student.ai_streaming import (
+    StudentAIStreamPlan,
     build_stream_done_payload,
     build_student_ai_stream_plan,
     iter_student_ai_stream_chunks,
@@ -101,13 +102,7 @@ class StudentAIChatConsumer(AsyncJsonWebsocketConsumer):
                 await self.send_json({"type": "chunk", "content": chunk_text})
 
             if not reply_parts:
-                await self._send_compatible_fallback(
-                    question=question,
-                    course_id=course_id,
-                    point_id=point_id,
-                    knowledge_point=knowledge_point,
-                    course_name=course_name,
-                )
+                await self._send_plan_fallback(plan)
                 return
 
             done_payload = build_stream_done_payload(
@@ -116,14 +111,19 @@ class StudentAIChatConsumer(AsyncJsonWebsocketConsumer):
                 streamed=streamed,
             )
             await self.send_json({"type": "done", **done_payload})
-        except Exception:  # noqa: BLE001
-            await self._send_compatible_fallback(
-                question=question,
-                course_id=course_id,
-                point_id=point_id,
-                knowledge_point=knowledge_point,
-                course_name=course_name,
-            )
+        except Exception as error:  # noqa: BLE001
+            logger.error(build_log_message("student_ai.stream.emit_fail", error=error))
+            await self._send_plan_fallback(plan)
+
+    async def _send_plan_fallback(self, plan: StudentAIStreamPlan) -> None:
+        """模型流式输出失败时发送计划内降级回复和 GraphRAG 元数据。"""
+        reply_text = str(plan.fallback_reply or "").strip() or "当前证据不足，请补充更具体的问题后重试。"
+        done_payload = build_stream_done_payload(
+            plan=plan,
+            reply=reply_text,
+            streamed=False,
+        )
+        await self.send_json({"type": "done", **done_payload})
 
     async def _send_compatible_fallback(
         self,
