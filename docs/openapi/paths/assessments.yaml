@@ -39,6 +39,7 @@
     tags: [Assessments]
     operationId: submitKnowledgeAssessment
     summary: 提交课程知识测评
+    description: 提交后会保存本次测评掌握度快照；题目级 MEFKT 会接收所有作答题目，未绑定知识点的题目以 question_id 参与历史序列。
     requestBody:
       required: true
       content:
@@ -74,6 +75,7 @@
     tags: [Assessments]
     operationId: getKnowledgeAssessmentResult
     summary: 获取课程知识测评结果和异步生成状态
+    description: mastery 返回本次知识测评结果快照，不混入异步路径或画像刷新写入的课程全量掌握度基线。
     parameters:
       - name: course_id
         in: query

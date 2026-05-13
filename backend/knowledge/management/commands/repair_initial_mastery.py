@@ -121,12 +121,7 @@ class Command(BaseCommand):
             queryset = queryset.filter(user_id=user_id)
         if course_id is not None:
             queryset = queryset.filter(course_id=course_id)
-        rows = (
-            queryset.exclude(knowledge_point_id__isnull=True)
-            .values("user_id", "course_id")
-            .distinct()
-            .order_by("course_id", "user_id")
-        )
+        rows = queryset.values("user_id", "course_id").distinct().order_by("course_id", "user_id")
         return [
             RepairTarget(user_id=int(row["user_id"]), course_id=int(row["course_id"]))
             for row in rows
@@ -189,7 +184,7 @@ class Command(BaseCommand):
             )
         return changes
 
-    def _load_kt_history(self, target: RepairTarget) -> list[dict[str, int]]:
+    def _load_kt_history(self, target: RepairTarget) -> list[dict[str, int | None]]:
         """读取初始评测作答历史并转换为 KT 输入。"""
         rows = (
             AnswerHistory.objects.filter(
@@ -197,23 +192,24 @@ class Command(BaseCommand):
                 course_id=target.course_id,
                 source="initial",
             )
-            .exclude(knowledge_point_id__isnull=True)
             .order_by("answered_at", "id")
             .values("question_id", "knowledge_point_id", "is_correct")
         )
         return [
             {
                 "question_id": int(row["question_id"]),
-                "knowledge_point_id": int(row["knowledge_point_id"]),
+                "knowledge_point_id": int(row["knowledge_point_id"]) if row["knowledge_point_id"] else None,
                 "correct": 1 if row["is_correct"] else 0,
             }
             for row in rows
         ]
 
-    def _build_direct_mastery(self, answer_history: list[dict[str, int]]) -> dict[int, float]:
+    def _build_direct_mastery(self, answer_history: list[dict[str, int | None]]) -> dict[int, float]:
         """根据直接作答证据重算初测掌握度基线。"""
         point_stats: dict[int, dict[str, int]] = {}
         for record in answer_history:
+            if not record["knowledge_point_id"]:
+                continue
             point_id = int(record["knowledge_point_id"])
             point_stats.setdefault(point_id, {"correct": 0, "total": 0})
             point_stats[point_id]["total"] += 1
@@ -237,7 +233,7 @@ class Command(BaseCommand):
         self,
         *,
         target: RepairTarget,
-        answer_history: list[dict[str, int]],
+        answer_history: list[dict[str, int | None]],
         course_point_ids: list[int],
     ) -> tuple[dict[int, float], str]:
         """优先使用真实 MEFKT 预测，回退时只保留有作答证据的统计结果。"""

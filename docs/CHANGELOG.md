@@ -2,6 +2,12 @@
 
 ## 2026-05-13
 
+### Backend / KT — MEFKT 初测题目级历史与大数据内容绑定
+
+- 知识测评提交现在会把无知识点绑定但有题目 ID 的作答一并传入 MEFKT，并持久化为 `knowledge_point=null` 的初始答题历史，避免题目级在线模型只看到少量已绑定题。
+- 知识测评结果轮询优先返回本次 `AssessmentResult` 掌握度快照，不再把异步路径/画像刷新补出的课程全量 0.40 基线混入初测报告。
+- 新增 `bind_course_content` 管理命令，可按题干、资源标题和课程知识点为“大数据技术与应用”等课程补齐题目/资源/知识点绑定，并可同步补齐既有初始评测历史。
+
 ### Backend / Tools — 删除答辩预置代码与命令入口
 
 - 删除 `common/defense_demo/`、`tools/rebuild_demo/`、`tools/db_demo_preset/`、答辩阶段测试提交流程、答辩预置测试和答辩课程导入包生成工具。

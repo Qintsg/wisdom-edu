@@ -11,6 +11,7 @@ from assessments.models import (
     Assessment,
     AssessmentQuestion,
     AbilityScore,
+    AnswerHistory,
     Question,
     SurveyQuestion,
 )
@@ -160,8 +161,13 @@ class KnowledgeAssessmentMasteryTests(APITestCase):
         AssessmentQuestion.objects.create(assessment=self.assessment, question=self.post_question, order=1)
         self.client.force_authenticate(user=self.student)
 
+    @patch('assessments.api.knowledge.threading.Thread')
     @patch('ai_services.services.kt.service.kt_service.predict_mastery')
-    def test_knowledge_assessment_should_keep_mastery_conservative_and_respect_prerequisite(self, mock_predict_mastery):
+    def test_knowledge_assessment_should_keep_mastery_conservative_and_respect_prerequisite(
+        self,
+        mock_predict_mastery,
+        _mock_thread,
+    ):
         """A stronger downstream prediction should still be capped by prerequisite weakness."""
         mock_predict_mastery.return_value = {
             'predictions': {
@@ -191,7 +197,7 @@ class KnowledgeAssessmentMasteryTests(APITestCase):
         self.assertLess(pre_mastery, 0.6)
         self.assertLessEqual(post_mastery, pre_mastery)
 
-    @patch('assessments.knowledge_views.threading.Thread')
+    @patch('assessments.api.knowledge.threading.Thread')
     @patch('ai_services.services.kt.service.kt_service.predict_mastery')
     def test_knowledge_assessment_should_persist_mefkt_unmeasured_inference(
         self,
@@ -239,7 +245,124 @@ class KnowledgeAssessmentMasteryTests(APITestCase):
             )
         )
 
-    @patch('assessments.knowledge_views.threading.Thread')
+    @patch('assessments.api.knowledge.threading.Thread')
+    @patch('ai_services.services.kt.service.kt_service.predict_mastery')
+    def test_knowledge_assessment_should_keep_unbound_questions_in_kt_history(
+        self,
+        mock_predict_mastery,
+        _mock_thread,
+    ):
+        """无知识点绑定的题目也应凭 question_id 进入题目级 MEFKT 历史。"""
+        unbound_question = Question.objects.create(
+            course=self.course,
+            content='无绑定但可由题目级 MEFKT 识别的题目',
+            question_type='single_choice',
+            options=[{'value': 'A', 'label': 'A'}, {'value': 'B', 'label': 'B'}],
+            answer={'answer': 'A'},
+            score=2,
+            is_visible=True,
+            created_by=self.teacher,
+        )
+        AssessmentQuestion.objects.create(assessment=self.assessment, question=unbound_question, order=2)
+        mock_predict_mastery.return_value = {
+            'predictions': {
+                self.pre_point.id: 0.58,
+                self.inferred_point.id: 0.71,
+            },
+            'confidence': 0.8,
+            'model_type': 'mefkt_question_online',
+            'answer_count': 3,
+        }
+
+        response = self.client.post(
+            '/api/student/assessments/initial/knowledge/submit',
+            {
+                'course_id': self.course.id,
+                'answers': [
+                    {'question_id': self.pre_question.id, 'answer': 'A'},
+                    {'question_id': self.post_question.id, 'answer': 'A'},
+                    {'question_id': unbound_question.id, 'answer': 'A'},
+                ],
+            },
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, 200)
+        answer_history = mock_predict_mastery.call_args.kwargs['answer_history']
+        self.assertIn(
+            {
+                'question_id': unbound_question.id,
+                'knowledge_point_id': None,
+                'correct': 1,
+            },
+            answer_history,
+        )
+        self.assertTrue(
+            AnswerHistory.objects.filter(
+                user=self.student,
+                course=self.course,
+                question=unbound_question,
+                knowledge_point__isnull=True,
+                source='initial',
+            ).exists()
+        )
+
+    @patch('assessments.api.knowledge.threading.Thread')
+    @patch('ai_services.services.kt.service.kt_service.predict_mastery')
+    def test_knowledge_result_should_return_assessment_snapshot_mastery(
+        self,
+        mock_predict_mastery,
+        _mock_thread,
+    ):
+        """结果轮询应返回本次测评快照，避免异步全课程基线污染初测报告。"""
+        extra_point = KnowledgePoint.objects.create(
+            course=self.course,
+            name='异步全量基线点',
+            order=4,
+            is_published=True,
+        )
+        mock_predict_mastery.return_value = {
+            'predictions': {
+                self.pre_point.id: 0.58,
+                self.inferred_point.id: 0.71,
+            },
+            'confidence': 0.8,
+            'model_type': 'mefkt_question_online',
+            'answer_count': 2,
+        }
+
+        submit_response = self.client.post(
+            '/api/student/assessments/initial/knowledge/submit',
+            {
+                'course_id': self.course.id,
+                'answers': [
+                    {'question_id': self.pre_question.id, 'answer': 'A'},
+                    {'question_id': self.post_question.id, 'answer': 'A'},
+                ],
+            },
+            format='json',
+        )
+        self.assertEqual(submit_response.status_code, 200)
+        KnowledgeMastery.objects.update_or_create(
+            user=self.student,
+            course=self.course,
+            knowledge_point=extra_point,
+            defaults={'mastery_rate': 0.4},
+        )
+
+        result_response = self.client.get(
+            f'/api/student/assessments/initial/knowledge/result?course_id={self.course.id}'
+        )
+
+        self.assertEqual(result_response.status_code, 200)
+        result_point_ids = {
+            item['point_id']
+            for item in result_response.data['data']['mastery']
+        }
+        self.assertIn(self.inferred_point.id, result_point_ids)
+        self.assertNotIn(extra_point.id, result_point_ids)
+
+    @patch('assessments.api.knowledge.threading.Thread')
     @patch('ai_services.services.kt.service.kt_service.predict_mastery')
     def test_knowledge_assessment_should_spread_small_sample_mastery(self, mock_predict_mastery, _mock_thread):
         """初测小样本掌握度应避开旧 25/30/50 尖峰。"""

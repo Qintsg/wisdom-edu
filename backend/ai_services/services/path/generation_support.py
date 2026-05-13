@@ -63,7 +63,6 @@ def sync_course_mastery(
             "correct": 1 if record["is_correct"] else 0,
         }
         for record in answer_records
-        if record["knowledge_point_id"]
     ]
     mastery_dict = predict_course_mastery(
         user=user,
@@ -97,7 +96,7 @@ def predict_course_mastery(
     user: "User",
     course_id: int,
     course_point_ids: list[int],
-    kt_history: list[dict[str, int]],
+    kt_history: list[dict[str, int | None]],
 ) -> dict[int, float]:
     """调用 KT 服务预测课程知识点掌握度。"""
     from ai_services.services import kt_service

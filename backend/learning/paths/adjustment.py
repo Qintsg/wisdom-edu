@@ -106,7 +106,7 @@ def _update_mastery_from_answer_history(*, user: User, course_id: CourseId) -> N
         )
 
 
-def _build_kt_history(*, user: User, course_id: CourseId) -> list[dict[str, int]]:
+def _build_kt_history(*, user: User, course_id: CourseId) -> list[dict[str, int | None]]:
     """读取课程答题历史并转换为 KT 服务输入结构。"""
     answer_records = (
         AnswerHistory.objects.filter(user=user, course_id=course_id)
@@ -123,7 +123,6 @@ def _build_kt_history(*, user: User, course_id: CourseId) -> list[dict[str, int]
             "correct": 1 if record["is_correct"] else 0,
         }
         for record in answer_records
-        if record["knowledge_point_id"]
     ]
 
 

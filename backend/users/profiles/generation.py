@@ -199,7 +199,7 @@ def refresh_mastery_with_kt(user: User, course_id: int) -> Dict[str, Any]:
             'knowledge_point_id': record['knowledge_point_id'],
             'correct': 1 if record['is_correct'] else 0
         }
-        for record in answer_records if record['knowledge_point_id']
+        for record in answer_records
     ]
     kt_result = kt_service.predict_mastery(
         user_id=user.id,

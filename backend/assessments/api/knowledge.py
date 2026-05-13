@@ -16,8 +16,6 @@ from rest_framework.response import Response
 
 from common.http.permissions import IsStudent
 from common.http.responses import error_response, success_response
-from knowledge.models import KnowledgeMastery
-
 from assessments.services.assessment_helpers import (
     clean_text,
     get_authenticated_user,
@@ -254,13 +252,6 @@ def get_knowledge_result(request: Request) -> Response:
             msg='未找到评测结果',
         )
 
-    masteries = KnowledgeMastery.objects.filter(user=user, course_id=course_id).select_related('knowledge_point')
-    mastery_list = [{
-        'point_id': mastery.knowledge_point_id,
-        'point_name': mastery.knowledge_point.name if mastery.knowledge_point else '',
-        'mastery_rate': float(mastery.mastery_rate),
-    } for mastery in masteries]
-
     feedback_report_data = None
     if not status.generating:
         try:
@@ -271,6 +262,9 @@ def get_knowledge_result(request: Request) -> Response:
             logger.warning(f"获取反馈报告失败: {exc}")
 
     result_data = result.result_data if isinstance(result.result_data, dict) else {}
+    mastery_list = result_data.get('mastery', [])
+    if not isinstance(mastery_list, list):
+        mastery_list = []
     return success_response(data={
         'score': float(result.score),
         'total_score': float(result_data.get('total_score', 0)),
