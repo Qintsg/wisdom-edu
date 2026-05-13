@@ -6,6 +6,10 @@ import logging
 from typing import TYPE_CHECKING
 
 from assessments.services.assessment_helpers import INITIAL_MASTERY_PRIOR_MEAN
+from assessments.services.initial_mastery import (
+    blend_initial_evidence_with_predictions,
+    load_initial_mastery_evidence,
+)
 from ai_services.services.kt.prediction_support import (
     answered_point_ids,
     is_mefkt_prediction,
@@ -64,11 +68,21 @@ def sync_course_mastery(
         }
         for record in answer_records
     ]
-    mastery_dict = predict_course_mastery(
+    mastery_dict, uses_mefkt = predict_course_mastery_with_metadata(
         user=user,
         course_id=course_id,
         course_point_ids=course_point_ids,
         kt_history=kt_history,
+    )
+    initial_evidence = load_initial_mastery_evidence(
+        user_id=int(user.id),
+        course_id=int(course_id),
+    )
+    mastery_dict = blend_initial_evidence_with_predictions(
+        course_id=int(course_id),
+        evidence=initial_evidence,
+        prediction_map=mastery_dict,
+        uses_mefkt=uses_mefkt,
     )
     existing_mastery = {
         row.knowledge_point_id: float(row.mastery_rate)
@@ -99,10 +113,27 @@ def predict_course_mastery(
     kt_history: list[dict[str, int | None]],
 ) -> dict[int, float]:
     """调用 KT 服务预测课程知识点掌握度。"""
+    mastery_dict, _ = predict_course_mastery_with_metadata(
+        user=user,
+        course_id=course_id,
+        course_point_ids=course_point_ids,
+        kt_history=kt_history,
+    )
+    return mastery_dict
+
+
+def predict_course_mastery_with_metadata(
+    *,
+    user: "User",
+    course_id: int,
+    course_point_ids: list[int],
+    kt_history: list[dict[str, int | None]],
+) -> tuple[dict[int, float], bool]:
+    """调用 KT 服务预测课程知识点掌握度，并返回是否为真实 MEFKT。"""
     from ai_services.services import kt_service
 
     if not kt_history:
-        return {}
+        return {}, False
     try:
         kt_result = kt_service.predict_mastery(
             user_id=user.id,
@@ -111,7 +142,8 @@ def predict_course_mastery(
             knowledge_points=course_point_ids,
         )
         mastery_dict = normalize_prediction_map(kt_result.get("predictions"))
-        if not is_mefkt_prediction(kt_result):
+        uses_mefkt = is_mefkt_prediction(kt_result)
+        if not uses_mefkt:
             evidence_points = answered_point_ids(kt_history)
             mastery_dict = {
                 point_id: value
@@ -125,14 +157,14 @@ def predict_course_mastery(
             len(mastery_dict),
             kt_result.get("model_type"),
         )
-        return mastery_dict
+        return mastery_dict, uses_mefkt
     except Exception as kt_error:
         logger.error(
             "KT预测失败(路径生成): 用户=%s, 错误=%s",
             user.id,
             kt_error,
         )
-        return {}
+        return {}, False
 
 
 def persist_course_mastery(

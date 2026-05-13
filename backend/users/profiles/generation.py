@@ -8,6 +8,10 @@ from typing import Any, Dict, List, Protocol
 from django.db import DatabaseError
 
 from assessments.models import AnswerHistory, ProfileHistory
+from assessments.services.initial_mastery import (
+    blend_initial_evidence_with_predictions,
+    load_initial_mastery_evidence,
+)
 from ai_services.services.kt.prediction_support import (
     answered_point_ids,
     is_mefkt_prediction,
@@ -183,7 +187,7 @@ def resolve_course_name(course_id: int) -> str | None:
 
 def refresh_mastery_with_kt(user: User, course_id: int) -> Dict[str, Any]:
     """调用 KT 服务预测掌握度，并将预测结果回写到知识掌握度表。"""
-    from ai_services.services import kt_service
+    from ai_services.services.kt import service as kt_service_module
 
     answer_records = AnswerHistory.objects.filter(
         user=user, course_id=course_id
@@ -201,20 +205,36 @@ def refresh_mastery_with_kt(user: User, course_id: int) -> Dict[str, Any]:
         }
         for record in answer_records
     ]
-    kt_result = kt_service.predict_mastery(
+    predictor = (
+        kt_service_module
+        if callable(getattr(kt_service_module, 'predict_mastery', None))
+        else kt_service_module.kt_service
+    )
+    kt_result = predictor.predict_mastery(
         user_id=user.id,
         course_id=course_id,
         answer_history=answer_history,
         knowledge_points=load_course_point_ids(course_id),
     )
     kt_predictions = normalize_prediction_map(kt_result.get('predictions'))
-    if not is_mefkt_prediction(kt_result):
+    uses_mefkt = is_mefkt_prediction(kt_result)
+    if not uses_mefkt:
         evidence_points = answered_point_ids(answer_history)
         kt_predictions = {
             point_id: rate
             for point_id, rate in kt_predictions.items()
             if point_id in evidence_points
         }
+    initial_evidence = load_initial_mastery_evidence(
+        user_id=int(user.id),
+        course_id=int(course_id),
+    )
+    kt_predictions = blend_initial_evidence_with_predictions(
+        course_id=int(course_id),
+        evidence=initial_evidence,
+        prediction_map=kt_predictions,
+        uses_mefkt=uses_mefkt,
+    )
     for point_id, rate_float in kt_predictions.items():
         mastery_record, mastery_created = KnowledgeMastery.objects.update_or_create(
             user=user,
