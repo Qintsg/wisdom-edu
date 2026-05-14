@@ -15,6 +15,7 @@ from ai_services.services.llm.response_support import (
     post_process_response,
     strip_reasoning_blocks,
 )
+from ai_services.services.llm.error_details import summarize_exception_chain
 
 logger = logging.getLogger(__name__)
 
@@ -357,7 +358,14 @@ Write directly for the student, keep the response concise, and do not output JSO
         except Exception as e:
             logger.error(
                 build_log_message(
-                    "llm.call.fail", call_type=call_type, model=self.model_name, error=e
+                    "llm.call.fail",
+                    call_type=call_type,
+                    model=self.model_name,
+                    provider=self.provider_name,
+                    base_url=self.resolved_base_url,
+                    proxy_enabled=bool(self.resolved_proxy_url),
+                    error=e,
+                    error_detail=summarize_exception_chain(e),
                 )
             )
             return fallback_response
@@ -431,7 +439,11 @@ Write directly for the student, keep the response concise, and do not output JSO
                     "llm.stream.fail",
                     call_type=call_type,
                     model=self.model_name,
+                    provider=self.provider_name,
+                    base_url=self.resolved_base_url,
+                    proxy_enabled=bool(self.resolved_proxy_url),
                     error=error,
+                    error_detail=summarize_exception_chain(error),
                 )
             )
             if not emitted and fallback_text:

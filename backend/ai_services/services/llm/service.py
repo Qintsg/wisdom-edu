@@ -23,6 +23,7 @@ from urllib.parse import urlparse
 from django.conf import settings
 
 from ai_services.services.llm.feedback_kt_mixin import LLMFeedbackKTMixin
+from ai_services.services.llm.error_details import summarize_exception_chain
 from ai_services.services.llm.profile_path_mixin import LLMProfilePathMixin
 from ai_services.services.llm.provider_config import (
     AGENT_ENABLED_CALL_TYPES,
@@ -392,7 +393,13 @@ class LLMService(LLMProfilePathMixin, LLMResourceMixin, LLMFeedbackKTMixin, LLMR
                 # 写入日志记录
                 logger.error(
                     build_log_message(
-                        "llm.client.init_fail", model=self.model_name, error=e
+                        "llm.client.init_fail",
+                        model=self.model_name,
+                        provider=self.provider_name,
+                        base_url=self._base_url,
+                        proxy_enabled=bool(self._proxy_url),
+                        error=e,
+                        error_detail=summarize_exception_chain(e),
                     )
                 )
 
@@ -433,7 +440,11 @@ class LLMService(LLMProfilePathMixin, LLMResourceMixin, LLMFeedbackKTMixin, LLMR
                 build_log_message(
                     "llm.client.init_fail",
                     model=self.model_name,
+                    provider=self.provider_name,
+                    base_url=self._base_url,
+                    proxy_enabled=bool(self._proxy_url),
                     error=error,
+                    error_detail=summarize_exception_chain(error),
                     timeout_seconds=policy.request_timeout_seconds,
                     max_retries=policy.max_retries,
                 )
