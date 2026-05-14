@@ -29,17 +29,13 @@ from knowledge.models import KnowledgeMastery, KnowledgePoint, ProfileSummary
 from learning.models import LearningPath
 from tools.demo_student1_snapshot_parse import load_inline_snapshot
 from tools.demo_student1_snapshot_support import (
-    answer_display,
     attach_node_resources,
     build_snapshot_mastery_rates,
     create_path_node,
     default_ability_scores,
-    default_path_titles,
     mastery_payload_for_course,
-    question_correct_answer,
     write_feedback_report,
     write_snapshot_metadata,
-    wrong_answer_for,
 )
 from tools.demo_student1_snapshot_types import (
     DEMO_COURSE_NAME,
@@ -83,12 +79,11 @@ def preset_student1_big_data_snapshot(
             mastery_count=len(snapshot.report_mastery)
             or KnowledgePoint.objects.filter(course=course).count(),
             question_count=len(snapshot.question_details),
-            path_node_count=len(snapshot.path_titles or default_path_titles()),
+            path_node_count=len(snapshot.path_nodes),
         )
 
     with transaction.atomic():
         mastery_count = _write_profile_and_mastery(user=user, course=course, snapshot=snapshot)
-        _bind_snapshot_course_content(course=course)
         question_count = _write_initial_assessment(user=user, course=course, snapshot=snapshot)
         path_node_count = _write_learning_path(user=user, course=course, snapshot=snapshot)
         write_snapshot_metadata(course=course, snapshot=snapshot)
@@ -170,7 +165,9 @@ def _write_initial_assessment(*, user: User, course: Course, snapshot: DesktopSn
         assessment.description = f"用于评估学生对{course.name}核心知识掌握情况的初始测评。"
         assessment.is_active = True
         assessment.save(update_fields=["title", "description", "is_active"])
+    _bind_snapshot_course_content(course=course)
     questions = _resolve_snapshot_questions(course=course, assessment=assessment, snapshot=snapshot)
+    questions = _load_snapshot_assessment_questions(assessment)
     answer_dict, details = _build_assessment_payload(questions, snapshot)
     AnswerHistory.objects.filter(user=user, course=course, source="initial").delete()
     AssessmentResult.objects.filter(
@@ -190,6 +187,7 @@ def _write_initial_assessment(*, user: User, course: Course, snapshot: DesktopSn
             "result_data": {
                 "mastery": mastery_payload_for_course(user=user, course=course),
                 "question_details": [detail for _, detail in details],
+                "feedback_report": _feedback_report_payload(snapshot),
                 "total_score": 100,
                 "correct_count": snapshot.correct_count,
                 "total_count": snapshot.total_count,
@@ -206,26 +204,22 @@ def _write_initial_assessment(*, user: User, course: Course, snapshot: DesktopSn
 
 
 def _write_learning_path(*, user: User, course: Course, snapshot: DesktopSnapshot) -> int:
-    """写入完成到 Spark SQL 原理与特征基础的学习路径。"""
+    """写入与桌面快照一致的 9 节点学习路径。"""
     LearningPath.objects.filter(user=user, course=course).delete()
     path = LearningPath.objects.create(
         user=user,
         course=course,
-        ai_reason="已完成基础复盘，当前建议继续推进 Spark SQL 原理与特征基础学习。",
+        ai_reason=snapshot.path_reason,
         is_dynamic=False,
     )
-    titles = snapshot.path_titles or default_path_titles()
-    completed_until = 4
     nodes = [
         create_path_node(
             path=path,
             course=course,
-            title=title,
-            index=index,
-            completed_until=completed_until,
+            snapshot_node=snapshot_node,
             snapshot=snapshot,
         )
-        for index, title in enumerate(titles)
+        for snapshot_node in snapshot.path_nodes
     ]
     attach_node_resources(user=user, course=course, nodes=nodes)
     return len(nodes)
@@ -237,44 +231,82 @@ def _resolve_snapshot_questions(
     assessment: Assessment,
     snapshot: DesktopSnapshot,
 ) -> list[Question]:
-    """解析或创建初始评测题并绑定到测评。"""
-    parsed_details = snapshot.question_details[: snapshot.total_count]
-    existing = list(
-        Question.objects.filter(course=course, for_initial_assessment=True)
-        .prefetch_related("knowledge_points")
-        .order_by("id")[: snapshot.total_count]
-    )
-    if len(existing) < snapshot.total_count:
-        existing.extend(_create_missing_questions(course=course, details=parsed_details[len(existing) :]))
+    """按内置快照解析、更新或创建初始评测题并绑定到测评。"""
+    existing_by_content = {
+        str(question.content): question
+        for question in Question.objects.filter(course=course, for_initial_assessment=True).order_by("id")
+    }
+    questions = [
+        _upsert_snapshot_question(
+            course=course,
+            detail=detail,
+            existing_by_content=existing_by_content,
+        )
+        for detail in snapshot.question_details[: snapshot.total_count]
+    ]
     AssessmentQuestion.objects.filter(assessment=assessment).delete()
     AssessmentQuestion.objects.bulk_create(
         [
             AssessmentQuestion(assessment=assessment, question=question, order=index)
-            for index, question in enumerate(existing)
+            for index, question in enumerate(questions)
         ]
     )
-    return existing
+    return questions
 
 
-def _create_missing_questions(*, course: Course, details: list[QuestionSnapshot]) -> list[Question]:
-    """当课程题库不足 50 题时按内置预置补齐题目。"""
-    created: list[Question] = []
-    for detail in details:
-        fallback_point = _match_point_for_question(course=course, detail=detail)
+def _load_snapshot_assessment_questions(assessment: Assessment) -> list[Question]:
+    """
+    重新读取已完成课程内容绑定的初始评测题目。
+    :param assessment: 目标知识测评。
+    :return: 按测评顺序排列的题目列表。
+    """
+    return list(
+        assessment.questions.all()
+        .prefetch_related("knowledge_points")
+        .order_by("assessmentquestion__order", "id")
+    )
+
+
+def _upsert_snapshot_question(
+    *,
+    course: Course,
+    detail: QuestionSnapshot,
+    existing_by_content: dict[str, Question],
+) -> Question:
+    """按题干稳定更新或创建内置初始评测题。"""
+    question = existing_by_content.get(detail.content)
+    defaults = {
+        "question_type": detail.question_type,
+        "options": detail.options,
+        "answer": _answer_payload(detail),
+        "analysis": detail.analysis,
+        "score": Decimal(str(detail.score)),
+        "difficulty": detail.difficulty,
+        "for_initial_assessment": True,
+        "is_visible": True,
+    }
+    if question is None:
         question = Question.objects.create(
             course=course,
-            content=detail.content or f"{course.name} 初始评测题目 {detail.order}",
-            question_type="true_false",
-            answer={"answer": bool(detail.correct_answer)},
-            analysis=detail.analysis,
-            score=2,
-            for_initial_assessment=True,
-            is_visible=True,
+            content=detail.content,
+            **defaults,
         )
-        if fallback_point:
-            question.knowledge_points.add(fallback_point)
-        created.append(question)
-    return created
+        existing_by_content[detail.content] = question
+    else:
+        for field_name, value in defaults.items():
+            setattr(question, field_name, value)
+        question.save(update_fields=[*defaults.keys(), "updated_at"])
+    point_ids = _match_points_for_question(course=course, detail=detail)
+    if point_ids:
+        question.knowledge_points.set(point_ids)
+    return question
+
+
+def _answer_payload(detail: QuestionSnapshot) -> dict[str, object]:
+    """构造 Question.answer 使用的标准答案结构。"""
+    if detail.question_type == "multiple_choice":
+        return {"answers": list(detail.correct_answer or [])}
+    return {"answer": detail.correct_answer}
 
 
 def _match_point_for_question(*, course: Course, detail: QuestionSnapshot) -> KnowledgePoint | None:
@@ -291,6 +323,25 @@ def _match_point_for_question(*, course: Course, detail: QuestionSnapshot) -> Kn
     return KnowledgePoint.objects.filter(course=course).order_by("order", "id").first()
 
 
+def _match_points_for_question(*, course: Course, detail: QuestionSnapshot) -> list[int]:
+    """
+    为内置题目匹配知识点。
+    :param course: 目标课程。
+    :param detail: 单题快照。
+    :return: 匹配到的知识点 ID。
+    """
+    explicit_names = detail.knowledge_point_names or []
+    explicit_points = list(
+        KnowledgePoint.objects.filter(course=course, name__in=explicit_names)
+        .order_by("order", "id")
+        .values_list("id", flat=True)
+    )
+    if explicit_points:
+        return [int(point_id) for point_id in explicit_points]
+    matched = _match_point_for_question(course=course, detail=detail)
+    return [int(matched.id)] if matched else []
+
+
 def _build_assessment_payload(
     questions: list[Question],
     snapshot: DesktopSnapshot,
@@ -301,9 +352,11 @@ def _build_assessment_payload(
     parsed_by_order = {detail.order: detail for detail in snapshot.question_details}
     for index, question in enumerate(questions, start=1):
         parsed = parsed_by_order.get(index)
-        is_correct = parsed.is_correct if parsed else index <= snapshot.correct_count
-        correct_answer = question_correct_answer(question, parsed)
-        student_answer = correct_answer if is_correct else wrong_answer_for(correct_answer)
+        if parsed is None:
+            continue
+        is_correct = parsed.is_correct
+        correct_answer = parsed.correct_answer
+        student_answer = parsed.student_answer
         answer_dict[str(question.id)] = student_answer
         details.append((question, _question_detail(question, parsed, student_answer, correct_answer, is_correct)))
     return answer_dict, details
@@ -324,11 +377,11 @@ def _question_detail(
         "question_type": question.question_type,
         "student_answer": student_answer,
         "correct_answer": correct_answer,
-        "student_answer_display": answer_display(student_answer),
-        "correct_answer_display": answer_display(correct_answer),
+        "student_answer_display": parsed.student_answer_display if parsed else "",
+        "correct_answer_display": parsed.correct_answer_display if parsed else "",
         "is_correct": is_correct,
         "analysis": parsed.analysis if parsed and parsed.analysis else (question.analysis or ""),
-        "options": question.options or [],
+        "options": _decorated_options(question, student_answer, correct_answer),
         "knowledge_points": [{"id": point.id, "name": point.name} for point in points],
     }
 
@@ -347,3 +400,38 @@ def _build_history(*, user: User, course: Course, question: Question, detail: di
         score=2 if detail["is_correct"] else 0,
         source="initial",
     )
+
+
+def _decorated_options(
+    question: Question,
+    student_answer: object,
+    correct_answer: object,
+) -> list[dict[str, object]]:
+    """
+    为测评报告题目选项补充正确项与学生选择标记。
+    :param question: 题目对象。
+    :param student_answer: 学生作答。
+    :param correct_answer: 标准答案。
+    :return: 前端可展示的选项列表。
+    """
+    from common.domain.utils import decorate_question_options
+
+    return decorate_question_options(
+        question.options or [],
+        question.question_type,
+        student_answer=student_answer,
+        correct_answer=correct_answer,
+    )
+
+
+def _feedback_report_payload(snapshot: DesktopSnapshot) -> dict[str, object]:
+    """构造 AssessmentResult.result_data 中的反馈报告快照。"""
+    return {
+        "summary": snapshot.feedback_report.summary,
+        "analysis": snapshot.feedback_report.summary,
+        "knowledge_gaps": snapshot.feedback_report.knowledge_gaps,
+        "recommendations": snapshot.feedback_report.recommendations,
+        "next_tasks": snapshot.feedback_report.next_tasks,
+        "encouragement": snapshot.feedback_report.encouragement,
+        "conclusion": snapshot.feedback_report.conclusion,
+    }
