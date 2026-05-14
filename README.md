@@ -123,7 +123,7 @@ docs/      使用说明、演示数据、OpenAPI 契约、变更记录与项目�
 - `docs/api.yaml`：Redocly CLI 打包后的单文件 OpenAPI 产物。
 - `docs/CHANGELOG.md`：项目变更记录。
 - `STYLE.md`：代码、文档、API 与前端界面风格约定。
-- `LICENSE`：MIT License。
+- `LICENSE`：Academic Free License version 3.0（AFL-3.0）。
 
 ## 维护边界
 
@@ -135,4 +135,8 @@ docs/      使用说明、演示数据、OpenAPI 契约、变更记录与项目�
 
 ## 许可证
 
-本项目使用 MIT License，详见 `LICENSE`。
+本项目源代码版权归 Rao Hongwei 所有，使用 Academic Free License version 3.0（AFL-3.0）授权，详见 `LICENSE`。
+
+Licensed under the Academic Free License version 3.0.
+
+除非另有明确声明，课程资源、论文、演示素材、媒体文件、数据集和第三方素材不随源代码许可证自动授权；使用这些非代码资产时应分别确认其权利来源与授权范围。

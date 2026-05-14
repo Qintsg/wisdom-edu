@@ -21,7 +21,7 @@
 - `CHANGELOG.md`：项目变更记录。
 - `论文.pdf`：项目论文材料。
 - `../STYLE.md`：代码、文档、API 与界面风格约定。
-- `../LICENSE`：MIT License。
+- `../LICENSE`：Academic Free License version 3.0（AFL-3.0）。
 
 ## 项目与参赛信息
 

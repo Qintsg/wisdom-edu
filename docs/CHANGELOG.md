@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-05-14
+
+### Docs / License — 迁移到 AFL-3.0
+
+- 项目源代码许可证从 MIT License 迁移为 Academic Free License version 3.0（AFL-3.0）。
+- 根 `README.md`、`docs/README.md` 与前后端包元数据同步更新许可证声明。
+- 根 `README.md` 补充非代码资产授权边界，明确课程资源、论文、演示素材、媒体文件、数据集和第三方素材不随源代码许可证自动授权。
+
 ## 2026-05-13
 
 ### Backend / KT — MEFKT 初测题目级历史与大数据内容绑定

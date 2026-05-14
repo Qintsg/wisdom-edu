@@ -2,6 +2,7 @@
 name = "wisdom-edu-backend"
 version = "0.1.0"
 description = "WisdomEdu Django backend"
+license = "AFL-3.0"
 requires-python = ">=3.12,<3.13"
 dependencies = [
     "channels>=4.2.0,<5.0",

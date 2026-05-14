@@ -2,6 +2,7 @@
   "name": "wisdom-edu-web",
   "private": true,
   "version": "1.0.0",
+  "license": "AFL-3.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
