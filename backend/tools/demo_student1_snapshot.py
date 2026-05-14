@@ -1,7 +1,7 @@
 #!/user/bin/env python
 # -*- coding: UTF-8 -*-
 '''
-student1 大数据桌面快照预置脚本。
+student1 大数据学习状态预置脚本。
 @Project : wisdom-edu
 @File : demo_student1_snapshot.py
 @Author : Qintsg
@@ -11,7 +11,6 @@ student1 大数据桌面快照预置脚本。
 from __future__ import annotations
 
 from decimal import Decimal
-from pathlib import Path
 
 from django.db import transaction
 
@@ -28,7 +27,7 @@ from courses.models import Course
 from knowledge.services.content_binding import CourseContentBindingService
 from knowledge.models import KnowledgeMastery, KnowledgePoint, ProfileSummary
 from learning.models import LearningPath
-from tools.demo_student1_snapshot_parse import load_desktop_snapshot
+from tools.demo_student1_snapshot_parse import load_inline_snapshot
 from tools.demo_student1_snapshot_support import (
     answer_display,
     attach_node_resources,
@@ -36,7 +35,6 @@ from tools.demo_student1_snapshot_support import (
     create_path_node,
     default_ability_scores,
     default_path_titles,
-    find_title_index,
     mastery_payload_for_course,
     question_correct_answer,
     write_feedback_report,
@@ -57,36 +55,25 @@ def preset_student1_big_data_snapshot(
     *,
     course_name: str = DEMO_COURSE_NAME,
     username: str = DEMO_STUDENT_USERNAME,
-    desktop_root: str | Path | None = None,
     dry_run: bool = False,
-    fail_on_missing: bool = False,
 ) -> StudentDemoPresetResult:
     """
-    将桌面导出的 student1 大数据页面快照写入演示库。
+    将内置的 student1 大数据学习状态写入数据库。
     :param course_name: 目标课程名称。
     :param username: 目标学生账号。
-    :param desktop_root: 桌面目录，默认使用当前用户 Desktop。
-    :param dry_run: 是否仅解析并输出摘要。
-    :param fail_on_missing: 缺少桌面快照时是否抛出异常。
+    :param dry_run: 是否仅输出摘要。
     :return: 写入结果摘要。
     """
     if course_name != DEMO_COURSE_NAME:
-        return StudentDemoPresetResult(applied=False, skipped_reason="非大数据演示课程，跳过")
+        return StudentDemoPresetResult(applied=False, skipped_reason="非大数据课程，跳过")
 
     course = Course.objects.filter(name=course_name).first()
     user = User.objects.filter(username=username).first()
     if course is None or user is None:
         reason = f"缺少课程或学生: course={course_name}, username={username}"
-        if fail_on_missing:
-            raise ValueError(reason)
         return StudentDemoPresetResult(applied=False, skipped_reason=reason)
 
-    try:
-        snapshot = load_desktop_snapshot(desktop_root)
-    except FileNotFoundError as exc:
-        if fail_on_missing:
-            raise
-        return StudentDemoPresetResult(applied=False, skipped_reason=str(exc))
+    snapshot = load_inline_snapshot()
 
     if dry_run:
         return StudentDemoPresetResult(
@@ -97,7 +84,6 @@ def preset_student1_big_data_snapshot(
             or KnowledgePoint.objects.filter(course=course).count(),
             question_count=len(snapshot.question_details),
             path_node_count=len(snapshot.path_titles or default_path_titles()),
-            asset_count=len(snapshot.assets),
         )
 
     with transaction.atomic():
@@ -114,7 +100,6 @@ def preset_student1_big_data_snapshot(
         mastery_count=mastery_count,
         question_count=question_count,
         path_node_count=path_node_count,
-        asset_count=len(snapshot.assets),
     )
 
 
@@ -157,7 +142,7 @@ def _write_profile_and_mastery(*, user: User, course: Course, snapshot: DesktopS
 
 def _bind_snapshot_course_content(*, course: Course) -> None:
     """
-    补齐桌面快照知识点加入后的题目与资源绑定。
+    补齐内置预置知识点加入后的题目与资源绑定。
     :param course: 目标课程。
     :return: None。
     """
@@ -177,12 +162,12 @@ def _write_initial_assessment(*, user: User, course: Course, snapshot: DesktopSn
             course=course,
             assessment_type="knowledge",
             title=f"{course.name} 知识水平测评",
-            description="基于桌面快照预置的 student1 初始评测。",
+            description=f"用于评估学生对{course.name}核心知识掌握情况的初始测评。",
             is_active=True,
         )
     else:
         assessment.title = f"{course.name} 知识水平测评"
-        assessment.description = "基于桌面快照预置的 student1 初始评测。"
+        assessment.description = f"用于评估学生对{course.name}核心知识掌握情况的初始测评。"
         assessment.is_active = True
         assessment.save(update_fields=["title", "description", "is_active"])
     questions = _resolve_snapshot_questions(course=course, assessment=assessment, snapshot=snapshot)
@@ -226,11 +211,11 @@ def _write_learning_path(*, user: User, course: Course, snapshot: DesktopSnapsho
     path = LearningPath.objects.create(
         user=user,
         course=course,
-        ai_reason="根据桌面快照预置：已完成基础复盘并推进到 Spark SQL 原理与特征基础。",
+        ai_reason="已完成基础复盘，当前建议继续推进 Spark SQL 原理与特征基础学习。",
         is_dynamic=False,
     )
     titles = snapshot.path_titles or default_path_titles()
-    completed_until = find_title_index(titles, "Spark SQL原理与特征基础")
+    completed_until = 4
     nodes = [
         create_path_node(
             path=path,
@@ -272,13 +257,13 @@ def _resolve_snapshot_questions(
 
 
 def _create_missing_questions(*, course: Course, details: list[QuestionSnapshot]) -> list[Question]:
-    """当课程题库不足 50 题时按 HTML 快照补齐题目。"""
+    """当课程题库不足 50 题时按内置预置补齐题目。"""
     created: list[Question] = []
     for detail in details:
         fallback_point = _match_point_for_question(course=course, detail=detail)
         question = Question.objects.create(
             course=course,
-            content=detail.content or f"初始评测快照题目 {detail.order}",
+            content=detail.content or f"{course.name} 初始评测题目 {detail.order}",
             question_type="true_false",
             answer={"answer": bool(detail.correct_answer)},
             analysis=detail.analysis,

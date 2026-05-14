@@ -1,0 +1,1402 @@
+[
+  {
+    "row": 1,
+    "values": [
+      "使用说明：\n1. A列至G列对应知识点的层级关系，区间内每行只能填写一个知识点\n2. H列至J列填写对应知识点的前置、后置和关联知识点，多个知识点之间用英文分号\";\"隔开\n3. 任意两个知识点之间只能存在一种关系（前置、后置或关联），新导入的关系将覆盖旧关系，关系设置总数上限为2000个\n4. 固定标签包括：重点、难点、考点、课程思政，可根据需要自定义标签，多个标签之间用英文分号\";\"隔开\n5. 认知维度包括：记忆、理解、应用、分析、评价、创造，每个知识点只能填入一个认知维度\n6. 知识点分类包括：事实性、概念性、程序性、元认知，每个知识点只能填入一个分类\n7. 知识点说明仅支持输入文本，暂不支持图片、公式等\n8. 请不要删除此行，也不要删除模板中的任何列\n",
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
+  },
+  {
+    "row": 2,
+    "values": [
+      "一级知识点",
+      "二级知识点",
+      "三级知识点",
+      "四级知识点",
+      "五级知识点",
+      "六级知识点",
+      "七级知识点",
+      "前置知识点",
+      "后置知识点",
+      "关联知识点",
+      "标签",
+      "认知维度",
+      "分类",
+      "教学目标",
+      "知识点说明"
+    ]
+  },
+  {
+    "row": 3,
+    "values": [
+      "大数据技术基础",
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      "课程目标3：发展应用",
+      null
+    ]
+  },
+  {
+    "row": 4,
+    "values": [
+      null,
+      "大数据基本概念",
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      "记忆",
+      "事实性",
+      null,
+      null
+    ]
+  },
+  {
+    "row": 5,
+    "values": [
+      null,
+      "大数据关键技术",
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      "记忆",
+      "事实性",
+      null,
+      null
+    ]
+  },
+  {
+    "row": 6,
+    "values": [
+      null,
+      "大数据应用",
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      "理解",
+      "事实性",
+      null,
+      null
+    ]
+  },
+  {
+    "row": 7,
+    "values": [
+      "大数据存储与管理",
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      "大数据技术基础",
+      null,
+      null,
+      null,
+      "课程目标1：知识研究",
+      null
+    ]
+  },
+  {
+    "row": 8,
+    "values": [
+      null,
+      "Hadoop",
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
+  },
+  {
+    "row": 9,
+    "values": [
+      null,
+      null,
+      "Hadoop定义与特征",
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      "重点;考点",
+      "记忆",
+      "事实性",
+      null,
+      null
+    ]
+  },
+  {
+    "row": 10,
+    "values": [
+      null,
+      null,
+      "Hadoop发展与演变",
+      null,
+      null,
+      null,
+      null,
+      "Hadoop定义与特征",
+      null,
+      null,
+      "考点",
+      "理解",
+      "概念性",
+      null,
+      null
+    ]
+  },
+  {
+    "row": 11,
+    "values": [
+      null,
+      null,
+      "Hadoop项目结构",
+      null,
+      null,
+      null,
+      null,
+      "Hadoop定义与特征",
+      null,
+      null,
+      "重点;考点",
+      "记忆",
+      "事实性",
+      null,
+      null
+    ]
+  },
+  {
+    "row": 12,
+    "values": [
+      null,
+      "HDFS",
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
+  },
+  {
+    "row": 13,
+    "values": [
+      null,
+      null,
+      "HDFS定义与特征",
+      null,
+      null,
+      null,
+      null,
+      "Hadoop",
+      null,
+      null,
+      "重点;考点",
+      "记忆",
+      "事实性",
+      null,
+      null
+    ]
+  },
+  {
+    "row": 14,
+    "values": [
+      null,
+      null,
+      "HDFS工作原理",
+      null,
+      null,
+      null,
+      null,
+      "HDFS定义与特征",
+      null,
+      null,
+      "难点",
+      "理解",
+      "概念性",
+      null,
+      null
+    ]
+  },
+  {
+    "row": 15,
+    "values": [
+      null,
+      null,
+      "HDFS基本操作",
+      null,
+      null,
+      null,
+      null,
+      "HDFS定义与特征",
+      null,
+      null,
+      "重点",
+      "应用",
+      "程序性",
+      null,
+      null
+    ]
+  },
+  {
+    "row": 16,
+    "values": [
+      null,
+      "MapReduce",
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
+  },
+  {
+    "row": 17,
+    "values": [
+      null,
+      null,
+      "MapReduce定义与特征",
+      null,
+      null,
+      null,
+      null,
+      "Hadoop",
+      null,
+      "HDFS",
+      "重点;考点",
+      "记忆",
+      "事实性",
+      null,
+      null
+    ]
+  },
+  {
+    "row": 18,
+    "values": [
+      null,
+      null,
+      "MapReduce工作原理",
+      null,
+      null,
+      null,
+      null,
+      "MapReduce定义与特征",
+      null,
+      null,
+      "难点",
+      "理解",
+      "概念性",
+      null,
+      null
+    ]
+  },
+  {
+    "row": 19,
+    "values": [
+      null,
+      null,
+      "MapReduce应用",
+      null,
+      null,
+      null,
+      null,
+      "MapReduce定义与特征",
+      null,
+      null,
+      "重点",
+      "应用",
+      "程序性",
+      null,
+      null
+    ]
+  },
+  {
+    "row": 20,
+    "values": [
+      null,
+      "Hive",
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
+  },
+  {
+    "row": 21,
+    "values": [
+      null,
+      null,
+      "Hive定义与特征",
+      null,
+      null,
+      null,
+      null,
+      "HDFS;MapReduce",
+      null,
+      "Hadoop",
+      "重点;考点",
+      "记忆",
+      "事实性",
+      null,
+      null
+    ]
+  },
+  {
+    "row": 22,
+    "values": [
+      null,
+      null,
+      "Hive工作原理",
+      null,
+      null,
+      null,
+      null,
+      "Hive定义与特征",
+      null,
+      null,
+      "难点",
+      "理解",
+      "概念性",
+      null,
+      null
+    ]
+  },
+  {
+    "row": 23,
+    "values": [
+      null,
+      null,
+      "Hive基本操作",
+      null,
+      null,
+      null,
+      null,
+      "Hive定义与特征",
+      null,
+      null,
+      "重点",
+      "应用",
+      "程序性",
+      null,
+      null
+    ]
+  },
+  {
+    "row": 24,
+    "values": [
+      null,
+      "Spark",
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
+  },
+  {
+    "row": 25,
+    "values": [
+      null,
+      null,
+      "Spark定义与特征",
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      "Hadoop",
+      "重点;考点",
+      "记忆",
+      "事实性",
+      null,
+      null
+    ]
+  },
+  {
+    "row": 26,
+    "values": [
+      null,
+      null,
+      "Spark工作原理",
+      null,
+      null,
+      null,
+      null,
+      "Spark定义与特征",
+      null,
+      null,
+      "难点",
+      "理解",
+      "概念性",
+      null,
+      null
+    ]
+  },
+  {
+    "row": 27,
+    "values": [
+      null,
+      null,
+      "Spark SQL原理与特征",
+      null,
+      null,
+      null,
+      null,
+      "Spark定义与特征",
+      null,
+      null,
+      "重点;考点",
+      "理解",
+      "概念性",
+      null,
+      null
+    ]
+  },
+  {
+    "row": 28,
+    "values": [
+      null,
+      null,
+      "Spark SQL基本操作",
+      null,
+      null,
+      null,
+      null,
+      "Spark定义与特征",
+      null,
+      null,
+      "重点",
+      "分析",
+      "程序性",
+      null,
+      null
+    ]
+  },
+  {
+    "row": 29,
+    "values": [
+      "大数据智能分析挖掘",
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      "大数据技术基础",
+      null,
+      null,
+      null,
+      "课程目标1：知识研究",
+      null
+    ]
+  },
+  {
+    "row": 30,
+    "values": [
+      null,
+      "线性回归",
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
+  },
+  {
+    "row": 31,
+    "values": [
+      null,
+      null,
+      "线性回归模型原理",
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      "重点;考点",
+      "理解",
+      "概念性",
+      null,
+      null
+    ]
+  },
+  {
+    "row": 32,
+    "values": [
+      null,
+      null,
+      "梯度下降",
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      "难点",
+      "理解",
+      "概念性",
+      null,
+      null
+    ]
+  },
+  {
+    "row": 33,
+    "values": [
+      null,
+      null,
+      "PySpark线性回归应用",
+      null,
+      null,
+      null,
+      null,
+      "线性回归模型原;梯度下降;Spark",
+      null,
+      null,
+      "重点",
+      "应用",
+      "程序性",
+      null,
+      null
+    ]
+  },
+  {
+    "row": 34,
+    "values": [
+      null,
+      "逻辑回归",
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
+  },
+  {
+    "row": 35,
+    "values": [
+      null,
+      null,
+      "罗辑回归模型原理",
+      null,
+      null,
+      null,
+      null,
+      "线性回归模型原理",
+      null,
+      null,
+      "重点;考点",
+      "理解",
+      "概念性",
+      null,
+      null
+    ]
+  },
+  {
+    "row": 36,
+    "values": [
+      null,
+      null,
+      "模型评价指标",
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      "重点;考点",
+      "评价",
+      "元认知",
+      null,
+      null
+    ]
+  },
+  {
+    "row": 37,
+    "values": [
+      null,
+      null,
+      "模型优化方法",
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      "重点;考点",
+      "分析",
+      "元认知",
+      null,
+      null
+    ]
+  },
+  {
+    "row": 38,
+    "values": [
+      null,
+      null,
+      "PySpark罗辑回归应用",
+      null,
+      null,
+      null,
+      null,
+      "罗辑回归模型原理;模型评价指标;Spark",
+      null,
+      null,
+      "重点",
+      "应用",
+      "程序性",
+      null,
+      null
+    ]
+  },
+  {
+    "row": 39,
+    "values": [
+      null,
+      "决策树",
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
+  },
+  {
+    "row": 40,
+    "values": [
+      null,
+      null,
+      "决策树核心概念",
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      "重点;考点",
+      "记忆",
+      "事实性",
+      null,
+      null
+    ]
+  },
+  {
+    "row": 41,
+    "values": [
+      null,
+      null,
+      "决策树算法原理",
+      null,
+      null,
+      null,
+      null,
+      "决策树核心概念",
+      null,
+      null,
+      "重点;难点;考点",
+      "理解",
+      "概念性",
+      null,
+      null
+    ]
+  },
+  {
+    "row": 42,
+    "values": [
+      null,
+      null,
+      "随机森林方法原理",
+      null,
+      null,
+      null,
+      null,
+      "决策树算法原理",
+      null,
+      null,
+      "重点",
+      "理解",
+      "概念性",
+      null,
+      null
+    ]
+  },
+  {
+    "row": 43,
+    "values": [
+      null,
+      null,
+      "PySpark随机森林应用",
+      null,
+      null,
+      null,
+      null,
+      "随机森林方法原理;Spark",
+      null,
+      null,
+      "重点",
+      "应用",
+      "程序性",
+      null,
+      null
+    ]
+  },
+  {
+    "row": 44,
+    "values": [
+      null,
+      "聚类",
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
+  },
+  {
+    "row": 45,
+    "values": [
+      null,
+      null,
+      "kmeans算法原理",
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      "重点;考点",
+      "理解",
+      "概念性",
+      null,
+      null
+    ]
+  },
+  {
+    "row": 46,
+    "values": [
+      null,
+      null,
+      "k-medoids算法原理",
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      "kmeans算法原理",
+      "重点;考点",
+      "理解",
+      "概念性",
+      null,
+      null
+    ]
+  },
+  {
+    "row": 47,
+    "values": [
+      null,
+      null,
+      "层次聚类方法原理",
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      "理解",
+      "概念性",
+      null,
+      null
+    ]
+  },
+  {
+    "row": 48,
+    "values": [
+      null,
+      null,
+      "PySpark聚类应用",
+      null,
+      null,
+      null,
+      null,
+      "k-medoids算法原理;Spark",
+      null,
+      null,
+      "重点",
+      "应用",
+      "程序性",
+      null,
+      null
+    ]
+  },
+  {
+    "row": 49,
+    "values": [
+      null,
+      "推荐系统",
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
+  },
+  {
+    "row": 50,
+    "values": [
+      null,
+      null,
+      "推荐方法分类和原理",
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      "理解",
+      "概念性",
+      null,
+      null
+    ]
+  },
+  {
+    "row": 51,
+    "values": [
+      null,
+      null,
+      "基于潜在因子的推荐方法",
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      "推荐方法分类和原理",
+      "重点;考点",
+      "理解",
+      "概念性",
+      null,
+      null
+    ]
+  },
+  {
+    "row": 52,
+    "values": [
+      null,
+      null,
+      "PySpark推荐应用",
+      null,
+      null,
+      null,
+      null,
+      "基于潜在因子的推荐方法;Spark",
+      null,
+      null,
+      "重点",
+      "应用",
+      "程序性",
+      null,
+      null
+    ]
+  },
+  {
+    "row": 53,
+    "values": [
+      null,
+      "自然预测处理基础",
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null
+    ]
+  },
+  {
+    "row": 54,
+    "values": [
+      null,
+      null,
+      "文本向量表示",
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      "重点;考点",
+      "理解",
+      "概念性",
+      null,
+      null
+    ]
+  },
+  {
+    "row": 55,
+    "values": [
+      null,
+      null,
+      "PySpark文本处理应用",
+      null,
+      null,
+      null,
+      null,
+      "文本向量表示;Spark",
+      null,
+      null,
+      "重点",
+      "分析",
+      "概念性",
+      null,
+      null
+    ]
+  },
+  {
+    "row": 56,
+    "values": [
+      "大数据领域热点研究",
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      "大数据技术基础",
+      null,
+      null,
+      null,
+      "课程目标3：发展应用",
+      null
+    ]
+  },
+  {
+    "row": 57,
+    "values": [
+      null,
+      "NoSql数据库",
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      "理解",
+      "概念性",
+      null,
+      null
+    ]
+  },
+  {
+    "row": 58,
+    "values": [
+      null,
+      "云数据库",
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      "理解",
+      "概念性",
+      null,
+      null
+    ]
+  },
+  {
+    "row": 59,
+    "values": [
+      "大数据系统实践",
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      "课程目标2：工具使用",
+      null
+    ]
+  },
+  {
+    "row": 60,
+    "values": [
+      null,
+      "Hadoop安装与使用",
+      null,
+      null,
+      null,
+      null,
+      null,
+      "Hadoop;HDFS;MapReduce",
+      null,
+      null,
+      null,
+      "应用",
+      "程序性",
+      null,
+      null
+    ]
+  },
+  {
+    "row": 61,
+    "values": [
+      null,
+      "Hive安装与使用",
+      null,
+      null,
+      null,
+      null,
+      null,
+      "Hive",
+      null,
+      null,
+      null,
+      "应用",
+      "程序性",
+      null,
+      null
+    ]
+  },
+  {
+    "row": 62,
+    "values": [
+      null,
+      "Spark安装与使用",
+      null,
+      null,
+      null,
+      null,
+      null,
+      "Spark",
+      null,
+      null,
+      null,
+      "应用",
+      "程序性",
+      null,
+      null
+    ]
+  },
+  {
+    "row": 63,
+    "values": [
+      "大数据智能应用实践",
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      "课程目标2：工具使用",
+      null
+    ]
+  },
+  {
+    "row": 64,
+    "values": [
+      null,
+      "PySpark线性回归实践",
+      null,
+      null,
+      null,
+      null,
+      null,
+      "线性回归;Spark安装与使用",
+      null,
+      null,
+      null,
+      "应用",
+      "程序性",
+      null,
+      null
+    ]
+  },
+  {
+    "row": 65,
+    "values": [
+      null,
+      "PySpark逻辑回归实践",
+      null,
+      null,
+      null,
+      null,
+      null,
+      "逻辑回归;Spark安装与使用",
+      null,
+      null,
+      null,
+      "应用",
+      "程序性",
+      null,
+      null
+    ]
+  },
+  {
+    "row": 66,
+    "values": [
+      null,
+      "PySpark随机森林实践",
+      null,
+      null,
+      null,
+      null,
+      null,
+      "决策树;Spark安装与使用",
+      null,
+      null,
+      null,
+      "应用",
+      "程序性",
+      null,
+      null
+    ]
+  },
+  {
+    "row": 67,
+    "values": [
+      null,
+      "PySpark聚类实践",
+      null,
+      null,
+      null,
+      null,
+      null,
+      "聚类;Spark安装与使用",
+      null,
+      null,
+      null,
+      "应用",
+      "程序性",
+      null,
+      null
+    ]
+  },
+  {
+    "row": 68,
+    "values": [
+      null,
+      "PySpark推荐实践",
+      null,
+      null,
+      null,
+      null,
+      null,
+      "推荐系统;Spark安装与使用",
+      null,
+      null,
+      null,
+      "应用",
+      "程序性",
+      null,
+      null
+    ]
+  },
+  {
+    "row": 69,
+    "values": [
+      null,
+      "PySpark自然语言处理实践",
+      null,
+      null,
+      null,
+      null,
+      null,
+      "自然预测处理基础;Spark安装与使用",
+      null,
+      null,
+      null,
+      "应用",
+      "程序性",
+      null,
+      null
+    ]
+  },
+  {
+    "row": 70,
+    "values": [
+      "综合实践",
+      null,
+      null,
+      null,
+      null,
+      null,
+      null,
+      "大数据存储与管理;大数据智能分析挖掘;大数据系统实践;大数据智能应用实践",
+      null,
+      null,
+      null,
+      "创造",
+      "程序性",
+      "课程目标1：知识研究;课程目标2：工具使用",
+      null
+    ]
+  }
+]

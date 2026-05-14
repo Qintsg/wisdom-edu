@@ -1,7 +1,7 @@
 #!/user/bin/env python
 # -*- coding: UTF-8 -*-
 '''
-student1 桌面快照预置数据类型。
+student1 大数据学习状态预置数据类型。
 @Project : wisdom-edu
 @File : demo_student1_snapshot_types.py
 @Author : Qintsg
@@ -10,24 +10,11 @@ student1 桌面快照预置数据类型。
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 
-DESKTOP_HTML_NAMES = {
-    "report": "测评报告 - 自适应学习系统.html",
-    "profile": "学习画像 - 自适应学习系统.html",
-    "path": "学习路径 - 自适应学习系统.html",
-}
 DEMO_COURSE_NAME = "大数据技术与应用"
 DEMO_STUDENT_USERNAME = "student1"
-
-
-@dataclass(frozen=True)
-class DesktopAsset:
-    """桌面导出资源文件摘要。"""
-
-    relative_path: str
-    size: int
 
 
 @dataclass(frozen=True)
@@ -44,7 +31,7 @@ class QuestionSnapshot:
 
 @dataclass(frozen=True)
 class DesktopSnapshot:
-    """桌面三页导出内容的归一化快照。"""
+    """内置预置内容的归一化快照。"""
 
     score: float
     correct_count: int
@@ -61,12 +48,11 @@ class DesktopSnapshot:
     selected_minutes: int
     selected_goal: str
     selected_suggestion: str
-    assets: list[DesktopAsset] = field(default_factory=list)
 
 
 @dataclass(frozen=True)
 class StudentDemoPresetResult:
-    """student1 演示快照写入结果。"""
+    """student1 大数据学习状态写入结果。"""
 
     applied: bool
     skipped_reason: str | None
@@ -74,4 +60,3 @@ class StudentDemoPresetResult:
     mastery_count: int = 0
     question_count: int = 0
     path_node_count: int = 0
-    asset_count: int = 0

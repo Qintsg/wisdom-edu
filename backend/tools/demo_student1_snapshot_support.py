@@ -19,11 +19,7 @@ from courses.models import Course
 from exams.models import FeedbackReport
 from knowledge.models import KnowledgeMastery, KnowledgePoint, Resource
 from learning.models import LearningPath, NodeProgress, PathNode
-from tools.demo_student1_snapshot_types import (
-    DESKTOP_HTML_NAMES,
-    DesktopSnapshot,
-    QuestionSnapshot,
-)
+from tools.demo_student1_snapshot_types import DesktopSnapshot, QuestionSnapshot
 from users.models import User
 
 
@@ -73,7 +69,7 @@ def build_snapshot_mastery_rates(course: Course, snapshot: DesktopSnapshot) -> d
     """
     按桌面测评报告中的掌握度值生成写库映射。
     :param course: 目标课程。
-    :param snapshot: 桌面 HTML 解析出的快照。
+    :param snapshot: 内置预置快照。
     :return: 知识点 ID 到掌握度的映射。
     """
     if not snapshot.report_mastery:
@@ -114,13 +110,17 @@ def ensure_snapshot_mastery_points(
         or 0
     )
     for point_name in mastery_names:
-        if point_name in existing_by_name:
+        point = existing_by_name.get(point_name)
+        if point is not None:
+            if point.description == "从 student1 桌面测评报告解析补齐的演示知识点。":
+                point.description = ""
+                point.save(update_fields=["description", "updated_at"])
             continue
         max_order += 1
         existing_by_name[point_name] = KnowledgePoint.objects.create(
             course=course,
             name=point_name,
-            description="从 student1 桌面测评报告解析补齐的演示知识点。",
+            description="",
             chapter=infer_snapshot_point_chapter(point_name),
             level=infer_snapshot_point_level(point_name),
             point_type="knowledge",
@@ -142,7 +142,7 @@ def infer_snapshot_point_chapter(point_name: str) -> str:
         return "大数据存储与管理 > Spark"
     if "大数据" in point_name:
         return "大数据技术基础"
-    return "桌面快照补充"
+    return "大数据技术与应用综合实践"
 
 
 def infer_snapshot_point_level(point_name: str) -> int:
@@ -346,8 +346,8 @@ def write_feedback_report(*, user: User, result: object, snapshot: DesktopSnapsh
             "correct_count": snapshot.correct_count,
             "total_count": snapshot.total_count,
             "accuracy": round(snapshot.correct_count / max(snapshot.total_count, 1) * 100, 1),
-            "summary": "当前画像基于桌面导出的 50 道初始评测题生成。",
-            "knowledge_gaps": ["大数据技术基础", "大数据概述", "大数据基本概念"],
+            "summary": "当前画像基于 50 道初始评测题生成。",
+            "knowledge_gaps": ["大数据技术基础", "大数据基本概念", "Spark SQL原理与特征"],
         },
         analysis=["系统已识别出薄弱知识点，后续学习行为会继续校准掌握度。"],
         recommendations=["优先完成当前学习路径节点，巩固 Spark SQL 原理与特征。"],
@@ -357,16 +357,9 @@ def write_feedback_report(*, user: User, result: object, snapshot: DesktopSnapsh
 
 
 def write_snapshot_metadata(*, course: Course, snapshot: DesktopSnapshot) -> None:
-    """将桌面 HTML 与资源解析摘要写入课程配置。"""
+    """将内置预置摘要写入课程配置。"""
     config = dict(course.config or {})
-    config["student1_desktop_demo_snapshot"] = {
-        "html_files": list(DESKTOP_HTML_NAMES.values()),
-        "asset_count": len(snapshot.assets),
-        "asset_total_bytes": sum(asset.size for asset in snapshot.assets),
-        "assets": [
-            {"relative_path": asset.relative_path, "size": asset.size}
-            for asset in snapshot.assets
-        ],
+    config["student1_big_data_preset"] = {
         "score": snapshot.score,
         "correct_count": snapshot.correct_count,
         "total_count": snapshot.total_count,
@@ -374,5 +367,6 @@ def write_snapshot_metadata(*, course: Course, snapshot: DesktopSnapshot) -> Non
         "path_titles": snapshot.path_titles,
         "selected_path_title": snapshot.selected_path_title,
     }
+    config.pop("student1_desktop_demo_snapshot", None)
     course.config = config
     course.save(update_fields=["config", "updated_at"])

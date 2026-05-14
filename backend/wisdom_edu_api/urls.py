@@ -11,10 +11,11 @@ API命名规范：
 """
 
 from django.contrib import admin
-from django.urls import path, include
+from django.urls import path, include, re_path
 from django.conf import settings
 from django.conf.urls.static import static
 from django.views.generic import TemplateView
+from django.views.static import serve
 from drf_spectacular.views import (
     SpectacularAPIView,
     SpectacularSwaggerView,
@@ -47,11 +48,19 @@ urlpatterns = [
     path("api/redoc/", SpectacularRedocView.as_view(url_name="schema"), name="redoc"),
 ]
 
-# 开发环境下提供媒体文件服务
-if settings.DEBUG:
-    # 为静态分析提供确定的字符串类型，同时保留缺省 URL 的兜底行为。
-    media_url = settings.MEDIA_URL or "/media/"
-    static_url = settings.STATIC_URL or "/static/"
+# 本地课程资源文件需要在 DEBUG=False 的本地演示配置下同样可访问。
+media_url = settings.MEDIA_URL or "/media/"
+media_prefix = media_url.strip("/")
+if media_prefix:
+    urlpatterns += [
+        re_path(
+            rf"^{media_prefix}/(?P<path>.*)$",
+            serve,
+            {"document_root": settings.MEDIA_ROOT},
+        )
+    ]
 
-    urlpatterns += static(media_url, document_root=settings.MEDIA_ROOT)
+# 开发环境下提供静态文件服务
+if settings.DEBUG:
+    static_url = settings.STATIC_URL or "/static/"
     urlpatterns += static(static_url, document_root=settings.STATIC_ROOT)

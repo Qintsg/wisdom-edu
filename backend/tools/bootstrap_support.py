@@ -300,22 +300,20 @@ def finalize_bootstrap_course(
     )
     if preset_summary.applied:
         print(
-            "  student1 桌面演示快照: "
+            "  student1 大数据学习状态: "
             f"掌握度={preset_summary.mastery_count}, "
             f"初测题={preset_summary.question_count}, "
-            f"路径节点={preset_summary.path_node_count}, "
-            f"资源文件={preset_summary.asset_count}"
+            f"路径节点={preset_summary.path_node_count}"
         )
     elif dry_run and preset_summary.mastery_count:
         print(
-            "[DRY-RUN] 将写入 student1 桌面演示快照: "
+            "[DRY-RUN] 将写入 student1 大数据学习状态: "
             f"掌握度={preset_summary.mastery_count}, "
             f"初测题={preset_summary.question_count}, "
-            f"路径节点={preset_summary.path_node_count}, "
-            f"资源文件={preset_summary.asset_count}"
+            f"路径节点={preset_summary.path_node_count}"
         )
     elif preset_summary.skipped_reason and course.name == "大数据技术与应用":
-        print(f"  student1 桌面演示快照跳过: {preset_summary.skipped_reason}")
+        print(f"  student1 大数据学习状态跳过: {preset_summary.skipped_reason}")
 
     if sync_graph and not dry_run:
         result = sync_neo4j(int(course.pk))
