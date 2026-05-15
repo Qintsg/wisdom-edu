@@ -177,7 +177,6 @@
   overflow-wrap: anywhere;
 }
 
-.message-sources,
 .message-context {
   margin-top: 10px;
   display: flex;

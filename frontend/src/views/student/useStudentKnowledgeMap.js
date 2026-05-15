@@ -65,7 +65,9 @@ export function useStudentKnowledgeMap() {
 
   const loadPointDetail = async (pointId) => {
     try {
-      const rawPointDetail = await getKnowledgePointDetail(pointId, courseStore.courseId)
+      const rawPointDetail = await getKnowledgePointDetail(pointId, courseStore.courseId, {
+        includeGraphRag: false
+      })
       selectedPoint.value = normalizePointDetail(rawPointDetail)
       drawerVisible.value = true
     } catch (error) {

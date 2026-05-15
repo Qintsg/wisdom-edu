@@ -76,17 +76,6 @@
           <p>{{ selectedPoint.descriptionText || '暂无描述' }}</p>
         </div>
 
-        <div v-if="selectedPoint.graphRagSummary || selectedPoint.graphRagSourceList.length" class="detail-section">
-          <h4>GraphRAG 证据</h4>
-          <p>{{ selectedPoint.graphRagSummary || '当前知识点暂无额外图谱证据摘要。' }}</p>
-          <div v-if="selectedPoint.graphRagSourceList.length" class="point-tags evidence-tags">
-            <el-tag v-for="sourceItem in selectedPoint.graphRagSourceList" :key="sourceItem.sourceKey" size="small"
-              type="success">
-              {{ sourceItem.sourceTitle }}
-            </el-tag>
-          </div>
-        </div>
-
         <div v-if="selectedPoint.prerequisiteList.length" class="detail-section">
           <h4>前置知识</h4>
           <div class="point-tags">

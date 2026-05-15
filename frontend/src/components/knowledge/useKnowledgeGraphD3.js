@@ -121,7 +121,9 @@ export function useKnowledgeGraphD3(props, emit) {
 
     if (props.mode === 'view' && props.courseId && node.pointId) {
       try {
-        const detail = await getKnowledgePointDetail(node.pointId, props.courseId)
+        const detail = await getKnowledgePointDetail(node.pointId, props.courseId, {
+          includeGraphRag: false
+        })
         selectedNode.value = normalizeNodeDetail(node, detail)
         nodeResources.value = normalizeNodeResources(detail)
       } catch (error) {

@@ -75,3 +75,37 @@ class KnowledgeMapFallbackTests(APITestCase):
         response = self.client.get(f'/api/student/knowledge-map?course_id={self.course.id}')
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data['data']['stats']['data_source'], 'neo4j')
+
+    @patch('knowledge.api.map.student_learning_rag.build_point_support_payload')
+    @patch('knowledge.api.map.neo4j_service.__class__.is_available', new_callable=PropertyMock, return_value=False)
+    def test_point_detail_should_skip_graphrag_when_disabled(self, _available, mock_graph_rag):
+        """知识点详情显式关闭 GraphRAG 时不应构造证据摘要。"""
+        response = self.client.get(
+            f'/api/student/knowledge-points/{self.point.id}'
+            f'?course_id={self.course.id}&include_graph_rag=false'
+        )
+
+        self.assertEqual(response.status_code, 200)
+        mock_graph_rag.assert_not_called()
+        self.assertEqual(response.data['data']['graph_rag_summary'], '')
+        self.assertEqual(response.data['data']['graph_rag_sources'], [])
+        self.assertEqual(response.data['data']['graph_rag_mode'], 'graph_rag_skipped')
+
+    @patch('knowledge.api.map.student_learning_rag.build_point_support_payload')
+    @patch('knowledge.api.map.neo4j_service.__class__.is_available', new_callable=PropertyMock, return_value=False)
+    def test_point_detail_should_include_graphrag_by_default(self, _available, mock_graph_rag):
+        """默认知识点详情仍保持 GraphRAG 证据构造行为。"""
+        mock_graph_rag.return_value = {
+            'summary': '图谱证据摘要',
+            'sources': [{'title': '课程证据'}],
+            'mode': 'graph_rag',
+        }
+
+        response = self.client.get(
+            f'/api/student/knowledge-points/{self.point.id}?course_id={self.course.id}'
+        )
+
+        self.assertEqual(response.status_code, 200)
+        mock_graph_rag.assert_called_once()
+        self.assertEqual(response.data['data']['graph_rag_summary'], '图谱证据摘要')
+        self.assertEqual(response.data['data']['graph_rag_mode'], 'graph_rag')

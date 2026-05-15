@@ -28,6 +28,11 @@
     parameters:
       - $ref: ../components/parameters/PointIdPath.yaml
       - $ref: ../components/parameters/CourseId.yaml
+      - name: include_graph_rag
+        in: query
+        description: 是否构造 GraphRAG 证据摘要。
+        schema:
+          type: boolean
     responses:
       "200":
         $ref: ../components/responses/Success.yaml

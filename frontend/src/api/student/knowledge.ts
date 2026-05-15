@@ -39,10 +39,19 @@ export function getKnowledgePoints(courseId, params = {}) {
  * @param {number} courseId - 课程ID
  * @returns {Promise} 知识点详情
  */
-export function getKnowledgePointDetail(pointId, courseId) {
+export function getKnowledgePointDetail(
+  pointId,
+  courseId,
+  options: KnowledgePointDetailOptions = {}
+) {
+  const shouldIncludeGraphRag = options.includeGraphRag !== false
   return request.get(`/api/student/knowledge-points/${pointId}`, {
-    params: { course_id: courseId }
+    params: { course_id: courseId, include_graph_rag: shouldIncludeGraphRag }
   })
+}
+
+type KnowledgePointDetailOptions = {
+  includeGraphRag?: boolean
 }
 
 /**

@@ -88,21 +88,6 @@ const normalizeKnowledgeResource = (rawResource) => ({
   durationText: normalizeText(rawResource?.duration_display)
 })
 
-const normalizeGraphRagSource = (rawSource) => {
-  if (!rawSource || typeof rawSource === 'string') {
-    const sourceTitle = normalizeText(rawSource) || '课程证据'
-    return { sourceKey: sourceTitle, sourceTitle, sourceKind: 'document' }
-  }
-
-  const sourceKind = normalizeText(rawSource.kind) || 'document'
-  const sourceTitle = normalizeText(rawSource.title ?? rawSource.label) || sourceKind || '课程证据'
-  return {
-    sourceKey: `${normalizeIdentifier(rawSource.id) || sourceTitle}-${sourceKind}`,
-    sourceTitle,
-    sourceKind
-  }
-}
-
 const buildDefaultPointDetail = () => ({
   pointId: '',
   pointName: '',
@@ -113,8 +98,6 @@ const buildDefaultPointDetail = () => ({
   cognitiveDimensionText: '',
   categoryText: '',
   teachingGoalText: '',
-  graphRagSummary: '',
-  graphRagSourceList: [],
   prerequisiteList: [],
   postrequisiteList: [],
   resourceList: []
@@ -134,9 +117,6 @@ export const normalizePointDetail = (rawDetail) => {
     cognitiveDimensionText: normalizeText(rawDetail?.cognitive_dimension),
     categoryText: normalizeText(rawDetail?.category),
     teachingGoalText: normalizeText(rawDetail?.teaching_goal),
-    graphRagSummary: normalizeText(rawDetail?.graph_rag_summary),
-    graphRagSourceList: normalizeListFromPayload(rawDetail?.graph_rag_sources)
-      .map((sourceItem) => normalizeGraphRagSource(sourceItem)),
     prerequisiteList: normalizeListFromPayload(rawDetail?.prerequisites)
       .map((relatedPoint) => normalizeRelatedKnowledgePoint(relatedPoint)),
     postrequisiteList: normalizeListFromPayload(rawDetail?.postrequisites)

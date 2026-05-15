@@ -99,12 +99,6 @@
           <div v-for="(messageItem, index) in chatMessages" :key="index" :class="['chat-message', messageItem.role]">
             <div class="message-bubble">
               <div class="message-content" v-html="renderMarkdown(messageItem.content)" />
-              <div v-if="messageItem.sources?.length" class="message-sources">
-                <span>来源：</span>
-                <el-tag v-for="sourceItem in messageItem.sources" :key="formatSourceKey(sourceItem)" size="small" type="success">
-                  {{ formatSourceLabel(sourceItem) }}
-                </el-tag>
-              </div>
               <div v-if="messageItem.matchedPoint" class="message-context">
                 <span>命中知识点：{{ messageItem.matchedPoint.point_name }}</span>
               </div>
@@ -253,7 +247,9 @@ const runSearch = async () => {
 const selectPoint = async (pointItem) => {
   selectedPoint.value = pointItem
   try {
-    selectedPointDetail.value = await getKnowledgePointDetail(pointItem.point_id, courseStore.courseId)
+    selectedPointDetail.value = await getKnowledgePointDetail(pointItem.point_id, courseStore.courseId, {
+      includeGraphRag: false
+    })
   } catch (error) {
     console.error('加载知识点详情失败:', error)
     selectedPointDetail.value = {
@@ -322,17 +318,6 @@ const goToKnowledgeMap = () => {
     return
   }
   router.push('/student/knowledge-map')
-}
-
-const formatSourceLabel = (sourceItem) => {
-  if (!sourceItem) return '未知来源'
-  if (typeof sourceItem === 'string') return sourceItem
-  return sourceItem.title || sourceItem.kind || '未知来源'
-}
-
-const formatSourceKey = (sourceItem) => {
-  if (typeof sourceItem === 'string') return sourceItem
-  return `${sourceItem?.title || 'source'}-${sourceItem?.kind || 'unknown'}-${sourceItem?.score || 0}`
 }
 
 onMounted(async () => {

@@ -1,5 +1,18 @@
 # Changelog
 
+## 2026-05-15
+
+### Backend / Frontend / Docs — 学生端知识点详情跳过 GraphRAG 证据
+
+- 学生端知识点详情接口新增 `include_graph_rag` 查询参数；前端在知识图谱页和 AI 助手检索后的知识点点击详情中统一传 `false`，不再触发 GraphRAG 证据构造。
+- 学生知识图谱详情抽屉移除 `GraphRAG 证据` 区块，AI 助手消息也不再展示来源证据标签，但提问问答链路仍保持 GraphRAG。
+- OpenAPI 文档同步补充该查询参数，避免接口契约与前端调用方式不一致。
+
+### Backend / Tools — 机器学习导论初始评测扩充
+
+- `backend/tools/testdata.json5` 中 `机器学习导论` 的初始评测题库扩充到 50 题，并将课程配置中的初始评测题量同步调整为 50。
+- 新增题目仅绑定现有 `ml_intro`、`ml_supervised` 和 `ml_eval` 知识点，不引入新的导入或接线逻辑。
+
 ## 2026-05-14
 
 ### Docs / License — 迁移到 AFL-3.0

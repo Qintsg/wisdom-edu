@@ -4,6 +4,7 @@ import logging
 
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.request import Request
 
 from common.neo4j.service import neo4j_service
 from common.http.responses import error_response, success_response
@@ -26,6 +27,12 @@ from knowledge.models import KnowledgeMastery, KnowledgePoint
 
 
 logger = logging.getLogger(__name__)
+
+
+def _should_include_graph_rag_support(request: Request) -> bool:
+    """判断知识点详情是否需要构造 GraphRAG 证据摘要。"""
+    raw_value = str(request.query_params.get("include_graph_rag", "true")).strip().lower()
+    return raw_value not in {"0", "false", "no", "off"}
 
 
 @api_view(["GET"])
@@ -101,14 +108,16 @@ def get_knowledge_point_detail(request, point_id):
             )
             data_source = "neo4j"
 
-    try:
-        graph_rag_support = student_learning_rag.build_point_support_payload(
-            course_id=course_id,
-            point=point,
-        )
-    except Exception as error:
-        logger.warning("知识点详情 GraphRAG 摘要生成失败: point=%s error=%s", point_id, error)
-        graph_rag_support = {"summary": "", "sources": [], "mode": "graph_rag_error"}
+    graph_rag_support = {"summary": "", "sources": [], "mode": "graph_rag_skipped"}
+    if _should_include_graph_rag_support(request):
+        try:
+            graph_rag_support = student_learning_rag.build_point_support_payload(
+                course_id=course_id,
+                point=point,
+            )
+        except Exception as error:
+            logger.warning("知识点详情 GraphRAG 摘要生成失败: point=%s error=%s", point_id, error)
+            graph_rag_support = {"summary": "", "sources": [], "mode": "graph_rag_error"}
 
     return success_response(
         data=build_point_detail_payload(
