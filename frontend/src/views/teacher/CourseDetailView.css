@@ -4,13 +4,15 @@
 
 .course-header {
     margin-bottom: 16px;
-    background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%);
-    border: none;
-    color: #fff;
+    background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%) !important;
+    border: none !important;
+    color: #fff !important;
 }
 
 .course-header :deep(.el-card__body) {
     padding: 20px 24px;
+    background: transparent !important;
+    color: inherit;
 }
 
 .header-row {
@@ -31,17 +33,17 @@
 }
 
 .header-info .el-button {
-    color: rgba(255, 255, 255, 0.8);
+    color: rgba(255, 255, 255, 0.88) !important;
 }
 
 .header-info .el-button:hover {
-    color: #fff;
+    color: #fff !important;
 }
 
 .header-actions .el-button {
-    background: rgba(255, 255, 255, 0.15);
-    border-color: rgba(255, 255, 255, 0.3);
-    color: #fff;
+    background: rgba(255, 255, 255, 0.15) !important;
+    border-color: rgba(255, 255, 255, 0.3) !important;
+    color: #fff !important;
 }
 
 .course-desc {
