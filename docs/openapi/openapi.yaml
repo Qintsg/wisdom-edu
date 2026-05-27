@@ -36,7 +36,432 @@ tags:
 security:
   - jwtAuth: []
 paths:
-  $ref: ./paths/index.yaml
+  /health/:
+    $ref: ./paths/auth.yaml#/healthCheck
+  /api/auth/register:
+    $ref: ./paths/auth.yaml#/register
+  /api/auth/login:
+    $ref: ./paths/auth.yaml#/login
+  /api/auth/logout:
+    $ref: ./paths/auth.yaml#/logout
+  /api/auth/userinfo:
+    $ref: ./paths/auth.yaml#/getUserInfo
+  /api/auth/userinfo/update:
+    $ref: ./paths/auth.yaml#/updateUserInfo
+  /api/auth/token/refresh:
+    $ref: ./paths/auth.yaml#/refreshToken
+  /api/auth/password/change:
+    $ref: ./paths/auth.yaml#/changePassword
+  /api/auth/password/reset/send:
+    $ref: ./paths/auth.yaml#/sendPasswordResetCode
+  /api/auth/password/reset:
+    $ref: ./paths/auth.yaml#/resetPassword
+  /api/student/profile:
+    $ref: ./paths/profiles.yaml#/getStudentProfile
+  /api/student/profile/habit:
+    $ref: ./paths/profiles.yaml#/updateHabitPreference
+  /api/student/profile/update:
+    $ref: ./paths/profiles.yaml#/refreshStudentProfile
+  /api/student/profile/history:
+    $ref: ./paths/profiles.yaml#/getStudentProfileHistory
+  /api/student/profile/compare:
+    $ref: ./paths/profiles.yaml#/compareStudentProfile
+  /api/student/profile/export:
+    $ref: ./paths/profiles.yaml#/exportStudentProfile
+  /api/admin/activation-codes:
+    $ref: ./paths/admin_users.yaml#/listActivationCodes
+  /api/admin/activation-codes/generate:
+    $ref: ./paths/admin_users.yaml#/generateActivationCodes
+  /api/admin/activation-codes/batch-delete:
+    $ref: ./paths/admin_users.yaml#/batchDeleteActivationCodes
+  /api/admin/activation-codes/validate:
+    $ref: ./paths/admin_users.yaml#/validateActivationCode
+  /api/admin/activation-codes/export:
+    $ref: ./paths/admin_users.yaml#/exportActivationCodes
+  /api/admin/activation-codes/{code_id}:
+    $ref: ./paths/admin_users.yaml#/adminActivationCodesCodeId
+  /api/admin/users:
+    $ref: ./paths/admin_users.yaml#/listAdminUsers
+  /api/admin/users/create:
+    $ref: ./paths/admin_users.yaml#/createAdminUser
+  /api/admin/users/batch-delete:
+    $ref: ./paths/admin_users.yaml#/batchDeleteAdminUsers
+  /api/admin/users/import:
+    $ref: ./paths/admin_users.yaml#/importAdminUsers
+  /api/admin/users/export:
+    $ref: ./paths/admin_users.yaml#/exportAdminUsers
+  /api/admin/users/template:
+    $ref: ./paths/admin_users.yaml#/downloadAdminUserImportTemplate
+  /api/admin/users/{user_id}:
+    $ref: ./paths/admin_users.yaml#/getAdminUserDetail
+  /api/admin/users/{user_id}/update:
+    $ref: ./paths/admin_users.yaml#/updateAdminUser
+  /api/admin/users/{user_id}/delete:
+    $ref: ./paths/admin_users.yaml#/deleteAdminUser
+  /api/admin/users/{user_id}/reset-password:
+    $ref: ./paths/admin_users.yaml#/resetAdminUserPassword
+  /api/admin/users/{user_id}/disable:
+    $ref: ./paths/admin_users.yaml#/disableAdminUser
+  /api/admin/users/{user_id}/enable:
+    $ref: ./paths/admin_users.yaml#/enableAdminUser
+  /api/admin/student-profiles:
+    $ref: ./paths/profiles.yaml#/listAdminStudentProfiles
+  /api/admin/student-profiles/{student_id}:
+    $ref: ./paths/profiles.yaml#/getAdminStudentProfileDetail
+  /api/teacher/students/{user_id}/profile:
+    $ref: ./paths/profiles.yaml#/getTeacherStudentProfile
+  /api/teacher/students/{user_id}/refresh-profile:
+    $ref: ./paths/profiles.yaml#/refreshTeacherStudentProfile
+  /api/courses:
+    $ref: ./paths/courses_public.yaml#/listCourses
+  /api/courses/select:
+    $ref: ./paths/courses_public.yaml#/selectCourse
+  /api/courses/search:
+    $ref: ./paths/courses_public.yaml#/searchCourses
+  /api/student/classes:
+    $ref: ./paths/courses_public.yaml#/listStudentClasses
+  /api/student/classes/{class_id}:
+    $ref: ./paths/courses_public.yaml#/getStudentClassDetail
+  /api/student/classes/join:
+    $ref: ./paths/courses_public.yaml#/joinStudentClass
+  /api/student/classes/{class_id}/leave:
+    $ref: ./paths/courses_public.yaml#/leaveStudentClass
+  /api/teacher/courses/create:
+    $ref: ./paths/teacher_courses.yaml#/createTeacherCourse
+  /api/teacher/courses/my:
+    $ref: ./paths/teacher_courses.yaml#/listMyTeacherCourses
+  /api/teacher/courses/{course_id}:
+    $ref: ./paths/teacher_courses.yaml#/teacherCoursesCourseId
+  /api/teacher/courses/{course_id}/workspace:
+    $ref: ./paths/teacher_courses.yaml#/getTeacherCourseWorkspace
+  /api/teacher/courses/{course_id}/delete:
+    $ref: ./paths/teacher_courses.yaml#/deleteTeacherCourse
+  /api/teacher/courses/{course_id}/cover/upload:
+    $ref: ./paths/teacher_courses.yaml#/uploadTeacherCourseCover
+  /api/teacher/courses/{course_id}/statistics:
+    $ref: ./paths/teacher_courses.yaml#/getTeacherCourseStatistics
+  /api/teacher/courses/{course_id}/settings:
+    $ref: ./paths/teacher_courses.yaml#/getTeacherCourseSettings
+  /api/teacher/courses/{course_id}/settings/update:
+    $ref: ./paths/teacher_courses.yaml#/updateTeacherCourseSettings
+  /api/teacher/classes/create:
+    $ref: ./paths/teacher_classes.yaml#/createTeacherClass
+  /api/teacher/classes/my:
+    $ref: ./paths/teacher_classes.yaml#/listMyTeacherClasses
+  /api/teacher/classes/{class_id}:
+    $ref: ./paths/teacher_classes.yaml#/teacherClassesClassId
+  /api/teacher/classes/{class_id}/delete:
+    $ref: ./paths/teacher_classes.yaml#/deleteTeacherClass
+  /api/teacher/classes/{class_id}/progress:
+    $ref: ./paths/teacher_classes.yaml#/getTeacherClassProgress
+  /api/teacher/classes/{class_id}/courses:
+    $ref: ./paths/teacher_classes.yaml#/listTeacherClassCourses
+  /api/teacher/classes/{class_id}/publish-course:
+    $ref: ./paths/teacher_classes.yaml#/publishCourseToClass
+  /api/teacher/classes/{class_id}/courses/{course_id}:
+    $ref: ./paths/teacher_classes.yaml#/unpublishCourseFromClass
+  /api/teacher/classes/{class_id}/invitations:
+    $ref: ./paths/teacher_classes.yaml#/listClassInvitations
+  /api/teacher/invitations/generate:
+    $ref: ./paths/teacher_classes.yaml#/generateClassInvitation
+  /api/teacher/invitations/{invitation_id}:
+    $ref: ./paths/teacher_classes.yaml#/deleteClassInvitation
+  /api/teacher/classes/{class_id}/students:
+    $ref: ./paths/teacher_classes.yaml#/listTeacherClassStudents
+  /api/teacher/classes/{class_id}/students/{user_id}:
+    $ref: ./paths/teacher_classes.yaml#/removeStudentFromTeacherClass
+  /api/teacher/classes/{class_id}/student-profiles:
+    $ref: ./paths/teacher_classes.yaml#/listTeacherClassStudentProfiles
+  /api/teacher/classes/{class_id}/announcements:
+    $ref: ./paths/teacher_classes.yaml#/teacherClassesClassIdAnnouncements
+  /api/teacher/announcements/{announcement_id}:
+    $ref: ./paths/teacher_classes.yaml#/teacherAnnouncementsAnnouncementId
+  /api/admin/courses:
+    $ref: ./paths/admin_courses.yaml#/listAdminCourses
+  /api/admin/courses/create:
+    $ref: ./paths/admin_courses.yaml#/createAdminCourse
+  /api/admin/courses/{course_id}:
+    $ref: ./paths/admin_courses.yaml#/adminCoursesCourseId
+  /api/admin/courses/{course_id}/assign-teacher:
+    $ref: ./paths/admin_courses.yaml#/assignTeacherToCourse
+  /api/admin/courses/{course_id}/statistics:
+    $ref: ./paths/admin_courses.yaml#/getAdminCourseStatistics
+  /api/admin/classes:
+    $ref: ./paths/admin_courses.yaml#/listAdminClasses
+  /api/admin/classes/create:
+    $ref: ./paths/admin_courses.yaml#/createAdminClass
+  /api/admin/classes/{class_id}:
+    $ref: ./paths/admin_courses.yaml#/adminClassesClassId
+  /api/admin/classes/{class_id}/students:
+    $ref: ./paths/admin_courses.yaml#/listAdminClassStudents
+  /api/admin/classes/{class_id}/students/add:
+    $ref: ./paths/admin_courses.yaml#/addAdminClassStudents
+  /api/admin/classes/{class_id}/students/{student_id}:
+    $ref: ./paths/admin_courses.yaml#/removeAdminClassStudent
+  /api/admin/classes/{class_id}/assign-teacher:
+    $ref: ./paths/admin_courses.yaml#/assignTeacherToClass
+  /api/admin/classes/{class_id}/statistics:
+    $ref: ./paths/admin_courses.yaml#/getAdminClassStatistics
+  /api/admin/statistics/overview:
+    $ref: ./paths/admin_statistics.yaml#/getAdminStatisticsOverview
+  /api/admin/statistics/users:
+    $ref: ./paths/admin_statistics.yaml#/getAdminUserStatistics
+  /api/admin/statistics/courses:
+    $ref: ./paths/admin_statistics.yaml#/getAdminCourseStatisticsList
+  /api/admin/statistics/learning:
+    $ref: ./paths/admin_statistics.yaml#/getAdminLearningStatistics
+  /api/admin/statistics/exams:
+    $ref: ./paths/admin_statistics.yaml#/getAdminExamStatistics
+  /api/admin/statistics/active-users:
+    $ref: ./paths/admin_statistics.yaml#/getAdminActiveUserStatistics
+  /api/admin/statistics/report:
+    $ref: ./paths/admin_statistics.yaml#/getAdminStatisticsReport
+  /api/admin/statistics/export:
+    $ref: ./paths/admin_statistics.yaml#/exportAdminStatistics
+  /api/student/knowledge-map:
+    $ref: ./paths/student_knowledge.yaml#/getStudentKnowledgeMap
+  /api/student/knowledge-points/{point_id}:
+    $ref: ./paths/student_knowledge.yaml#/getStudentKnowledgePointDetail
+  /api/student/knowledge-points/{point_id}/resources:
+    $ref: ./paths/student_knowledge.yaml#/listStudentKnowledgePointResources
+  /api/student/knowledge/points:
+    $ref: ./paths/student_knowledge.yaml#/listStudentKnowledgePoints
+  /api/student/knowledge/relations:
+    $ref: ./paths/student_knowledge.yaml#/listStudentKnowledgeRelations
+  /api/student/knowledge/mastery:
+    $ref: ./paths/student_knowledge.yaml#/getStudentKnowledgeMastery
+  /api/student/knowledge/mastery/update:
+    $ref: ./paths/student_knowledge.yaml#/updateStudentKnowledgeMastery
+  /api/student/knowledge/search:
+    $ref: ./paths/student_knowledge.yaml#/searchStudentKnowledge
+  /api/student/resources:
+    $ref: ./paths/student_knowledge.yaml#/listStudentResources
+  /api/teacher/resources:
+    $ref: ./paths/teacher_resources.yaml#/listTeacherResources
+  /api/teacher/resources/create:
+    $ref: ./paths/teacher_resources.yaml#/createTeacherResource
+  /api/teacher/resources/upload:
+    $ref: ./paths/teacher_resources.yaml#/uploadTeacherResource
+  /api/teacher/resources/{resource_id}:
+    $ref: ./paths/teacher_resources.yaml#/teacherResourcesResourceId
+  /api/teacher/resources/{resource_id}/delete:
+    $ref: ./paths/teacher_resources.yaml#/deleteTeacherResource
+  /api/teacher/resources/{resource_id}/link-knowledge:
+    $ref: ./paths/teacher_resources.yaml#/linkTeacherResourceKnowledge
+  /api/teacher/questions:
+    $ref: ./paths/teacher_questions.yaml#/listTeacherQuestions
+  /api/teacher/questions/create:
+    $ref: ./paths/teacher_questions.yaml#/createTeacherQuestion
+  /api/teacher/questions/batch-delete:
+    $ref: ./paths/teacher_questions.yaml#/batchDeleteTeacherQuestions
+  /api/teacher/questions/import:
+    $ref: ./paths/teacher_questions.yaml#/importTeacherQuestions
+  /api/teacher/questions/export:
+    $ref: ./paths/teacher_questions.yaml#/exportTeacherQuestions
+  /api/teacher/questions/template:
+    $ref: ./paths/teacher_questions.yaml#/downloadTeacherQuestionTemplate
+  /api/teacher/questions/{question_id}:
+    $ref: ./paths/teacher_questions.yaml#/teacherQuestionsQuestionId
+  /api/teacher/questions/{question_id}/update:
+    $ref: ./paths/teacher_questions.yaml#/updateTeacherQuestion
+  /api/teacher/questions/{question_id}/delete:
+    $ref: ./paths/teacher_questions.yaml#/deleteTeacherQuestion
+  /api/teacher/questions/{question_id}/link-knowledge:
+    $ref: ./paths/teacher_questions.yaml#/linkTeacherQuestionKnowledge
+  /api/teacher/knowledge-relations:
+    $ref: ./paths/teacher_knowledge.yaml#/listTeacherKnowledgeRelations
+  /api/teacher/knowledge-relations/create:
+    $ref: ./paths/teacher_knowledge.yaml#/createTeacherKnowledgeRelation
+  /api/teacher/knowledge-relations/{relation_id}:
+    $ref: ./paths/teacher_knowledge.yaml#/deleteTeacherKnowledgeRelation
+  /api/teacher/knowledge-points:
+    $ref: ./paths/teacher_knowledge.yaml#/listTeacherKnowledgePoints
+  /api/teacher/knowledge-points/create:
+    $ref: ./paths/teacher_knowledge.yaml#/createTeacherKnowledgePoint
+  /api/teacher/knowledge-points/{point_id}:
+    $ref: ./paths/teacher_knowledge.yaml#/teacherKnowledgePointsPointId
+  /api/teacher/knowledge-points/{point_id}/delete:
+    $ref: ./paths/teacher_knowledge.yaml#/deleteTeacherKnowledgePoint
+  /api/teacher/knowledge-map/import:
+    $ref: ./paths/teacher_knowledge.yaml#/importTeacherKnowledgeMap
+  /api/teacher/knowledge-map/save:
+    $ref: ./paths/teacher_knowledge.yaml#/saveTeacherKnowledgeMap
+  /api/teacher/knowledge-map/publish:
+    $ref: ./paths/teacher_knowledge.yaml#/publishTeacherKnowledgeMap
+  /api/teacher/knowledge-map/build-rag-index:
+    $ref: ./paths/teacher_knowledge.yaml#/buildTeacherKnowledgeMapRagIndex
+  /api/teacher/knowledge-map/export:
+    $ref: ./paths/teacher_knowledge.yaml#/exportTeacherKnowledgeMap
+  /api/teacher/knowledge-map/template:
+    $ref: ./paths/teacher_knowledge.yaml#/downloadTeacherKnowledgeMapTemplate
+  /api/student/assessments/status:
+    $ref: ./paths/assessments.yaml#/getAssessmentStatus
+  /api/student/assessments/initial/knowledge:
+    $ref: ./paths/assessments.yaml#/getKnowledgeAssessment
+  /api/student/assessments/initial/knowledge/submit:
+    $ref: ./paths/assessments.yaml#/submitKnowledgeAssessment
+  /api/student/assessments/initial/knowledge/result:
+    $ref: ./paths/assessments.yaml#/getKnowledgeAssessmentResult
+  /api/student/assessments/initial/ability:
+    $ref: ./paths/assessments.yaml#/getAbilityAssessment
+  /api/student/assessments/initial/ability/retake:
+    $ref: ./paths/assessments.yaml#/retakeAbilityAssessment
+  /api/student/assessments/initial/ability/submit:
+    $ref: ./paths/assessments.yaml#/submitAbilityAssessment
+  /api/student/assessments/initial/habit:
+    $ref: ./paths/assessments.yaml#/getHabitSurvey
+  /api/student/assessments/initial/habit/submit:
+    $ref: ./paths/assessments.yaml#/submitHabitSurvey
+  /api/student/assessments/profile/generate:
+    $ref: ./paths/assessments.yaml#/generateCourseProfile
+  /api/student/learning-path:
+    $ref: ./paths/learning.yaml#/getLearningPath
+  /api/student/learning-path/adjust:
+    $ref: ./paths/learning.yaml#/adjustLearningPath
+  /api/student/learning-progress:
+    $ref: ./paths/learning.yaml#/getLearningProgress
+  /api/student/path-nodes/{node_id}:
+    $ref: ./paths/learning.yaml#/getPathNodeDetail
+  /api/student/path-nodes/{node_id}/start:
+    $ref: ./paths/learning.yaml#/startLearningNode
+  /api/student/path-nodes/{node_id}/complete:
+    $ref: ./paths/learning.yaml#/completePathNode
+  /api/student/path-nodes/{node_id}/skip:
+    $ref: ./paths/learning.yaml#/skipPathNode
+  /api/student/path-nodes/{node_id}/resources:
+    $ref: ./paths/learning.yaml#/listPathNodeResources
+  /api/student/path-nodes/{node_id}/ai-resources:
+    $ref: ./paths/learning.yaml#/getPathNodeAIResources
+  /api/student/path-nodes/{node_id}/resources/{resource_id}/complete:
+    $ref: ./paths/learning.yaml#/completeNodeResource
+  /api/student/path-nodes/{node_id}/resources/{resource_id}/pause:
+    $ref: ./paths/learning.yaml#/pauseNodeResource
+  /api/student/path-nodes/{node_id}/exams:
+    $ref: ./paths/learning.yaml#/listPathNodeExams
+  /api/student/path-nodes/{node_id}/exams/{exam_id}/submit:
+    $ref: ./paths/learning.yaml#/submitNodeExam
+  /api/student/path-nodes/{node_id}/stage-test:
+    $ref: ./paths/learning.yaml#/getStageTest
+  /api/student/path-nodes/{node_id}/stage-test/submit:
+    $ref: ./paths/learning.yaml#/submitStageTest
+  /api/student/dashboard:
+    $ref: ./paths/learning.yaml#/getStudentDashboard
+  /api/student/exams:
+    $ref: ./paths/student_exams.yaml#/listStudentExams
+  /api/student/exams/{exam_id}:
+    $ref: ./paths/student_exams.yaml#/getStudentExamDetail
+  /api/student/exams/{exam_id}/submit:
+    $ref: ./paths/student_exams.yaml#/submitStudentExam
+  /api/student/exams/{exam_id}/result:
+    $ref: ./paths/student_exams.yaml#/getStudentExamResult
+  /api/student/exams/{exam_id}/draft:
+    $ref: ./paths/student_exams.yaml#/saveStudentExamDraft
+  /api/student/exams/{exam_id}/statistics:
+    $ref: ./paths/student_exams.yaml#/getStudentExamStatistics
+  /api/student/exams/{exam_id}/answer-sheet:
+    $ref: ./paths/student_exams.yaml#/getStudentExamAnswerSheet
+  /api/student/exams/{exam_id}/retake:
+    $ref: ./paths/student_exams.yaml#/retakeStudentExam
+  /api/student/exams/{exam_id}/download:
+    $ref: ./paths/student_exams.yaml#/downloadStudentExamResult
+  /api/student/classes/{class_id}/members:
+    $ref: ./paths/student_exams.yaml#/listStudentClassMembers
+  /api/student/classes/{class_id}/ranking:
+    $ref: ./paths/student_exams.yaml#/getStudentClassRanking
+  /api/student/classes/{class_id}/notifications:
+    $ref: ./paths/student_exams.yaml#/listStudentClassNotifications
+  /api/student/classes/{class_id}/assignments:
+    $ref: ./paths/student_exams.yaml#/listStudentClassAssignments
+  /api/student/feedback/generate:
+    $ref: ./paths/student_exams.yaml#/generateStudentFeedbackReport
+  /api/student/feedback/{exam_id}:
+    $ref: ./paths/student_exams.yaml#/getStudentFeedbackReport
+  /api/student/assessments/initial/start:
+    $ref: ./paths/student_exams.yaml#/startLegacyInitialAssessment
+  /api/student/assessments/initial/submit:
+    $ref: ./paths/student_exams.yaml#/submitLegacyInitialAssessment
+  /api/teacher/exams:
+    $ref: ./paths/teacher_exams.yaml#/listTeacherExams
+  /api/teacher/exams/create:
+    $ref: ./paths/teacher_exams.yaml#/createTeacherExam
+  /api/teacher/exams/{exam_id}:
+    $ref: ./paths/teacher_exams.yaml#/getTeacherExamDetail
+  /api/teacher/exams/{exam_id}/update:
+    $ref: ./paths/teacher_exams.yaml#/updateTeacherExam
+  /api/teacher/exams/{exam_id}/delete:
+    $ref: ./paths/teacher_exams.yaml#/deleteTeacherExam
+  /api/teacher/exams/{exam_id}/publish:
+    $ref: ./paths/teacher_exams.yaml#/publishTeacherExam
+  /api/teacher/exams/{exam_id}/unpublish:
+    $ref: ./paths/teacher_exams.yaml#/unpublishTeacherExam
+  /api/teacher/exams/{exam_id}/results:
+    $ref: ./paths/teacher_exams.yaml#/listTeacherExamResults
+  /api/teacher/exams/{exam_id}/export:
+    $ref: ./paths/teacher_exams.yaml#/exportTeacherExamResults
+  /api/teacher/exams/{exam_id}/questions/add:
+    $ref: ./paths/teacher_exams.yaml#/addTeacherExamQuestions
+  /api/teacher/exams/{exam_id}/questions/remove:
+    $ref: ./paths/teacher_exams.yaml#/removeTeacherExamQuestions
+  /api/teacher/exams/{exam_id}/students/{student_id}:
+    $ref: ./paths/teacher_exams.yaml#/getTeacherExamStudentDetail
+  /api/teacher/exams/{exam_id}/analysis:
+    $ref: ./paths/teacher_exams.yaml#/getTeacherExamAnalysis
+  /api/student/ai/profile-analysis:
+    $ref: ./paths/ai.yaml#/aiProfileAnalysis
+  /api/student/ai/path-planning:
+    $ref: ./paths/ai.yaml#/aiPathPlanning
+  /api/student/ai/resource-reason:
+    $ref: ./paths/ai.yaml#/aiResourceReason
+  /api/student/ai/feedback-report:
+    $ref: ./paths/ai.yaml#/aiFeedbackReport
+  /api/student/ai/learning-advice:
+    $ref: ./paths/ai.yaml#/aiLearningAdvice
+  /api/student/ai/refresh-profile:
+    $ref: ./paths/ai.yaml#/aiRefreshProfile
+  /api/student/ai/refresh-learning-path:
+    $ref: ./paths/ai.yaml#/aiRefreshLearningPath
+  /api/student/ai/key-points-reminder:
+    $ref: ./paths/ai.yaml#/aiKeyPointsReminder
+  /api/student/ai/time-scheduling:
+    $ref: ./paths/ai.yaml#/aiTimeScheduling
+  /api/student/ai/analysis-compare:
+    $ref: ./paths/ai.yaml#/aiAnalysisCompare
+  /api/student/ai/chat:
+    $ref: ./paths/ai.yaml#/aiChat
+  /api/student/ai/node-intro:
+    $ref: ./paths/ai.yaml#/aiNodeIntro
+  /api/student/ai/knowledge-query:
+    $ref: ./paths/ai.yaml#/aiKnowledgeGraphQuery
+  /api/student/ai/graph-rag/search:
+    $ref: ./paths/ai.yaml#/aiGraphRagSearch
+  /api/student/ai/graph-rag/ask:
+    $ref: ./paths/ai.yaml#/aiGraphRagAsk
+  /api/ai/kt/predict:
+    $ref: ./paths/ai.yaml#/ktPredict
+  /api/ai/kt/model-info:
+    $ref: ./paths/ai.yaml#/ktModelInfo
+  /api/ai/kt/batch-predict:
+    $ref: ./paths/ai.yaml#/ktBatchPredict
+  /api/ai/kt/recommendations:
+    $ref: ./paths/ai.yaml#/ktRecommendations
+  /api/admin/logs:
+    $ref: ./paths/logs.yaml#/listOperationLogs
+  /api/admin/logs/{log_id}:
+    $ref: ./paths/logs.yaml#/getOperationLogDetail
+  /api/admin/logs/statistics:
+    $ref: ./paths/logs.yaml#/getLogStatistics
+  /api/admin/logs/options:
+    $ref: ./paths/logs.yaml#/getLogFilterOptions
+  /api/admin/logs/modules:
+    $ref: ./paths/logs.yaml#/getLogModules
+  /api/admin/logs/actions:
+    $ref: ./paths/logs.yaml#/getLogActions
+  /api/admin/logs/export:
+    $ref: ./paths/logs.yaml#/exportOperationLogs
+  /api/admin/logs/clean:
+    $ref: ./paths/logs.yaml#/cleanExpiredLogs
+  /api/common/menu:
+    $ref: ./paths/common.yaml#/getMenu
 components:
   securitySchemes:
     $ref: ./components/securitySchemes.yaml
@@ -82,44 +507,6 @@ components:
     OperationLog:
       $ref: ./components/schemas/OperationLog.yaml
   parameters:
-    Page:
-      $ref: ./components/parameters/Page.yaml
-    PageSize:
-      $ref: ./components/parameters/PageSize.yaml
-    CourseId:
-      $ref: ./components/parameters/CourseId.yaml
-    ClassIdPath:
-      $ref: ./components/parameters/ClassIdPath.yaml
-    UserIdPath:
-      $ref: ./components/parameters/UserIdPath.yaml
-    PointIdPath:
-      $ref: ./components/parameters/PointIdPath.yaml
-    ResourceIdPath:
-      $ref: ./components/parameters/ResourceIdPath.yaml
-    QuestionIdPath:
-      $ref: ./components/parameters/QuestionIdPath.yaml
-    NodeIdPath:
-      $ref: ./components/parameters/NodeIdPath.yaml
-    ExamIdPath:
-      $ref: ./components/parameters/ExamIdPath.yaml
+    $ref: ./components/parameters.yaml
   responses:
-    Success:
-      $ref: ./components/responses/Success.yaml
-    Created:
-      $ref: ./components/responses/Created.yaml
-    BadRequest:
-      $ref: ./components/responses/BadRequest.yaml
-    Unauthorized:
-      $ref: ./components/responses/Unauthorized.yaml
-    Forbidden:
-      $ref: ./components/responses/Forbidden.yaml
-    NotFound:
-      $ref: ./components/responses/NotFound.yaml
-    Conflict:
-      $ref: ./components/responses/Conflict.yaml
-    ServerError:
-      $ref: ./components/responses/ServerError.yaml
-    CsvDownload:
-      $ref: ./components/responses/CsvDownload.yaml
-    JsonDownload:
-      $ref: ./components/responses/JsonDownload.yaml
+    $ref: ./components/responses.yaml

@@ -1,0 +1,74 @@
+Success:
+  description: 成功响应。实际 `data` 结构以接口说明为准。
+  content:
+    application/json:
+      schema:
+        $ref: ./schemas/ApiEnvelope.yaml
+
+Created:
+  description: 创建成功。
+  content:
+    application/json:
+      schema:
+        allOf:
+          - $ref: ./schemas/ApiEnvelope.yaml
+          - type: object
+            properties:
+              code:
+                example: 201
+
+BadRequest:
+  description: 请求参数错误或业务校验失败。
+  content:
+    application/json:
+      schema:
+        $ref: ./schemas/ErrorResponse.yaml
+
+Unauthorized:
+  description: 未认证或 Token 无效。
+  content:
+    application/json:
+      schema:
+        $ref: ./schemas/ErrorResponse.yaml
+
+Forbidden:
+  description: 已认证但无权限访问。
+  content:
+    application/json:
+      schema:
+        $ref: ./schemas/ErrorResponse.yaml
+
+NotFound:
+  description: 资源不存在。
+  content:
+    application/json:
+      schema:
+        $ref: ./schemas/ErrorResponse.yaml
+
+Conflict:
+  description: 资源状态冲突。
+  content:
+    application/json:
+      schema:
+        $ref: ./schemas/ErrorResponse.yaml
+
+ServerError:
+  description: 服务端处理失败。
+  content:
+    application/json:
+      schema:
+        $ref: ./schemas/ErrorResponse.yaml
+
+CsvDownload:
+  description: CSV 文件下载。
+  content:
+    text/csv:
+      schema:
+        $ref: ./schemas/FileDownload.yaml
+
+JsonDownload:
+  description: JSON 文件下载。
+  content:
+    application/json:
+      schema:
+        $ref: ./schemas/FileDownload.yaml

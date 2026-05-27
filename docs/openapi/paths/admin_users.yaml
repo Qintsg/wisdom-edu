@@ -1,4 +1,4 @@
-/api/admin/activation-codes:
+listActivationCodes:
   get:
     tags: [Admin]
     operationId: listActivationCodes
@@ -13,8 +13,8 @@
         in: query
         schema:
           type: boolean
-      - $ref: ../components/parameters/Page.yaml
-      - $ref: ../components/parameters/PageSize.yaml
+      - $ref: ../components/parameters.yaml#/Page
+      - $ref: ../components/parameters.yaml#/PageSize
     responses:
       "200":
         description: data 包含 total、page、page_size、codes[]。
@@ -23,10 +23,10 @@
             schema:
               $ref: ../components/schemas/ApiEnvelope.yaml
       "403":
-        $ref: ../components/responses/Forbidden.yaml
+        $ref: ../components/responses.yaml#/Forbidden
 
 
-/api/admin/activation-codes/generate:
+generateActivationCodes:
   post:
     tags: [Admin]
     operationId: generateActivationCodes
@@ -58,10 +58,10 @@
             schema:
               $ref: ../components/schemas/ApiEnvelope.yaml
       "400":
-        $ref: ../components/responses/BadRequest.yaml
+        $ref: ../components/responses.yaml#/BadRequest
 
 
-/api/admin/activation-codes/batch-delete:
+batchDeleteActivationCodes:
   post:
     tags: [Admin]
     operationId: batchDeleteActivationCodes
@@ -86,10 +86,10 @@
             schema:
               $ref: ../components/schemas/ApiEnvelope.yaml
       "400":
-        $ref: ../components/responses/BadRequest.yaml
+        $ref: ../components/responses.yaml#/BadRequest
 
 
-/api/admin/activation-codes/validate:
+validateActivationCode:
   post:
     tags: [Admin]
     operationId: validateActivationCode
@@ -114,7 +114,7 @@
               $ref: ../components/schemas/ApiEnvelope.yaml
 
 
-/api/admin/activation-codes/export:
+exportActivationCodes:
   get:
     tags: [Admin]
     operationId: exportActivationCodes
@@ -127,10 +127,10 @@
           enum: [teacher, admin]
     responses:
       "200":
-        $ref: ../components/responses/CsvDownload.yaml
+        $ref: ../components/responses.yaml#/CsvDownload
 
 
-/api/admin/activation-codes/{code_id}:
+adminActivationCodesCodeId:
   get:
     tags: [Admin]
     operationId: getActivationCode
@@ -143,9 +143,9 @@
           type: integer
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
       "404":
-        $ref: ../components/responses/NotFound.yaml
+        $ref: ../components/responses.yaml#/NotFound
   delete:
     tags: [Admin]
     operationId: deleteActivationCode
@@ -158,20 +158,20 @@
           type: integer
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
       "400":
-        $ref: ../components/responses/BadRequest.yaml
+        $ref: ../components/responses.yaml#/BadRequest
       "404":
-        $ref: ../components/responses/NotFound.yaml
+        $ref: ../components/responses.yaml#/NotFound
 
 
-/api/admin/users:
+listAdminUsers:
   get:
     tags: [Admin]
     operationId: listAdminUsers
     summary: 管理员分页查询用户
     parameters:
-      - $ref: ../components/parameters/Page.yaml
+      - $ref: ../components/parameters.yaml#/Page
       - name: size
         in: query
         schema:
@@ -200,7 +200,7 @@
               $ref: ../components/schemas/ApiEnvelope.yaml
 
 
-/api/admin/users/create:
+createAdminUser:
   post:
     tags: [Admin]
     operationId: createAdminUser
@@ -229,12 +229,12 @@
                 type: string
     responses:
       "201":
-        $ref: ../components/responses/Created.yaml
+        $ref: ../components/responses.yaml#/Created
       "400":
-        $ref: ../components/responses/BadRequest.yaml
+        $ref: ../components/responses.yaml#/BadRequest
 
 
-/api/admin/users/batch-delete:
+batchDeleteAdminUsers:
   post:
     tags: [Admin]
     operationId: batchDeleteAdminUsers
@@ -254,12 +254,12 @@
                   type: integer
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
       "400":
-        $ref: ../components/responses/BadRequest.yaml
+        $ref: ../components/responses.yaml#/BadRequest
 
 
-/api/admin/users/import:
+importAdminUsers:
   post:
     tags: [Admin]
     operationId: importAdminUsers
@@ -285,7 +285,7 @@
               $ref: ../components/schemas/ApiEnvelope.yaml
 
 
-/api/admin/users/export:
+exportAdminUsers:
   get:
     tags: [Admin]
     operationId: exportAdminUsers
@@ -298,41 +298,41 @@
           enum: [student, teacher, admin]
     responses:
       "200":
-        $ref: ../components/responses/CsvDownload.yaml
+        $ref: ../components/responses.yaml#/CsvDownload
 
 
-/api/admin/users/template:
+downloadAdminUserImportTemplate:
   get:
     tags: [Admin]
     operationId: downloadAdminUserImportTemplate
     summary: 下载用户导入模板 CSV
     responses:
       "200":
-        $ref: ../components/responses/CsvDownload.yaml
+        $ref: ../components/responses.yaml#/CsvDownload
 
 
-/api/admin/users/{user_id}:
+getAdminUserDetail:
   get:
     tags: [Admin]
     operationId: getAdminUserDetail
     summary: 获取用户详情
     parameters:
-      - $ref: ../components/parameters/UserIdPath.yaml
+      - $ref: ../components/parameters.yaml#/UserIdPath
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
       "404":
-        $ref: ../components/responses/NotFound.yaml
+        $ref: ../components/responses.yaml#/NotFound
 
 
-/api/admin/users/{user_id}/update:
+updateAdminUser:
   put:
     tags: [Admin]
     operationId: updateAdminUser
     summary: 管理员更新用户资料
     description: 不允许管理员修改自己的角色。
     parameters:
-      - $ref: ../components/parameters/UserIdPath.yaml
+      - $ref: ../components/parameters.yaml#/UserIdPath
     requestBody:
       required: true
       content:
@@ -357,31 +357,31 @@
             schema:
               $ref: ../components/schemas/ApiEnvelope.yaml
       "400":
-        $ref: ../components/responses/BadRequest.yaml
+        $ref: ../components/responses.yaml#/BadRequest
 
 
-/api/admin/users/{user_id}/delete:
+deleteAdminUser:
   delete:
     tags: [Admin]
     operationId: deleteAdminUser
     summary: 删除用户
     description: 不允许删除当前管理员自己。
     parameters:
-      - $ref: ../components/parameters/UserIdPath.yaml
+      - $ref: ../components/parameters.yaml#/UserIdPath
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
       "400":
-        $ref: ../components/responses/BadRequest.yaml
+        $ref: ../components/responses.yaml#/BadRequest
 
 
-/api/admin/users/{user_id}/reset-password:
+resetAdminUserPassword:
   post:
     tags: [Admin]
     operationId: resetAdminUserPassword
     summary: 重置用户密码
     parameters:
-      - $ref: ../components/parameters/UserIdPath.yaml
+      - $ref: ../components/parameters.yaml#/UserIdPath
     requestBody:
       required: false
       content:
@@ -401,26 +401,25 @@
               $ref: ../components/schemas/ApiEnvelope.yaml
 
 
-/api/admin/users/{user_id}/disable:
+disableAdminUser:
   post:
     tags: [Admin]
     operationId: disableAdminUser
     summary: 禁用用户
     parameters:
-      - $ref: ../components/parameters/UserIdPath.yaml
+      - $ref: ../components/parameters.yaml#/UserIdPath
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
 
 
-/api/admin/users/{user_id}/enable:
+enableAdminUser:
   post:
     tags: [Admin]
     operationId: enableAdminUser
     summary: 启用用户
     parameters:
-      - $ref: ../components/parameters/UserIdPath.yaml
+      - $ref: ../components/parameters.yaml#/UserIdPath
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
-
+        $ref: ../components/responses.yaml#/Success

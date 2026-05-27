@@ -1,4 +1,4 @@
-/api/teacher/classes/create:
+createTeacherClass:
   post:
     tags: [Courses]
     operationId: createTeacherClass
@@ -22,39 +22,39 @@
                 type: integer
     responses:
       "201":
-        $ref: ../components/responses/Created.yaml
+        $ref: ../components/responses.yaml#/Created
       "400":
-        $ref: ../components/responses/BadRequest.yaml
+        $ref: ../components/responses.yaml#/BadRequest
 
 
-/api/teacher/classes/my:
+listMyTeacherClasses:
   get:
     tags: [Courses]
     operationId: listMyTeacherClasses
     summary: 获取教师班级列表
     parameters:
-      - $ref: ../components/parameters/CourseId.yaml
+      - $ref: ../components/parameters.yaml#/CourseId
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
 
 
-/api/teacher/classes/{class_id}:
+teacherClassesClassId:
   get:
     tags: [Courses]
     operationId: getTeacherClass
     summary: 获取教师班级详情
     parameters:
-      - $ref: ../components/parameters/ClassIdPath.yaml
+      - $ref: ../components/parameters.yaml#/ClassIdPath
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
   put:
     tags: [Courses]
     operationId: updateTeacherClass
     summary: 更新教师班级
     parameters:
-      - $ref: ../components/parameters/ClassIdPath.yaml
+      - $ref: ../components/parameters.yaml#/ClassIdPath
     requestBody:
       required: true
       content:
@@ -72,52 +72,52 @@
                 type: boolean
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
 
 
-/api/teacher/classes/{class_id}/delete:
+deleteTeacherClass:
   delete:
     tags: [Courses]
     operationId: deleteTeacherClass
     summary: 删除教师班级
     parameters:
-      - $ref: ../components/parameters/ClassIdPath.yaml
+      - $ref: ../components/parameters.yaml#/ClassIdPath
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
 
 
-/api/teacher/classes/{class_id}/progress:
+getTeacherClassProgress:
   get:
     tags: [Courses]
     operationId: getTeacherClassProgress
     summary: 获取班级学习进度
     parameters:
-      - $ref: ../components/parameters/ClassIdPath.yaml
+      - $ref: ../components/parameters.yaml#/ClassIdPath
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
 
 
-/api/teacher/classes/{class_id}/courses:
+listTeacherClassCourses:
   get:
     tags: [Courses]
     operationId: listTeacherClassCourses
     summary: 获取班级已发布课程
     parameters:
-      - $ref: ../components/parameters/ClassIdPath.yaml
+      - $ref: ../components/parameters.yaml#/ClassIdPath
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
 
 
-/api/teacher/classes/{class_id}/publish-course:
+publishCourseToClass:
   post:
     tags: [Courses]
     operationId: publishCourseToClass
     summary: 向班级发布课程
     parameters:
-      - $ref: ../components/parameters/ClassIdPath.yaml
+      - $ref: ../components/parameters.yaml#/ClassIdPath
     requestBody:
       required: true
       content:
@@ -130,16 +130,16 @@
                 type: integer
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
 
 
-/api/teacher/classes/{class_id}/courses/{course_id}:
+unpublishCourseFromClass:
   delete:
     tags: [Courses]
     operationId: unpublishCourseFromClass
     summary: 从班级取消发布课程
     parameters:
-      - $ref: ../components/parameters/ClassIdPath.yaml
+      - $ref: ../components/parameters.yaml#/ClassIdPath
       - name: course_id
         in: path
         required: true
@@ -147,22 +147,22 @@
           type: integer
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
 
 
-/api/teacher/classes/{class_id}/invitations:
+listClassInvitations:
   get:
     tags: [Courses]
     operationId: listClassInvitations
     summary: 获取班级邀请码列表
     parameters:
-      - $ref: ../components/parameters/ClassIdPath.yaml
+      - $ref: ../components/parameters.yaml#/ClassIdPath
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
 
 
-/api/teacher/invitations/generate:
+generateClassInvitation:
   post:
     tags: [Courses]
     operationId: generateClassInvitation
@@ -183,10 +183,10 @@
                 type: integer
     responses:
       "201":
-        $ref: ../components/responses/Created.yaml
+        $ref: ../components/responses.yaml#/Created
 
 
-/api/teacher/invitations/{invitation_id}:
+deleteClassInvitation:
   delete:
     tags: [Courses]
     operationId: deleteClassInvitation
@@ -199,62 +199,62 @@
           type: integer
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
 
 
-/api/teacher/classes/{class_id}/students:
+listTeacherClassStudents:
   get:
     tags: [Courses]
     operationId: listTeacherClassStudents
     summary: 获取班级学生列表
     parameters:
-      - $ref: ../components/parameters/ClassIdPath.yaml
+      - $ref: ../components/parameters.yaml#/ClassIdPath
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
 
 
-/api/teacher/classes/{class_id}/students/{user_id}:
+removeStudentFromTeacherClass:
   delete:
     tags: [Courses]
     operationId: removeStudentFromTeacherClass
     summary: 从班级移除学生
     parameters:
-      - $ref: ../components/parameters/ClassIdPath.yaml
-      - $ref: ../components/parameters/UserIdPath.yaml
+      - $ref: ../components/parameters.yaml#/ClassIdPath
+      - $ref: ../components/parameters.yaml#/UserIdPath
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
 
 
-/api/teacher/classes/{class_id}/student-profiles:
+listTeacherClassStudentProfiles:
   get:
     tags: [Courses, Profile]
     operationId: listTeacherClassStudentProfiles
     summary: 获取班级学生画像摘要
     parameters:
-      - $ref: ../components/parameters/ClassIdPath.yaml
+      - $ref: ../components/parameters.yaml#/ClassIdPath
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
 
 
-/api/teacher/classes/{class_id}/announcements:
+teacherClassesClassIdAnnouncements:
   get:
     tags: [Courses]
     operationId: listClassAnnouncements
     summary: 获取班级公告
     parameters:
-      - $ref: ../components/parameters/ClassIdPath.yaml
+      - $ref: ../components/parameters.yaml#/ClassIdPath
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
   post:
     tags: [Courses]
     operationId: createClassAnnouncement
     summary: 发布班级公告
     parameters:
-      - $ref: ../components/parameters/ClassIdPath.yaml
+      - $ref: ../components/parameters.yaml#/ClassIdPath
     requestBody:
       required: true
       content:
@@ -269,10 +269,10 @@
                 type: string
     responses:
       "201":
-        $ref: ../components/responses/Created.yaml
+        $ref: ../components/responses.yaml#/Created
 
 
-/api/teacher/announcements/{announcement_id}:
+teacherAnnouncementsAnnouncementId:
   put:
     tags: [Courses]
     operationId: updateClassAnnouncement
@@ -296,7 +296,7 @@
                 type: string
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
   delete:
     tags: [Courses]
     operationId: deleteClassAnnouncement
@@ -309,5 +309,4 @@
           type: integer
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
-
+        $ref: ../components/responses.yaml#/Success

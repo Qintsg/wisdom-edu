@@ -1,11 +1,11 @@
-/api/admin/logs:
+listOperationLogs:
   get:
     tags: [Logs, Admin]
     operationId: listOperationLogs
     summary: 管理员查询操作日志
     parameters:
-      - $ref: ../components/parameters/Page.yaml
-      - $ref: ../components/parameters/PageSize.yaml
+      - $ref: ../components/parameters.yaml#/Page
+      - $ref: ../components/parameters.yaml#/PageSize
       - name: module
         in: query
         schema:
@@ -48,9 +48,9 @@
             schema:
               $ref: ../components/schemas/ApiEnvelope.yaml
       "403":
-        $ref: ../components/responses/Forbidden.yaml
+        $ref: ../components/responses.yaml#/Forbidden
 
-/api/admin/logs/{log_id}:
+getOperationLogDetail:
   get:
     tags: [Logs, Admin]
     operationId: getOperationLogDetail
@@ -63,11 +63,11 @@
           type: integer
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
       "404":
-        $ref: ../components/responses/NotFound.yaml
+        $ref: ../components/responses.yaml#/NotFound
 
-/api/admin/logs/statistics:
+getLogStatistics:
   get:
     tags: [Logs, Admin]
     operationId: getLogStatistics
@@ -79,36 +79,36 @@
           type: integer
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
 
-/api/admin/logs/options:
+getLogFilterOptions:
   get:
     tags: [Logs, Admin]
     operationId: getLogFilterOptions
     summary: 获取日志筛选选项
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
 
-/api/admin/logs/modules:
+getLogModules:
   get:
     tags: [Logs, Admin]
     operationId: getLogModules
     summary: 获取日志模块列表
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
 
-/api/admin/logs/actions:
+getLogActions:
   get:
     tags: [Logs, Admin]
     operationId: getLogActions
     summary: 获取日志操作类型列表
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
 
-/api/admin/logs/export:
+exportOperationLogs:
   get:
     tags: [Logs, Admin]
     operationId: exportOperationLogs
@@ -132,9 +132,9 @@
           type: string
     responses:
       "200":
-        $ref: ../components/responses/CsvDownload.yaml
+        $ref: ../components/responses.yaml#/CsvDownload
 
-/api/admin/logs/clean:
+cleanExpiredLogs:
   delete:
     tags: [Logs, Admin]
     operationId: cleanExpiredLogs
@@ -157,4 +157,4 @@
             schema:
               $ref: ../components/schemas/ApiEnvelope.yaml
       "403":
-        $ref: ../components/responses/Forbidden.yaml
+        $ref: ../components/responses.yaml#/Forbidden

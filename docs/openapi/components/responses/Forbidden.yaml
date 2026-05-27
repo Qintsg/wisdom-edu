@@ -1,5 +1,0 @@
-description: 已认证但无权限访问。
-content:
-  application/json:
-    schema:
-      $ref: ../schemas/ErrorResponse.yaml

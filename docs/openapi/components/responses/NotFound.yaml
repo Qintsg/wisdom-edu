@@ -1,5 +1,0 @@
-description: 资源不存在。
-content:
-  application/json:
-    schema:
-      $ref: ../schemas/ErrorResponse.yaml

@@ -1,15 +1,15 @@
-/api/student/exams:
+listStudentExams:
   get:
     tags: [Exams]
     operationId: listStudentExams
     summary: 获取学生可见作业列表
     parameters:
-      - $ref: ../components/parameters/CourseId.yaml
+      - $ref: ../components/parameters.yaml#/CourseId
       - name: type
         in: query
         schema:
           type: string
-      - $ref: ../components/parameters/Page.yaml
+      - $ref: ../components/parameters.yaml#/Page
       - name: size
         in: query
         schema:
@@ -25,13 +25,13 @@
               $ref: ../components/schemas/ApiEnvelope.yaml
 
 
-/api/student/exams/{exam_id}:
+getStudentExamDetail:
   get:
     tags: [Exams]
     operationId: getStudentExamDetail
     summary: 获取作业详情和题目
     parameters:
-      - $ref: ../components/parameters/ExamIdPath.yaml
+      - $ref: ../components/parameters.yaml#/ExamIdPath
     responses:
       "200":
         description: data 包含 exam_id、title、description、total_score、pass_score、duration、questions[]，不含标准答案。
@@ -40,18 +40,18 @@
             schema:
               $ref: ../components/schemas/ApiEnvelope.yaml
       "403":
-        $ref: ../components/responses/Forbidden.yaml
+        $ref: ../components/responses.yaml#/Forbidden
       "404":
-        $ref: ../components/responses/NotFound.yaml
+        $ref: ../components/responses.yaml#/NotFound
 
 
-/api/student/exams/{exam_id}/submit:
+submitStudentExam:
   post:
     tags: [Exams]
     operationId: submitStudentExam
     summary: 提交作业答案
     parameters:
-      - $ref: ../components/parameters/ExamIdPath.yaml
+      - $ref: ../components/parameters.yaml#/ExamIdPath
     requestBody:
       required: true
       content:
@@ -71,16 +71,16 @@
             schema:
               $ref: ../components/schemas/ApiEnvelope.yaml
       "400":
-        $ref: ../components/responses/BadRequest.yaml
+        $ref: ../components/responses.yaml#/BadRequest
 
 
-/api/student/exams/{exam_id}/result:
+getStudentExamResult:
   get:
     tags: [Exams]
     operationId: getStudentExamResult
     summary: 获取作业结果
     parameters:
-      - $ref: ../components/parameters/ExamIdPath.yaml
+      - $ref: ../components/parameters.yaml#/ExamIdPath
     responses:
       "200":
         description: data 包含分数、通过状态、提交时间和 question_details。
@@ -89,16 +89,16 @@
             schema:
               $ref: ../components/schemas/ApiEnvelope.yaml
       "404":
-        $ref: ../components/responses/NotFound.yaml
+        $ref: ../components/responses.yaml#/NotFound
 
 
-/api/student/exams/{exam_id}/draft:
+saveStudentExamDraft:
   post:
     tags: [Exams]
     operationId: saveStudentExamDraft
     summary: 保存作业草稿
     parameters:
-      - $ref: ../components/parameters/ExamIdPath.yaml
+      - $ref: ../components/parameters.yaml#/ExamIdPath
     requestBody:
       required: false
       content:
@@ -118,13 +118,13 @@
               $ref: ../components/schemas/ApiEnvelope.yaml
 
 
-/api/student/exams/{exam_id}/statistics:
+getStudentExamStatistics:
   get:
     tags: [Exams]
     operationId: getStudentExamStatistics
     summary: 获取学生视角作业统计
     parameters:
-      - $ref: ../components/parameters/ExamIdPath.yaml
+      - $ref: ../components/parameters.yaml#/ExamIdPath
     responses:
       "200":
         description: data 包含 my_score、average_score、total_submissions、my_rank。
@@ -134,14 +134,14 @@
               $ref: ../components/schemas/ApiEnvelope.yaml
 
 
-/api/student/exams/{exam_id}/answer-sheet:
+getStudentExamAnswerSheet:
   get:
     tags: [Exams]
     operationId: getStudentExamAnswerSheet
     summary: 查看作业标准答案
     description: 只有已提交该作业后可查看。
     parameters:
-      - $ref: ../components/parameters/ExamIdPath.yaml
+      - $ref: ../components/parameters.yaml#/ExamIdPath
     responses:
       "200":
         description: data 为题目答案列表。
@@ -150,84 +150,84 @@
             schema:
               $ref: ../components/schemas/ApiEnvelope.yaml
       "400":
-        $ref: ../components/responses/BadRequest.yaml
+        $ref: ../components/responses.yaml#/BadRequest
 
 
-/api/student/exams/{exam_id}/retake:
+retakeStudentExam:
   post:
     tags: [Exams]
     operationId: retakeStudentExam
     summary: 重置作业提交以重新作答
     parameters:
-      - $ref: ../components/parameters/ExamIdPath.yaml
+      - $ref: ../components/parameters.yaml#/ExamIdPath
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
 
 
-/api/student/exams/{exam_id}/download:
+downloadStudentExamResult:
   get:
     tags: [Exams]
     operationId: downloadStudentExamResult
     summary: 下载作业答案报告 CSV
     parameters:
-      - $ref: ../components/parameters/ExamIdPath.yaml
+      - $ref: ../components/parameters.yaml#/ExamIdPath
     responses:
       "200":
-        $ref: ../components/responses/CsvDownload.yaml
+        $ref: ../components/responses.yaml#/CsvDownload
 
 
-/api/student/classes/{class_id}/members:
+listStudentClassMembers:
   get:
     tags: [Courses, Exams]
     operationId: listStudentClassMembers
     summary: 获取班级成员列表
     parameters:
-      - $ref: ../components/parameters/ClassIdPath.yaml
+      - $ref: ../components/parameters.yaml#/ClassIdPath
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
       "403":
-        $ref: ../components/responses/Forbidden.yaml
+        $ref: ../components/responses.yaml#/Forbidden
 
 
-/api/student/classes/{class_id}/ranking:
+getStudentClassRanking:
   get:
     tags: [Courses, Exams]
     operationId: getStudentClassRanking
     summary: 获取班级学习排行榜
     parameters:
-      - $ref: ../components/parameters/ClassIdPath.yaml
+      - $ref: ../components/parameters.yaml#/ClassIdPath
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
 
 
-/api/student/classes/{class_id}/notifications:
+listStudentClassNotifications:
   get:
     tags: [Courses, Exams]
     operationId: listStudentClassNotifications
     summary: 获取班级通知公告简表
     parameters:
-      - $ref: ../components/parameters/ClassIdPath.yaml
+      - $ref: ../components/parameters.yaml#/ClassIdPath
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
 
 
-/api/student/classes/{class_id}/assignments:
+listStudentClassAssignments:
   get:
     tags: [Courses, Exams]
     operationId: listStudentClassAssignments
     summary: 获取班级作业列表
     parameters:
-      - $ref: ../components/parameters/ClassIdPath.yaml
+      - $ref: ../components/parameters.yaml#/ClassIdPath
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
 
 
-/api/student/feedback/generate:
+generateStudentFeedbackReport:
   post:
     tags: [Exams, AI]
     operationId: generateStudentFeedbackReport
@@ -253,24 +253,24 @@
             schema:
               $ref: ../components/schemas/ApiEnvelope.yaml
       "404":
-        $ref: ../components/responses/NotFound.yaml
+        $ref: ../components/responses.yaml#/NotFound
 
 
-/api/student/feedback/{exam_id}:
+getStudentFeedbackReport:
   get:
     tags: [Exams, AI]
     operationId: getStudentFeedbackReport
     summary: 获取作业反馈报告
     parameters:
-      - $ref: ../components/parameters/ExamIdPath.yaml
+      - $ref: ../components/parameters.yaml#/ExamIdPath
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
       "404":
-        $ref: ../components/responses/NotFound.yaml
+        $ref: ../components/responses.yaml#/NotFound
 
 
-/api/student/assessments/initial/start:
+startLegacyInitialAssessment:
   post:
     tags: [Assessments, Exams]
     operationId: startLegacyInitialAssessment
@@ -294,7 +294,7 @@
               $ref: ../components/schemas/ApiEnvelope.yaml
 
 
-/api/student/assessments/initial/submit:
+submitLegacyInitialAssessment:
   post:
     tags: [Assessments, Exams]
     operationId: submitLegacyInitialAssessment
@@ -319,4 +319,3 @@
           application/json:
             schema:
               $ref: ../components/schemas/ApiEnvelope.yaml
-

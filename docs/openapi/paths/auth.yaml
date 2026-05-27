@@ -1,4 +1,4 @@
-/health/:
+healthCheck:
   get:
     tags: [Health]
     operationId: healthCheck
@@ -6,10 +6,10 @@
     security: []
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
 
 
-/api/auth/register:
+register:
   post:
     tags: [Auth]
     operationId: register
@@ -50,10 +50,10 @@
             schema:
               $ref: ../components/schemas/ApiEnvelope.yaml
       "400":
-        $ref: ../components/responses/BadRequest.yaml
+        $ref: ../components/responses.yaml#/BadRequest
 
 
-/api/auth/login:
+login:
   post:
     tags: [Auth]
     operationId: login
@@ -83,10 +83,10 @@
             schema:
               $ref: ../components/schemas/ApiEnvelope.yaml
       "400":
-        $ref: ../components/responses/BadRequest.yaml
+        $ref: ../components/responses.yaml#/BadRequest
 
 
-/api/auth/logout:
+logout:
   post:
     tags: [Auth]
     operationId: logout
@@ -102,12 +102,12 @@
                 type: string
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
       "401":
-        $ref: ../components/responses/Unauthorized.yaml
+        $ref: ../components/responses.yaml#/Unauthorized
 
 
-/api/auth/userinfo:
+getUserInfo:
   get:
     tags: [Auth]
     operationId: getUserInfo
@@ -120,10 +120,10 @@
             schema:
               $ref: ../components/schemas/ApiEnvelope.yaml
       "401":
-        $ref: ../components/responses/Unauthorized.yaml
+        $ref: ../components/responses.yaml#/Unauthorized
 
 
-/api/auth/userinfo/update:
+updateUserInfo:
   put:
     tags: [Auth]
     operationId: updateUserInfo
@@ -170,10 +170,10 @@
             schema:
               $ref: ../components/schemas/ApiEnvelope.yaml
       "400":
-        $ref: ../components/responses/BadRequest.yaml
+        $ref: ../components/responses.yaml#/BadRequest
 
 
-/api/auth/token/refresh:
+refreshToken:
   post:
     tags: [Auth]
     operationId: refreshToken
@@ -197,10 +197,10 @@
             schema:
               $ref: ../components/schemas/ApiEnvelope.yaml
       "400":
-        $ref: ../components/responses/BadRequest.yaml
+        $ref: ../components/responses.yaml#/BadRequest
 
 
-/api/auth/password/change:
+changePassword:
   post:
     tags: [Auth]
     operationId: changePassword
@@ -222,12 +222,12 @@
                 minLength: 8
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
       "400":
-        $ref: ../components/responses/BadRequest.yaml
+        $ref: ../components/responses.yaml#/BadRequest
 
 
-/api/auth/password/reset/send:
+sendPasswordResetCode:
   post:
     tags: [Auth]
     operationId: sendPasswordResetCode
@@ -246,12 +246,12 @@
                 format: email
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
       "400":
-        $ref: ../components/responses/BadRequest.yaml
+        $ref: ../components/responses.yaml#/BadRequest
 
 
-/api/auth/password/reset:
+resetPassword:
   post:
     tags: [Auth]
     operationId: resetPassword
@@ -276,7 +276,6 @@
                 minLength: 6
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
       "400":
-        $ref: ../components/responses/BadRequest.yaml
-
+        $ref: ../components/responses.yaml#/BadRequest

@@ -1,4 +1,4 @@
-/api/student/learning-path:
+getLearningPath:
   get:
     tags: [Learning]
     operationId: getLearningPath
@@ -17,9 +17,9 @@
             schema:
               $ref: ../components/schemas/ApiEnvelope.yaml
       "404":
-        $ref: ../components/responses/NotFound.yaml
+        $ref: ../components/responses.yaml#/NotFound
 
-/api/student/learning-path/adjust:
+adjustLearningPath:
   post:
     tags: [Learning]
     operationId: adjustLearningPath
@@ -39,11 +39,11 @@
                 description: manual_refresh、rebuild、refresh 时重建；其它值插入补强节点。
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
       "404":
-        $ref: ../components/responses/NotFound.yaml
+        $ref: ../components/responses.yaml#/NotFound
 
-/api/student/learning-progress:
+getLearningProgress:
   get:
     tags: [Learning]
     operationId: getLearningProgress
@@ -62,14 +62,14 @@
             schema:
               $ref: ../components/schemas/ApiEnvelope.yaml
 
-/api/student/path-nodes/{node_id}:
+getPathNodeDetail:
   get:
     tags: [Learning]
     operationId: getPathNodeDetail
     summary: 获取学习路径节点详情
     parameters:
-      - $ref: ../components/parameters/NodeIdPath.yaml
-      - $ref: ../components/parameters/CourseId.yaml
+      - $ref: ../components/parameters.yaml#/NodeIdPath
+      - $ref: ../components/parameters.yaml#/CourseId
     responses:
       "200":
         description: data 包含节点信息、资源、进度和当前掌握度。
@@ -78,15 +78,15 @@
             schema:
               $ref: ../components/schemas/ApiEnvelope.yaml
       "404":
-        $ref: ../components/responses/NotFound.yaml
+        $ref: ../components/responses.yaml#/NotFound
 
-/api/student/path-nodes/{node_id}/start:
+startLearningNode:
   post:
     tags: [Learning]
     operationId: startLearningNode
     summary: 开始学习节点
     parameters:
-      - $ref: ../components/parameters/NodeIdPath.yaml
+      - $ref: ../components/parameters.yaml#/NodeIdPath
     responses:
       "200":
         description: data 包含 node_id、status。
@@ -95,15 +95,15 @@
             schema:
               $ref: ../components/schemas/ApiEnvelope.yaml
       "409":
-        $ref: ../components/responses/Conflict.yaml
+        $ref: ../components/responses.yaml#/Conflict
 
-/api/student/path-nodes/{node_id}/complete:
+completePathNode:
   post:
     tags: [Learning]
     operationId: completePathNode
     summary: 标记学习节点完成
     parameters:
-      - $ref: ../components/parameters/NodeIdPath.yaml
+      - $ref: ../components/parameters.yaml#/NodeIdPath
     responses:
       "200":
         description: data 包含 node_id、status、path_refreshed。
@@ -112,38 +112,38 @@
             schema:
               $ref: ../components/schemas/ApiEnvelope.yaml
       "409":
-        $ref: ../components/responses/Conflict.yaml
+        $ref: ../components/responses.yaml#/Conflict
 
-/api/student/path-nodes/{node_id}/skip:
+skipPathNode:
   post:
     tags: [Learning]
     operationId: skipPathNode
     summary: 跳过学习节点
     parameters:
-      - $ref: ../components/parameters/NodeIdPath.yaml
+      - $ref: ../components/parameters.yaml#/NodeIdPath
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
 
-/api/student/path-nodes/{node_id}/resources:
+listPathNodeResources:
   get:
     tags: [Learning]
     operationId: listPathNodeResources
     summary: 获取节点资源列表兼容接口
     description: 现阶段返回空 resources[]，推荐使用 ai-resources 接口。
     parameters:
-      - $ref: ../components/parameters/NodeIdPath.yaml
+      - $ref: ../components/parameters.yaml#/NodeIdPath
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
 
-/api/student/path-nodes/{node_id}/ai-resources:
+getPathNodeAIResources:
   get:
     tags: [Learning, AI]
     operationId: getPathNodeAIResources
     summary: 获取节点 AI 推荐资源
     parameters:
-      - $ref: ../components/parameters/NodeIdPath.yaml
+      - $ref: ../components/parameters.yaml#/NodeIdPath
     responses:
       "200":
         description: data 包含 internal_resources、external_resources、service_status。
@@ -152,14 +152,14 @@
             schema:
               $ref: ../components/schemas/ApiEnvelope.yaml
 
-/api/student/path-nodes/{node_id}/resources/{resource_id}/complete:
+completeNodeResource:
   post:
     tags: [Learning]
     operationId: completeNodeResource
     summary: 标记节点资源学习完成
     parameters:
-      - $ref: ../components/parameters/NodeIdPath.yaml
-      - $ref: ../components/parameters/ResourceIdPath.yaml
+      - $ref: ../components/parameters.yaml#/NodeIdPath
+      - $ref: ../components/parameters.yaml#/ResourceIdPath
     responses:
       "200":
         description: data 包含 completed_resources 等进度字段。
@@ -168,14 +168,14 @@
             schema:
               $ref: ../components/schemas/ApiEnvelope.yaml
 
-/api/student/path-nodes/{node_id}/resources/{resource_id}/pause:
+pauseNodeResource:
   post:
     tags: [Learning]
     operationId: pauseNodeResource
     summary: 暂停资源学习并保存位置
     parameters:
-      - $ref: ../components/parameters/NodeIdPath.yaml
-      - $ref: ../components/parameters/ResourceIdPath.yaml
+      - $ref: ../components/parameters.yaml#/NodeIdPath
+      - $ref: ../components/parameters.yaml#/ResourceIdPath
     requestBody:
       required: false
       content:
@@ -187,15 +187,15 @@
                 description: 前端播放或阅读位置。
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
 
-/api/student/path-nodes/{node_id}/exams:
+listPathNodeExams:
   get:
     tags: [Learning, Exams]
     operationId: listPathNodeExams
     summary: 获取节点测验列表
     parameters:
-      - $ref: ../components/parameters/NodeIdPath.yaml
+      - $ref: ../components/parameters.yaml#/NodeIdPath
     responses:
       "200":
         description: data.exams[] 包含 exam_id、title、duration、pass_score。
@@ -204,14 +204,14 @@
             schema:
               $ref: ../components/schemas/ApiEnvelope.yaml
 
-/api/student/path-nodes/{node_id}/exams/{exam_id}/submit:
+submitNodeExam:
   post:
     tags: [Learning, Exams]
     operationId: submitNodeExam
     summary: 提交节点练习或小测验
     parameters:
-      - $ref: ../components/parameters/NodeIdPath.yaml
-      - $ref: ../components/parameters/ExamIdPath.yaml
+      - $ref: ../components/parameters.yaml#/NodeIdPath
+      - $ref: ../components/parameters.yaml#/ExamIdPath
     requestBody:
       required: true
       content:
@@ -231,13 +231,13 @@
             schema:
               $ref: ../components/schemas/ApiEnvelope.yaml
 
-/api/student/path-nodes/{node_id}/stage-test:
+getStageTest:
   get:
     tags: [Learning, Exams]
     operationId: getStageTest
     summary: 获取阶段测试题目
     parameters:
-      - $ref: ../components/parameters/NodeIdPath.yaml
+      - $ref: ../components/parameters.yaml#/NodeIdPath
     responses:
       "200":
         description: data 包含阶段测试题、已有结果或空状态。
@@ -246,15 +246,15 @@
             schema:
               $ref: ../components/schemas/ApiEnvelope.yaml
       "400":
-        $ref: ../components/responses/BadRequest.yaml
+        $ref: ../components/responses.yaml#/BadRequest
 
-/api/student/path-nodes/{node_id}/stage-test/submit:
+submitStageTest:
   post:
     tags: [Learning, Exams]
     operationId: submitStageTest
     summary: 提交阶段测试答案
     parameters:
-      - $ref: ../components/parameters/NodeIdPath.yaml
+      - $ref: ../components/parameters.yaml#/NodeIdPath
     requestBody:
       required: true
       content:
@@ -274,7 +274,7 @@
             schema:
               $ref: ../components/schemas/ApiEnvelope.yaml
 
-/api/student/dashboard:
+getStudentDashboard:
   get:
     tags: [Learning]
     operationId: getStudentDashboard
@@ -293,4 +293,4 @@
             schema:
               $ref: ../components/schemas/ApiEnvelope.yaml
       "400":
-        $ref: ../components/responses/BadRequest.yaml
+        $ref: ../components/responses.yaml#/BadRequest

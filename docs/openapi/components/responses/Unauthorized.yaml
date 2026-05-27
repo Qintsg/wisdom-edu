@@ -1,5 +1,0 @@
-description: 未认证或 Token 无效。
-content:
-  application/json:
-    schema:
-      $ref: ../schemas/ErrorResponse.yaml

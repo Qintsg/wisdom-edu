@@ -1,10 +1,10 @@
-/api/teacher/resources:
+listTeacherResources:
   get:
     tags: [Knowledge]
     operationId: listTeacherResources
     summary: 教师查询课程资源
     parameters:
-      - $ref: ../components/parameters/CourseId.yaml
+      - $ref: ../components/parameters.yaml#/CourseId
       - name: keyword
         in: query
         schema:
@@ -21,8 +21,8 @@
         in: query
         schema:
           type: integer
-      - $ref: ../components/parameters/Page.yaml
-      - $ref: ../components/parameters/PageSize.yaml
+      - $ref: ../components/parameters.yaml#/Page
+      - $ref: ../components/parameters.yaml#/PageSize
     responses:
       "200":
         description: data 包含 total、resources[]。
@@ -32,7 +32,7 @@
               $ref: ../components/schemas/ApiEnvelope.yaml
 
 
-/api/teacher/resources/create:
+createTeacherResource:
   post:
     tags: [Knowledge]
     operationId: createTeacherResource
@@ -48,12 +48,12 @@
             $ref: ../components/schemas/ResourceWriteRequest.yaml
     responses:
       "201":
-        $ref: ../components/responses/Created.yaml
+        $ref: ../components/responses.yaml#/Created
       "400":
-        $ref: ../components/responses/BadRequest.yaml
+        $ref: ../components/responses.yaml#/BadRequest
 
 
-/api/teacher/resources/upload:
+uploadTeacherResource:
   post:
     tags: [Knowledge]
     operationId: uploadTeacherResource
@@ -79,27 +79,27 @@
                 type: string
     responses:
       "201":
-        $ref: ../components/responses/Created.yaml
+        $ref: ../components/responses.yaml#/Created
 
 
-/api/teacher/resources/{resource_id}:
+teacherResourcesResourceId:
   get:
     tags: [Knowledge]
     operationId: getTeacherResource
     summary: 获取教师资源详情
     parameters:
-      - $ref: ../components/parameters/ResourceIdPath.yaml
+      - $ref: ../components/parameters.yaml#/ResourceIdPath
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
       "404":
-        $ref: ../components/responses/NotFound.yaml
+        $ref: ../components/responses.yaml#/NotFound
   put:
     tags: [Knowledge]
     operationId: updateTeacherResource
     summary: 更新教师资源
     parameters:
-      - $ref: ../components/parameters/ResourceIdPath.yaml
+      - $ref: ../components/parameters.yaml#/ResourceIdPath
     requestBody:
       required: true
       content:
@@ -111,28 +111,28 @@
             $ref: ../components/schemas/ResourceWriteRequest.yaml
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
 
 
-/api/teacher/resources/{resource_id}/delete:
+deleteTeacherResource:
   delete:
     tags: [Knowledge]
     operationId: deleteTeacherResource
     summary: 删除教师资源
     parameters:
-      - $ref: ../components/parameters/ResourceIdPath.yaml
+      - $ref: ../components/parameters.yaml#/ResourceIdPath
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
 
 
-/api/teacher/resources/{resource_id}/link-knowledge:
+linkTeacherResourceKnowledge:
   post:
     tags: [Knowledge]
     operationId: linkTeacherResourceKnowledge
     summary: 关联资源到知识点
     parameters:
-      - $ref: ../components/parameters/ResourceIdPath.yaml
+      - $ref: ../components/parameters.yaml#/ResourceIdPath
     requestBody:
       required: true
       content:
@@ -147,5 +147,4 @@
                   type: integer
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
-
+        $ref: ../components/responses.yaml#/Success

@@ -1,16 +1,16 @@
-/api/teacher/knowledge-relations:
+listTeacherKnowledgeRelations:
   get:
     tags: [Knowledge]
     operationId: listTeacherKnowledgeRelations
     summary: 教师查询知识关系
     parameters:
-      - $ref: ../components/parameters/CourseId.yaml
+      - $ref: ../components/parameters.yaml#/CourseId
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
 
 
-/api/teacher/knowledge-relations/create:
+createTeacherKnowledgeRelation:
   post:
     tags: [Knowledge]
     operationId: createTeacherKnowledgeRelation
@@ -33,10 +33,10 @@
                 type: string
     responses:
       "201":
-        $ref: ../components/responses/Created.yaml
+        $ref: ../components/responses.yaml#/Created
 
 
-/api/teacher/knowledge-relations/{relation_id}:
+deleteTeacherKnowledgeRelation:
   delete:
     tags: [Knowledge]
     operationId: deleteTeacherKnowledgeRelation
@@ -49,22 +49,22 @@
           type: integer
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
 
 
-/api/teacher/knowledge-points:
+listTeacherKnowledgePoints:
   get:
     tags: [Knowledge]
     operationId: listTeacherKnowledgePoints
     summary: 教师查询知识点
     parameters:
-      - $ref: ../components/parameters/CourseId.yaml
+      - $ref: ../components/parameters.yaml#/CourseId
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
 
 
-/api/teacher/knowledge-points/create:
+createTeacherKnowledgePoint:
   post:
     tags: [Knowledge]
     operationId: createTeacherKnowledgePoint
@@ -95,25 +95,25 @@
                 type: string
     responses:
       "201":
-        $ref: ../components/responses/Created.yaml
+        $ref: ../components/responses.yaml#/Created
 
 
-/api/teacher/knowledge-points/{point_id}:
+teacherKnowledgePointsPointId:
   get:
     tags: [Knowledge]
     operationId: getTeacherKnowledgePoint
     summary: 获取教师知识点详情
     parameters:
-      - $ref: ../components/parameters/PointIdPath.yaml
+      - $ref: ../components/parameters.yaml#/PointIdPath
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
   put:
     tags: [Knowledge]
     operationId: updateTeacherKnowledgePoint
     summary: 更新知识点
     parameters:
-      - $ref: ../components/parameters/PointIdPath.yaml
+      - $ref: ../components/parameters.yaml#/PointIdPath
     requestBody:
       required: true
       content:
@@ -135,22 +135,22 @@
                 type: boolean
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
 
 
-/api/teacher/knowledge-points/{point_id}/delete:
+deleteTeacherKnowledgePoint:
   delete:
     tags: [Knowledge]
     operationId: deleteTeacherKnowledgePoint
     summary: 删除知识点
     parameters:
-      - $ref: ../components/parameters/PointIdPath.yaml
+      - $ref: ../components/parameters.yaml#/PointIdPath
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
 
 
-/api/teacher/knowledge-map/import:
+importTeacherKnowledgeMap:
   post:
     tags: [Knowledge]
     operationId: importTeacherKnowledgeMap
@@ -171,10 +171,10 @@
                 type: integer
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
 
 
-/api/teacher/knowledge-map/save:
+saveTeacherKnowledgeMap:
   post:
     tags: [Knowledge]
     operationId: saveTeacherKnowledgeMap
@@ -201,10 +201,10 @@
                   additionalProperties: true
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
 
 
-/api/teacher/knowledge-map/publish:
+publishTeacherKnowledgeMap:
   post:
     tags: [Knowledge]
     operationId: publishTeacherKnowledgeMap
@@ -223,16 +223,16 @@
                 type: boolean
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
 
 
-/api/teacher/knowledge-map/build-rag-index:
+buildTeacherKnowledgeMapRagIndex:
   post:
     tags: [Knowledge]
     operationId: buildTeacherKnowledgeMapRagIndex
     summary: 构建课程 GraphRAG 索引
     parameters:
-      - $ref: ../components/parameters/CourseId.yaml
+      - $ref: ../components/parameters.yaml#/CourseId
     requestBody:
       required: false
       content:
@@ -244,12 +244,12 @@
                 type: integer
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
       "400":
-        $ref: ../components/responses/BadRequest.yaml
+        $ref: ../components/responses.yaml#/BadRequest
 
 
-/api/teacher/knowledge-map/export:
+exportTeacherKnowledgeMap:
   get:
     tags: [Knowledge]
     operationId: exportTeacherKnowledgeMap
@@ -262,14 +262,14 @@
           type: integer
     responses:
       "200":
-        $ref: ../components/responses/JsonDownload.yaml
+        $ref: ../components/responses.yaml#/JsonDownload
 
 
-/api/teacher/knowledge-map/template:
+downloadTeacherKnowledgeMapTemplate:
   get:
     tags: [Knowledge]
     operationId: downloadTeacherKnowledgeMapTemplate
     summary: 下载知识图谱导入模板
     responses:
       "200":
-        $ref: ../components/responses/JsonDownload.yaml
+        $ref: ../components/responses.yaml#/JsonDownload

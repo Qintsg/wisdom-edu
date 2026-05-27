@@ -1,5 +1,0 @@
-description: 服务端处理失败。
-content:
-  application/json:
-    schema:
-      $ref: ../schemas/ErrorResponse.yaml

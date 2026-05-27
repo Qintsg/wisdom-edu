@@ -1,4 +1,4 @@
-/api/student/ai/profile-analysis:
+aiProfileAnalysis:
   post:
     tags: [AI, Profile]
     operationId: aiProfileAnalysis
@@ -18,13 +18,13 @@
                 default: false
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
       "400":
-        $ref: ../components/responses/BadRequest.yaml
+        $ref: ../components/responses.yaml#/BadRequest
       "500":
-        $ref: ../components/responses/ServerError.yaml
+        $ref: ../components/responses.yaml#/ServerError
 
-/api/student/ai/path-planning:
+aiPathPlanning:
   post:
     tags: [AI, Learning]
     operationId: aiPathPlanning
@@ -52,7 +52,7 @@
             schema:
               $ref: ../components/schemas/ApiEnvelope.yaml
 
-/api/student/ai/resource-reason:
+aiResourceReason:
   post:
     tags: [AI]
     operationId: aiResourceReason
@@ -79,7 +79,7 @@
             schema:
               $ref: ../components/schemas/ApiEnvelope.yaml
 
-/api/student/ai/feedback-report:
+aiFeedbackReport:
   post:
     tags: [AI, Exams]
     operationId: aiFeedbackReport
@@ -96,11 +96,11 @@
                 type: integer
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
       "404":
-        $ref: ../components/responses/NotFound.yaml
+        $ref: ../components/responses.yaml#/NotFound
 
-/api/student/ai/learning-advice:
+aiLearningAdvice:
   post:
     tags: [AI]
     operationId: aiLearningAdvice
@@ -123,7 +123,7 @@
             schema:
               $ref: ../components/schemas/ApiEnvelope.yaml
 
-/api/student/ai/refresh-profile:
+aiRefreshProfile:
   post:
     tags: [AI, Profile]
     operationId: aiRefreshProfile
@@ -140,9 +140,9 @@
                 type: integer
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
 
-/api/student/ai/refresh-learning-path:
+aiRefreshLearningPath:
   post:
     tags: [AI, Learning]
     operationId: aiRefreshLearningPath
@@ -165,7 +165,7 @@
             schema:
               $ref: ../components/schemas/ApiEnvelope.yaml
 
-/api/student/ai/key-points-reminder:
+aiKeyPointsReminder:
   post:
     tags: [AI, Knowledge]
     operationId: aiKeyPointsReminder
@@ -188,7 +188,7 @@
             schema:
               $ref: ../components/schemas/ApiEnvelope.yaml
 
-/api/student/ai/time-scheduling:
+aiTimeScheduling:
   post:
     tags: [AI]
     operationId: aiTimeScheduling
@@ -215,7 +215,7 @@
             schema:
               $ref: ../components/schemas/ApiEnvelope.yaml
 
-/api/student/ai/analysis-compare:
+aiAnalysisCompare:
   get:
     tags: [AI, Profile]
     operationId: aiAnalysisCompare
@@ -235,9 +235,9 @@
           format: date
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
 
-/api/student/ai/chat:
+aiChat:
   post:
     tags: [AI]
     operationId: aiChat
@@ -271,9 +271,9 @@
             schema:
               $ref: ../components/schemas/ApiEnvelope.yaml
       "400":
-        $ref: ../components/responses/BadRequest.yaml
+        $ref: ../components/responses.yaml#/BadRequest
 
-/api/student/ai/node-intro:
+aiNodeIntro:
   post:
     tags: [AI, Knowledge]
     operationId: aiNodeIntro
@@ -296,11 +296,11 @@
                 type: string
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
       "404":
-        $ref: ../components/responses/NotFound.yaml
+        $ref: ../components/responses.yaml#/NotFound
 
-/api/student/ai/knowledge-query:
+aiKnowledgeGraphQuery:
   post:
     tags: [AI, Knowledge]
     operationId: aiKnowledgeGraphQuery
@@ -315,9 +315,9 @@
             additionalProperties: true
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
 
-/api/student/ai/graph-rag/search:
+aiGraphRagSearch:
   post:
     tags: [AI, Knowledge]
     operationId: aiGraphRagSearch
@@ -342,9 +342,9 @@
                 maximum: 20
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
 
-/api/student/ai/graph-rag/ask:
+aiGraphRagAsk:
   post:
     tags: [AI, Knowledge]
     operationId: aiGraphRagAsk
@@ -367,9 +367,9 @@
                 type: integer
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
 
-/api/ai/kt/predict:
+ktPredict:
   post:
     tags: [AI]
     operationId: ktPredict
@@ -395,20 +395,20 @@
                   type: integer
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
       "500":
-        $ref: ../components/responses/ServerError.yaml
+        $ref: ../components/responses.yaml#/ServerError
 
-/api/ai/kt/model-info:
+ktModelInfo:
   get:
     tags: [AI]
     operationId: ktModelInfo
     summary: 获取当前 KT 模型信息
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
 
-/api/ai/kt/batch-predict:
+ktBatchPredict:
   post:
     tags: [AI]
     operationId: ktBatchPredict
@@ -434,9 +434,9 @@
             schema:
               $ref: ../components/schemas/ApiEnvelope.yaml
       "403":
-        $ref: ../components/responses/Forbidden.yaml
+        $ref: ../components/responses.yaml#/Forbidden
 
-/api/ai/kt/recommendations:
+ktRecommendations:
   post:
     tags: [AI]
     operationId: ktRecommendations

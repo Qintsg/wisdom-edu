@@ -1,4 +1,4 @@
-/api/teacher/exams:
+listTeacherExams:
   get:
     tags: [Exams]
     operationId: listTeacherExams
@@ -9,8 +9,8 @@
         required: true
         schema:
           type: integer
-      - $ref: ../components/parameters/Page.yaml
-      - $ref: ../components/parameters/PageSize.yaml
+      - $ref: ../components/parameters.yaml#/Page
+      - $ref: ../components/parameters.yaml#/PageSize
     responses:
       "200":
         description: data 包含 total、exams[]。
@@ -20,7 +20,7 @@
               $ref: ../components/schemas/ApiEnvelope.yaml
 
 
-/api/teacher/exams/create:
+createTeacherExam:
   post:
     tags: [Exams]
     operationId: createTeacherExam
@@ -64,16 +64,16 @@
             schema:
               $ref: ../components/schemas/ApiEnvelope.yaml
       "400":
-        $ref: ../components/responses/BadRequest.yaml
+        $ref: ../components/responses.yaml#/BadRequest
 
 
-/api/teacher/exams/{exam_id}:
+getTeacherExamDetail:
   get:
     tags: [Exams]
     operationId: getTeacherExamDetail
     summary: 教师获取作业详情
     parameters:
-      - $ref: ../components/parameters/ExamIdPath.yaml
+      - $ref: ../components/parameters.yaml#/ExamIdPath
     responses:
       "200":
         description: data 包含作业信息、题目标准答案和 statistics。
@@ -83,14 +83,14 @@
               $ref: ../components/schemas/ApiEnvelope.yaml
 
 
-/api/teacher/exams/{exam_id}/update:
+updateTeacherExam:
   put:
     tags: [Exams]
     operationId: updateTeacherExam
     summary: 教师更新作业
     description: 已发布作业仅允许更新 end_time；未发布作业可更新题目、目标班级和基础信息。
     parameters:
-      - $ref: ../components/parameters/ExamIdPath.yaml
+      - $ref: ../components/parameters.yaml#/ExamIdPath
     requestBody:
       content:
         application/json:
@@ -131,28 +131,28 @@
               $ref: ../components/schemas/ApiEnvelope.yaml
 
 
-/api/teacher/exams/{exam_id}/delete:
+deleteTeacherExam:
   delete:
     tags: [Exams]
     operationId: deleteTeacherExam
     summary: 教师删除作业
     description: 已发布或已有提交记录的作业不能删除。
     parameters:
-      - $ref: ../components/parameters/ExamIdPath.yaml
+      - $ref: ../components/parameters.yaml#/ExamIdPath
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
       "400":
-        $ref: ../components/responses/BadRequest.yaml
+        $ref: ../components/responses.yaml#/BadRequest
 
 
-/api/teacher/exams/{exam_id}/publish:
+publishTeacherExam:
   post:
     tags: [Exams]
     operationId: publishTeacherExam
     summary: 发布作业
     parameters:
-      - $ref: ../components/parameters/ExamIdPath.yaml
+      - $ref: ../components/parameters.yaml#/ExamIdPath
     requestBody:
       required: false
       content:
@@ -177,29 +177,29 @@
               $ref: ../components/schemas/ApiEnvelope.yaml
 
 
-/api/teacher/exams/{exam_id}/unpublish:
+unpublishTeacherExam:
   post:
     tags: [Exams]
     operationId: unpublishTeacherExam
     summary: 取消发布作业
     description: 已有提交记录时不能取消发布。
     parameters:
-      - $ref: ../components/parameters/ExamIdPath.yaml
+      - $ref: ../components/parameters.yaml#/ExamIdPath
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
       "400":
-        $ref: ../components/responses/BadRequest.yaml
+        $ref: ../components/responses.yaml#/BadRequest
 
 
-/api/teacher/exams/{exam_id}/results:
+listTeacherExamResults:
   get:
     tags: [Exams]
     operationId: listTeacherExamResults
     summary: 获取作业成绩列表
     parameters:
-      - $ref: ../components/parameters/ExamIdPath.yaml
-      - $ref: ../components/parameters/Page.yaml
+      - $ref: ../components/parameters.yaml#/ExamIdPath
+      - $ref: ../components/parameters.yaml#/Page
       - name: size
         in: query
         schema:
@@ -213,25 +213,25 @@
               $ref: ../components/schemas/ApiEnvelope.yaml
 
 
-/api/teacher/exams/{exam_id}/export:
+exportTeacherExamResults:
   get:
     tags: [Exams]
     operationId: exportTeacherExamResults
     summary: 导出作业成绩 CSV
     parameters:
-      - $ref: ../components/parameters/ExamIdPath.yaml
+      - $ref: ../components/parameters.yaml#/ExamIdPath
     responses:
       "200":
-        $ref: ../components/responses/CsvDownload.yaml
+        $ref: ../components/responses.yaml#/CsvDownload
 
 
-/api/teacher/exams/{exam_id}/questions/add:
+addTeacherExamQuestions:
   post:
     tags: [Exams]
     operationId: addTeacherExamQuestions
     summary: 向作业追加题目
     parameters:
-      - $ref: ../components/parameters/ExamIdPath.yaml
+      - $ref: ../components/parameters.yaml#/ExamIdPath
     requestBody:
       required: true
       content:
@@ -253,13 +253,13 @@
               $ref: ../components/schemas/ApiEnvelope.yaml
 
 
-/api/teacher/exams/{exam_id}/questions/remove:
+removeTeacherExamQuestions:
   post:
     tags: [Exams]
     operationId: removeTeacherExamQuestions
     summary: 从作业移除题目
     parameters:
-      - $ref: ../components/parameters/ExamIdPath.yaml
+      - $ref: ../components/parameters.yaml#/ExamIdPath
     requestBody:
       required: true
       content:
@@ -281,13 +281,13 @@
               $ref: ../components/schemas/ApiEnvelope.yaml
 
 
-/api/teacher/exams/{exam_id}/students/{student_id}:
+getTeacherExamStudentDetail:
   get:
     tags: [Exams]
     operationId: getTeacherExamStudentDetail
     summary: 获取某学生作业详情
     parameters:
-      - $ref: ../components/parameters/ExamIdPath.yaml
+      - $ref: ../components/parameters.yaml#/ExamIdPath
       - name: student_id
         in: path
         required: true
@@ -301,16 +301,16 @@
             schema:
               $ref: ../components/schemas/ApiEnvelope.yaml
       "404":
-        $ref: ../components/responses/NotFound.yaml
+        $ref: ../components/responses.yaml#/NotFound
 
 
-/api/teacher/exams/{exam_id}/analysis:
+getTeacherExamAnalysis:
   get:
     tags: [Exams]
     operationId: getTeacherExamAnalysis
     summary: 获取作业统计分析
     parameters:
-      - $ref: ../components/parameters/ExamIdPath.yaml
+      - $ref: ../components/parameters.yaml#/ExamIdPath
     responses:
       "200":
         description: data 包含 statistics、score_distribution、question_analysis。

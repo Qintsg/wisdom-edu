@@ -1,74 +1,74 @@
-/api/admin/statistics/overview:
+getAdminStatisticsOverview:
   get:
     tags: [Admin]
     operationId: getAdminStatisticsOverview
     summary: 管理员仪表盘总览统计
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
 
 
-/api/admin/statistics/users:
+getAdminUserStatistics:
   get:
     tags: [Admin]
     operationId: getAdminUserStatistics
     summary: 用户统计
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
 
 
-/api/admin/statistics/courses:
+getAdminCourseStatisticsList:
   get:
     tags: [Admin]
     operationId: getAdminCourseStatisticsList
     summary: 课程统计
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
 
 
-/api/admin/statistics/learning:
+getAdminLearningStatistics:
   get:
     tags: [Admin]
     operationId: getAdminLearningStatistics
     summary: 学习统计
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
 
 
-/api/admin/statistics/exams:
+getAdminExamStatistics:
   get:
     tags: [Admin]
     operationId: getAdminExamStatistics
     summary: 作业考试统计
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
 
 
-/api/admin/statistics/active-users:
+getAdminActiveUserStatistics:
   get:
     tags: [Admin]
     operationId: getAdminActiveUserStatistics
     summary: 活跃用户统计
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
 
 
-/api/admin/statistics/report:
+getAdminStatisticsReport:
   get:
     tags: [Admin]
     operationId: getAdminStatisticsReport
     summary: 管理端统计报告
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
 
 
-/api/admin/statistics/export:
+exportAdminStatistics:
   get:
     tags: [Admin]
     operationId: exportAdminStatistics
@@ -80,4 +80,4 @@
           type: string
     responses:
       "200":
-        $ref: ../components/responses/CsvDownload.yaml
+        $ref: ../components/responses.yaml#/CsvDownload

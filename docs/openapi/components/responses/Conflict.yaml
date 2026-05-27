@@ -1,5 +1,0 @@
-description: 资源状态冲突。
-content:
-  application/json:
-    schema:
-      $ref: ../schemas/ErrorResponse.yaml

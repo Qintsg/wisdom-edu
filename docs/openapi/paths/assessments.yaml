@@ -1,10 +1,10 @@
-/api/student/assessments/status:
+getAssessmentStatus:
   get:
     tags: [Assessments]
     operationId: getAssessmentStatus
     summary: 查询当前用户初始测评完成状态
     parameters:
-      - $ref: ../components/parameters/CourseId.yaml
+      - $ref: ../components/parameters.yaml#/CourseId
     responses:
       "200":
         description: data 包含 ability_done、habit_done、knowledge_done、courses[]、next_step 等。
@@ -13,7 +13,7 @@
             schema:
               $ref: ../components/schemas/ApiEnvelope.yaml
 
-/api/student/assessments/initial/knowledge:
+getKnowledgeAssessment:
   get:
     tags: [Assessments]
     operationId: getKnowledgeAssessment
@@ -32,9 +32,9 @@
             schema:
               $ref: ../components/schemas/ApiEnvelope.yaml
       "404":
-        $ref: ../components/responses/NotFound.yaml
+        $ref: ../components/responses.yaml#/NotFound
 
-/api/student/assessments/initial/knowledge/submit:
+submitKnowledgeAssessment:
   post:
     tags: [Assessments]
     operationId: submitKnowledgeAssessment
@@ -68,9 +68,9 @@
             schema:
               $ref: ../components/schemas/ApiEnvelope.yaml
       "400":
-        $ref: ../components/responses/BadRequest.yaml
+        $ref: ../components/responses.yaml#/BadRequest
 
-/api/student/assessments/initial/knowledge/result:
+getKnowledgeAssessmentResult:
   get:
     tags: [Assessments]
     operationId: getKnowledgeAssessmentResult
@@ -90,13 +90,13 @@
             schema:
               $ref: ../components/schemas/ApiEnvelope.yaml
 
-/api/student/assessments/initial/ability:
+getAbilityAssessment:
   get:
     tags: [Assessments]
     operationId: getAbilityAssessment
     summary: 获取学习能力评测题目
     parameters:
-      - $ref: ../components/parameters/CourseId.yaml
+      - $ref: ../components/parameters.yaml#/CourseId
     responses:
       "200":
         description: data 包含 assessment_id、title、questions[]。
@@ -105,16 +105,16 @@
             schema:
               $ref: ../components/schemas/ApiEnvelope.yaml
 
-/api/student/assessments/initial/ability/retake:
+retakeAbilityAssessment:
   get:
     tags: [Assessments]
     operationId: retakeAbilityAssessment
     summary: 重新获取学习能力评测题目
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
 
-/api/student/assessments/initial/ability/submit:
+submitAbilityAssessment:
   post:
     tags: [Assessments]
     operationId: submitAbilityAssessment
@@ -150,13 +150,13 @@
             schema:
               $ref: ../components/schemas/ApiEnvelope.yaml
 
-/api/student/assessments/initial/habit:
+getHabitSurvey:
   get:
     tags: [Assessments]
     operationId: getHabitSurvey
     summary: 获取学习习惯问卷
     parameters:
-      - $ref: ../components/parameters/CourseId.yaml
+      - $ref: ../components/parameters.yaml#/CourseId
     responses:
       "200":
         description: data 包含 survey_id、title、questions[]。
@@ -165,7 +165,7 @@
             schema:
               $ref: ../components/schemas/ApiEnvelope.yaml
 
-/api/student/assessments/initial/habit/submit:
+submitHabitSurvey:
   post:
     tags: [Assessments]
     operationId: submitHabitSurvey
@@ -201,7 +201,7 @@
             schema:
               $ref: ../components/schemas/ApiEnvelope.yaml
 
-/api/student/assessments/profile/generate:
+generateCourseProfile:
   post:
     tags: [Assessments, Profile]
     operationId: generateCourseProfile
@@ -224,6 +224,6 @@
             schema:
               $ref: ../components/schemas/ApiEnvelope.yaml
       "400":
-        $ref: ../components/responses/BadRequest.yaml
+        $ref: ../components/responses.yaml#/BadRequest
       "500":
-        $ref: ../components/responses/ServerError.yaml
+        $ref: ../components/responses.yaml#/ServerError

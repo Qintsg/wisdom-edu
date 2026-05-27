@@ -1,6 +1,0 @@
-name: point_id
-in: path
-required: true
-schema:
-  type: integer
-description: 知识点 ID。

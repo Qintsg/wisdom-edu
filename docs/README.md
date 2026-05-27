@@ -1,26 +1,22 @@
 # 知识图谱驱动的个性化自适应学习系统文档总览
 
-> 最后更新：2026-05-13
+> 最后更新：2026-05-27
 
 本文档目录面向开发、验收、接口契约维护和项目材料归档。文档内容以当前仓库真实实现为准，API 契约源文件统一维护在 `docs/openapi/openapi.yaml`，`docs/api.yaml` 为 Redocly CLI 打包后的单文件产物。
 
 ## 推荐阅读顺序
 
 1. `使用说明.md`：学生、教师、管理员三端页面、主要业务流程和常用命令。
-2. `演示数据导入说明.md`：基础账号、默认入班、课程资产导入与浏览器巡检。
-3. `openapi/openapi.yaml`：模块化 OpenAPI 契约入口；`api.yaml` 为打包产物。
-4. `CHANGELOG.md`：项目变更记录。
+2. `openapi/openapi.yaml`：模块化 OpenAPI 契约入口；`api.yaml` 为打包产物。
+3. `CHANGELOG.md`：项目变更记录。
 
 ## 文档索引
 
 - `README.md`：当前文档总导航。
 - `使用说明.md`：三端页面、典型流程和常用接口入口。
-- `演示数据导入说明.md`：基础账号、课程资产、默认入班与浏览器巡检说明。
-- `openapi/openapi.yaml`：模块化 OpenAPI 描述文件和接口契约源，入口只保留全局信息和 `$ref`。
+- `openapi/openapi.yaml`：模块化 OpenAPI 描述文件和接口契约源，入口显式映射真实 URL 到模块化路径项 `$ref`。
 - `api.yaml`：由 Redocly CLI 从 `docs/openapi/openapi.yaml` 打包生成的单文件 OpenAPI 描述。
 - `CHANGELOG.md`：项目变更记录。
-- `论文.pdf`：项目论文材料。
-- `../STYLE.md`：代码、文档、API 与界面风格约定。
 - `../LICENSE`：Academic Free License version 3.0（AFL-3.0）。
 
 ## 项目与参赛信息
@@ -39,7 +35,7 @@
 - 前端本地开发默认通过 `frontend/vite.config.ts` 代理 `/api`、`/media`、`/static`、`/ws` 到 `http://127.0.0.1:8000`，并监听 `0.0.0.0:3000`。
 - 前端生产构建默认走同域 `/api`、`/media`、`/static`、`/ws`；确需直连其他后端入口时使用 `VITE_BACKEND_ORIGIN` 后重新构建。
 - 默认 LLM 提供方为 `deepseek`，默认模型为 `deepseek-v4-flash`，并通过 `LLM_EXTRA_BODY_JSON={"enable_thinking":false}` 关闭兼容网关的思考输出。
-- API 契约源以 `docs/openapi/openapi.yaml` 为准，`docs/api.yaml` 为打包产物；后端运行态 Schema 地址为 `http://127.0.0.1:8000/api/schema/`。
+- API 契约源以 `docs/openapi/openapi.yaml` 为准，路径项按业务模块拆分在 `docs/openapi/paths/`，通用参数与响应分别汇总到 `docs/openapi/components/parameters.yaml` 和 `docs/openapi/components/responses.yaml`；`docs/api.yaml` 为打包产物，后端运行态 Schema 地址为 `http://127.0.0.1:8000/api/schema/`。
 - GraphRAG 课程索引默认位于 `backend/runtime_logs/rag/course_{course_id}.json`。
 - GraphRAG 本地向量库默认位于 `backend/runtime_logs/rag/qdrant/`。
 - KT 当前只保留 `MEFKT`，默认 `single` 模式；`fusion / ensemble` 响应结构保留用于后续扩展。

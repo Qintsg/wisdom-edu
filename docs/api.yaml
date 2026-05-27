@@ -2903,6 +2903,7 @@ paths:
         - Assessments
       operationId: submitKnowledgeAssessment
       summary: 提交课程知识测评
+      description: 提交后会保存本次测评掌握度快照；题目级 MEFKT 会接收所有作答题目，未绑定知识点的题目以 question_id 参与历史序列。
       requestBody:
         required: true
         content:
@@ -2942,6 +2943,7 @@ paths:
         - Assessments
       operationId: getKnowledgeAssessmentResult
       summary: 获取课程知识测评结果和异步生成状态
+      description: mastery 返回本次知识测评结果快照，不混入异步路径或画像刷新写入的课程全量掌握度基线。
       parameters:
         - name: course_id
           in: query
@@ -5266,6 +5268,13 @@ components:
           type: string
           format: date-time
   parameters:
+    CourseId:
+      name: course_id
+      in: query
+      required: false
+      schema:
+        type: integer
+      description: 课程 ID。
     Page:
       name: page
       in: query
@@ -5285,20 +5294,6 @@ components:
         maximum: 100
         default: 20
       description: 每页数量。部分旧接口使用 `size`，对应接口会单独声明。
-    CourseId:
-      name: course_id
-      in: query
-      required: false
-      schema:
-        type: integer
-      description: 课程 ID。
-    ClassIdPath:
-      name: class_id
-      in: path
-      required: true
-      schema:
-        type: integer
-      description: 班级 ID。
     UserIdPath:
       name: user_id
       in: path
@@ -5306,6 +5301,13 @@ components:
       schema:
         type: integer
       description: 用户 ID。
+    ClassIdPath:
+      name: class_id
+      in: path
+      required: true
+      schema:
+        type: integer
+      description: 班级 ID。
     PointIdPath:
       name: point_id
       in: path
@@ -5348,17 +5350,6 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/ApiEnvelope'
-    Created:
-      description: 创建成功。
-      content:
-        application/json:
-          schema:
-            allOf:
-              - $ref: '#/components/schemas/ApiEnvelope'
-              - type: object
-                properties:
-                  code:
-                    example: 201
     BadRequest:
       description: 请求参数错误或业务校验失败。
       content:
@@ -5371,26 +5362,14 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/ErrorResponse'
+    JsonDownload:
+      description: JSON 文件下载。
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/FileDownload'
     Forbidden:
       description: 已认证但无权限访问。
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-    NotFound:
-      description: 资源不存在。
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-    Conflict:
-      description: 资源状态冲突。
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-    ServerError:
-      description: 服务端处理失败。
       content:
         application/json:
           schema:
@@ -5401,9 +5380,32 @@ components:
         text/csv:
           schema:
             $ref: '#/components/schemas/FileDownload'
-    JsonDownload:
-      description: JSON 文件下载。
+    NotFound:
+      description: 资源不存在。
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/FileDownload'
+            $ref: '#/components/schemas/ErrorResponse'
+    Created:
+      description: 创建成功。
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/ApiEnvelope'
+              - type: object
+                properties:
+                  code:
+                    example: 201
+    ServerError:
+      description: 服务端处理失败。
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Conflict:
+      description: 资源状态冲突。
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'

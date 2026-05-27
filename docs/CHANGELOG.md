@@ -1,5 +1,14 @@
 # Changelog
 
+## 2026-05-27
+
+### Docs / API — OpenAPI 目录结构重写
+
+- `docs/openapi/openapi.yaml` 改为显式列出真实接口 URL，并逐项 `$ref` 到 `docs/openapi/paths/` 下的业务模块路径项。
+- `docs/openapi/paths/*.yaml` 的顶层键由完整 URL 调整为语义键，便于入口文件集中维护真实路由映射。
+- 通用参数和通用响应分别汇总到 `docs/openapi/components/parameters.yaml` 与 `docs/openapi/components/responses.yaml`，schemas 继续按单文件维护。
+- 修正根 `README.md`、`docs/README.md` 和 `docs/使用说明.md` 中指向当前检出不存在文件的文档索引。
+
 ## 2026-05-15
 
 ### Backend / Frontend / Docs — 学生端知识点详情跳过 GraphRAG 证据

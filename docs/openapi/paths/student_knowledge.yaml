@@ -1,4 +1,4 @@
-/api/student/knowledge-map:
+getStudentKnowledgeMap:
   get:
     tags: [Knowledge]
     operationId: getStudentKnowledgeMap
@@ -17,17 +17,17 @@
             schema:
               $ref: ../components/schemas/ApiEnvelope.yaml
       "400":
-        $ref: ../components/responses/BadRequest.yaml
+        $ref: ../components/responses.yaml#/BadRequest
 
 
-/api/student/knowledge-points/{point_id}:
+getStudentKnowledgePointDetail:
   get:
     tags: [Knowledge]
     operationId: getStudentKnowledgePointDetail
     summary: 获取学生知识点详情
     parameters:
-      - $ref: ../components/parameters/PointIdPath.yaml
-      - $ref: ../components/parameters/CourseId.yaml
+      - $ref: ../components/parameters.yaml#/PointIdPath
+      - $ref: ../components/parameters.yaml#/CourseId
       - name: include_graph_rag
         in: query
         description: 是否构造 GraphRAG 证据摘要。
@@ -35,30 +35,30 @@
           type: boolean
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
       "404":
-        $ref: ../components/responses/NotFound.yaml
+        $ref: ../components/responses.yaml#/NotFound
 
 
-/api/student/knowledge-points/{point_id}/resources:
+listStudentKnowledgePointResources:
   get:
     tags: [Knowledge]
     operationId: listStudentKnowledgePointResources
     summary: 获取知识点关联学习资源
     parameters:
-      - $ref: ../components/parameters/PointIdPath.yaml
+      - $ref: ../components/parameters.yaml#/PointIdPath
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
 
 
-/api/student/knowledge/points:
+listStudentKnowledgePoints:
   get:
     tags: [Knowledge]
     operationId: listStudentKnowledgePoints
     summary: 获取学生课程知识点列表
     parameters:
-      - $ref: ../components/parameters/CourseId.yaml
+      - $ref: ../components/parameters.yaml#/CourseId
       - name: chapter
         in: query
         schema:
@@ -69,28 +69,28 @@
           type: string
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
 
 
-/api/student/knowledge/relations:
+listStudentKnowledgeRelations:
   get:
     tags: [Knowledge]
     operationId: listStudentKnowledgeRelations
     summary: 获取学生课程知识点关系
     parameters:
-      - $ref: ../components/parameters/CourseId.yaml
+      - $ref: ../components/parameters.yaml#/CourseId
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
 
 
-/api/student/knowledge/mastery:
+getStudentKnowledgeMastery:
   get:
     tags: [Knowledge]
     operationId: getStudentKnowledgeMastery
     summary: 获取学生知识点掌握度
     parameters:
-      - $ref: ../components/parameters/CourseId.yaml
+      - $ref: ../components/parameters.yaml#/CourseId
     responses:
       "200":
         description: data 包含 mastery[]。
@@ -100,7 +100,7 @@
               $ref: ../components/schemas/ApiEnvelope.yaml
 
 
-/api/student/knowledge/mastery/update:
+updateStudentKnowledgeMastery:
   put:
     tags: [Knowledge]
     operationId: updateStudentKnowledgeMastery
@@ -127,12 +127,12 @@
                 description: 兼容字段。
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
       "400":
-        $ref: ../components/responses/BadRequest.yaml
+        $ref: ../components/responses.yaml#/BadRequest
 
 
-/api/student/knowledge/search:
+searchStudentKnowledge:
   get:
     tags: [Knowledge]
     operationId: searchStudentKnowledge
@@ -143,21 +143,21 @@
         required: true
         schema:
           type: string
-      - $ref: ../components/parameters/CourseId.yaml
+      - $ref: ../components/parameters.yaml#/CourseId
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
       "400":
-        $ref: ../components/responses/BadRequest.yaml
+        $ref: ../components/responses.yaml#/BadRequest
 
 
-/api/student/resources:
+listStudentResources:
   get:
     tags: [Knowledge]
     operationId: listStudentResources
     summary: 获取学生课程资源
     parameters:
-      - $ref: ../components/parameters/CourseId.yaml
+      - $ref: ../components/parameters.yaml#/CourseId
       - name: sort
         in: query
         schema:
@@ -175,8 +175,8 @@
         in: query
         schema:
           type: integer
-      - $ref: ../components/parameters/Page.yaml
-      - $ref: ../components/parameters/PageSize.yaml
+      - $ref: ../components/parameters.yaml#/Page
+      - $ref: ../components/parameters.yaml#/PageSize
     responses:
       "200":
         description: data 包含 resources[]、total、page、page_size。
@@ -184,4 +184,3 @@
           application/json:
             schema:
               $ref: ../components/schemas/ApiEnvelope.yaml
-

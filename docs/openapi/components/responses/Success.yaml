@@ -1,5 +1,0 @@
-description: 成功响应。实际 `data` 结构以接口说明为准。
-content:
-  application/json:
-    schema:
-      $ref: ../schemas/ApiEnvelope.yaml

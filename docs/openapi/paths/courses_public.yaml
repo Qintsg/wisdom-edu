@@ -1,4 +1,4 @@
-/api/courses:
+listCourses:
   get:
     tags: [Courses]
     operationId: listCourses
@@ -13,7 +13,7 @@
               $ref: ../components/schemas/ApiEnvelope.yaml
 
 
-/api/courses/select:
+selectCourse:
   post:
     tags: [Courses]
     operationId: selectCourse
@@ -39,12 +39,12 @@
             schema:
               $ref: ../components/schemas/ApiEnvelope.yaml
       "400":
-        $ref: ../components/responses/BadRequest.yaml
+        $ref: ../components/responses.yaml#/BadRequest
       "403":
-        $ref: ../components/responses/Forbidden.yaml
+        $ref: ../components/responses.yaml#/Forbidden
 
 
-/api/courses/search:
+searchCourses:
   get:
     tags: [Courses]
     operationId: searchCourses
@@ -58,8 +58,8 @@
         in: query
         schema:
           type: string
-      - $ref: ../components/parameters/Page.yaml
-      - $ref: ../components/parameters/PageSize.yaml
+      - $ref: ../components/parameters.yaml#/Page
+      - $ref: ../components/parameters.yaml#/PageSize
     responses:
       "200":
         description: data 包含 total、page、page_size、courses[]。
@@ -69,7 +69,7 @@
               $ref: ../components/schemas/ApiEnvelope.yaml
 
 
-/api/student/classes:
+listStudentClasses:
   get:
     tags: [Courses]
     operationId: listStudentClasses
@@ -83,23 +83,23 @@
               $ref: ../components/schemas/ApiEnvelope.yaml
 
 
-/api/student/classes/{class_id}:
+getStudentClassDetail:
   get:
     tags: [Courses]
     operationId: getStudentClassDetail
     summary: 获取学生班级详情
     parameters:
-      - $ref: ../components/parameters/ClassIdPath.yaml
+      - $ref: ../components/parameters.yaml#/ClassIdPath
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
       "403":
-        $ref: ../components/responses/Forbidden.yaml
+        $ref: ../components/responses.yaml#/Forbidden
       "404":
-        $ref: ../components/responses/NotFound.yaml
+        $ref: ../components/responses.yaml#/NotFound
 
 
-/api/student/classes/join:
+joinStudentClass:
   post:
     tags: [Courses]
     operationId: joinStudentClass
@@ -122,19 +122,18 @@
             schema:
               $ref: ../components/schemas/ApiEnvelope.yaml
       "400":
-        $ref: ../components/responses/BadRequest.yaml
+        $ref: ../components/responses.yaml#/BadRequest
 
 
-/api/student/classes/{class_id}/leave:
+leaveStudentClass:
   delete:
     tags: [Courses]
     operationId: leaveStudentClass
     summary: 退出班级
     parameters:
-      - $ref: ../components/parameters/ClassIdPath.yaml
+      - $ref: ../components/parameters.yaml#/ClassIdPath
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
       "404":
-        $ref: ../components/responses/NotFound.yaml
-
+        $ref: ../components/responses.yaml#/NotFound

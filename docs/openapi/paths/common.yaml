@@ -1,4 +1,4 @@
-/api/common/menu:
+getMenu:
   get:
     tags: [Common]
     operationId: getMenu
@@ -11,4 +11,4 @@
             schema:
               $ref: ../components/schemas/ApiEnvelope.yaml
       "401":
-        $ref: ../components/responses/Unauthorized.yaml
+        $ref: ../components/responses.yaml#/Unauthorized

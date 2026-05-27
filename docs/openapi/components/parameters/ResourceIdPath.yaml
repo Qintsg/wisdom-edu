@@ -1,6 +1,0 @@
-name: resource_id
-in: path
-required: true
-schema:
-  type: string
-description: 资源 ID。学习路径资源接口允许外部资源 ID 字符串。

@@ -1,4 +1,4 @@
-/api/teacher/courses/create:
+createTeacherCourse:
   post:
     tags: [Courses]
     operationId: createTeacherCourse
@@ -34,20 +34,20 @@
             schema:
               $ref: ../components/schemas/ApiEnvelope.yaml
       "400":
-        $ref: ../components/responses/BadRequest.yaml
+        $ref: ../components/responses.yaml#/BadRequest
 
 
-/api/teacher/courses/my:
+listMyTeacherCourses:
   get:
     tags: [Courses]
     operationId: listMyTeacherCourses
     summary: 获取教师创建的课程
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
 
 
-/api/teacher/courses/{course_id}:
+teacherCoursesCourseId:
   get:
     tags: [Courses]
     operationId: getTeacherCourse
@@ -60,9 +60,9 @@
           type: integer
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
       "404":
-        $ref: ../components/responses/NotFound.yaml
+        $ref: ../components/responses.yaml#/NotFound
   put:
     tags: [Courses]
     operationId: updateTeacherCourse
@@ -99,7 +99,7 @@
               $ref: ../components/schemas/ApiEnvelope.yaml
 
 
-/api/teacher/courses/{course_id}/workspace:
+getTeacherCourseWorkspace:
   get:
     tags: [Courses]
     operationId: getTeacherCourseWorkspace
@@ -112,10 +112,10 @@
           type: integer
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
 
 
-/api/teacher/courses/{course_id}/delete:
+deleteTeacherCourse:
   delete:
     tags: [Courses]
     operationId: deleteTeacherCourse
@@ -128,12 +128,12 @@
           type: integer
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
       "400":
-        $ref: ../components/responses/BadRequest.yaml
+        $ref: ../components/responses.yaml#/BadRequest
 
 
-/api/teacher/courses/{course_id}/cover/upload:
+uploadTeacherCourseCover:
   post:
     tags: [Courses]
     operationId: uploadTeacherCourseCover
@@ -165,10 +165,10 @@
             schema:
               $ref: ../components/schemas/ApiEnvelope.yaml
       "400":
-        $ref: ../components/responses/BadRequest.yaml
+        $ref: ../components/responses.yaml#/BadRequest
 
 
-/api/teacher/courses/{course_id}/statistics:
+getTeacherCourseStatistics:
   get:
     tags: [Courses]
     operationId: getTeacherCourseStatistics
@@ -181,10 +181,10 @@
           type: integer
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
 
 
-/api/teacher/courses/{course_id}/settings:
+getTeacherCourseSettings:
   get:
     tags: [Courses]
     operationId: getTeacherCourseSettings
@@ -204,7 +204,7 @@
               $ref: ../components/schemas/ApiEnvelope.yaml
 
 
-/api/teacher/courses/{course_id}/settings/update:
+updateTeacherCourseSettings:
   put:
     tags: [Courses]
     operationId: updateTeacherCourseSettings
@@ -228,7 +228,6 @@
                 additionalProperties: true
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
       "400":
-        $ref: ../components/responses/BadRequest.yaml
-
+        $ref: ../components/responses.yaml#/BadRequest

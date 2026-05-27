@@ -1,10 +1,10 @@
-/api/teacher/questions:
+listTeacherQuestions:
   get:
     tags: [Knowledge]
     operationId: listTeacherQuestions
     summary: 教师查询题库
     parameters:
-      - $ref: ../components/parameters/CourseId.yaml
+      - $ref: ../components/parameters.yaml#/CourseId
       - name: keyword
         in: query
         schema:
@@ -21,8 +21,8 @@
         in: query
         schema:
           type: integer
-      - $ref: ../components/parameters/Page.yaml
-      - $ref: ../components/parameters/PageSize.yaml
+      - $ref: ../components/parameters.yaml#/Page
+      - $ref: ../components/parameters.yaml#/PageSize
     responses:
       "200":
         description: data 包含 total、questions[]。
@@ -32,7 +32,7 @@
               $ref: ../components/schemas/ApiEnvelope.yaml
 
 
-/api/teacher/questions/create:
+createTeacherQuestion:
   post:
     tags: [Knowledge]
     operationId: createTeacherQuestion
@@ -45,10 +45,10 @@
             $ref: ../components/schemas/QuestionWriteRequest.yaml
     responses:
       "201":
-        $ref: ../components/responses/Created.yaml
+        $ref: ../components/responses.yaml#/Created
 
 
-/api/teacher/questions/batch-delete:
+batchDeleteTeacherQuestions:
   post:
     tags: [Knowledge]
     operationId: batchDeleteTeacherQuestions
@@ -74,7 +74,7 @@
               $ref: ../components/schemas/ApiEnvelope.yaml
 
 
-/api/teacher/questions/import:
+importTeacherQuestions:
   post:
     tags: [Knowledge]
     operationId: importTeacherQuestions
@@ -101,44 +101,44 @@
               $ref: ../components/schemas/ApiEnvelope.yaml
 
 
-/api/teacher/questions/export:
+exportTeacherQuestions:
   get:
     tags: [Knowledge]
     operationId: exportTeacherQuestions
     summary: 导出题库 CSV
     parameters:
-      - $ref: ../components/parameters/CourseId.yaml
+      - $ref: ../components/parameters.yaml#/CourseId
     responses:
       "200":
-        $ref: ../components/responses/CsvDownload.yaml
+        $ref: ../components/responses.yaml#/CsvDownload
 
 
-/api/teacher/questions/template:
+downloadTeacherQuestionTemplate:
   get:
     tags: [Knowledge]
     operationId: downloadTeacherQuestionTemplate
     summary: 下载题库导入模板
     responses:
       "200":
-        $ref: ../components/responses/CsvDownload.yaml
+        $ref: ../components/responses.yaml#/CsvDownload
 
 
-/api/teacher/questions/{question_id}:
+teacherQuestionsQuestionId:
   get:
     tags: [Knowledge]
     operationId: getTeacherQuestion
     summary: 获取题目详情
     parameters:
-      - $ref: ../components/parameters/QuestionIdPath.yaml
+      - $ref: ../components/parameters.yaml#/QuestionIdPath
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
   put:
     tags: [Knowledge]
     operationId: replaceTeacherQuestion
     summary: 更新题目
     parameters:
-      - $ref: ../components/parameters/QuestionIdPath.yaml
+      - $ref: ../components/parameters.yaml#/QuestionIdPath
     requestBody:
       required: true
       content:
@@ -147,16 +147,16 @@
             $ref: ../components/schemas/QuestionWriteRequest.yaml
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
 
 
-/api/teacher/questions/{question_id}/update:
+updateTeacherQuestion:
   put:
     tags: [Knowledge]
     operationId: updateTeacherQuestion
     summary: 更新题目兼容路径
     parameters:
-      - $ref: ../components/parameters/QuestionIdPath.yaml
+      - $ref: ../components/parameters.yaml#/QuestionIdPath
     requestBody:
       required: true
       content:
@@ -165,28 +165,28 @@
             $ref: ../components/schemas/QuestionWriteRequest.yaml
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
 
 
-/api/teacher/questions/{question_id}/delete:
+deleteTeacherQuestion:
   delete:
     tags: [Knowledge]
     operationId: deleteTeacherQuestion
     summary: 删除题目
     parameters:
-      - $ref: ../components/parameters/QuestionIdPath.yaml
+      - $ref: ../components/parameters.yaml#/QuestionIdPath
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
 
 
-/api/teacher/questions/{question_id}/link-knowledge:
+linkTeacherQuestionKnowledge:
   post:
     tags: [Knowledge]
     operationId: linkTeacherQuestionKnowledge
     summary: 关联题目到知识点
     parameters:
-      - $ref: ../components/parameters/QuestionIdPath.yaml
+      - $ref: ../components/parameters.yaml#/QuestionIdPath
     requestBody:
       required: true
       content:
@@ -201,5 +201,4 @@
                   type: integer
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
-
+        $ref: ../components/responses.yaml#/Success

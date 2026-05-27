@@ -1,6 +1,0 @@
-name: user_id
-in: path
-required: true
-schema:
-  type: integer
-description: 用户 ID。

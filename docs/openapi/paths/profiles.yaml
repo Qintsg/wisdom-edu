@@ -1,10 +1,10 @@
-/api/student/profile:
+getStudentProfile:
   get:
     tags: [Profile]
     operationId: getStudentProfile
     summary: 获取当前学生画像
     parameters:
-      - $ref: ../components/parameters/CourseId.yaml
+      - $ref: ../components/parameters.yaml#/CourseId
     responses:
       "200":
         description: data 包含 knowledge_mastery、ability_scores、habit_preferences、learner_tags、profile_summary、weakness、suggestion、strength、last_update。
@@ -14,7 +14,7 @@
               $ref: ../components/schemas/ApiEnvelope.yaml
 
 
-/api/student/profile/habit:
+updateHabitPreference:
   put:
     tags: [Profile]
     operationId: updateHabitPreference
@@ -49,12 +49,12 @@
                 additionalProperties: true
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
       "400":
-        $ref: ../components/responses/BadRequest.yaml
+        $ref: ../components/responses.yaml#/BadRequest
 
 
-/api/student/profile/update:
+refreshStudentProfile:
   post:
     tags: [Profile]
     operationId: refreshStudentProfile
@@ -77,10 +77,10 @@
             schema:
               $ref: ../components/schemas/ApiEnvelope.yaml
       "400":
-        $ref: ../components/responses/BadRequest.yaml
+        $ref: ../components/responses.yaml#/BadRequest
 
 
-/api/student/profile/history:
+getStudentProfileHistory:
   get:
     tags: [Profile]
     operationId: getStudentProfileHistory
@@ -107,10 +107,10 @@
             schema:
               $ref: ../components/schemas/ApiEnvelope.yaml
       "400":
-        $ref: ../components/responses/BadRequest.yaml
+        $ref: ../components/responses.yaml#/BadRequest
 
 
-/api/student/profile/compare:
+compareStudentProfile:
   get:
     tags: [Profile]
     operationId: compareStudentProfile
@@ -130,34 +130,34 @@
           format: date
     responses:
       "200":
-        $ref: ../components/responses/Success.yaml
+        $ref: ../components/responses.yaml#/Success
       "400":
-        $ref: ../components/responses/BadRequest.yaml
+        $ref: ../components/responses.yaml#/BadRequest
 
 
-/api/student/profile/export:
+exportStudentProfile:
   post:
     tags: [Profile]
     operationId: exportStudentProfile
     summary: 导出学生画像 JSON 文件
     responses:
       "200":
-        $ref: ../components/responses/JsonDownload.yaml
+        $ref: ../components/responses.yaml#/JsonDownload
 
 
-/api/admin/student-profiles:
+listAdminStudentProfiles:
   get:
     tags: [Admin, Profile]
     operationId: listAdminStudentProfiles
     summary: 管理员分页查看学生画像摘要
     parameters:
-      - $ref: ../components/parameters/CourseId.yaml
+      - $ref: ../components/parameters.yaml#/CourseId
       - name: user_id
         in: query
         schema:
           type: integer
-      - $ref: ../components/parameters/Page.yaml
-      - $ref: ../components/parameters/PageSize.yaml
+      - $ref: ../components/parameters.yaml#/Page
+      - $ref: ../components/parameters.yaml#/PageSize
     responses:
       "200":
         description: data 包含 total、page、page_size、profiles[]。
@@ -167,7 +167,7 @@
               $ref: ../components/schemas/ApiEnvelope.yaml
 
 
-/api/admin/student-profiles/{student_id}:
+getAdminStudentProfileDetail:
   get:
     tags: [Admin, Profile]
     operationId: getAdminStudentProfileDetail
@@ -178,7 +178,7 @@
         required: true
         schema:
           type: integer
-      - $ref: ../components/parameters/CourseId.yaml
+      - $ref: ../components/parameters.yaml#/CourseId
     responses:
       "200":
         description: data 包含画像、习惯、能力、答题统计等。
@@ -188,14 +188,14 @@
               $ref: ../components/schemas/ApiEnvelope.yaml
 
 
-/api/teacher/students/{user_id}/profile:
+getTeacherStudentProfile:
   get:
     tags: [Profile]
     operationId: getTeacherStudentProfile
     summary: 教师查看学生画像详情
     parameters:
-      - $ref: ../components/parameters/UserIdPath.yaml
-      - $ref: ../components/parameters/CourseId.yaml
+      - $ref: ../components/parameters.yaml#/UserIdPath
+      - $ref: ../components/parameters.yaml#/CourseId
     responses:
       "200":
         description: data 包含 user_id、course_id、knowledge_mastery、answer_stats、profile_history 等。
@@ -204,16 +204,16 @@
             schema:
               $ref: ../components/schemas/ApiEnvelope.yaml
       "403":
-        $ref: ../components/responses/Forbidden.yaml
+        $ref: ../components/responses.yaml#/Forbidden
 
 
-/api/teacher/students/{user_id}/refresh-profile:
+refreshTeacherStudentProfile:
   post:
     tags: [Profile]
     operationId: refreshTeacherStudentProfile
     summary: 教师刷新指定学生课程画像
     parameters:
-      - $ref: ../components/parameters/UserIdPath.yaml
+      - $ref: ../components/parameters.yaml#/UserIdPath
     requestBody:
       required: true
       content:
@@ -232,4 +232,4 @@
             schema:
               $ref: ../components/schemas/ApiEnvelope.yaml
       "400":
-        $ref: ../components/responses/BadRequest.yaml
+        $ref: ../components/responses.yaml#/BadRequest

@@ -23,7 +23,7 @@ Supported by the Shanghai Undergraduate Training Program on Innovation and Entre
 - 个性化学习路径、任务学习、初始测评、阶段测试、在线作业与反馈报告闭环。
 - 学习画像、资源推荐、课程问答、图谱增强解释和 GraphRAG 证据召回。
 - MEFKT 知识追踪与规则兜底并行，输出掌握度、薄弱点和学习建议。
-- 基础测试数据、课程资产导入、API 回归、浏览器巡检和部署说明覆盖开发与验收场景。
+- 基础测试数据、课程资产导入、API 回归和浏览器巡检覆盖开发与验收场景。
 
 ## 技术架构
 
@@ -39,7 +39,7 @@ Supported by the Shanghai Undergraduate Training Program on Innovation and Entre
   - `backend/platform_ai` 汇聚 RAG、LLM、KT、搜索与 Agent 边界实现。
 - 文档与契约：`docs/`
   - API 契约源以 `docs/openapi/openapi.yaml` 为准，`docs/api.yaml` 为 Redocly CLI 打包产物，旧 Markdown API 文档已移除。
-  - 使用说明、演示数据、OpenAPI 契约、变更记录和项目材料集中维护；旧专题说明文档已清理。
+  - 使用说明、OpenAPI 契约、变更记录和项目材料集中维护；旧专题说明文档已清理。
 
 ## 快速启动
 
@@ -113,18 +113,16 @@ uv run python tools.py browser-audit --scenario audit --frontend-url http://127.
 ```text
 backend/   Django + DRF + Channels + GraphRAG + MEFKT + LLM 服务
 frontend/  Vue 3 + Vite + TypeScript + Fluent 2 风格界面
-docs/      使用说明、演示数据、OpenAPI 契约、变更记录与项目材料
+docs/      使用说明、OpenAPI 契约、变更记录与项目材料
 ```
 
 ## 文档导航
 
 - `docs/README.md`：文档总览和推荐阅读顺序。
 - `docs/使用说明.md`：学生、教师、管理员三端使用路径。
-- `docs/演示数据导入说明.md`：基础账号、默认入班、课程资产与浏览器巡检说明。
 - `docs/openapi/openapi.yaml`：模块化 OpenAPI 契约源文件。
 - `docs/api.yaml`：Redocly CLI 打包后的单文件 OpenAPI 产物。
 - `docs/CHANGELOG.md`：项目变更记录。
-- `STYLE.md`：代码、文档、API 与前端界面风格约定。
 - `LICENSE`：Academic Free License version 3.0（AFL-3.0）。
 
 ## 维护边界
