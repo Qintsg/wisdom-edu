@@ -12,7 +12,9 @@
 | 超星杯“AI+教育”创新应用大赛 | 上海第二工业大学 2026 年超星杯“AI+教育”创新应用大赛，赛道一：AI 赋能学生学业，作品名称“个性化自适应学习系统” |
 | 大学生创新创业训练计划 | 2026 年度大学生创新创业训练计划项目，项目编号 `2026-G12044-038`，创新训练项目，国家级，项目名称“智慧教育——基于知识图谱的个性化教学辅助平台” |
 
-由上海市大学生创新创业训练计划项目 `2026-G12044-038` 资助。Supported by the Shanghai Undergraduate Training Program on Innovation and Entrepreneurship (SUTPIE) grant `2026-G12044-038`.
+由上海市大学生创新创业训练计划项目 `2026-G12044-038` 资助。
+
+Supported by the Shanghai Undergraduate Training Program on Innovation and Entrepreneurship (SUTPIE) grant `2026-G12044-038`.
 
 ## 核心能力
 
@@ -135,8 +137,10 @@ docs/      使用说明、演示数据、OpenAPI 契约、变更记录与项目�
 
 ## 许可证
 
-本项目源代码版权归 Rao Hongwei 所有，使用 Academic Free License version 3.0（AFL-3.0）授权，详见 `LICENSE`。
+本项目源代码版权归 Qintsg(饶弘玮) 所有，使用 Academic Free License version 3.0（AFL-3.0）授权，详见 `LICENSE`。
 
 Licensed under the Academic Free License version 3.0.
 
 除非另有明确声明，课程资源、论文、演示素材、媒体文件、数据集和第三方素材不随源代码许可证自动授权；使用这些非代码资产时应分别确认其权利来源与授权范围。
+
+Copyright (c) 2026 Qintsg(饶弘玮)

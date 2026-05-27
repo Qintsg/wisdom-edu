@@ -1,84 +1,57 @@
 # AGENTS.md
 
-## 1. 适用范围与优先级
+## 适用范围
 
-- 本仓库为“知识图谱驱动的个性化自适应学习系统”，后端为 `Python + Django + DRF + LangChain`，前端为 `Vue3 + Fluent 2`，数据层使用 `PostgreSQL + Neo4j`。
-- 所有代理都必须遵守本文件；进入 `backend/`、`frontend/` 时还要遵守对应子目录 `AGENTS.md`。
-- 规则优先级：用户要求 > 子目录 `AGENTS.md` > 根目录 `AGENTS.md` > 仓库约定 > 官方标准。
+- 本文件适用于全仓；进入 `backend/` 或 `frontend/` 工作时，先读对应子目录 `AGENTS.md`，以子目录专项规则为准。
+- 默认使用简体中文；仓库文本按 `.gitattributes` 统一为 UTF-8 + CRLF。
 
----
+## 先读事实
 
-## 2. 通用工作原则
+- 当前没有 `.github/workflows/`、`.pre-commit-config.*`、根 `opencode.json`；本地验证以本文命令为准。
+- 若根目录出现 `AGENT_TODO.md`，先按其顺序推进；该文件被 `.gitignore` 忽略，可能是本地任务清单。
+- 后端依赖只认 `backend/pyproject.toml` + `backend/uv.lock`，前端依赖只认 `frontend/package.json` + `frontend/package-lock.json`；不要补 `requirements.txt`、pnpm 或 yarn 配置。
+- 不要读取或提交 `backend/.env`、`backend/runtime_logs/`、`frontend/dist/`、`node_modules/`；后端配置模板是 `backend/.env.example`，非敏感默认值在 `backend/config.ini`。
 
-- 若存在 `AGENT_TODO.md`，先读取并按顺序推进，每完成一项都要回看最新内容。
-- 先理解，再修改：至少阅读相邻文件、模块边界、API 契约、测试与相关文档。
-- 改动遵循最小影响面、最低回滚成本、最易审查的实现。
-- 严守职责边界：事务业务、图谱查询、RAG、LLM、KT、Agent、前端页面编排不得混成一团。
-- 不臆造需求；不额外加空壳 agent / chain / prompt / 大型无关重构。
-- 默认交付物必须可运行、可验证、可审查；除非必要，不保留 `pass`、空实现或假成功逻辑。
-- `TODO:` / `FIXME:` 仅在确有必要时保留，并写清原因、影响、后续动作与风险。
-- 最终代码、注释、文档与提交说明不保留过程性表述。
+## 架构边界
 
----
+- `backend/wisdom_edu_api/settings.py` 是 Django 配置入口，会加载 `backend/.env` 并用环境变量覆盖 `config.ini` 默认值；`urls.py` 聚合各 app 路由，`asgi.py` 承载 WebSocket。
+- Django apps 为 `users`、`courses`、`knowledge`、`assessments`、`learning`、`exams`、`ai_services`、`logs`、`common`；角色 API 多在各 app 的 `api/` 子包和 `urls.py` 中。
+- AI/智能能力不要塞进 View、Serializer 或 Model：`platform_ai/rag` 管检索和 GraphRAG，`platform_ai/kt` 管 MEFKT，`platform_ai/llm` 管 LLM/Agent，`platform_ai/mcp` 管资源 MCP，`ai_services` 只暴露 HTTP/WebSocket/API 编排。
+- PostgreSQL 是用户、课程、题目、学习记录、评测、任务、日志等事务数据源；Neo4j 可用于知识图谱与路径查询，但未配置时已有 PostgreSQL 图谱回退，别把 Neo4j 当必需前提。
+- GraphRAG/Qdrant 运行产物默认在 `backend/runtime_logs/rag/`，MEFKT 默认模型路径在 `backend/models/MEFKT/`；修改这些链路时说明索引或模型是否需要重建。
+- 统一 API 响应来自 `common.http.responses`：`{code,msg,data}`，错误可带 `error`；前端 Axios 会自动解包 `data` 并处理 JWT 刷新，不要在业务 API 里返回裸 DRF 格式破坏契约。
 
-## 3. 业务与架构事实
+## 后端命令
 
-- **PostgreSQL**：用户、课程、题目、学习记录、评测结果、任务、权限、日志索引等事务型数据。
-- **Neo4j**：知识点、概念、依赖关系、先修关系、路径推理、图谱查询等图结构数据。
-- **LLM** 负责生成/解释/总结；**RAG** 负责检索/证据召回/上下文构造；**KT** 负责学习状态估计与掌握度更新；**KG** 负责知识关系与图推理；**Agent** 负责多步任务编排与工具路由。
-- 学习建议、题目推荐、知识点讲解、学习路径规划、掌握度解释等结果应尽量可追溯到图谱、检索、KT 状态或规则来源，避免无依据结论。
+- 后端命令均在 `backend/` 执行；安装依赖用 `uv sync`，严格复现锁文件用 `uv sync --frozen`。
+- 启动后端：先 `uv run python manage.py migrate`，再 `uv run python manage.py runserver 127.0.0.1:8000`。
+- 快速检查顺序：`uv run python manage.py check` -> `uv run python manage.py makemigrations --check --dry-run` -> `uv run python tools.py django-check` -> `uv run python tools.py db-check`。
+- Django 单测示例：`uv run python manage.py test users.tests.test_auth_api --verbosity 2`；按模块路径缩小范围，不用 pytest。
+- API/链路回归需要后端服务已启动且有基础账号：`uv run python tools.py api-smoke --json`、`uv run python tools.py student-flow-smoke --json`、`uv run python tools.py api-regression --all --json`。
+- 数据和智能工具入口都在 `backend/tools.py`：`create-test-data` 只建基础账号/课程/班级；课程资产用 `bootstrap-course-assets --course-name "大数据技术与应用"`；GraphRAG 用 `build-rag-index` / `refresh-rag-corpus`；KT 用 `mefkt-status` / `train-mefkt`；Neo4j 用 `neo4j-status` / `sync-neo4j`。
+- `pg-bootstrap` 会迁移、清库、创建测试数据并尝试导入课程资产，属于破坏性初始化；除非任务明确要求重建本地样例库，不要运行。
 
----
+## 前端命令和约定
 
-## 4. Git 规则
+- 前端命令均在 `frontend/` 执行；安装/启动用 `npm install`、`npm run dev`；开发代理在 `vite.config.ts` 中把 `/api`、`/media`、`/static`、`/ws` 转到 `VITE_DEV_BACKEND_ORIGIN` 或默认 `http://127.0.0.1:8000`，端口用 `VITE_DEV_PORT` 覆盖。
+- 验证：`npm run typecheck`；发布验证用 `npm run build`，该命令已包含 `vue-tsc --noEmit`，并会生成 `dist/404.html`、`dist/_redirects` 的 SPA fallback。
+- 生产构建默认同源访问后端；只有确需跨域直连时设置 `VITE_BACKEND_ORIGIN` 后重建。
+- 浏览器巡检需后端 `/health/` 正常且前端已启动；在 `backend/` 执行 `uv run python tools.py browser-audit --scenario audit --frontend-url http://127.0.0.1:3000 --api-base-url http://127.0.0.1:8000`。
+- `npm run browser:audit` 底层脚本默认指向 `http://edu.qintsg.xyz`；本地巡检必须显式传 `--frontend-url` 和 `--api-base-url`，或使用上面的后端包装命令。
+- 前端入口：`src/main.ts` 注册 Element Plus、Pinia、Router；路由在 `src/router/`，角色路由拆到 `routes/{student,teacher,admin}.ts`；请求入口是 `src/api/index.ts`，后端地址逻辑在 `src/api/backend.ts`。
+- 学生页受 `router/guards.ts` 的课程选择门禁影响；新增无需课程的学生路由要设置 `meta.skipCourseCheck`，否则会跳转 `/student/course-select`。
+- 课程上下文在 `src/stores/course.ts`，会把当前课程写入 `localStorage.current_course`；改课程、入班或退出班级后要刷新 store 缓存。
+- UI 维持现有 Element Plus 组件与 Fluent 2 风格，不重新发明视觉体系；共享壳层/卡片优先复用 `components/common` 与 `layouts`。
 
-### 4.1 开始任务前
+## OpenAPI 与文档
 
-1. 先看 `git status`。
-2. 检查未提交内容。
-3. 若存在当前任务相关且已稳定的改动，优先先 commit；若存在无关改动，在 `DANGEROUS` 权限下可做保护性 commit，但必须说明原因。
-4. 状态安全后执行 `git pull --rebase`。
-5. 若出现冲突，可处理，但必须记录依据、影响与风险。
+- API 契约源只改 `docs/openapi/openapi.yaml` 和其 `$ref` 子文件；`docs/api.yaml` 是 Redocly 打包产物。
+- 校验/打包从仓库根执行：`npx @redocly/cli lint wisdomedu@v1`，`npx @redocly/cli bundle wisdomedu@v1`。
+- 接口、配置、数据结构、RAG/KT/KG/LLM/Agent 行为或关键前端流程变更时，同步 `docs/使用说明.md`、`docs/README.md`、`docs/CHANGELOG.md` 中相关段落。
+- `docs/API.md` 已删除；当前检出中 `docs/演示数据导入说明.md` 和 `STYLE.md` 也不存在，除非先补齐文件，否则不要新增引用。
 
-### 4.2 提交要求
+## 工作流
 
-- 每完成一个独立、可审查的工作块，必须 commit 一次。
-- commit 格式：`type(scope): 中文摘要`。
-- 可用类型：`feat`、`fix`、`refactor`、`docs`、`style`、`test`、`perf`、`build`、`ci`、`chore`、`revert`。
-
-### 4.3 默认禁止
-
-- 未经用户明确要求，不主动执行 `git push`、切换/新建分支、提交 PR、改写远端历史。
-
----
-
-## 5. 文档规则
-
-- 说明文档统一放在 `docs/`；重点关注 `docs/API.md` 与 `docs/CHANGELOG.md`。
-- 只要变更影响 API、RAG / KT / KG / LLM / Agent 行为、数据结构、配置、部署或关键前端交互，就要同步更新相关文档。
-- 更新文档时保持原结构，只修订相关章节，不随意整份重写。
-- 除非用户明确要求或任务本身是发版，不修改版本号。
-- `frontend/` 与 `backend/` 下默认不新增说明型文档；仅允许新增运行必需的标准模板文件。
-
----
-
-## 6. 代码规范
-
-- 代码规范优先遵循官方标准、仓库既有约定与通用工程实践。
-- 手写代码注释率必须保持在 **20% ~ 50%**；注释要解释意图、约束、边界、风险与原因。
-- 禁止无意义注释、重复注释，以及用注释掩盖糟糕命名。
-- 前后端统一避免弱命名，如 `var`、`tmp`、`foo`、`bar`、`data`、`obj`、`Any`。
-- 优先强类型、显式类型与清晰命名。
-
----
-
-## 7. 结果说明与完成定义
-
-完成任务后必须说明：
-
-- 改了什么，以及为什么这么改。
-- 本次做了哪些 commit。
-- 更新了哪些 `docs/` 文档。
-- 做了哪些验证，以及还有哪些风险。
-
-任务完成时必须同时满足：用户要求已实现、规则已遵守、代码可运行可验证、当前块内容已 commit、相关文档已同步、最终内容无过程性残留表达。
+- 开始先看 `git status --short --branch`；当前仓库常有被 `.gitignore` 忽略的本地状态，别清理不相关改动。
+- 若需要提交，commit 格式用 `type(scope): 中文摘要`；未经用户明确要求不 `push`、不切分支、不改写历史。
+- 根目录只放仓库级说明；`backend/`、`frontend/` 的详细注释模板和专项规则维护在各自 `AGENTS.md`。
