@@ -127,17 +127,69 @@ def parse_resource_write_payload(data: object, *, partial: bool) -> ResourceWrit
 
 
 def parse_resource_points(data: object) -> object:
-    """解析 points / knowledge_point_ids / point_id 入参。"""
-    points = data.get("points", data.get("knowledge_point_ids", []))
+    """
+    解析 points / knowledge_point_ids / point_id 入参。
+
+    :param data: DRF 请求数据对象。
+    :return: 可传给知识点关联管理器的 ID 列表或单个 ID。
+    """
+    points = first_resource_point_value(data)
     point_id = data.get("point_id") or data.get("knowledge_point_id")
     if isinstance(points, str):
         try:
             points = json.loads(points)
         except json.JSONDecodeError:
-            points = []
-    if not points and point_id:
+            points = [item.strip() for item in points.split(",") if item.strip()]
+    if points is None and point_id:
         return [point_id]
+    if points is None:
+        return None
+    if points == "":
+        return []
+    if isinstance(points, (list, tuple, set)):
+        return [point for point in points if point not in (None, "")]
     return points
+
+
+def first_resource_point_value(data: object) -> object:
+    """
+    读取资源知识点入参，保留 multipart 重复字段的多值语义。
+
+    :param data: DRF 请求数据对象。
+    :return: 原始知识点 ID 入参。
+    """
+    keys = ("points", "knowledge_point_ids", "knowledge_points")
+    if hasattr(data, "getlist"):
+        for key in keys:
+            if not resource_point_key_exists(data, key):
+                continue
+            values = [value for value in data.getlist(key) if value not in (None, "")]
+            if len(values) > 1:
+                return values
+            if len(values) == 1:
+                return values[0]
+            return []
+
+    for key in keys:
+        if not resource_point_key_exists(data, key):
+            continue
+        value = data.get(key)
+        return value
+    return None
+
+
+def resource_point_key_exists(data: object, key: str) -> bool:
+    """
+    判断请求数据中是否显式包含知识点字段。
+
+    :param data: DRF 请求数据对象。
+    :param key: 待检查字段名。
+    :return: 字段是否存在。
+    """
+    try:
+        return key in data
+    except TypeError:
+        return hasattr(data, "get") and data.get(key) is not None
 
 
 def parse_optional_int(value: object) -> int | None:
@@ -158,6 +210,7 @@ def create_resource_from_payload(
     user: object,
 ) -> Resource:
     """创建资源并按需关联知识点。"""
+    normalized_points = normalize_resource_point_ids(course_id, payload.points)
     processing_status = normalize_resource_processing_status(
         payload.processing_status,
         has_resource=bool(file or payload.url),
@@ -176,12 +229,13 @@ def create_resource_from_payload(
         processing_message=payload.processing_message or "",
         uploaded_by=user,
     )
-    replace_resource_points(resource, payload.points)
+    replace_resource_points(resource, normalized_points)
     return resource
 
 
 def update_resource_from_payload(resource: Resource, payload: ResourceWritePayload) -> None:
     """按部分字段更新资源。"""
+    normalized_points = normalize_resource_point_ids(resource.course_id, payload.points)
     if payload.title:
         resource.title = payload.title
     if payload.resource_type:
@@ -206,13 +260,52 @@ def update_resource_from_payload(resource: Resource, payload: ResourceWritePaylo
     if payload.processing_message is not None:
         resource.processing_message = payload.processing_message
     resource.save()
-    replace_resource_points(resource, payload.points)
+    replace_resource_points(resource, normalized_points)
+
+
+def normalize_resource_point_ids(course_id: object, points: object) -> list[int] | None:
+    """
+    校验并标准化资源知识点 ID。
+
+    :param course_id: 资源所属课程 ID。
+    :param points: 原始知识点 ID 入参。
+    :return: 标准化后的知识点 ID 列表；未传字段时返回 None。
+    :raises ValueError: 知识点 ID 格式错误或不属于当前课程。
+    """
+    if points is None:
+        return None
+
+    raw_points = points if isinstance(points, (list, tuple, set)) else [points]
+    point_ids: list[int] = []
+    for point in raw_points:
+        if point in (None, ""):
+            continue
+        raw_point_id = getattr(point, "id", point)
+        try:
+            point_ids.append(int(str(raw_point_id).strip()))
+        except (TypeError, ValueError):
+            raise ValueError("知识点ID格式错误") from None
+
+    if not point_ids:
+        return []
+
+    existing_ids = set(
+        KnowledgePoint.objects.filter(
+            id__in=point_ids,
+            course_id=course_id,
+        ).values_list("id", flat=True)
+    )
+    if set(point_ids) - existing_ids:
+        raise ValueError("知识点不存在或不属于当前课程")
+    return point_ids
 
 
 def replace_resource_points(resource: Resource, points: object) -> None:
     """替换资源知识点关联。"""
-    if points:
-        replace_knowledge_points(cast(KnowledgePointRelationSetter, resource.knowledge_points), points)
+    if points is None:
+        return
+    normalized_points = points if isinstance(points, (list, tuple, set)) else [points]
+    replace_knowledge_points(cast(KnowledgePointRelationSetter, resource.knowledge_points), normalized_points)
 
 
 def resource_create_result(resource: Resource) -> dict[str, object]:

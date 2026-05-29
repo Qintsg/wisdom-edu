@@ -53,6 +53,8 @@ register:
         $ref: ../components/responses.yaml#/BadRequest
 
 
+      "201":
+        $ref: ../components/responses.yaml#/Created
 login:
   post:
     tags: [Auth]
@@ -200,6 +202,8 @@ refreshToken:
         $ref: ../components/responses.yaml#/BadRequest
 
 
+      "401":
+        $ref: ../components/responses.yaml#/Unauthorized
 changePassword:
   post:
     tags: [Auth]

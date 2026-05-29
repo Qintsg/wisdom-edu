@@ -97,6 +97,8 @@ startLearningNode:
       "409":
         $ref: ../components/responses.yaml#/Conflict
 
+      "404":
+        $ref: ../components/responses.yaml#/NotFound
 completePathNode:
   post:
     tags: [Learning]
@@ -114,6 +116,8 @@ completePathNode:
       "409":
         $ref: ../components/responses.yaml#/Conflict
 
+      "404":
+        $ref: ../components/responses.yaml#/NotFound
 skipPathNode:
   post:
     tags: [Learning]
@@ -125,6 +129,8 @@ skipPathNode:
       "200":
         $ref: ../components/responses.yaml#/Success
 
+      "404":
+        $ref: ../components/responses.yaml#/NotFound
 listPathNodeResources:
   get:
     tags: [Learning]
@@ -137,6 +143,8 @@ listPathNodeResources:
       "200":
         $ref: ../components/responses.yaml#/Success
 
+      "404":
+        $ref: ../components/responses.yaml#/NotFound
 getPathNodeAIResources:
   get:
     tags: [Learning, AI]
@@ -152,6 +160,8 @@ getPathNodeAIResources:
             schema:
               $ref: ../components/schemas/ApiEnvelope.yaml
 
+      "404":
+        $ref: ../components/responses.yaml#/NotFound
 completeNodeResource:
   post:
     tags: [Learning]
@@ -168,6 +178,8 @@ completeNodeResource:
             schema:
               $ref: ../components/schemas/ApiEnvelope.yaml
 
+      "404":
+        $ref: ../components/responses.yaml#/NotFound
 pauseNodeResource:
   post:
     tags: [Learning]
@@ -189,6 +201,8 @@ pauseNodeResource:
       "200":
         $ref: ../components/responses.yaml#/Success
 
+      "404":
+        $ref: ../components/responses.yaml#/NotFound
 listPathNodeExams:
   get:
     tags: [Learning, Exams]
@@ -204,6 +218,8 @@ listPathNodeExams:
             schema:
               $ref: ../components/schemas/ApiEnvelope.yaml
 
+      "404":
+        $ref: ../components/responses.yaml#/NotFound
 submitNodeExam:
   post:
     tags: [Learning, Exams]
@@ -231,6 +247,8 @@ submitNodeExam:
             schema:
               $ref: ../components/schemas/ApiEnvelope.yaml
 
+      "404":
+        $ref: ../components/responses.yaml#/NotFound
 getStageTest:
   get:
     tags: [Learning, Exams]
@@ -248,6 +266,8 @@ getStageTest:
       "400":
         $ref: ../components/responses.yaml#/BadRequest
 
+      "404":
+        $ref: ../components/responses.yaml#/NotFound
 submitStageTest:
   post:
     tags: [Learning, Exams]
@@ -274,6 +294,10 @@ submitStageTest:
             schema:
               $ref: ../components/schemas/ApiEnvelope.yaml
 
+      "404":
+        $ref: ../components/responses.yaml#/NotFound
+      "400":
+        $ref: ../components/responses.yaml#/BadRequest
 getStudentDashboard:
   get:
     tags: [Learning]

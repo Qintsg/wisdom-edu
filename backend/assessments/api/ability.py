@@ -15,6 +15,7 @@ from rest_framework.response import Response
 
 from common.http.permissions import IsStudent
 from common.http.responses import error_response, success_response
+from common.domain.utils import validate_course_exists
 from courses.models import Enrollment
 from users.models import User
 
@@ -46,7 +47,7 @@ def retake_ability_assessment(request: Request) -> Response:
     重新进入能力评测（重做入口）。
     GET /api/student/assessments/initial/ability/retake
     """
-    return get_ability_assessment(request)
+    return _ability_assessment_response(request)
 
 
 @api_view(["GET"])
@@ -56,13 +57,38 @@ def get_ability_assessment(request: Request) -> Response:
     获取学习能力评估测评试题。
     GET /api/assessments/initial/ability
     """
-    course_id = request.query_params.get("course_id")
+    return _ability_assessment_response(request)
+
+
+def _ability_assessment_response(request: Request) -> Response:
+    """
+    按请求上下文返回学习能力评测题目响应。
+
+    :param request: DRF 请求对象。
+    :return: 能力评测响应或课程参数错误响应。
+    """
+    course_id, course_error = _resolve_optional_course_id(
+        request.query_params.get("course_id")
+    )
+    if course_error:
+        return course_error
+
+    return success_response(data=_build_ability_assessment_payload(course_id))
+
+
+def _build_ability_assessment_payload(course_id: int | None) -> dict[str, object]:
+    """
+    按课程上下文组装学习能力评测题目响应。
+
+    :param course_id: 可选课程 ID。
+    :return: 能力评测题目响应数据。
+    """
     assessment = _get_course_ability_assessment(course_id)
     if assessment is not None:
-        return success_response(data=_serialize_assessment_payload(assessment))
+        return _serialize_assessment_payload(assessment)
 
     survey_questions = _get_or_create_global_ability_questions()
-    return success_response(data=_serialize_survey_payload(survey_questions))
+    return _serialize_survey_payload(survey_questions)
 
 
 @api_view(["POST"])
@@ -70,9 +96,12 @@ def get_ability_assessment(request: Request) -> Response:
 def submit_ability_assessment(request: Request) -> Response:
     """
     提交学习能力评估测评答案。
-    POST /api/student/assessments/initial/ability
+    POST /api/student/assessments/initial/ability/submit
     """
-    course_id = request.data.get("course_id")
+    course_id, course_error = _resolve_optional_course_id(request.data.get("course_id"))
+    if course_error:
+        return course_error
+
     answer_payload = request.data.get("answers", [])
     if not answer_payload:
         return error_response(msg="缺少答案数据")
@@ -102,7 +131,28 @@ def submit_ability_assessment(request: Request) -> Response:
     )
 
 
-def _get_course_ability_assessment(course_id: object) -> Assessment | None:
+def _resolve_optional_course_id(raw_course_id: object) -> tuple[int | None, Response | None]:
+    """
+    解析可选课程 ID 并校验课程存在性。
+
+    :param raw_course_id: 请求中的课程 ID。
+    :return: `(course_id, error_response)`；未传课程时二者均为 None。
+    """
+    if raw_course_id in (None, ""):
+        return None, None
+
+    try:
+        course_id = int(str(raw_course_id).strip())
+    except (TypeError, ValueError):
+        return None, error_response(msg="课程ID格式错误")
+
+    if validate_course_exists(course_id) is None:
+        return None, error_response(msg="课程不存在")
+
+    return course_id, None
+
+
+def _get_course_ability_assessment(course_id: int | None) -> Assessment | None:
     """查找课程级能力测评，未指定课程时返回 None。"""
     if not course_id:
         return None

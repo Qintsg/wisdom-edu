@@ -37,6 +37,7 @@ export function getKnowledgePoints(courseId, params = {}) {
  * 返回特定知识点的详细信息、学习资源、相关题目等
  * @param {number} pointId - 知识点ID
  * @param {number} courseId - 课程ID
+ * @param {KnowledgePointDetailOptions} options - GraphRAG 增强查询选项，默认不启用慢链路
  * @returns {Promise} 知识点详情
  */
 export function getKnowledgePointDetail(
@@ -44,7 +45,7 @@ export function getKnowledgePointDetail(
   courseId,
   options: KnowledgePointDetailOptions = {}
 ) {
-  const shouldIncludeGraphRag = options.includeGraphRag !== false
+  const shouldIncludeGraphRag = options.includeGraphRag === true
   return request.get(`/api/student/knowledge-points/${pointId}`, {
     params: { course_id: courseId, include_graph_rag: shouldIncludeGraphRag }
   })

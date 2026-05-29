@@ -285,6 +285,8 @@ importAdminUsers:
               $ref: ../components/schemas/ApiEnvelope.yaml
 
 
+      "400":
+        $ref: ../components/responses.yaml#/BadRequest
 exportAdminUsers:
   get:
     tags: [Admin]
@@ -375,6 +377,8 @@ deleteAdminUser:
         $ref: ../components/responses.yaml#/BadRequest
 
 
+      "404":
+        $ref: ../components/responses.yaml#/NotFound
 resetAdminUserPassword:
   post:
     tags: [Admin]

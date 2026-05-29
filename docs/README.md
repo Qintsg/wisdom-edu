@@ -1,6 +1,6 @@
 # 知识图谱驱动的个性化自适应学习系统文档总览
 
-> 最后更新：2026-05-27
+> 最后更新：2026-05-28
 
 本文档目录面向开发、验收、接口契约维护和项目材料归档。文档内容以当前仓库真实实现为准，API 契约源文件统一维护在 `docs/openapi/openapi.yaml`，`docs/api.yaml` 为 Redocly CLI 打包后的单文件产物。
 
@@ -8,7 +8,8 @@
 
 1. `使用说明.md`：学生、教师、管理员三端页面、主要业务流程和常用命令。
 2. `openapi/openapi.yaml`：模块化 OpenAPI 契约入口；`api.yaml` 为打包产物。
-3. `CHANGELOG.md`：项目变更记录。
+3. `API端点测试报告.md`：基于真实 HTTP 请求的 OpenAPI 端点巡检结果。
+4. `CHANGELOG.md`：项目变更记录。
 
 ## 文档索引
 
@@ -16,6 +17,7 @@
 - `使用说明.md`：三端页面、典型流程和常用接口入口。
 - `openapi/openapi.yaml`：模块化 OpenAPI 描述文件和接口契约源，入口显式映射真实 URL 到模块化路径项 `$ref`。
 - `api.yaml`：由 Redocly CLI 从 `docs/openapi/openapi.yaml` 打包生成的单文件 OpenAPI 描述。
+- `API端点测试报告.md`：逐 operation 记录本地后端 HTTP 巡检状态、请求上下文、响应摘要和问题分类。
 - `CHANGELOG.md`：项目变更记录。
 - `../LICENSE`：Academic Free License version 3.0（AFL-3.0）。
 

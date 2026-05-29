@@ -33,6 +33,7 @@ getStudentKnowledgePointDetail:
         description: 是否构造 GraphRAG 证据摘要。
         schema:
           type: boolean
+          default: false
     responses:
       "200":
         $ref: ../components/responses.yaml#/Success

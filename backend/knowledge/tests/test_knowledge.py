@@ -78,23 +78,24 @@ class KnowledgeMapFallbackTests(APITestCase):
 
     @patch('knowledge.api.map.student_learning_rag.build_point_support_payload')
     @patch('knowledge.api.map.neo4j_service.__class__.is_available', new_callable=PropertyMock, return_value=False)
-    def test_point_detail_should_skip_graphrag_when_disabled(self, _available, mock_graph_rag):
-        """知识点详情显式关闭 GraphRAG 时不应构造证据摘要。"""
-        response = self.client.get(
-            f'/api/student/knowledge-points/{self.point.id}'
-            f'?course_id={self.course.id}&include_graph_rag=false'
-        )
+    def test_point_detail_should_skip_graphrag_by_default_and_when_disabled(self, _available, mock_graph_rag):
+        """知识点详情默认或显式关闭 GraphRAG 时不应构造证据摘要。"""
+        for suffix in ['', '&include_graph_rag=false']:
+            response = self.client.get(
+                f'/api/student/knowledge-points/{self.point.id}'
+                f'?course_id={self.course.id}{suffix}'
+            )
 
-        self.assertEqual(response.status_code, 200)
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(response.data['data']['graph_rag_summary'], '')
+            self.assertEqual(response.data['data']['graph_rag_sources'], [])
+            self.assertEqual(response.data['data']['graph_rag_mode'], 'graph_rag_skipped')
         mock_graph_rag.assert_not_called()
-        self.assertEqual(response.data['data']['graph_rag_summary'], '')
-        self.assertEqual(response.data['data']['graph_rag_sources'], [])
-        self.assertEqual(response.data['data']['graph_rag_mode'], 'graph_rag_skipped')
 
     @patch('knowledge.api.map.student_learning_rag.build_point_support_payload')
     @patch('knowledge.api.map.neo4j_service.__class__.is_available', new_callable=PropertyMock, return_value=False)
-    def test_point_detail_should_include_graphrag_by_default(self, _available, mock_graph_rag):
-        """默认知识点详情仍保持 GraphRAG 证据构造行为。"""
+    def test_point_detail_should_include_graphrag_when_explicitly_enabled(self, _available, mock_graph_rag):
+        """显式开启时知识点详情应构造 GraphRAG 证据。"""
         mock_graph_rag.return_value = {
             'summary': '图谱证据摘要',
             'sources': [{'title': '课程证据'}],
@@ -102,7 +103,8 @@ class KnowledgeMapFallbackTests(APITestCase):
         }
 
         response = self.client.get(
-            f'/api/student/knowledge-points/{self.point.id}?course_id={self.course.id}'
+            f'/api/student/knowledge-points/{self.point.id}'
+            f'?course_id={self.course.id}&include_graph_rag=true'
         )
 
         self.assertEqual(response.status_code, 200)

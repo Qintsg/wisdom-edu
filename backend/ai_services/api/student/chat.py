@@ -7,6 +7,8 @@ from typing import Any
 
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.request import Request
+from rest_framework.response import Response
 
 from common.core.logging_utils import build_log_message
 from common.http.responses import error_response, success_response
@@ -71,6 +73,16 @@ def build_chat_response(
 @permission_classes([IsAuthenticated])
 def ai_chat(request):
     """Course-grounded chat with optional knowledge-point focus."""
+    return handle_chat_request(request)
+
+
+def handle_chat_request(request: Request) -> Response:
+    """
+    处理学生 AI 聊天请求并返回统一响应。
+
+    :param request: DRF 请求对象。
+    :return: 统一格式的聊天响应。
+    """
     question = (request.data.get("question") or request.data.get("message") or "").strip()
     course_id = request.data.get("course_id")
     point_id = request.data.get("point_id")
@@ -96,7 +108,7 @@ def ai_chat(request):
 @permission_classes([IsAuthenticated])
 def ai_knowledge_graph_query(request):
     """Dedicated alias for graph-grounded student Q&A."""
-    return ai_chat(request)
+    return handle_chat_request(request)
 
 
 @api_view(["POST"])

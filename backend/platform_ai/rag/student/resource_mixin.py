@@ -27,6 +27,7 @@ class NodeResourceRecommendationRequest:
     completed_resource_ids: set[str]
     internal_count: int = 3
     external_count: int = 2
+    use_llm: bool = True
 
 
 class StudentResourceRecommendationMixin:
@@ -41,6 +42,7 @@ class StudentResourceRecommendationMixin:
             completed_resource_ids=request_data["completed_resource_ids"],
             internal_count=int(request_data.get("internal_count", 3) or 3),
             external_count=int(request_data.get("external_count", 2) or 2),
+            use_llm=bool(request_data.get("use_llm", True)),
         )
         return self._recommend_node_resources(request_context)
 
@@ -52,6 +54,7 @@ class StudentResourceRecommendationMixin:
         mastery_value: float | None,
         completed_resource_ids: set[str],
         external_count: int = 2,
+        use_llm: bool = True,
     ) -> dict[str, object]:
         """对外暴露稳定的节点资源推荐入口。"""
         request_context = NodeResourceRecommendationRequest(
@@ -60,6 +63,7 @@ class StudentResourceRecommendationMixin:
             mastery_value=mastery_value,
             completed_resource_ids=completed_resource_ids,
             external_count=external_count,
+            use_llm=use_llm,
         )
         return self._recommend_node_resources(request_context)
 
@@ -152,21 +156,22 @@ class StudentResourceRecommendationMixin:
         """优先用 LLM 选择内部资源，失败时回退到图谱排序结果。"""
         selected_ids: list[int] = []
         selected_reason_map: dict[int, tuple[str, str]] = {}
-        llm = self._llm_facade()
         available_resources = _serialize_available_resources(point, ordered_resources)
 
-        if llm.is_available and available_resources:
-            selected_ids, selected_reason_map = _parse_internal_llm_result(
-                llm.recommend_internal_resources(
-                    point_name=point.name,
-                    student_mastery=request_context.mastery_value,
-                    available_resources=available_resources,
-                    course_name=request_context.node.path.course.name,
-                    count=request_context.internal_count,
-                ),
-                point,
-                candidate_resources,
-            )
+        if request_context.use_llm and available_resources:
+            llm = self._llm_facade()
+            if llm.is_available:
+                selected_ids, selected_reason_map = _parse_internal_llm_result(
+                    llm.recommend_internal_resources(
+                        point_name=point.name,
+                        student_mastery=request_context.mastery_value,
+                        available_resources=available_resources,
+                        course_name=request_context.node.path.course.name,
+                        count=request_context.internal_count,
+                    ),
+                    point,
+                    candidate_resources,
+                )
 
         if selected_ids:
             return selected_ids, selected_reason_map
@@ -199,6 +204,9 @@ class StudentResourceRecommendationMixin:
                 candidate.to_response()
                 for candidate in external_candidates[: request_context.external_count]
             ]
+
+        if not request_context.use_llm:
+            return []
 
         return _parse_external_llm_result(
             self._llm_facade().recommend_external_resources(

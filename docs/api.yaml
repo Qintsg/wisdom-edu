@@ -92,6 +92,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiEnvelope'
+        '201':
+          $ref: '#/components/responses/Created'
         '400':
           $ref: '#/components/responses/BadRequest'
   /api/auth/login:
@@ -238,6 +240,8 @@ paths:
                 $ref: '#/components/schemas/ApiEnvelope'
         '400':
           $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
   /api/auth/password/change:
     post:
       tags:
@@ -763,6 +767,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiEnvelope'
+        '400':
+          $ref: '#/components/responses/BadRequest'
   /api/admin/users/export:
     get:
       tags:
@@ -854,6 +860,8 @@ paths:
           $ref: '#/components/responses/Success'
         '400':
           $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
   /api/admin/users/{user_id}/reset-password:
     post:
       tags:
@@ -990,6 +998,8 @@ paths:
                 $ref: '#/components/schemas/ApiEnvelope'
         '400':
           $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
   /api/courses:
     get:
       tags:
@@ -1258,6 +1268,8 @@ paths:
           $ref: '#/components/responses/Success'
         '400':
           $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
   /api/teacher/courses/{course_id}/cover/upload:
     post:
       tags:
@@ -1430,6 +1442,8 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/Success'
+        '403':
+          $ref: '#/components/responses/Forbidden'
   /api/teacher/classes/{class_id}/delete:
     delete:
       tags:
@@ -1441,6 +1455,8 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/Success'
+        '404':
+          $ref: '#/components/responses/NotFound'
   /api/teacher/classes/{class_id}/progress:
     get:
       tags:
@@ -1449,9 +1465,14 @@ paths:
       summary: 获取班级学习进度
       parameters:
         - $ref: '#/components/parameters/ClassIdPath'
+        - $ref: '#/components/parameters/CourseId'
       responses:
         '200':
           $ref: '#/components/responses/Success'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '403':
+          $ref: '#/components/responses/Forbidden'
   /api/teacher/classes/{class_id}/courses:
     get:
       tags:
@@ -1485,6 +1506,8 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/Success'
+        '403':
+          $ref: '#/components/responses/Forbidden'
   /api/teacher/classes/{class_id}/courses/{course_id}:
     delete:
       tags:
@@ -1501,6 +1524,8 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/Success'
+        '404':
+          $ref: '#/components/responses/NotFound'
   /api/teacher/classes/{class_id}/invitations:
     get:
       tags:
@@ -1512,6 +1537,8 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/Success'
+        '403':
+          $ref: '#/components/responses/Forbidden'
   /api/teacher/invitations/generate:
     post:
       tags:
@@ -1536,6 +1563,8 @@ paths:
       responses:
         '201':
           $ref: '#/components/responses/Created'
+        '403':
+          $ref: '#/components/responses/Forbidden'
   /api/teacher/invitations/{invitation_id}:
     delete:
       tags:
@@ -1551,6 +1580,8 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/Success'
+        '404':
+          $ref: '#/components/responses/NotFound'
   /api/teacher/classes/{class_id}/students:
     get:
       tags:
@@ -1562,6 +1593,8 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/Success'
+        '403':
+          $ref: '#/components/responses/Forbidden'
   /api/teacher/classes/{class_id}/students/{user_id}:
     delete:
       tags:
@@ -1574,6 +1607,8 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/Success'
+        '404':
+          $ref: '#/components/responses/NotFound'
   /api/teacher/classes/{class_id}/student-profiles:
     get:
       tags:
@@ -1586,6 +1621,8 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/Success'
+        '403':
+          $ref: '#/components/responses/Forbidden'
   /api/teacher/classes/{class_id}/announcements:
     get:
       tags:
@@ -1597,6 +1634,8 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/Success'
+        '403':
+          $ref: '#/components/responses/Forbidden'
     post:
       tags:
         - Courses
@@ -1621,6 +1660,8 @@ paths:
       responses:
         '201':
           $ref: '#/components/responses/Created'
+        '403':
+          $ref: '#/components/responses/Forbidden'
   /api/teacher/announcements/{announcement_id}:
     put:
       tags:
@@ -1647,6 +1688,8 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/Success'
+        '403':
+          $ref: '#/components/responses/Forbidden'
     delete:
       tags:
         - Courses
@@ -1661,6 +1704,8 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/Success'
+        '404':
+          $ref: '#/components/responses/NotFound'
   /api/admin/courses:
     get:
       tags:
@@ -1755,6 +1800,8 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/Success'
+        '404':
+          $ref: '#/components/responses/NotFound'
   /api/admin/courses/{course_id}/assign-teacher:
     post:
       tags:
@@ -1882,6 +1929,8 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/Success'
+        '404':
+          $ref: '#/components/responses/NotFound'
   /api/admin/classes/{class_id}/students:
     get:
       tags:
@@ -1936,6 +1985,8 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/Success'
+        '404':
+          $ref: '#/components/responses/NotFound'
   /api/admin/classes/{class_id}/assign-teacher:
     post:
       tags:
@@ -2083,6 +2134,7 @@ paths:
           description: 是否构造 GraphRAG 证据摘要。
           schema:
             type: boolean
+            default: false
       responses:
         '200':
           $ref: '#/components/responses/Success'
@@ -2314,6 +2366,8 @@ paths:
                 description:
                   type: string
       responses:
+        '200':
+          $ref: '#/components/responses/Success'
         '201':
           $ref: '#/components/responses/Created'
   /api/teacher/resources/{resource_id}:
@@ -2348,6 +2402,10 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/Success'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
   /api/teacher/resources/{resource_id}/delete:
     delete:
       tags:
@@ -2359,6 +2417,8 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/Success'
+        '404':
+          $ref: '#/components/responses/NotFound'
   /api/teacher/resources/{resource_id}/link-knowledge:
     post:
       tags:
@@ -2429,6 +2489,8 @@ paths:
             schema:
               $ref: '#/components/schemas/QuestionWriteRequest'
       responses:
+        '200':
+          $ref: '#/components/responses/Success'
         '201':
           $ref: '#/components/responses/Created'
   /api/teacher/questions/batch-delete:
@@ -2485,6 +2547,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiEnvelope'
+        '400':
+          $ref: '#/components/responses/BadRequest'
   /api/teacher/questions/export:
     get:
       tags:
@@ -2560,6 +2624,8 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/Success'
+        '404':
+          $ref: '#/components/responses/NotFound'
   /api/teacher/questions/{question_id}/link-knowledge:
     post:
       tags:
@@ -2624,6 +2690,8 @@ paths:
       responses:
         '201':
           $ref: '#/components/responses/Created'
+        '400':
+          $ref: '#/components/responses/BadRequest'
   /api/teacher/knowledge-relations/{relation_id}:
     delete:
       tags:
@@ -2639,6 +2707,8 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/Success'
+        '404':
+          $ref: '#/components/responses/NotFound'
   /api/teacher/knowledge-points:
     get:
       tags:
@@ -2685,6 +2755,8 @@ paths:
       responses:
         '201':
           $ref: '#/components/responses/Created'
+        '400':
+          $ref: '#/components/responses/BadRequest'
   /api/teacher/knowledge-points/{point_id}:
     get:
       tags:
@@ -2736,6 +2808,8 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/Success'
+        '404':
+          $ref: '#/components/responses/NotFound'
   /api/teacher/knowledge-map/import:
     post:
       tags:
@@ -2761,6 +2835,8 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/Success'
+        '400':
+          $ref: '#/components/responses/BadRequest'
   /api/teacher/knowledge-map/save:
     post:
       tags:
@@ -2793,6 +2869,8 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/Success'
+        '400':
+          $ref: '#/components/responses/BadRequest'
   /api/teacher/knowledge-map/publish:
     post:
       tags:
@@ -2895,6 +2973,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiEnvelope'
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '404':
           $ref: '#/components/responses/NotFound'
   /api/student/assessments/initial/knowledge/submit:
@@ -2981,6 +3061,8 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/Success'
+        '400':
+          $ref: '#/components/responses/BadRequest'
   /api/student/assessments/initial/ability/submit:
     post:
       tags:
@@ -3020,6 +3102,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiEnvelope'
+        '400':
+          $ref: '#/components/responses/BadRequest'
   /api/student/assessments/initial/habit:
     get:
       tags:
@@ -3074,6 +3158,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiEnvelope'
+        '400':
+          $ref: '#/components/responses/BadRequest'
   /api/student/assessments/profile/generate:
     post:
       tags:
@@ -3101,6 +3187,8 @@ paths:
                 $ref: '#/components/schemas/ApiEnvelope'
         '400':
           $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/ServerError'
   /api/student/learning-path:
@@ -3201,6 +3289,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiEnvelope'
+        '404':
+          $ref: '#/components/responses/NotFound'
         '409':
           $ref: '#/components/responses/Conflict'
   /api/student/path-nodes/{node_id}/complete:
@@ -3218,6 +3308,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiEnvelope'
+        '404':
+          $ref: '#/components/responses/NotFound'
         '409':
           $ref: '#/components/responses/Conflict'
   /api/student/path-nodes/{node_id}/skip:
@@ -3231,6 +3323,8 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/Success'
+        '404':
+          $ref: '#/components/responses/NotFound'
   /api/student/path-nodes/{node_id}/resources:
     get:
       tags:
@@ -3243,6 +3337,8 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/Success'
+        '404':
+          $ref: '#/components/responses/NotFound'
   /api/student/path-nodes/{node_id}/ai-resources:
     get:
       tags:
@@ -3259,6 +3355,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiEnvelope'
+        '404':
+          $ref: '#/components/responses/NotFound'
   /api/student/path-nodes/{node_id}/resources/{resource_id}/complete:
     post:
       tags:
@@ -3275,6 +3373,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiEnvelope'
+        '404':
+          $ref: '#/components/responses/NotFound'
   /api/student/path-nodes/{node_id}/resources/{resource_id}/pause:
     post:
       tags:
@@ -3296,6 +3396,8 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/Success'
+        '404':
+          $ref: '#/components/responses/NotFound'
   /api/student/path-nodes/{node_id}/exams:
     get:
       tags:
@@ -3312,6 +3414,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiEnvelope'
+        '404':
+          $ref: '#/components/responses/NotFound'
   /api/student/path-nodes/{node_id}/exams/{exam_id}/submit:
     post:
       tags:
@@ -3341,6 +3445,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiEnvelope'
+        '404':
+          $ref: '#/components/responses/NotFound'
   /api/student/path-nodes/{node_id}/stage-test:
     get:
       tags:
@@ -3359,6 +3465,8 @@ paths:
                 $ref: '#/components/schemas/ApiEnvelope'
         '400':
           $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
   /api/student/path-nodes/{node_id}/stage-test/submit:
     post:
       tags:
@@ -3387,6 +3495,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiEnvelope'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
   /api/student/dashboard:
     get:
       tags:
@@ -3524,6 +3636,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiEnvelope'
+        '404':
+          $ref: '#/components/responses/NotFound'
   /api/student/exams/{exam_id}/statistics:
     get:
       tags:
@@ -3539,6 +3653,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiEnvelope'
+        '404':
+          $ref: '#/components/responses/NotFound'
   /api/student/exams/{exam_id}/answer-sheet:
     get:
       tags:
@@ -3557,6 +3673,8 @@ paths:
                 $ref: '#/components/schemas/ApiEnvelope'
         '400':
           $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
   /api/student/exams/{exam_id}/retake:
     post:
       tags:
@@ -3568,6 +3686,8 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/Success'
+        '404':
+          $ref: '#/components/responses/NotFound'
   /api/student/exams/{exam_id}/download:
     get:
       tags:
@@ -3579,6 +3699,10 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/CsvDownload'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
   /api/student/classes/{class_id}/members:
     get:
       tags:
@@ -3698,6 +3822,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiEnvelope'
+        '404':
+          $ref: '#/components/responses/NotFound'
   /api/student/assessments/initial/submit:
     post:
       tags:
@@ -3727,6 +3853,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiEnvelope'
+        '400':
+          $ref: '#/components/responses/BadRequest'
   /api/teacher/exams:
     get:
       tags:
@@ -3812,6 +3940,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiEnvelope'
+        '404':
+          $ref: '#/components/responses/NotFound'
   /api/teacher/exams/{exam_id}/update:
     put:
       tags:
@@ -3859,6 +3989,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiEnvelope'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
   /api/teacher/exams/{exam_id}/delete:
     delete:
       tags:
@@ -3873,6 +4007,8 @@ paths:
           $ref: '#/components/responses/Success'
         '400':
           $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
   /api/teacher/exams/{exam_id}/publish:
     post:
       tags:
@@ -3903,6 +4039,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiEnvelope'
+        '404':
+          $ref: '#/components/responses/NotFound'
   /api/teacher/exams/{exam_id}/unpublish:
     post:
       tags:
@@ -3917,6 +4055,8 @@ paths:
           $ref: '#/components/responses/Success'
         '400':
           $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
   /api/teacher/exams/{exam_id}/results:
     get:
       tags:
@@ -3937,6 +4077,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiEnvelope'
+        '404':
+          $ref: '#/components/responses/NotFound'
   /api/teacher/exams/{exam_id}/export:
     get:
       tags:
@@ -3948,6 +4090,8 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/CsvDownload'
+        '404':
+          $ref: '#/components/responses/NotFound'
   /api/teacher/exams/{exam_id}/questions/add:
     post:
       tags:
@@ -3976,6 +4120,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiEnvelope'
+        '404':
+          $ref: '#/components/responses/NotFound'
   /api/teacher/exams/{exam_id}/questions/remove:
     post:
       tags:
@@ -4004,6 +4150,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiEnvelope'
+        '404':
+          $ref: '#/components/responses/NotFound'
   /api/teacher/exams/{exam_id}/students/{student_id}:
     get:
       tags:
@@ -4041,6 +4189,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiEnvelope'
+        '404':
+          $ref: '#/components/responses/NotFound'
   /api/student/ai/profile-analysis:
     post:
       tags:
@@ -4127,6 +4277,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiEnvelope'
+        '400':
+          $ref: '#/components/responses/BadRequest'
   /api/student/ai/feedback-report:
     post:
       tags:
@@ -4148,6 +4300,8 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/Success'
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '404':
           $ref: '#/components/responses/NotFound'
   /api/student/ai/learning-advice:
@@ -4359,6 +4513,8 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/Success'
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '404':
           $ref: '#/components/responses/NotFound'
   /api/student/ai/knowledge-query:
@@ -4379,6 +4535,8 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/Success'
+        '400':
+          $ref: '#/components/responses/BadRequest'
   /api/student/ai/graph-rag/search:
     post:
       tags:
@@ -4408,6 +4566,8 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/Success'
+        '400':
+          $ref: '#/components/responses/BadRequest'
   /api/student/ai/graph-rag/ask:
     post:
       tags:
@@ -4435,6 +4595,8 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/Success'
+        '400':
+          $ref: '#/components/responses/BadRequest'
   /api/ai/kt/predict:
     post:
       tags:
@@ -4536,6 +4698,8 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApiEnvelope'
+        '400':
+          $ref: '#/components/responses/BadRequest'
   /api/admin/logs:
     get:
       tags:
@@ -5350,6 +5514,17 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/ApiEnvelope'
+    Created:
+      description: 创建成功。
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/ApiEnvelope'
+              - type: object
+                properties:
+                  code:
+                    example: 201
     BadRequest:
       description: 请求参数错误或业务校验失败。
       content:
@@ -5386,17 +5561,6 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/ErrorResponse'
-    Created:
-      description: 创建成功。
-      content:
-        application/json:
-          schema:
-            allOf:
-              - $ref: '#/components/schemas/ApiEnvelope'
-              - type: object
-                properties:
-                  code:
-                    example: 201
     ServerError:
       description: 服务端处理失败。
       content:

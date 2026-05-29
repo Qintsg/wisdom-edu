@@ -37,12 +37,17 @@ def build_ai_resource_payload(user: object, node: PathNode) -> dict[str, object]
     return {
         "internal_resources": recommendation.get("internal_resources", []),
         "external_resources": recommendation.get("external_resources", []),
+        "service_status": "available",
     }
 
 
 def empty_resource_payload() -> dict[str, object]:
     """返回空资源推荐载荷。"""
-    return {"internal_resources": [], "external_resources": []}
+    return {
+        "internal_resources": [],
+        "external_resources": [],
+        "service_status": "available",
+    }
 
 
 def completed_resource_id_set(progress: NodeProgress | None) -> set[str]:
@@ -73,7 +78,8 @@ def recommend_node_resources(
             user=user,
             mastery_value=mastery_before_value(progress),
             completed_resource_ids=completed_resource_ids,
-            external_count=0 if node.node_type == "test" else 2,
+            external_count=0,
+            use_llm=False,
         )
     except Exception as exc:
         logger.warning(

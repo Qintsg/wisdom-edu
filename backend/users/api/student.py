@@ -15,6 +15,7 @@ from rest_framework.response import Response
 from common.http.responses import error_response, success_response
 from knowledge.models import ProfileSummary
 from users.models import HabitPreference
+from users.profiles.course_context import resolve_existing_profile_course_id
 from users.serializers import HabitPreferenceSerializer
 from users.profiles.student_support import (
     build_profile_export_response,
@@ -71,9 +72,11 @@ def update_student_profile(request: Request) -> Response:
     请求参数：
     - course_id: 课程ID（必填）
     """
-    course_id = request.data.get('course_id')
-    if not course_id:
-        return error_response(msg='缺少课程ID', code=400)
+    course_id, course_error = resolve_existing_profile_course_id(
+        request.data.get('course_id')
+    )
+    if course_error is not None:
+        return course_error
 
     payload, error = build_profile_refresh_payload(request.user, course_id)
     if error:

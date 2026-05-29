@@ -75,6 +75,8 @@ teacherClassesClassId:
         $ref: ../components/responses.yaml#/Success
 
 
+      "403":
+        $ref: ../components/responses.yaml#/Forbidden
 deleteTeacherClass:
   delete:
     tags: [Courses]
@@ -87,6 +89,8 @@ deleteTeacherClass:
         $ref: ../components/responses.yaml#/Success
 
 
+      "404":
+        $ref: ../components/responses.yaml#/NotFound
 getTeacherClassProgress:
   get:
     tags: [Courses]
@@ -94,11 +98,17 @@ getTeacherClassProgress:
     summary: 获取班级学习进度
     parameters:
       - $ref: ../components/parameters.yaml#/ClassIdPath
+      - $ref: ../components/parameters.yaml#/CourseId
     responses:
       "200":
         $ref: ../components/responses.yaml#/Success
 
+      "400":
+        $ref: ../components/responses.yaml#/BadRequest
 
+
+      "403":
+        $ref: ../components/responses.yaml#/Forbidden
 listTeacherClassCourses:
   get:
     tags: [Courses]
@@ -133,6 +143,8 @@ publishCourseToClass:
         $ref: ../components/responses.yaml#/Success
 
 
+      "403":
+        $ref: ../components/responses.yaml#/Forbidden
 unpublishCourseFromClass:
   delete:
     tags: [Courses]
@@ -150,6 +162,8 @@ unpublishCourseFromClass:
         $ref: ../components/responses.yaml#/Success
 
 
+      "404":
+        $ref: ../components/responses.yaml#/NotFound
 listClassInvitations:
   get:
     tags: [Courses]
@@ -162,6 +176,8 @@ listClassInvitations:
         $ref: ../components/responses.yaml#/Success
 
 
+      "403":
+        $ref: ../components/responses.yaml#/Forbidden
 generateClassInvitation:
   post:
     tags: [Courses]
@@ -186,6 +202,8 @@ generateClassInvitation:
         $ref: ../components/responses.yaml#/Created
 
 
+      "403":
+        $ref: ../components/responses.yaml#/Forbidden
 deleteClassInvitation:
   delete:
     tags: [Courses]
@@ -202,6 +220,8 @@ deleteClassInvitation:
         $ref: ../components/responses.yaml#/Success
 
 
+      "404":
+        $ref: ../components/responses.yaml#/NotFound
 listTeacherClassStudents:
   get:
     tags: [Courses]
@@ -214,6 +234,8 @@ listTeacherClassStudents:
         $ref: ../components/responses.yaml#/Success
 
 
+      "403":
+        $ref: ../components/responses.yaml#/Forbidden
 removeStudentFromTeacherClass:
   delete:
     tags: [Courses]
@@ -227,6 +249,8 @@ removeStudentFromTeacherClass:
         $ref: ../components/responses.yaml#/Success
 
 
+      "404":
+        $ref: ../components/responses.yaml#/NotFound
 listTeacherClassStudentProfiles:
   get:
     tags: [Courses, Profile]
@@ -239,6 +263,8 @@ listTeacherClassStudentProfiles:
         $ref: ../components/responses.yaml#/Success
 
 
+      "403":
+        $ref: ../components/responses.yaml#/Forbidden
 teacherClassesClassIdAnnouncements:
   get:
     tags: [Courses]
@@ -249,6 +275,8 @@ teacherClassesClassIdAnnouncements:
     responses:
       "200":
         $ref: ../components/responses.yaml#/Success
+      "403":
+        $ref: ../components/responses.yaml#/Forbidden
   post:
     tags: [Courses]
     operationId: createClassAnnouncement
@@ -272,6 +300,8 @@ teacherClassesClassIdAnnouncements:
         $ref: ../components/responses.yaml#/Created
 
 
+      "403":
+        $ref: ../components/responses.yaml#/Forbidden
 teacherAnnouncementsAnnouncementId:
   put:
     tags: [Courses]
@@ -297,6 +327,8 @@ teacherAnnouncementsAnnouncementId:
     responses:
       "200":
         $ref: ../components/responses.yaml#/Success
+      "403":
+        $ref: ../components/responses.yaml#/Forbidden
   delete:
     tags: [Courses]
     operationId: deleteClassAnnouncement
@@ -310,3 +342,5 @@ teacherAnnouncementsAnnouncementId:
     responses:
       "200":
         $ref: ../components/responses.yaml#/Success
+      "404":
+        $ref: ../components/responses.yaml#/NotFound

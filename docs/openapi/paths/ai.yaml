@@ -79,6 +79,8 @@ aiResourceReason:
             schema:
               $ref: ../components/schemas/ApiEnvelope.yaml
 
+      "400":
+        $ref: ../components/responses.yaml#/BadRequest
 aiFeedbackReport:
   post:
     tags: [AI, Exams]
@@ -100,6 +102,8 @@ aiFeedbackReport:
       "404":
         $ref: ../components/responses.yaml#/NotFound
 
+      "400":
+        $ref: ../components/responses.yaml#/BadRequest
 aiLearningAdvice:
   post:
     tags: [AI]
@@ -300,6 +304,8 @@ aiNodeIntro:
       "404":
         $ref: ../components/responses.yaml#/NotFound
 
+      "400":
+        $ref: ../components/responses.yaml#/BadRequest
 aiKnowledgeGraphQuery:
   post:
     tags: [AI, Knowledge]
@@ -316,6 +322,8 @@ aiKnowledgeGraphQuery:
     responses:
       "200":
         $ref: ../components/responses.yaml#/Success
+      "400":
+        $ref: ../components/responses.yaml#/BadRequest
 
 aiGraphRagSearch:
   post:
@@ -344,6 +352,8 @@ aiGraphRagSearch:
       "200":
         $ref: ../components/responses.yaml#/Success
 
+      "400":
+        $ref: ../components/responses.yaml#/BadRequest
 aiGraphRagAsk:
   post:
     tags: [AI, Knowledge]
@@ -369,6 +379,8 @@ aiGraphRagAsk:
       "200":
         $ref: ../components/responses.yaml#/Success
 
+      "400":
+        $ref: ../components/responses.yaml#/BadRequest
 ktPredict:
   post:
     tags: [AI]
@@ -465,3 +477,5 @@ ktRecommendations:
           application/json:
             schema:
               $ref: ../components/schemas/ApiEnvelope.yaml
+      "400":
+        $ref: ../components/responses.yaml#/BadRequest

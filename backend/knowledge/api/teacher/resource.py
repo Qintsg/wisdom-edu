@@ -7,15 +7,15 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 
 from common.http.permissions import IsTeacherOrAdmin
-from common.http.responses import error_response, success_response
+from common.http.responses import created_response, error_response, success_response
 from common.domain.utils import resolve_course_id as _resolve_course_id
 from knowledge.models import Resource
 from knowledge.api.teacher.helpers import (
     bad_request,
     link_knowledge_points,
     parse_pagination,
-    refresh_course_rag_index,
     require_point_ids,
+    schedule_course_rag_index_refresh,
 )
 from knowledge.api.teacher.resource_support import (
     create_resource_from_payload,
@@ -60,14 +60,17 @@ def resource_create(request: Request) -> Response:
     if not payload.title or not payload.resource_type:
         return bad_request("缺少必要参数")
 
-    resource = create_resource_from_payload(
-        course_id=course_id,
-        payload=payload,
-        file=request.FILES.get("file"),
-        user=request.user,
-    )
-    refresh_course_rag_index(course_id)
-    return success_response(
+    try:
+        resource = create_resource_from_payload(
+            course_id=course_id,
+            payload=payload,
+            file=request.FILES.get("file"),
+            user=request.user,
+        )
+    except ValueError as error:
+        return bad_request(str(error))
+    schedule_course_rag_index_refresh(course_id)
+    return created_response(
         data=resource_create_result(resource),
         msg="资源创建成功",
     )
@@ -85,11 +88,14 @@ def resource_update(request: Request, resource_id: int) -> Response:
     if request.method == "GET":
         return success_response(data=resource_detail_payload(resource))
 
-    update_resource_from_payload(
-        resource,
-        parse_resource_write_payload(request.data, partial=True),
-    )
-    refresh_course_rag_index(resource.course_id)
+    try:
+        update_resource_from_payload(
+            resource,
+            parse_resource_write_payload(request.data, partial=True),
+        )
+    except ValueError as error:
+        return bad_request(str(error))
+    schedule_course_rag_index_refresh(resource.course_id)
     return success_response(
         data={"resource_id": getattr(resource, "id", None) or getattr(resource, "pk", None)},
         msg="资源更新成功",
@@ -104,7 +110,7 @@ def resource_delete(request: Request, resource_id: int) -> Response:
         resource = Resource.objects.get(id=resource_id)
         course_id = resource.course_id
         resource.delete()
-        refresh_course_rag_index(course_id)
+        schedule_course_rag_index_refresh(course_id)
         return success_response(msg="资源删除成功")
     except Resource.DoesNotExist:
         return error_response(msg="资源不存在", code=404)

@@ -3,11 +3,12 @@ from __future__ import annotations
 
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 
 from common.http.permissions import IsTeacherOrAdmin
 from common.http.responses import error_response, forbidden_response, success_response
 
-from courses.models import Class, Enrollment
+from courses.models import Class, Course, Enrollment
 
 
 @api_view(["GET"])
@@ -64,10 +65,15 @@ def get_class_student_profiles(request, class_id):
         return forbidden_response(msg="无权查看此班级的学生画像")
 
     enrollments = Enrollment.objects.filter(class_obj=class_obj).select_related("user")
-    course = class_obj.course
+    course, course_error = resolve_class_profile_course(class_obj, request.query_params.get("course_id"))
+    if course_error:
+        return course_error
     student_ids = [enrollment.user_id for enrollment in enrollments]
     ability_by_user = {}
-    for ability in AbilityScore.objects.filter(user_id__in=student_ids):
+    ability_queryset = AbilityScore.objects.filter(user_id__in=student_ids)
+    if course is not None:
+        ability_queryset = ability_queryset.filter(course=course)
+    for ability in ability_queryset:
         if ability.user_id not in ability_by_user:
             ability_by_user[ability.user_id] = ability
     habit_by_user = {}
@@ -88,8 +94,41 @@ def get_class_student_profiles(request, class_id):
             "user_id": student.id,
             "username": student.username,
             "real_name": student.real_name,
-            "ability_score": {"logical_reasoning": ability_score.logical_reasoning, "memory": ability_score.memory, "innovation": ability_score.innovation} if ability_score is not None else None,
+            "ability_score": ability_score.scores if ability_score is not None else None,
             "habit_preference": {"preferred_resource": habit.preferred_resource, "preferred_study_time": habit.preferred_study_time, "study_pace": habit.study_pace} if habit is not None else None,
             "knowledge_mastery": mastery_by_user.get(student.id, [])[:10],
         })
     return success_response(data={"class_id": class_id, "class_name": class_obj.name, "profiles": profiles})
+
+
+def resolve_class_profile_course(
+    class_obj: Class,
+    raw_course_id: object,
+) -> tuple[Course | None, Response | None]:
+    """
+    解析班级学生画像使用的课程上下文。
+
+    :param class_obj: 班级对象。
+    :param raw_course_id: 可选课程 ID。
+    :return: `(course, error_response)`；未找到课程上下文时 course 为 None。
+    """
+    if raw_course_id not in (None, ""):
+        try:
+            course_id = int(str(raw_course_id).strip())
+        except (TypeError, ValueError):
+            return None, error_response(msg="课程ID格式错误")
+        if class_obj.course_id == course_id:
+            return class_obj.course, None
+        class_course = class_obj.class_courses.filter(
+            course_id=course_id,
+            is_active=True,
+        ).select_related("course").first()
+        if class_course is None:
+            return None, error_response(msg="课程不属于该班级")
+        return class_course.course, None
+
+    if class_obj.course is not None:
+        return class_obj.course, None
+
+    class_course = class_obj.class_courses.filter(is_active=True).select_related("course").order_by("id").first()
+    return (class_course.course if class_course is not None else None), None

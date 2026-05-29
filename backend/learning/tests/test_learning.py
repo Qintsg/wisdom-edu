@@ -7,7 +7,7 @@ from rest_framework.test import APITestCase
 
 from assessments.models import Question
 from courses.models import Course
-from knowledge.models import KnowledgeMastery, KnowledgePoint, KnowledgeRelation, ProfileSummary
+from knowledge.models import KnowledgeMastery, KnowledgePoint, KnowledgeRelation, ProfileSummary, Resource
 from learning.models import LearningPath, NodeProgress, PathNode
 from learning.paths.rules import apply_prerequisite_caps
 from users.models import User
@@ -106,6 +106,28 @@ class LearningResourceRouteTests(APITestCase):
         self.assertEqual(response.status_code, 200)
         progress = NodeProgress.objects.get(node=self.node, user=self.student)
         self.assertIn(f"ext_{self.node.id}_0", progress.completed_resources)
+
+    @patch("platform_ai.rag.student.dependencies.StudentRAGDependenciesMixin._llm_facade")
+    def test_ai_resources_should_use_fast_course_resource_recommendation(self, mock_llm_facade):
+        """节点 AI 资源接口默认不应触发慢速 LLM 推荐。"""
+        mock_llm_facade.side_effect = AssertionError("默认资源接口不应调用 LLM")
+        resource = Resource.objects.create(
+            course=self.course,
+            title="路径资源",
+            resource_type="video",
+            url="https://edu.qintsg.xyz/path-resource",
+            uploaded_by=self.teacher,
+        )
+        resource.knowledge_points.add(self.point)
+
+        response = self.client.get(f"/api/student/path-nodes/{self.node.id}/ai-resources")
+
+        self.assertEqual(response.status_code, 200)
+        payload = response.data["data"]
+        self.assertEqual(payload["service_status"], "available")
+        self.assertEqual(payload["external_resources"], [])
+        self.assertEqual(payload["internal_resources"][0]["resource_id"], resource.id)
+        mock_llm_facade.assert_not_called()
 
 
 class StageTestScoringTests(APITestCase):

@@ -64,6 +64,82 @@ class HabitPreferenceTests(APITestCase):
         self.assertEqual(habit_response.status_code, status.HTTP_404_NOT_FOUND)
 
 
+class ProfileRefreshEndpointTests(APITestCase):
+    """学习者画像刷新接口回归测试。"""
+
+    def setUp(self) -> None:
+        """
+        创建画像刷新接口所需用户与课程。
+
+        :return: None。
+        """
+        self.student = User.objects.create_user(
+            username='profile_refresh_student',
+            password='TestPassword123',
+            role='student',
+        )
+        self.teacher = User.objects.create_user(
+            username='profile_refresh_teacher',
+            password='TestPassword123',
+            role='teacher',
+        )
+        self.course = Course.objects.create(
+            name='画像刷新课程',
+            created_by=self.teacher,
+        )
+
+    def test_student_profile_refresh_should_reject_missing_course(self) -> None:
+        """
+        学生画像刷新应在写 ProfileSummary 前拒绝不存在课程。
+
+        :return: None。
+        """
+        self.client.force_authenticate(user=self.student)
+
+        response = self.client.post(
+            '/api/student/profile/update',
+            {'course_id': 999999},
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data['msg'], '课程不存在')
+
+    def test_teacher_profile_refresh_should_reject_missing_course(self) -> None:
+        """
+        教师画像刷新应在写 ProfileSummary 前拒绝不存在课程。
+
+        :return: None。
+        """
+        self.client.force_authenticate(user=self.teacher)
+
+        response = self.client.post(
+            f'/api/teacher/students/{self.student.id}/refresh-profile',
+            {'course_id': 999999},
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(response.data['msg'], '课程不存在')
+
+    def test_teacher_profile_refresh_should_check_student_scope(self) -> None:
+        """
+        教师不能刷新非本人班级学生的课程画像。
+
+        :return: None。
+        """
+        self.client.force_authenticate(user=self.teacher)
+
+        response = self.client.post(
+            f'/api/teacher/students/{self.student.id}/refresh-profile',
+            {'course_id': self.course.id},
+            format='json',
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.data['msg'], '该学生不在您的班级中')
+
+
 class LearnerProfileServiceCacheTests(TestCase):
     """学习者画像服务缓存回归测试。"""
 

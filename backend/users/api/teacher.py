@@ -8,7 +8,8 @@ from __future__ import annotations
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 
-from common.http.responses import success_response, error_response, forbidden_response
+from common.http.responses import success_response, forbidden_response
+from users.profiles.course_context import resolve_existing_profile_course_id
 from users.profiles.teacher_support import (
     build_profile_refresh_payload,
     build_student_profile_payload,
@@ -62,13 +63,19 @@ def teacher_refresh_student_profile(request, user_id):
     if user.role not in ['teacher', 'admin']:
         return forbidden_response(msg='无权操作')
 
-    course_id = request.data.get('course_id')
-    if not course_id:
-        return error_response(msg='缺少课程ID')
+    course_id, course_error = resolve_existing_profile_course_id(
+        request.data.get('course_id')
+    )
+    if course_error is not None:
+        return course_error
 
     student, student_error = resolve_student_for_teacher_profile(user_id)
     if student_error is not None:
         return student_error
+
+    permission_error = ensure_teacher_can_view_student(user, student, course_id)
+    if permission_error is not None:
+        return permission_error
 
     payload, refresh_error = build_profile_refresh_payload(student, course_id)
     if refresh_error is not None:

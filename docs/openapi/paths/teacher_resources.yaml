@@ -82,6 +82,8 @@ uploadTeacherResource:
         $ref: ../components/responses.yaml#/Created
 
 
+      "200":
+        $ref: ../components/responses.yaml#/Success
 teacherResourcesResourceId:
   get:
     tags: [Knowledge]
@@ -112,6 +114,10 @@ teacherResourcesResourceId:
     responses:
       "200":
         $ref: ../components/responses.yaml#/Success
+      "400":
+        $ref: ../components/responses.yaml#/BadRequest
+      "404":
+        $ref: ../components/responses.yaml#/NotFound
 
 
 deleteTeacherResource:
@@ -126,6 +132,8 @@ deleteTeacherResource:
         $ref: ../components/responses.yaml#/Success
 
 
+      "404":
+        $ref: ../components/responses.yaml#/NotFound
 linkTeacherResourceKnowledge:
   post:
     tags: [Knowledge]

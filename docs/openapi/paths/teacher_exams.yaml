@@ -83,6 +83,8 @@ getTeacherExamDetail:
               $ref: ../components/schemas/ApiEnvelope.yaml
 
 
+      "404":
+        $ref: ../components/responses.yaml#/NotFound
 updateTeacherExam:
   put:
     tags: [Exams]
@@ -131,6 +133,10 @@ updateTeacherExam:
               $ref: ../components/schemas/ApiEnvelope.yaml
 
 
+      "404":
+        $ref: ../components/responses.yaml#/NotFound
+      "400":
+        $ref: ../components/responses.yaml#/BadRequest
 deleteTeacherExam:
   delete:
     tags: [Exams]
@@ -146,6 +152,8 @@ deleteTeacherExam:
         $ref: ../components/responses.yaml#/BadRequest
 
 
+      "404":
+        $ref: ../components/responses.yaml#/NotFound
 publishTeacherExam:
   post:
     tags: [Exams]
@@ -177,6 +185,8 @@ publishTeacherExam:
               $ref: ../components/schemas/ApiEnvelope.yaml
 
 
+      "404":
+        $ref: ../components/responses.yaml#/NotFound
 unpublishTeacherExam:
   post:
     tags: [Exams]
@@ -192,6 +202,8 @@ unpublishTeacherExam:
         $ref: ../components/responses.yaml#/BadRequest
 
 
+      "404":
+        $ref: ../components/responses.yaml#/NotFound
 listTeacherExamResults:
   get:
     tags: [Exams]
@@ -213,6 +225,8 @@ listTeacherExamResults:
               $ref: ../components/schemas/ApiEnvelope.yaml
 
 
+      "404":
+        $ref: ../components/responses.yaml#/NotFound
 exportTeacherExamResults:
   get:
     tags: [Exams]
@@ -225,6 +239,8 @@ exportTeacherExamResults:
         $ref: ../components/responses.yaml#/CsvDownload
 
 
+      "404":
+        $ref: ../components/responses.yaml#/NotFound
 addTeacherExamQuestions:
   post:
     tags: [Exams]
@@ -253,6 +269,8 @@ addTeacherExamQuestions:
               $ref: ../components/schemas/ApiEnvelope.yaml
 
 
+      "404":
+        $ref: ../components/responses.yaml#/NotFound
 removeTeacherExamQuestions:
   post:
     tags: [Exams]
@@ -281,6 +299,8 @@ removeTeacherExamQuestions:
               $ref: ../components/schemas/ApiEnvelope.yaml
 
 
+      "404":
+        $ref: ../components/responses.yaml#/NotFound
 getTeacherExamStudentDetail:
   get:
     tags: [Exams]
@@ -318,3 +338,5 @@ getTeacherExamAnalysis:
           application/json:
             schema:
               $ref: ../components/schemas/ApiEnvelope.yaml
+      "404":
+        $ref: ../components/responses.yaml#/NotFound

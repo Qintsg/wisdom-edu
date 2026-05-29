@@ -118,6 +118,8 @@ saveStudentExamDraft:
               $ref: ../components/schemas/ApiEnvelope.yaml
 
 
+      "404":
+        $ref: ../components/responses.yaml#/NotFound
 getStudentExamStatistics:
   get:
     tags: [Exams]
@@ -134,6 +136,8 @@ getStudentExamStatistics:
               $ref: ../components/schemas/ApiEnvelope.yaml
 
 
+      "404":
+        $ref: ../components/responses.yaml#/NotFound
 getStudentExamAnswerSheet:
   get:
     tags: [Exams]
@@ -153,6 +157,8 @@ getStudentExamAnswerSheet:
         $ref: ../components/responses.yaml#/BadRequest
 
 
+      "404":
+        $ref: ../components/responses.yaml#/NotFound
 retakeStudentExam:
   post:
     tags: [Exams]
@@ -165,6 +171,8 @@ retakeStudentExam:
         $ref: ../components/responses.yaml#/Success
 
 
+      "404":
+        $ref: ../components/responses.yaml#/NotFound
 downloadStudentExamResult:
   get:
     tags: [Exams]
@@ -177,6 +185,10 @@ downloadStudentExamResult:
         $ref: ../components/responses.yaml#/CsvDownload
 
 
+      "404":
+        $ref: ../components/responses.yaml#/NotFound
+      "400":
+        $ref: ../components/responses.yaml#/BadRequest
 listStudentClassMembers:
   get:
     tags: [Courses, Exams]
@@ -294,6 +306,8 @@ startLegacyInitialAssessment:
               $ref: ../components/schemas/ApiEnvelope.yaml
 
 
+      "404":
+        $ref: ../components/responses.yaml#/NotFound
 submitLegacyInitialAssessment:
   post:
     tags: [Assessments, Exams]
@@ -319,3 +333,5 @@ submitLegacyInitialAssessment:
           application/json:
             schema:
               $ref: ../components/schemas/ApiEnvelope.yaml
+      "400":
+        $ref: ../components/responses.yaml#/BadRequest

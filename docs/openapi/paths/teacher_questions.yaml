@@ -48,6 +48,8 @@ createTeacherQuestion:
         $ref: ../components/responses.yaml#/Created
 
 
+      "200":
+        $ref: ../components/responses.yaml#/Success
 batchDeleteTeacherQuestions:
   post:
     tags: [Knowledge]
@@ -101,6 +103,8 @@ importTeacherQuestions:
               $ref: ../components/schemas/ApiEnvelope.yaml
 
 
+      "400":
+        $ref: ../components/responses.yaml#/BadRequest
 exportTeacherQuestions:
   get:
     tags: [Knowledge]
@@ -180,6 +184,8 @@ deleteTeacherQuestion:
         $ref: ../components/responses.yaml#/Success
 
 
+      "404":
+        $ref: ../components/responses.yaml#/NotFound
 linkTeacherQuestionKnowledge:
   post:
     tags: [Knowledge]

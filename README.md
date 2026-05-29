@@ -39,7 +39,7 @@ Supported by the Shanghai Undergraduate Training Program on Innovation and Entre
   - `backend/platform_ai` 汇聚 RAG、LLM、KT、搜索与 Agent 边界实现。
 - 文档与契约：`docs/`
   - API 契约源以 `docs/openapi/openapi.yaml` 为准，`docs/api.yaml` 为 Redocly CLI 打包产物，旧 Markdown API 文档已移除。
-  - 使用说明、OpenAPI 契约、变更记录和项目材料集中维护；旧专题说明文档已清理。
+  - 使用说明、OpenAPI 契约、API 端点测试报告、变更记录和项目材料集中维护；旧专题说明文档已清理。
 
 ## 快速启动
 
@@ -122,6 +122,7 @@ docs/      使用说明、OpenAPI 契约、变更记录与项目材料
 - `docs/使用说明.md`：学生、教师、管理员三端使用路径。
 - `docs/openapi/openapi.yaml`：模块化 OpenAPI 契约源文件。
 - `docs/api.yaml`：Redocly CLI 打包后的单文件 OpenAPI 产物。
+- `docs/API端点测试报告.md`：基于本地后端和样例库生成的 OpenAPI 端点逐项 HTTP 巡检报告。
 - `docs/CHANGELOG.md`：项目变更记录。
 - `LICENSE`：Academic Free License version 3.0（AFL-3.0）。
 

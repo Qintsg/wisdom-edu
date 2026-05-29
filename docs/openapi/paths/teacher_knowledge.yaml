@@ -36,6 +36,8 @@ createTeacherKnowledgeRelation:
         $ref: ../components/responses.yaml#/Created
 
 
+      "400":
+        $ref: ../components/responses.yaml#/BadRequest
 deleteTeacherKnowledgeRelation:
   delete:
     tags: [Knowledge]
@@ -52,6 +54,8 @@ deleteTeacherKnowledgeRelation:
         $ref: ../components/responses.yaml#/Success
 
 
+      "404":
+        $ref: ../components/responses.yaml#/NotFound
 listTeacherKnowledgePoints:
   get:
     tags: [Knowledge]
@@ -98,6 +102,8 @@ createTeacherKnowledgePoint:
         $ref: ../components/responses.yaml#/Created
 
 
+      "400":
+        $ref: ../components/responses.yaml#/BadRequest
 teacherKnowledgePointsPointId:
   get:
     tags: [Knowledge]
@@ -150,6 +156,8 @@ deleteTeacherKnowledgePoint:
         $ref: ../components/responses.yaml#/Success
 
 
+      "404":
+        $ref: ../components/responses.yaml#/NotFound
 importTeacherKnowledgeMap:
   post:
     tags: [Knowledge]
@@ -174,6 +182,8 @@ importTeacherKnowledgeMap:
         $ref: ../components/responses.yaml#/Success
 
 
+      "400":
+        $ref: ../components/responses.yaml#/BadRequest
 saveTeacherKnowledgeMap:
   post:
     tags: [Knowledge]
@@ -204,6 +214,8 @@ saveTeacherKnowledgeMap:
         $ref: ../components/responses.yaml#/Success
 
 
+      "400":
+        $ref: ../components/responses.yaml#/BadRequest
 publishTeacherKnowledgeMap:
   post:
     tags: [Knowledge]

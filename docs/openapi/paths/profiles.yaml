@@ -233,3 +233,5 @@ refreshTeacherStudentProfile:
               $ref: ../components/schemas/ApiEnvelope.yaml
       "400":
         $ref: ../components/responses.yaml#/BadRequest
+      "403":
+        $ref: ../components/responses.yaml#/Forbidden

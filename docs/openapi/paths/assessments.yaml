@@ -31,6 +31,8 @@ getKnowledgeAssessment:
           application/json:
             schema:
               $ref: ../components/schemas/ApiEnvelope.yaml
+      "400":
+        $ref: ../components/responses.yaml#/BadRequest
       "404":
         $ref: ../components/responses.yaml#/NotFound
 
@@ -113,6 +115,8 @@ retakeAbilityAssessment:
     responses:
       "200":
         $ref: ../components/responses.yaml#/Success
+      "400":
+        $ref: ../components/responses.yaml#/BadRequest
 
 submitAbilityAssessment:
   post:
@@ -150,6 +154,8 @@ submitAbilityAssessment:
             schema:
               $ref: ../components/schemas/ApiEnvelope.yaml
 
+      "400":
+        $ref: ../components/responses.yaml#/BadRequest
 getHabitSurvey:
   get:
     tags: [Assessments]
@@ -201,6 +207,8 @@ submitHabitSurvey:
             schema:
               $ref: ../components/schemas/ApiEnvelope.yaml
 
+      "400":
+        $ref: ../components/responses.yaml#/BadRequest
 generateCourseProfile:
   post:
     tags: [Assessments, Profile]
@@ -227,3 +235,5 @@ generateCourseProfile:
         $ref: ../components/responses.yaml#/BadRequest
       "500":
         $ref: ../components/responses.yaml#/ServerError
+      "404":
+        $ref: ../components/responses.yaml#/NotFound

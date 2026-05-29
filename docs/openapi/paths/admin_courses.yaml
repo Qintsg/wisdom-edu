@@ -87,6 +87,8 @@ adminCoursesCourseId:
         $ref: ../components/responses.yaml#/Success
 
 
+      "404":
+        $ref: ../components/responses.yaml#/NotFound
 assignTeacherToCourse:
   post:
     tags: [Admin, Courses]
@@ -208,6 +210,8 @@ adminClassesClassId:
         $ref: ../components/responses.yaml#/Success
 
 
+      "404":
+        $ref: ../components/responses.yaml#/NotFound
 listAdminClassStudents:
   get:
     tags: [Admin, Courses]
@@ -261,6 +265,8 @@ removeAdminClassStudent:
         $ref: ../components/responses.yaml#/Success
 
 
+      "404":
+        $ref: ../components/responses.yaml#/NotFound
 assignTeacherToClass:
   post:
     tags: [Admin, Courses]

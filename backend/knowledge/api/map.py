@@ -30,9 +30,14 @@ logger = logging.getLogger(__name__)
 
 
 def _should_include_graph_rag_support(request: Request) -> bool:
-    """判断知识点详情是否需要构造 GraphRAG 证据摘要。"""
-    raw_value = str(request.query_params.get("include_graph_rag", "true")).strip().lower()
-    return raw_value not in {"0", "false", "no", "off"}
+    """
+    判断知识点详情是否需要构造 GraphRAG 证据摘要。
+
+    :param request: DRF 请求对象。
+    :return: 显式开启 GraphRAG 证据时返回 True。
+    """
+    raw_value = str(request.query_params.get("include_graph_rag", "false")).strip().lower()
+    return raw_value in {"1", "true", "yes", "on"}
 
 
 @api_view(["GET"])

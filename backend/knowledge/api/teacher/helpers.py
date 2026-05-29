@@ -7,9 +7,11 @@ from __future__ import annotations
 
 import codecs
 import logging
+import threading
 from collections.abc import Iterable
 from typing import Protocol, cast
 
+from django.db import transaction
 from django.http import HttpResponse
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -127,3 +129,27 @@ def refresh_course_rag_index(course_id: int) -> None:
         logger.info("课程 RAG 索引刷新成功: course=%s", course_id)
     except Exception as error:
         logger.warning("课程 RAG 索引刷新失败: course=%s error=%s", course_id, error)
+
+
+def schedule_course_rag_index_refresh(course_id: int) -> None:
+    """
+    在事务提交后后台刷新课程级 RAG 索引。
+
+    :param course_id: 需要刷新的课程 ID。
+    :return: None。
+    """
+
+    def start_refresh_thread() -> None:
+        """
+        启动后台刷新线程。
+
+        :return: None。
+        """
+        threading.Thread(
+            target=refresh_course_rag_index,
+            args=(course_id,),
+            name=f"course-rag-refresh-{course_id}",
+            daemon=True,
+        ).start()
+
+    transaction.on_commit(start_refresh_thread)
