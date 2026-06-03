@@ -38,8 +38,8 @@ Supported by the Shanghai Undergraduate Training Program on Innovation and Entre
   - Qdrant、Neo4j GraphRAG、LangChain、DeepSeek / 通义千问兼容客户端支撑 AI 能力。
   - `backend/platform_ai` 汇聚 RAG、LLM、KT、搜索与 Agent 边界实现。
 - 文档与契约：`docs/`
-  - API 契约源以 `docs/openapi/openapi.yaml` 为准，`docs/api.yaml` 为 Redocly CLI 打包产物，旧 Markdown API 文档已移除。
-  - 使用说明、OpenAPI 契约、API 端点测试报告、变更记录和项目材料集中维护；旧专题说明文档已清理。
+  - API 契约源以 `docs/openapi/openapi.yaml` 为准，`docs/api.yaml` 为 Redocly CLI 打包产物。
+  - 使用说明、OpenAPI 契约、API 端点测试报告、变更记录和项目材料集中维护。
 
 ## 快速启动
 
